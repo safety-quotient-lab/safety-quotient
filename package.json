@@ -1,0 +1,18 @@
+{
+  "name": "safety-quotient",
+  "version": "0.1.0",
+  "description": "SafetyQuotient — Psychoemotional Safety Quotient Content Evaluator",
+  "type": "module",
+  "scripts": {
+    "detect": "node src/run.js",
+    "detect:openrouter": "node src/run.js --provider openrouter",
+    "detect:claude": "node src/run.js --provider claude",
+    "detect:workersai": "node src/run.js --provider workersai",
+    "detect:compare": "node src/run.js --provider compare",
+    "fetch-samples": "node src/fetch-samples.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.0"
+  }
+}

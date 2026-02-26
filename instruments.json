@@ -1,0 +1,2191 @@
+{
+  "meta": {
+    "name": "SafetyQuotient Instrument Library",
+    "version": "0.3.0",
+    "description": "Validated psychological instruments mapped to PSQ dimensions with item-level textual indicators for LLM content analysis",
+    "usage": "fair_use_for_research",
+    "total_dimensions": 10,
+    "total_instruments": 23,
+    "created": "2025-02-25"
+  },
+  "dimensions": {
+    "threat_exposure": {
+      "id": "threat_exposure",
+      "name": "Threat Exposure",
+      "description": "The nature, frequency, intensity, and proximity of psychoemotional threats present in the environment",
+      "psq_role": "threat_factor",
+      "scoring": {
+        "0": "extreme direct threat — violence, severe abuse, or sustained targeted harassment",
+        "1": "strong threat — explicit intimidation, dehumanization, or aggressive confrontation",
+        "2": "clear threat — insults, contempt, or hostile framing directed at individuals/groups",
+        "3": "moderate threat — dismissive language, mild antagonism, or coded hostility",
+        "4": "mild threat — slight tension, sarcasm, or passive negativity",
+        "5": "neutral — no discernible threat or safety signals",
+        "6": "mild safety — generally civil tone, low-tension communication",
+        "7": "moderate safety — respectful engagement, absence of threat cues",
+        "8": "clear safety — warm, inclusive language with active care for others",
+        "9": "strong safety — explicit protection, advocacy, or threat mitigation",
+        "10": "maximum safety — active prevention of threat with structural safeguards"
+      },
+      "instruments": [
+        {
+          "id": "naq",
+          "name": "Negative Acts Questionnaire",
+          "abbreviation": "NAQ",
+          "authors": "Einarsen, S., Hoel, H., & Notelaers, G.",
+          "year": 1994,
+          "revised": 2009,
+          "construct": "Workplace bullying and negative interpersonal behaviors",
+          "subscales": [
+            {
+              "id": "naq_work",
+              "name": "Work-Related Bullying",
+              "items": [
+                {
+                  "id": "naq_w1",
+                  "construct": "Withholding information that affects performance",
+                  "textual_indicators": [
+                    "deliberate omission of relevant information",
+                    "keeping someone out of the loop",
+                    "failing to share necessary context",
+                    "information gatekeeping as control"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_w2",
+                  "construct": "Being ordered to do work below competence level",
+                  "textual_indicators": [
+                    "demeaning task assignment",
+                    "deliberate underutilization",
+                    "assigning menial work to qualified person",
+                    "skill-dismissive delegation"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_w3",
+                  "construct": "Having key areas of responsibility removed",
+                  "textual_indicators": [
+                    "stripping someone of duties",
+                    "reassigning work without explanation",
+                    "gradual role erosion",
+                    "sidelining from decisions"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_w4",
+                  "construct": "Excessive monitoring of work",
+                  "textual_indicators": [
+                    "micromanagement language",
+                    "constant check-ins framed as control",
+                    "surveillance of routine activities",
+                    "distrust-driven oversight"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_w5",
+                  "construct": "Being given tasks with unreasonable deadlines",
+                  "textual_indicators": [
+                    "impossible timeline demands",
+                    "setting someone up to fail",
+                    "unrealistic expectations stated as requirements",
+                    "deadline pressure without resource support"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "naq_person",
+              "name": "Person-Related Bullying",
+              "items": [
+                {
+                  "id": "naq_p1",
+                  "construct": "Being humiliated or ridiculed in connection with work",
+                  "textual_indicators": [
+                    "public mockery",
+                    "ridicule of ideas or contributions",
+                    "sarcasm aimed at competence",
+                    "humiliation in front of others"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_p2",
+                  "construct": "Being ignored or excluded",
+                  "textual_indicators": [
+                    "deliberate exclusion from conversations",
+                    "ignoring contributions",
+                    "social ostracism",
+                    "silent treatment",
+                    "being talked over or past"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_p3",
+                  "construct": "Having insulting or offensive remarks made about person",
+                  "textual_indicators": [
+                    "personal insults",
+                    "character attacks",
+                    "offensive language directed at individual",
+                    "derogatory comments about identity"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_p4",
+                  "construct": "Being the subject of gossip and rumors",
+                  "textual_indicators": [
+                    "spreading unverified claims",
+                    "behind-the-back criticism",
+                    "reputation damage through hearsay",
+                    "triangulation"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_p5",
+                  "construct": "Persistent criticism of work or effort",
+                  "textual_indicators": [
+                    "nothing is ever good enough",
+                    "relentless fault-finding",
+                    "dismissing effort while demanding more",
+                    "criticism without constructive purpose"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "naq_physical",
+              "name": "Physically Intimidating Bullying",
+              "items": [
+                {
+                  "id": "naq_ph1",
+                  "construct": "Being shouted at or being the target of spontaneous anger",
+                  "textual_indicators": [
+                    "ALL CAPS or aggressive punctuation",
+                    "explosive anger in text",
+                    "verbal intimidation",
+                    "rage-driven communication"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "naq_ph2",
+                  "construct": "Intimidating behavior such as finger-pointing or invasion of personal space",
+                  "textual_indicators": [
+                    "threatening language",
+                    "implicit threats of consequences",
+                    "menacing tone",
+                    "I know where you live type statements"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "copsoq",
+          "name": "Copenhagen Psychosocial Questionnaire",
+          "abbreviation": "COPSOQ",
+          "authors": "Kristensen, T.S., Hannerz, H., Høgh, A., & Borg, V.",
+          "year": 2005,
+          "revised": 2018,
+          "construct": "Psychosocial work environment and hazards",
+          "subscales": [
+            {
+              "id": "copsoq_demands",
+              "name": "Quantitative Demands",
+              "items": [
+                {
+                  "id": "copsoq_d1",
+                  "construct": "Uneven distribution of workload creating time pressure",
+                  "textual_indicators": [
+                    "overwhelming task volume language",
+                    "not enough time expressions",
+                    "work piling up references",
+                    "impossible workload descriptions"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "copsoq_d2",
+                  "construct": "Emotional demands of the work",
+                  "textual_indicators": [
+                    "emotional labor demands",
+                    "requirement to suppress authentic feelings",
+                    "performing emotions not felt",
+                    "exposure to others' suffering without support"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "copsoq_influence",
+              "name": "Influence and Control",
+              "items": [
+                {
+                  "id": "copsoq_i1",
+                  "construct": "Degree of influence over own work situation",
+                  "textual_indicators": [
+                    "no say in decisions affecting oneself",
+                    "top-down mandates without input",
+                    "autonomy denied",
+                    "lack of agency language"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "copsoq_i2",
+                  "construct": "Possibilities for development",
+                  "textual_indicators": [
+                    "dead-end framing",
+                    "no growth opportunity language",
+                    "stagnation references",
+                    "blocked advancement"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "copsoq_social",
+              "name": "Social Relations and Leadership",
+              "items": [
+                {
+                  "id": "copsoq_s1",
+                  "construct": "Social support from colleagues",
+                  "textual_indicators": [
+                    "isolation references",
+                    "no one to turn to",
+                    "unsupported expressions",
+                    "alone in this language"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "copsoq_s2",
+                  "construct": "Quality of leadership",
+                  "textual_indicators": [
+                    "absent leadership",
+                    "inconsistent management",
+                    "favoritism references",
+                    "leadership by fear indicators"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "regulatory_capacity": {
+      "id": "regulatory_capacity",
+      "name": "Regulatory Capacity",
+      "description": "The capacity to modulate emotional states in response to threat without collapse, suppression, or overflow",
+      "psq_role": "protective_factor",
+      "scoring": {
+        "0": "extreme dysregulation demand — content forces suppression or triggers emotional collapse",
+        "1": "strong dysregulation — provokes overwhelming emotional response",
+        "2": "clear dysregulation — models or demands poor emotional management",
+        "3": "moderate strain — content taxes regulatory capacity",
+        "4": "mild strain — slight emotional challenge without support",
+        "5": "neutral — no regulatory demand or support",
+        "6": "mild support — generally calm, emotionally stable communication",
+        "7": "moderate support — models composed emotional engagement",
+        "8": "clear support — actively supports healthy emotional processing",
+        "9": "strong support — teaches or reinforces regulatory strategies",
+        "10": "maximum support — exemplary emotional regulation modeling with explicit guidance"
+      },
+      "instruments": [
+        {
+          "id": "ders",
+          "name": "Difficulties in Emotion Regulation Scale",
+          "abbreviation": "DERS",
+          "authors": "Gratz, K.L. & Roemer, L.",
+          "year": 2004,
+          "construct": "Multidimensional assessment of emotion regulation difficulties",
+          "subscales": [
+            {
+              "id": "ders_nonaccept",
+              "name": "Non-Acceptance of Emotional Responses",
+              "items": [
+                {
+                  "id": "ders_na1",
+                  "construct": "Feeling ashamed of oneself for feeling a certain way",
+                  "textual_indicators": [
+                    "emotion shaming language",
+                    "you shouldn't feel that way",
+                    "dismissing emotional responses as weakness",
+                    "pathologizing normal emotional reactions"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "ders_na2",
+                  "construct": "Feeling guilty about having certain emotions",
+                  "textual_indicators": [
+                    "guilt-inducing responses to emotional expression",
+                    "emotional manipulation through guilt",
+                    "making someone wrong for their feelings",
+                    "how dare you feel X"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "ders_goals",
+              "name": "Difficulties Engaging in Goal-Directed Behavior",
+              "items": [
+                {
+                  "id": "ders_g1",
+                  "construct": "Difficulty concentrating when upset",
+                  "textual_indicators": [
+                    "emotional overwhelm blocking function",
+                    "can't think straight language",
+                    "paralysis in response to distress",
+                    "emotional flooding preventing action"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "ders_impulse",
+              "name": "Impulse Control Difficulties",
+              "items": [
+                {
+                  "id": "ders_im1",
+                  "construct": "Difficulty controlling behavior when upset",
+                  "textual_indicators": [
+                    "losing control language",
+                    "I couldn't help myself",
+                    "reactive outbursts in text",
+                    "escalation without pause"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "ders_im2",
+                  "construct": "Feeling out of control when upset",
+                  "textual_indicators": [
+                    "overwhelm language",
+                    "spiraling expressions",
+                    "loss of agency in emotional state",
+                    "emotional hijacking descriptions"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "ders_awareness",
+              "name": "Lack of Emotional Awareness",
+              "items": [
+                {
+                  "id": "ders_aw1",
+                  "construct": "Difficulty identifying what one is feeling",
+                  "textual_indicators": [
+                    "I don't know what I feel",
+                    "emotional confusion",
+                    "alexithymic language patterns",
+                    "disconnect between described events and emotional response"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "ders_strategies",
+              "name": "Limited Access to Emotion Regulation Strategies",
+              "items": [
+                {
+                  "id": "ders_st1",
+                  "construct": "Believing there is nothing one can do to feel better",
+                  "textual_indicators": [
+                    "hopelessness about emotional state",
+                    "nothing helps language",
+                    "stuck in feeling forever",
+                    "no way out of this emotion"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "ders_st2",
+                  "construct": "Believing that one will remain upset for a long time",
+                  "textual_indicators": [
+                    "this will never end",
+                    "permanent emotional state framing",
+                    "catastrophizing duration of distress",
+                    "absence of temporal hope"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "ders_clarity",
+              "name": "Lack of Emotional Clarity",
+              "items": [
+                {
+                  "id": "ders_cl1",
+                  "construct": "Difficulty making sense of one's feelings",
+                  "textual_indicators": [
+                    "emotional ambiguity",
+                    "mixed signals about own state",
+                    "contradictory emotional expressions",
+                    "I feel everything and nothing"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "erq",
+          "name": "Emotion Regulation Questionnaire",
+          "abbreviation": "ERQ",
+          "authors": "Gross, J.J. & John, O.P.",
+          "year": 2003,
+          "construct": "Individual differences in habitual use of two emotion regulation strategies: cognitive reappraisal and expressive suppression",
+          "subscales": [
+            {
+              "id": "erq_reappraisal",
+              "name": "Cognitive Reappraisal",
+              "items": [
+                {
+                  "id": "erq_r1",
+                  "construct": "Changing the way one thinks about a situation to change its emotional impact",
+                  "textual_indicators": [
+                    "reframing language",
+                    "looking at it another way",
+                    "perspective-shifting",
+                    "finding the learning in difficulty",
+                    "silver lining framing"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "erq_r2",
+                  "construct": "Thinking about a situation differently to manage emotional response",
+                  "textual_indicators": [
+                    "cognitive restructuring cues",
+                    "what if we think about it as",
+                    "alternative interpretation offering",
+                    "challenging catastrophic framing"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "erq_r3",
+                  "construct": "Regulating emotions by changing how one thinks about stressful situations",
+                  "textual_indicators": [
+                    "this is temporary framing",
+                    "normalizing difficulty",
+                    "contextualization of distress",
+                    "separating event from meaning"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "erq_suppression",
+              "name": "Expressive Suppression",
+              "items": [
+                {
+                  "id": "erq_s1",
+                  "construct": "Keeping emotions to oneself by not expressing them",
+                  "textual_indicators": [
+                    "don't show your feelings",
+                    "keep it together demands",
+                    "emotional stoicism enforcement",
+                    "vulnerability as weakness framing"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "erq_s2",
+                  "construct": "Controlling emotions by not expressing them",
+                  "textual_indicators": [
+                    "suppress it language",
+                    "no one wants to hear that",
+                    "be professional means be emotionless",
+                    "penalizing emotional expression"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "erq_s3",
+                  "construct": "Making sure others do not notice how one is feeling",
+                  "textual_indicators": [
+                    "hide your reactions",
+                    "poker face demands",
+                    "emotional masking requirements",
+                    "authenticity suppression"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "resilience_baseline": {
+      "id": "resilience_baseline",
+      "name": "Resilience Baseline",
+      "description": "The capacity to absorb disruption and return to functional equilibrium — contributes to safety but is not a substitute for it",
+      "psq_role": "protective_factor",
+      "scoring": {
+        "0": "extreme erosion — induces helplessness, despair, or total defeat",
+        "1": "strong erosion — significantly undermines agency or coping capacity",
+        "2": "clear erosion — models fragility or learned helplessness",
+        "3": "moderate erosion — discouraging tone, mild hopelessness",
+        "4": "mild erosion — slightly undermines confidence or persistence",
+        "5": "neutral — no resilience impact",
+        "6": "mild reinforcement — generally encouraging tone",
+        "7": "moderate reinforcement — models persistence or adaptive coping",
+        "8": "clear reinforcement — actively builds confidence or agency",
+        "9": "strong reinforcement — celebrates overcoming adversity",
+        "10": "maximum reinforcement — exemplary resilience modeling with structural support"
+      },
+      "instruments": [
+        {
+          "id": "brs",
+          "name": "Brief Resilience Scale",
+          "abbreviation": "BRS",
+          "authors": "Smith, B.W., Dalen, J., Wiggins, K., Steger, M., & Tooley, E.",
+          "year": 2008,
+          "construct": "Ability to bounce back or recover from stress",
+          "subscales": [
+            {
+              "id": "brs_core",
+              "name": "Bounce-Back Ability",
+              "items": [
+                {
+                  "id": "brs_1",
+                  "construct": "Tendency to bounce back quickly after hard times",
+                  "textual_indicators": [
+                    "recovery language",
+                    "getting back up framing",
+                    "moving forward after setback",
+                    "acknowledging difficulty then pivoting to action"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "brs_2",
+                  "construct": "Having a hard time making it through stressful events",
+                  "textual_indicators": [
+                    "can't get through this",
+                    "permanent damage framing",
+                    "inability to cope language",
+                    "overwhelm without horizon"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "brs_3",
+                  "construct": "Not taking long to recover from stressful events",
+                  "textual_indicators": [
+                    "quick recovery references",
+                    "already feeling better",
+                    "processing and moving on",
+                    "temporal optimism about recovery"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "brs_4",
+                  "construct": "It being hard to snap back when something bad happens",
+                  "textual_indicators": [
+                    "stuck in the aftermath",
+                    "can't shake it",
+                    "lingering impact language",
+                    "rumination patterns"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "brs_5",
+                  "construct": "Usually coming through difficult times with little trouble",
+                  "textual_indicators": [
+                    "I've handled worse",
+                    "competence in adversity",
+                    "difficulty as manageable framing",
+                    "self-efficacy in crisis"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "brs_6",
+                  "construct": "Tending to take a long time to get over setbacks",
+                  "textual_indicators": [
+                    "still recovering from",
+                    "this has haunted me",
+                    "prolonged impact language",
+                    "unresolved distress references"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cdrisc",
+          "name": "Connor-Davidson Resilience Scale",
+          "abbreviation": "CD-RISC",
+          "authors": "Connor, K.M. & Davidson, J.R.T.",
+          "year": 2003,
+          "construct": "Resilience as the ability to thrive in the face of adversity",
+          "subscales": [
+            {
+              "id": "cdrisc_competence",
+              "name": "Personal Competence and Tenacity",
+              "items": [
+                {
+                  "id": "cdrisc_c1",
+                  "construct": "Ability to adapt to change",
+                  "textual_indicators": [
+                    "flexibility language",
+                    "rolling with changes",
+                    "adaptation framing",
+                    "adjusting expectations constructively"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cdrisc_c2",
+                  "construct": "Ability to deal with whatever comes one's way",
+                  "textual_indicators": [
+                    "I can handle this",
+                    "general self-efficacy",
+                    "coping confidence",
+                    "resourcefulness language"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cdrisc_c3",
+                  "construct": "Past success as giving confidence for new challenges",
+                  "textual_indicators": [
+                    "I've done this before",
+                    "drawing on past experience",
+                    "track record references",
+                    "earned confidence"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "cdrisc_trust",
+              "name": "Trust in One's Instincts",
+              "items": [
+                {
+                  "id": "cdrisc_t1",
+                  "construct": "Having a strong sense of purpose",
+                  "textual_indicators": [
+                    "purpose language",
+                    "meaning-making in adversity",
+                    "why this matters framing",
+                    "mission-driven persistence"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cdrisc_t2",
+                  "construct": "Knowing where to turn for help",
+                  "textual_indicators": [
+                    "resource awareness",
+                    "support network references",
+                    "knowing who to call",
+                    "help-seeking as strength"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "cdrisc_control",
+              "name": "Acceptance of Change and Secure Relationships",
+              "items": [
+                {
+                  "id": "cdrisc_ac1",
+                  "construct": "Belief that things happen for a reason",
+                  "textual_indicators": [
+                    "meaning-making language",
+                    "growth from adversity framing",
+                    "post-traumatic growth indicators",
+                    "finding purpose in suffering"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cdrisc_ac2",
+                  "construct": "Ability to act under pressure",
+                  "textual_indicators": [
+                    "calm under pressure",
+                    "functioning despite stress",
+                    "composed action language",
+                    "clear thinking in crisis"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "trust_conditions": {
+      "id": "trust_conditions",
+      "name": "Trust Conditions",
+      "description": "The reasonable expectation that others within the system will not exploit vulnerability",
+      "psq_role": "protective_factor",
+      "scoring": {
+        "0": "extreme betrayal — active deception, exploitation of vulnerability, or gaslighting",
+        "1": "strong trust destruction — clear bad faith, manipulation, or breach of confidence",
+        "2": "clear trust damage — cynicism, dishonesty cues, or unreliability",
+        "3": "moderate trust erosion — skepticism, veiled motives, or inconsistency",
+        "4": "mild trust erosion — slight unreliability or guarded communication",
+        "5": "neutral — no trust signals either way",
+        "6": "mild trust building — generally honest, straightforward communication",
+        "7": "moderate trust building — transparency, consistency, or good faith signals",
+        "8": "clear trust building — active vulnerability, honesty, or reliability",
+        "9": "strong trust building — deep reciprocity, confession, or trust repair",
+        "10": "maximum trust — exemplary mutual trust with structural accountability"
+      },
+      "instruments": [
+        {
+          "id": "oti",
+          "name": "Organizational Trust Inventory",
+          "abbreviation": "OTI",
+          "authors": "Cummings, L.L. & Bromiley, P.",
+          "year": 1996,
+          "construct": "Trust as belief that another party will act in good faith, be honest, and not take excessive advantage",
+          "subscales": [
+            {
+              "id": "oti_faith",
+              "name": "Good Faith",
+              "items": [
+                {
+                  "id": "oti_f1",
+                  "construct": "Belief that the other party will make good-faith efforts to behave in accordance with commitments",
+                  "textual_indicators": [
+                    "follow-through language",
+                    "keeping promises",
+                    "commitment honoring",
+                    "I'll do what I said I would"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "oti_f2",
+                  "construct": "Belief that the other party will not take excessive advantage",
+                  "textual_indicators": [
+                    "fairness language",
+                    "not exploiting vulnerability",
+                    "equitable treatment",
+                    "reasonable boundaries respected"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "oti_honesty",
+              "name": "Honesty",
+              "items": [
+                {
+                  "id": "oti_h1",
+                  "construct": "Belief that the other party is honest in negotiations and dealings",
+                  "textual_indicators": [
+                    "transparency language",
+                    "full disclosure",
+                    "no hidden agenda signals",
+                    "what you see is what you get"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "oti_h2",
+                  "construct": "Belief that the other party tells the truth",
+                  "textual_indicators": [
+                    "credibility signals",
+                    "consistency between claims and evidence",
+                    "verifiable statements",
+                    "absence of deception markers"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "oti_advantage",
+              "name": "Non-Exploitation",
+              "items": [
+                {
+                  "id": "oti_a1",
+                  "construct": "Belief that the other party will not exploit vulnerability for personal gain",
+                  "textual_indicators": [
+                    "exploitation language",
+                    "taking advantage of weakness",
+                    "using information against someone",
+                    "leveraging vulnerability for control"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "oti_a2",
+                  "construct": "Belief that the other party negotiates honestly rather than manipulating",
+                  "textual_indicators": [
+                    "manipulation markers",
+                    "bait and switch",
+                    "moving goalposts",
+                    "strategic misrepresentation"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "its",
+          "name": "Interpersonal Trust Scale",
+          "abbreviation": "ITS",
+          "authors": "Rotter, J.B.",
+          "year": 1967,
+          "construct": "Generalized expectancy that the word, promise, or statement of another can be relied upon",
+          "subscales": [
+            {
+              "id": "its_institutional",
+              "name": "Institutional Trust",
+              "items": [
+                {
+                  "id": "its_i1",
+                  "construct": "Trust in institutions and systems to act fairly",
+                  "textual_indicators": [
+                    "system fairness language",
+                    "institutional reliability",
+                    "due process confidence",
+                    "rules apply equally framing"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "its_i2",
+                  "construct": "Belief that most people can be trusted",
+                  "textual_indicators": [
+                    "generalized trust expressions",
+                    "good faith assumptions about others",
+                    "people are mostly honest framing",
+                    "benefit of the doubt language"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "its_interpersonal",
+              "name": "Interpersonal Trust",
+              "items": [
+                {
+                  "id": "its_ip1",
+                  "construct": "Reliability of promises and commitments from specific others",
+                  "textual_indicators": [
+                    "you can count on me",
+                    "promise-keeping",
+                    "reliability track record",
+                    "I trust you with this"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "its_ip2",
+                  "construct": "Suspicion that others will take advantage when given the chance",
+                  "textual_indicators": [
+                    "suspicion language",
+                    "everyone is out for themselves",
+                    "watch your back",
+                    "paranoid attribution of motives"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "hostility_index": {
+      "id": "hostility_index",
+      "name": "Hostility Index",
+      "description": "Hostility — whether overt aggression, passive undermining, or structural antagonism — as a direct countervailing force against safety",
+      "psq_role": "threat_factor",
+      "scoring": {
+        "0": "extreme hostility — direct threats, slurs, violent language, or dehumanization",
+        "1": "strong hostility — overt aggression, contempt, or targeted verbal abuse",
+        "2": "clear hostility — insults, derision, or aggressive dismissiveness",
+        "3": "moderate hostility — passive aggression, sarcasm with hostile intent, or mockery",
+        "4": "mild hostility — slight edge, irritation, or dismissive tone",
+        "5": "neutral — no hostile or anti-hostile signals",
+        "6": "mild warmth — generally civil and non-confrontational",
+        "7": "moderate warmth — polite, respectful engagement",
+        "8": "clear warmth — friendly, affirming, or inclusive language",
+        "9": "strong anti-hostility — active de-escalation, empathy, or reconciliation",
+        "10": "maximum anti-hostility — exemplary non-hostile engagement, conflict resolution"
+      },
+      "instruments": [
+        {
+          "id": "cookmedley",
+          "name": "Cook-Medley Hostility Scale",
+          "abbreviation": "CMHS",
+          "authors": "Cook, W.W. & Medley, D.M.",
+          "year": 1954,
+          "construct": "Hostile attitudes including cynicism, hostile affect, and aggressive responding",
+          "subscales": [
+            {
+              "id": "cm_cynicism",
+              "name": "Cynical Hostility",
+              "items": [
+                {
+                  "id": "cm_cy1",
+                  "construct": "Belief that others are motivated by selfish concerns",
+                  "textual_indicators": [
+                    "everyone is selfish framing",
+                    "cynical attribution of motives",
+                    "no one does anything without an angle",
+                    "all kindness is manipulation"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "cm_cy2",
+                  "construct": "Mistrust of others' apparent good intentions",
+                  "textual_indicators": [
+                    "what's the catch",
+                    "too good to be true",
+                    "suspicion of generosity",
+                    "doubting sincerity reflexively"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "cm_cy3",
+                  "construct": "Belief that most people will lie to get ahead",
+                  "textual_indicators": [
+                    "everyone lies",
+                    "trust no one",
+                    "people will say anything",
+                    "universal dishonesty assumptions"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "cm_affect",
+              "name": "Hostile Affect",
+              "items": [
+                {
+                  "id": "cm_af1",
+                  "construct": "Chronic anger and irritability",
+                  "textual_indicators": [
+                    "persistent irritation tone",
+                    "everything annoys me",
+                    "short fuse language",
+                    "simmering anger throughout"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "cm_af2",
+                  "construct": "Contempt for others",
+                  "textual_indicators": [
+                    "contempt markers",
+                    "looking down on others",
+                    "superiority with disdain",
+                    "eye-roll language",
+                    "pathetic/worthless labels"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "cm_aggression",
+              "name": "Aggressive Responding",
+              "items": [
+                {
+                  "id": "cm_ag1",
+                  "construct": "Tendency to respond aggressively to perceived provocation",
+                  "textual_indicators": [
+                    "disproportionate response",
+                    "escalation from minor provocation",
+                    "retaliation language",
+                    "fight-first orientation"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "cm_ag2",
+                  "construct": "Desire to harm or punish others who have wronged",
+                  "textual_indicators": [
+                    "revenge language",
+                    "they'll pay for this",
+                    "punitive orientation",
+                    "vindictive planning",
+                    "karma weaponized"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "bpaq",
+          "name": "Buss-Perry Aggression Questionnaire",
+          "abbreviation": "BPAQ",
+          "authors": "Buss, A.H. & Perry, M.",
+          "year": 1992,
+          "construct": "Four-factor model of aggression: physical, verbal, anger, and hostility",
+          "subscales": [
+            {
+              "id": "bpaq_verbal",
+              "name": "Verbal Aggression",
+              "items": [
+                {
+                  "id": "bpaq_v1",
+                  "construct": "Telling people off when they disagree",
+                  "textual_indicators": [
+                    "shut up language",
+                    "you're wrong and stupid framing",
+                    "dismissive aggression in disagreement",
+                    "verbal dominance over dialogue"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "bpaq_v2",
+                  "construct": "Not being able to help getting into arguments",
+                  "textual_indicators": [
+                    "compulsive arguing",
+                    "picking fights in text",
+                    "trolling behavior",
+                    "argument-seeking patterns"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "bpaq_v3",
+                  "construct": "Using threats to get people to comply",
+                  "textual_indicators": [
+                    "if you don't X then Y threats",
+                    "coercive ultimatums",
+                    "compliance through fear",
+                    "threat-based persuasion"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "bpaq_anger",
+              "name": "Anger",
+              "items": [
+                {
+                  "id": "bpaq_a1",
+                  "construct": "Quick temper, flaring up quickly",
+                  "textual_indicators": [
+                    "explosive onset in text",
+                    "zero-to-furious transition",
+                    "sudden tone shift to rage",
+                    "hair-trigger reaction"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "bpaq_a2",
+                  "construct": "Difficulty controlling temper",
+                  "textual_indicators": [
+                    "I lost it",
+                    "anger spillover into unrelated topics",
+                    "rage that overtakes the message",
+                    "emotional hijacking visible in text"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "bpaq_hostility",
+              "name": "Hostility",
+              "items": [
+                {
+                  "id": "bpaq_h1",
+                  "construct": "Wondering why sometimes one feels so bitter",
+                  "textual_indicators": [
+                    "bitterness language",
+                    "chronic resentment",
+                    "life isn't fair framing as grievance",
+                    "accumulated grudge references"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "bpaq_h2",
+                  "construct": "Feeling that others always get the breaks",
+                  "textual_indicators": [
+                    "unfairness rumination",
+                    "others have it easy",
+                    "victim of circumstance framing",
+                    "envious resentment"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "cooling_capacity": {
+      "id": "cooling_capacity",
+      "name": "Cooling Capacity",
+      "description": "The availability and effectiveness of de-escalation mechanisms, both internal and external",
+      "psq_role": "protective_factor",
+      "scoring": {
+        "0": "extreme escalation — actively inflames, removes all de-escalation options",
+        "1": "strong escalation — provokes immediate fight-or-flight response",
+        "2": "clear escalation — raises emotional temperature significantly",
+        "3": "moderate escalation — adds tension or narrows response options",
+        "4": "mild escalation — slightly raises stakes or urgency",
+        "5": "neutral — no escalation or de-escalation signals",
+        "6": "mild cooling — generally calm pace, low urgency",
+        "7": "moderate cooling — provides space for reflection or pause",
+        "8": "clear cooling — actively lowers temperature, offers temporal buffers",
+        "9": "strong cooling — explicit de-escalation, mediation, or soothing",
+        "10": "maximum cooling — exemplary de-escalation with structural cooling mechanisms"
+      },
+      "instruments": [
+        {
+          "id": "erq_reappraisal",
+          "name": "Emotion Regulation Questionnaire - Reappraisal Subscale",
+          "abbreviation": "ERQ-R",
+          "authors": "Gross, J.J. & John, O.P.",
+          "year": 2003,
+          "construct": "Cognitive reappraisal as a cooling mechanism — changing interpretation to change emotional impact",
+          "subscales": [
+            {
+              "id": "erqr_core",
+              "name": "Reappraisal Strategies",
+              "items": [
+                {
+                  "id": "erqr_1",
+                  "construct": "Controlling emotions by changing the way one thinks about the situation",
+                  "textual_indicators": [
+                    "let's look at this differently",
+                    "another way to see this is",
+                    "what if instead of X it's Y",
+                    "reframing invitation"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "erqr_2",
+                  "construct": "Thinking about a situation in a way that helps stay calm",
+                  "textual_indicators": [
+                    "calming perspective offered",
+                    "it's not as bad as it seems",
+                    "putting things in proportion",
+                    "zooming out language"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "erqr_3",
+                  "construct": "Changing the way one thinks to feel less negative",
+                  "textual_indicators": [
+                    "cognitive restructuring in action",
+                    "challenge the thought language",
+                    "is that really true questioning",
+                    "evidence-based reframing"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "name": "Recovery Experience Questionnaire",
+          "abbreviation": "REQ",
+          "authors": "Sonnentag, S. & Fritz, C.",
+          "year": 2007,
+          "construct": "Recovery experiences that restore resources: psychological detachment, relaxation, mastery, and control",
+          "subscales": [
+            {
+              "id": "req_detachment",
+              "name": "Psychological Detachment",
+              "items": [
+                {
+                  "id": "req_d1",
+                  "construct": "Ability to mentally switch off from the source of stress",
+                  "textual_indicators": [
+                    "let's take a break from this",
+                    "stepping away language",
+                    "permission to not think about it",
+                    "mental distance creation"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "req_d2",
+                  "construct": "Not thinking about the stressor during off-time",
+                  "textual_indicators": [
+                    "distance yourself from this",
+                    "leave it at the door",
+                    "compartmentalization as healthy",
+                    "off-duty from the problem"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "req_relaxation",
+              "name": "Relaxation",
+              "items": [
+                {
+                  "id": "req_rx1",
+                  "construct": "Using leisure time to relax and unwind",
+                  "textual_indicators": [
+                    "take it easy",
+                    "rest permission",
+                    "slowing down language",
+                    "decompression encouragement"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "req_rx2",
+                  "construct": "Doing things that are relaxing",
+                  "textual_indicators": [
+                    "self-care references",
+                    "restorative activity suggestions",
+                    "unwind language",
+                    "gentle pace encouragement"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "req_control",
+              "name": "Control During Off-Time",
+              "items": [
+                {
+                  "id": "req_ct1",
+                  "construct": "Feeling in control of how to spend recovery time",
+                  "textual_indicators": [
+                    "your choice how to spend time",
+                    "autonomy over recovery",
+                    "you decide what you need",
+                    "agency in self-care"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cpi_cdm",
+          "name": "Crisis Development Model",
+          "abbreviation": "CDM",
+          "authors": "Crisis Prevention Institute",
+          "year": 1980,
+          "construct": "Staged model of crisis development and corresponding staff responses for de-escalation",
+          "subscales": [
+            {
+              "id": "cdm_stages",
+              "name": "Crisis Stages and Interventions",
+              "items": [
+                {
+                  "id": "cdm_1",
+                  "construct": "Anxiety stage — supportive response",
+                  "textual_indicators": [
+                    "I can see you're upset",
+                    "acknowledging distress before problem-solving",
+                    "empathic listening signals",
+                    "validation of emotional state"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cdm_2",
+                  "construct": "Defensive stage — directive response",
+                  "textual_indicators": [
+                    "clear, calm boundaries",
+                    "here is what we can do",
+                    "options offered during escalation",
+                    "firm but non-threatening guidance"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cdm_3",
+                  "construct": "Tension reduction — therapeutic rapport",
+                  "textual_indicators": [
+                    "now that things have calmed down",
+                    "let's talk about what happened",
+                    "rebuilding connection after crisis",
+                    "learning from the episode"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cdm_4",
+                  "construct": "Escalation patterns — what cooling looks like when absent",
+                  "textual_indicators": [
+                    "pouring fuel on fire",
+                    "matching anger with anger",
+                    "escalation spirals",
+                    "ultimatums during crisis",
+                    "shaming during distress"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "energy_dissipation": {
+      "id": "energy_dissipation",
+      "name": "Energy Dissipation Pathways",
+      "description": "Whether healthy dissipation pathways exist or whether energy is trapped, building toward rupture or implosion",
+      "psq_role": "threat_factor",
+      "scoring": {
+        "0": "extreme entrapment — traps all energy with no outlet, demands relentless engagement",
+        "1": "strong entrapment — significantly restricts expression or recovery",
+        "2": "clear entrapment — blocks healthy dissipation pathways",
+        "3": "moderate burden — adds sustained pressure with limited relief",
+        "4": "mild burden — slightly constrains energy release",
+        "5": "neutral — no energy impact",
+        "6": "mild dissipation — generally allows for natural processing",
+        "7": "moderate dissipation — supports expression or creates breathing room",
+        "8": "clear dissipation — actively supports recovery, rest, or creative outlet",
+        "9": "strong dissipation — facilitates healthy release and renewal",
+        "10": "maximum dissipation — exemplary support for rest, expression, and recovery"
+      },
+      "instruments": [
+        {
+          "id": "req_full",
+          "name": "Recovery Experience Questionnaire",
+          "abbreviation": "REQ",
+          "authors": "Sonnentag, S. & Fritz, C.",
+          "year": 2007,
+          "construct": "Recovery experiences — detachment, relaxation, mastery, control — as energy dissipation mechanisms",
+          "note": "Mastery and control subscales complement the detachment/relaxation items used in cooling_capacity",
+          "subscales": [
+            {
+              "id": "req_mastery",
+              "name": "Mastery Experiences",
+              "items": [
+                {
+                  "id": "req_m1",
+                  "construct": "Learning new things during off-time as restoration",
+                  "textual_indicators": [
+                    "channeling energy into growth",
+                    "learning as recovery",
+                    "productive outlet for stress",
+                    "skill-building as energy release"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "req_m2",
+                  "construct": "Seeking out intellectual challenges as recovery",
+                  "textual_indicators": [
+                    "redirecting intensity constructively",
+                    "creative outlet references",
+                    "challenging yourself in healthy ways",
+                    "flow-state inducing activities"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cor",
+          "name": "Conservation of Resources Framework",
+          "abbreviation": "COR",
+          "authors": "Hobfoll, S.E.",
+          "year": 1989,
+          "construct": "Stress occurs when resources are threatened, lost, or not regained after investment — resource spirals",
+          "subscales": [
+            {
+              "id": "cor_loss",
+              "name": "Resource Loss Indicators",
+              "items": [
+                {
+                  "id": "cor_l1",
+                  "construct": "Net loss of personal resources (energy, time, emotional capacity)",
+                  "textual_indicators": [
+                    "running on empty",
+                    "nothing left to give",
+                    "depleted language",
+                    "giving more than receiving consistently"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "cor_l2",
+                  "construct": "Loss spirals — initial loss leading to further losses",
+                  "textual_indicators": [
+                    "everything is falling apart",
+                    "one thing after another",
+                    "cascading failure language",
+                    "domino effect of depletion"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "cor_l3",
+                  "construct": "Inability to replenish resources",
+                  "textual_indicators": [
+                    "no time to recover",
+                    "demands never stop",
+                    "recovery prevented by circumstances",
+                    "guilt for resting"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "cor_gain",
+              "name": "Resource Gain Indicators",
+              "items": [
+                {
+                  "id": "cor_g1",
+                  "construct": "Resource gain spirals — investments yielding returns",
+                  "textual_indicators": [
+                    "things are building momentum",
+                    "investment paying off",
+                    "energy returning",
+                    "positive spiral language"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "cor_g2",
+                  "construct": "Resource caravans — supportive conditions traveling together",
+                  "textual_indicators": [
+                    "support from multiple sources",
+                    "things aligning",
+                    "scaffolded support",
+                    "reinforcing positive conditions"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "defensive_architecture": {
+      "id": "defensive_architecture",
+      "name": "Defensive Architecture",
+      "description": "Available protective mechanisms — boundaries, assertive communication, withdrawal options, advocacy structures",
+      "psq_role": "protective_factor",
+      "scoring": {
+        "0": "extreme stripping — completely removes defenses, punishes all self-protection",
+        "1": "strong stripping — severely undermines boundaries or retaliates against defense",
+        "2": "clear stripping — stigmatizes defensive responses or boundary-setting",
+        "3": "moderate undermining — pressures against boundaries or dismisses self-protection",
+        "4": "mild undermining — slightly discourages defensive responses",
+        "5": "neutral — no impact on defensive capacity",
+        "6": "mild support — generally respects personal space and limits",
+        "7": "moderate support — acknowledges boundaries or validates self-protection",
+        "8": "clear support — actively reinforces healthy boundaries",
+        "9": "strong support — advocates for defensive access and protective mechanisms",
+        "10": "maximum support — exemplary boundary modeling with structural protections"
+      },
+      "instruments": [
+        {
+          "id": "dsq40",
+          "name": "Defense Style Questionnaire - 40 Item",
+          "abbreviation": "DSQ-40",
+          "authors": "Andrews, G., Singh, M., & Bond, M.",
+          "year": 1993,
+          "construct": "Three defense style factors: mature, neurotic, and immature defenses",
+          "subscales": [
+            {
+              "id": "dsq_mature",
+              "name": "Mature Defenses",
+              "items": [
+                {
+                  "id": "dsq_m1",
+                  "construct": "Sublimation — channeling unacceptable impulses into socially acceptable activities",
+                  "textual_indicators": [
+                    "redirecting frustration into productive action",
+                    "using anger as motivation",
+                    "transforming pain into creative output",
+                    "constructive channeling of difficult emotion"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "dsq_m2",
+                  "construct": "Humor — using comedy to manage conflict or distress",
+                  "textual_indicators": [
+                    "lightening tension through humor",
+                    "self-deprecating humor that builds connection",
+                    "finding absurdity in difficulty",
+                    "humor that doesn't wound"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "dsq_m3",
+                  "construct": "Anticipation — realistic planning for future discomfort",
+                  "textual_indicators": [
+                    "preparing for difficulty",
+                    "planning for foreseeable challenges",
+                    "proactive coping language",
+                    "if X happens we'll Y"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "dsq_m4",
+                  "construct": "Suppression — conscious decision to postpone attention to a problem",
+                  "textual_indicators": [
+                    "let's table this for now",
+                    "I'll deal with that when the time comes",
+                    "prioritizing what to address now vs later",
+                    "strategic postponement (not avoidance)"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "dsq_neurotic",
+              "name": "Neurotic Defenses",
+              "items": [
+                {
+                  "id": "dsq_n1",
+                  "construct": "Undoing — trying to negate previous actions through opposite behavior",
+                  "textual_indicators": [
+                    "excessive apologizing",
+                    "overcorrection",
+                    "attempting to undo harm through gesture",
+                    "compensatory behavior without addressing root"
+                  ],
+                  "direction": "neutral"
+                },
+                {
+                  "id": "dsq_n2",
+                  "construct": "Idealization — attributing exaggerated positive qualities to others",
+                  "textual_indicators": [
+                    "putting someone on a pedestal",
+                    "they can do no wrong",
+                    "unrealistic positive attribution",
+                    "splitting toward the good"
+                  ],
+                  "direction": "neutral"
+                }
+              ]
+            },
+            {
+              "id": "dsq_immature",
+              "name": "Immature Defenses",
+              "items": [
+                {
+                  "id": "dsq_i1",
+                  "construct": "Projection — attributing own unacceptable thoughts/feelings to others",
+                  "textual_indicators": [
+                    "you're the one who is angry",
+                    "attributing own feelings to target",
+                    "accusing others of what self is doing",
+                    "mirror-blame"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "dsq_i2",
+                  "construct": "Passive aggression — indirect expression of hostility",
+                  "textual_indicators": [
+                    "fine, whatever",
+                    "backhanded compliance",
+                    "praise that wounds",
+                    "deliberate incompetence",
+                    "sabotage disguised as cooperation"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "dsq_i3",
+                  "construct": "Denial — refusal to acknowledge painful realities",
+                  "textual_indicators": [
+                    "that didn't happen",
+                    "everything is fine when clearly not",
+                    "refusing to engage with evidence",
+                    "blanket dismissal of concerns"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "dsq_i4",
+                  "construct": "Splitting — seeing others as all good or all bad",
+                  "textual_indicators": [
+                    "absolute language about people",
+                    "they're evil / they're perfect",
+                    "no middle ground about character",
+                    "rapid idealization-devaluation"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tki",
+          "name": "Thomas-Kilmann Conflict Mode Instrument",
+          "abbreviation": "TKI",
+          "authors": "Thomas, K.W. & Kilmann, R.H.",
+          "year": 1974,
+          "construct": "Five conflict-handling modes based on assertiveness and cooperativeness dimensions",
+          "subscales": [
+            {
+              "id": "tki_collaborating",
+              "name": "Collaborating",
+              "items": [
+                {
+                  "id": "tki_col1",
+                  "construct": "Working with others to find a solution that fully satisfies both parties",
+                  "textual_indicators": [
+                    "how can we both get what we need",
+                    "win-win framing",
+                    "integrative problem-solving",
+                    "let's find a way that works for everyone"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "tki_compromising",
+              "name": "Compromising",
+              "items": [
+                {
+                  "id": "tki_com1",
+                  "construct": "Finding an expedient, mutually acceptable solution with partial satisfaction",
+                  "textual_indicators": [
+                    "meet in the middle",
+                    "both give a little",
+                    "fair compromise language",
+                    "splitting the difference"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "tki_accommodating",
+              "name": "Accommodating",
+              "items": [
+                {
+                  "id": "tki_acc1",
+                  "construct": "Neglecting own concerns to satisfy the concerns of others",
+                  "textual_indicators": [
+                    "whatever you want",
+                    "self-sacrificing language",
+                    "giving in to keep the peace",
+                    "habitual yielding"
+                  ],
+                  "direction": "neutral"
+                }
+              ]
+            },
+            {
+              "id": "tki_competing",
+              "name": "Competing",
+              "items": [
+                {
+                  "id": "tki_cmp1",
+                  "construct": "Pursuing own concerns at the other person's expense",
+                  "textual_indicators": [
+                    "my way or the highway",
+                    "zero-sum framing",
+                    "winning at all costs language",
+                    "dominance over dialogue"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            },
+            {
+              "id": "tki_avoiding",
+              "name": "Avoiding",
+              "items": [
+                {
+                  "id": "tki_avo1",
+                  "construct": "Not pursuing own or the other person's concerns — sidestepping or postponing",
+                  "textual_indicators": [
+                    "let's not talk about this",
+                    "conflict avoidance",
+                    "changing the subject from difficult topics",
+                    "pretending the issue doesn't exist"
+                  ],
+                  "direction": "neutral"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "authority_dynamics": {
+      "id": "authority_dynamics",
+      "name": "Authority Dynamics",
+      "description": "How power is distributed, exercised, and checked — unchecked authority in the presence of psychoemotional vulnerability is a primary driver of low PSQ",
+      "psq_role": "threat_factor",
+      "scoring": {
+        "0": "extreme abuse — unchecked power wielded to harm, dominate, or silence",
+        "1": "strong abuse — coercive authority, intimidation, or control without accountability",
+        "2": "clear imbalance — authority used to dismiss, override, or marginalize",
+        "3": "moderate imbalance — subtle power plays, condescension, or gatekeeping",
+        "4": "mild imbalance — slight authoritarian tone or unacknowledged privilege",
+        "5": "neutral — no power dynamics present or relevant",
+        "6": "mild equity — generally egalitarian communication",
+        "7": "moderate equity — acknowledges power differences, shares decision-making",
+        "8": "clear equity — actively distributes power or elevates others",
+        "9": "strong equity — models accountable authority, invites challenge",
+        "10": "maximum equity — exemplary power-sharing with structural checks"
+      },
+      "instruments": [
+        {
+          "id": "abs",
+          "name": "Abusive Supervision Scale",
+          "abbreviation": "ABS",
+          "authors": "Tepper, B.J.",
+          "year": 2000,
+          "construct": "Subordinates' perceptions of the extent to which supervisors engage in sustained hostile verbal and nonverbal behaviors",
+          "subscales": [
+            {
+              "id": "abs_core",
+              "name": "Abusive Supervision Behaviors",
+              "items": [
+                {
+                  "id": "abs_1",
+                  "construct": "Ridiculing subordinates",
+                  "textual_indicators": [
+                    "mocking someone's work or ideas from a position of power",
+                    "public humiliation by authority figure",
+                    "using position to belittle",
+                    "laughter at subordinate's expense"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "abs_2",
+                  "construct": "Telling subordinate their thoughts or feelings are stupid",
+                  "textual_indicators": [
+                    "dismissing ideas as worthless from authority",
+                    "that's the dumbest thing I've heard",
+                    "authority-backed intellectual contempt",
+                    "invalidating perspectives using power"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "abs_3",
+                  "construct": "Giving the silent treatment",
+                  "textual_indicators": [
+                    "authority-enforced silence",
+                    "ignoring requests from subordinate",
+                    "withholding response as punishment",
+                    "power-backed ostracism"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "abs_4",
+                  "construct": "Putting subordinate down in front of others",
+                  "textual_indicators": [
+                    "public correction designed to humiliate",
+                    "calling out mistakes in front of peers",
+                    "using audience to amplify shame",
+                    "spectacle punishment"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "abs_5",
+                  "construct": "Invading subordinate's privacy",
+                  "textual_indicators": [
+                    "inappropriate personal questions from authority",
+                    "reading private communications",
+                    "demanding personal information beyond work scope",
+                    "boundary violation justified by position"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "abs_6",
+                  "construct": "Reminding subordinate of past mistakes and failures",
+                  "textual_indicators": [
+                    "remember when you failed at",
+                    "weaponizing past errors",
+                    "historical blame as control",
+                    "can't move past mistakes because authority won't let you"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "abs_7",
+                  "construct": "Blaming subordinate to save self-embarrassment",
+                  "textual_indicators": [
+                    "scapegoating by authority",
+                    "passing blame downward",
+                    "authority deflecting responsibility",
+                    "throwing subordinate under the bus"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "mlq",
+          "name": "Multifactor Leadership Questionnaire",
+          "abbreviation": "MLQ",
+          "authors": "Bass, B.M. & Avolio, B.J.",
+          "year": 1995,
+          "construct": "Full range of leadership: transformational, transactional, and laissez-faire styles",
+          "subscales": [
+            {
+              "id": "mlq_transformational",
+              "name": "Transformational Leadership",
+              "items": [
+                {
+                  "id": "mlq_t1",
+                  "construct": "Idealized influence — acting as a role model",
+                  "textual_indicators": [
+                    "leading by example language",
+                    "walking the talk",
+                    "modeling the behavior expected",
+                    "authority through earned respect"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "mlq_t2",
+                  "construct": "Inspirational motivation — articulating a compelling vision",
+                  "textual_indicators": [
+                    "here's where we're going and why",
+                    "shared purpose language",
+                    "motivating through meaning",
+                    "vision that includes everyone"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "mlq_t3",
+                  "construct": "Intellectual stimulation — encouraging innovation and questioning",
+                  "textual_indicators": [
+                    "what do you think",
+                    "I'd like to hear your perspective",
+                    "challenging assumptions together",
+                    "encouraging dissent constructively"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "mlq_t4",
+                  "construct": "Individualized consideration — attending to each person's needs",
+                  "textual_indicators": [
+                    "checking in on individual wellbeing",
+                    "acknowledging unique circumstances",
+                    "different support for different people",
+                    "personal attention from authority"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "mlq_transactional",
+              "name": "Transactional Leadership",
+              "items": [
+                {
+                  "id": "mlq_tr1",
+                  "construct": "Contingent reward — clarifying expectations and recognizing accomplishments",
+                  "textual_indicators": [
+                    "clear expectation-setting",
+                    "if you do X you'll receive Y",
+                    "recognition for performance",
+                    "transparent reward structures"
+                  ],
+                  "direction": "neutral"
+                },
+                {
+                  "id": "mlq_tr2",
+                  "construct": "Management by exception — intervening only when standards are not met",
+                  "textual_indicators": [
+                    "only hearing when something is wrong",
+                    "absence of positive feedback",
+                    "correction-only leadership",
+                    "silence means acceptable performance"
+                  ],
+                  "direction": "neutral"
+                }
+              ]
+            },
+            {
+              "id": "mlq_laissez",
+              "name": "Laissez-Faire Leadership",
+              "items": [
+                {
+                  "id": "mlq_lf1",
+                  "construct": "Avoiding making decisions and abdicating responsibility",
+                  "textual_indicators": [
+                    "absent authority",
+                    "no one is in charge",
+                    "decisions not being made",
+                    "leadership vacuum"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "mlq_lf2",
+                  "construct": "Being absent when needed",
+                  "textual_indicators": [
+                    "where is leadership when we need them",
+                    "abandoned by authority",
+                    "left to fend for ourselves",
+                    "authority unavailable during crisis"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "contractual_clarity": {
+      "id": "contractual_clarity",
+      "name": "Contractual Clarity",
+      "description": "The degree to which expectations, obligations, and consequences are explicit, mutual, and enforceable",
+      "psq_role": "protective_factor",
+      "scoring": {
+        "0": "extreme violation — gaslighting, total term-shifting, or deliberate betrayal of agreements",
+        "1": "strong violation — clear breach of expectations or unilateral redefinition",
+        "2": "clear ambiguity — hidden agendas, unstated rules, or misleading framing",
+        "3": "moderate ambiguity — vague expectations or shifting goalposts",
+        "4": "mild ambiguity — slightly unclear terms or implicit assumptions",
+        "5": "neutral — no contractual signals",
+        "6": "mild clarity — generally straightforward communication",
+        "7": "moderate clarity — explicit expectations, consistent framing",
+        "8": "clear clarity — transparent terms, mutual understanding",
+        "9": "strong clarity — explicit mutual agreements with accountability",
+        "10": "maximum clarity — exemplary contractual transparency with structural enforcement"
+      },
+      "instruments": [
+        {
+          "id": "pci",
+          "name": "Psychological Contract Inventory",
+          "abbreviation": "PCI",
+          "authors": "Rousseau, D.M.",
+          "year": 2000,
+          "construct": "Individual beliefs regarding terms and conditions of the exchange agreement between self and organization/other party",
+          "subscales": [
+            {
+              "id": "pci_transactional",
+              "name": "Transactional Contract",
+              "items": [
+                {
+                  "id": "pci_t1",
+                  "construct": "Short-term, specific, economic exchanges with clear boundaries",
+                  "textual_indicators": [
+                    "explicit quid pro quo",
+                    "clear deliverable-for-compensation",
+                    "bounded agreement language",
+                    "specific terms and conditions"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "pci_t2",
+                  "construct": "Limited obligations beyond specified terms",
+                  "textual_indicators": [
+                    "this is what we agreed to and nothing more",
+                    "scope boundaries",
+                    "not part of our arrangement",
+                    "clear limits on obligation"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "pci_relational",
+              "name": "Relational Contract",
+              "items": [
+                {
+                  "id": "pci_r1",
+                  "construct": "Long-term, open-ended exchanges involving mutual loyalty and trust",
+                  "textual_indicators": [
+                    "we're in this together long-term",
+                    "mutual commitment language",
+                    "growing together framing",
+                    "loyalty and investment signals"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "pci_r2",
+                  "construct": "Socioemotional elements: care, concern, support beyond minimum requirements",
+                  "textual_indicators": [
+                    "going above and beyond for each other",
+                    "care that exceeds obligation",
+                    "genuine concern for wellbeing",
+                    "support during non-work difficulties"
+                  ],
+                  "direction": "positive"
+                }
+              ]
+            },
+            {
+              "id": "pci_breach",
+              "name": "Contract Breach",
+              "items": [
+                {
+                  "id": "pci_b1",
+                  "construct": "Perceived failure to fulfill promised obligations",
+                  "textual_indicators": [
+                    "you promised and didn't deliver",
+                    "broken commitment language",
+                    "unmet expectation grievance",
+                    "betrayal framing"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "pci_b2",
+                  "construct": "Violation — emotional response to perceived breach",
+                  "textual_indicators": [
+                    "I feel betrayed",
+                    "emotional weight of broken promise",
+                    "anger at violated trust",
+                    "moral outrage at unmet obligation"
+                  ],
+                  "direction": "negative"
+                },
+                {
+                  "id": "pci_b3",
+                  "construct": "Unilateral change to agreed terms",
+                  "textual_indicators": [
+                    "the rules changed without my input",
+                    "moving goalposts",
+                    "bait and switch",
+                    "retroactive expectation changes",
+                    "what we agreed to is no longer what's expected"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "copsoq_role",
+          "name": "COPSOQ Role Clarity Subscale",
+          "abbreviation": "COPSOQ-RC",
+          "authors": "Kristensen, T.S., Hannerz, H., Høgh, A., & Borg, V.",
+          "year": 2005,
+          "construct": "Clarity of role expectations and responsibilities",
+          "subscales": [
+            {
+              "id": "copsoq_rc_core",
+              "name": "Role Clarity",
+              "items": [
+                {
+                  "id": "copsoq_rc1",
+                  "construct": "Clear definition of what is expected",
+                  "textual_indicators": [
+                    "here is exactly what I need from you",
+                    "clear role description",
+                    "unambiguous expectations",
+                    "explicit success criteria"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "copsoq_rc2",
+                  "construct": "Understanding the scope and limits of one's responsibilities",
+                  "textual_indicators": [
+                    "this is your responsibility and this is not",
+                    "boundary clarity",
+                    "defined scope",
+                    "knowing where one's job ends"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "copsoq_rc3",
+                  "construct": "Absence of conflicting demands",
+                  "textual_indicators": [
+                    "consistent expectations from different sources",
+                    "aligned demands",
+                    "no contradictory instructions",
+                    "coherent direction"
+                  ],
+                  "direction": "positive"
+                },
+                {
+                  "id": "copsoq_rc4",
+                  "construct": "Role ambiguity — not knowing what is expected",
+                  "textual_indicators": [
+                    "I don't know what you want from me",
+                    "unclear expectations",
+                    "vague instructions",
+                    "constantly guessing what's required"
+                  ],
+                  "direction": "negative"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
