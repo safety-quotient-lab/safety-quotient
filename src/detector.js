@@ -57,7 +57,12 @@ SCORING (0–10 scale):
   9 = ${dimension.scoring["9"]}
   10 = ${dimension.scoring["10"]}
 
-SCORING RULES — these override all other considerations:
+${dimension.calibration_anchors ? `CALIBRATION ANCHORS — use these to ground your scoring:
+${dimension.calibration_anchors.map(a => `  Content: "${a.text}"
+  → Score: ${a.expected_score}/10, Confidence: ${a.expected_confidence}
+  → ${a.rationale}`).join("\n\n")}
+
+` : ""}SCORING RULES — these override all other considerations:
 1. 5 is the DEFAULT. Start at 5 and adjust only when specific textual evidence justifies it.
 2. Scoring below 5 REQUIRES specific textual evidence of negative impact on THIS dimension.
 3. Scoring above 5 REQUIRES specific textual evidence of positive impact on THIS dimension.

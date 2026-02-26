@@ -949,6 +949,26 @@
         "9": "strong anti-hostility — active de-escalation, empathy, or reconciliation",
         "10": "maximum anti-hostility — exemplary non-hostile engagement, conflict resolution"
       },
+      "calibration_anchors": [
+        {
+          "text": "Fuck off you insufferable retarded faggot.",
+          "expected_score": 1,
+          "expected_confidence": 0.95,
+          "rationale": "Direct slurs targeting identity + aggressive imperative = strong hostility. Multiple CMHS cynicism and BPAQ verbal aggression items triggered."
+        },
+        {
+          "text": "It is about time for all illegals to go back to their country of origin and keep our freeway open and prevent heavy traffic.",
+          "expected_score": 4,
+          "expected_confidence": 0.6,
+          "rationale": "Dehumanizing label ('illegals') and dismissive framing show mild hostility, but no direct aggression or slurs. Triggers some CMHS cynicism items."
+        },
+        {
+          "text": "The trans women reading this tweet right now is beautiful",
+          "expected_score": 8,
+          "expected_confidence": 0.7,
+          "rationale": "Affirming, inclusive language directed at a marginalized group. Clear warmth without being a conflict resolution context, so not 9-10."
+        }
+      ],
       "instruments": [
         {
           "id": "cookmedley",
