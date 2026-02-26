@@ -1,0 +1,62 @@
+[
+  {
+    "text": "@suddenlywestan Because you are a country of mentally ill terrorists. Whoever says different is an enabler, ignorant and blind to endless/countless wars and aggression and the death rate by American terrorist acts. Fuck you American scum!",
+    "labels": {
+      "hate_speech_score": 1.62,
+      "sentiment": 4,
+      "respect": 4,
+      "insult": 4,
+      "humiliate": 4,
+      "dehumanize": 2,
+      "violence": 1,
+      "hatespeech": 2,
+      "annotator_severity": -0.14
+    },
+    "stratum": "high"
+  },
+  {
+    "text": "It is about time for all illegals to go back to their country of origin and keep our freeway open and prevent heavy traffic.",
+    "labels": {
+      "hate_speech_score": 0.26,
+      "sentiment": 2,
+      "respect": 3,
+      "insult": 2,
+      "humiliate": 1,
+      "dehumanize": 0,
+      "violence": 0,
+      "hatespeech": 0,
+      "annotator_severity": 0.86
+    },
+    "stratum": "mid"
+  },
+  {
+    "text": "Cold hoe that's a must, bitch body A plus, bitch pussy A1",
+    "labels": {
+      "hate_speech_score": 0.14,
+      "sentiment": 3,
+      "respect": 3,
+      "insult": 3,
+      "humiliate": 2,
+      "dehumanize": 3,
+      "violence": 0,
+      "hatespeech": 0,
+      "annotator_severity": 0.46
+    },
+    "stratum": "mid"
+  },
+  {
+    "text": "OMG! The EGO's of these young, young, inexperienced women display are remarkable! So self absorbed - so, so proud of the mistakes their constituents all made in giving them a bit of power.  They'll be quite surprised to find that the vast majority of Americans think that these women represent the very WORST of \"modern\" America.  Egos out of control !!",
+    "labels": {
+      "hate_speech_score": -0.66,
+      "sentiment": 4,
+      "respect": 4,
+      "insult": 4,
+      "humiliate": 3,
+      "dehumanize": 3,
+      "violence": 0,
+      "hatespeech": 0,
+      "annotator_severity": -0.99
+    },
+    "stratum": "low"
+  }
+]

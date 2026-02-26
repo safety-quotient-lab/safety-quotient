@@ -1,0 +1,17 @@
+[
+  {
+    "text": "Cold hoe that's a must, bitch body A plus, bitch pussy A1",
+    "labels": {
+      "hate_speech_score": 0.14,
+      "sentiment": 3,
+      "respect": 3,
+      "insult": 3,
+      "humiliate": 2,
+      "dehumanize": 3,
+      "violence": 0,
+      "hatespeech": 0,
+      "annotator_severity": 0.46
+    },
+    "stratum": "mid"
+  }
+]

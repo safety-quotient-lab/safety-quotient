@@ -9,7 +9,9 @@
     "detect:claude": "node src/run.js --provider claude",
     "detect:workersai": "node src/run.js --provider workersai",
     "detect:compare": "node src/run.js --provider compare",
-    "fetch-samples": "node src/fetch-samples.js"
+    "fetch-samples": "node src/fetch-samples.js",
+    "ingest": "node src/ingest.js",
+    "ingest:dry": "node src/ingest.js --dry-run --lang en --min-length 40"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
