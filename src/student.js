@@ -28,6 +28,13 @@ const DIMENSIONS = [
   "contractual_clarity",
 ];
 
+// Cluster definitions from halo experiment (§18 of distillation-research.md)
+const CLUSTERS = {
+  interpersonal_climate: ["authority_dynamics", "contractual_clarity", "trust_conditions", "threat_exposure"],
+  internal_resources: ["regulatory_capacity", "resilience_baseline", "defensive_architecture"],
+  bridge: ["cooling_capacity", "energy_dissipation", "hostility_index"],
+};
+
 export class StudentProvider {
   constructor(options = {}) {
     this.name = "student";
@@ -182,7 +189,57 @@ export class StudentProvider {
     return {
       provider: "student",
       scores: dimensionScores,
+      hierarchy: StudentProvider.computeHierarchy(dimensionScores),
       elapsed_ms: Math.round(elapsed),
+    };
+  }
+
+  /**
+   * Compute hierarchical reporting: cluster subscales + g-PSQ general factor.
+   * Additive layer — the 10 individual dimensions remain primary.
+   */
+  static computeHierarchy(dimensionScores) {
+    const clusters = {};
+    for (const [clusterName, memberDims] of Object.entries(CLUSTERS)) {
+      let sumWeighted = 0, sumWeights = 0, sumConf = 0, n = 0;
+      for (const dim of memberDims) {
+        const d = dimensionScores[dim];
+        if (!d || d.score === undefined) continue;
+        const conf = d.confidence ?? 0.5;
+        sumWeighted += d.score * conf;
+        sumWeights += conf;
+        sumConf += conf;
+        n++;
+      }
+      const score = sumWeights > 0 ? sumWeighted / sumWeights : 5;
+      const confidence = n > 0 ? sumConf / n : 0;
+      clusters[clusterName] = {
+        score: Math.round(score * 100) / 100,
+        confidence: Math.round(confidence * 1000) / 1000,
+        dimensions: memberDims,
+      };
+    }
+
+    // g-PSQ: confidence-weighted mean of all 10 dimensions
+    let totalWeighted = 0, totalWeights = 0, totalConf = 0, totalN = 0;
+    for (const dim of DIMENSIONS) {
+      const d = dimensionScores[dim];
+      if (!d || d.score === undefined) continue;
+      const conf = d.confidence ?? 0.5;
+      totalWeighted += d.score * conf;
+      totalWeights += conf;
+      totalConf += conf;
+      totalN++;
+    }
+    const gScore = totalWeights > 0 ? totalWeighted / totalWeights : 5;
+    const gConf = totalN > 0 ? totalConf / totalN : 0;
+
+    return {
+      clusters,
+      g_psq: {
+        score: Math.round(gScore * 100) / 100,
+        confidence: Math.round(gConf * 1000) / 1000,
+      },
     };
   }
 

@@ -2,13 +2,13 @@
 
 **Date:** 2026-02-27
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v9 DistilBERT — test_r=0.515, held-out_r=0.385. 4/10 dimensions show strong generalization.
+**Status:** v13 DistilBERT — test_r=0.553, held-out_r=0.402 (separated labels). 4/10 dimensions show strong generalization. Halo effect confirmed; separated scoring implemented.
 
 ---
 
 ## 1. Summary Assessment
 
-The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v9 DistilBERT: test_r=0.515, held-out_r=0.385). Four dimensions (hostility, cooling, trust, resilience) generalize well to real-world text (r=0.52-0.70); six require better training signal.
+The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v13 DistilBERT: test_r=0.553, held-out_r=0.402 with halo-free separated labels). Four dimensions (hostility, cooling, trust, resilience) generalize well to real-world text (r=0.39-0.57); six require better training signal. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call).
 
 However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Most standard reliability and validity evidence has not yet been collected.
 
@@ -177,6 +177,8 @@ This is a **level-of-analysis shift** from trait/state measurement to stimulus a
 1. **Regulatory Capacity ↔ Resilience Baseline (r=0.877):** Both measure emotion regulation capacity from different angles. A 7-factor model merging these may be more parsimonious.
 2. **Hostility Index ↔ Cooling Capacity (r=0.840):** Hostile content inherently lacks de-escalation — the theoretical prediction that these are distinct (one is a threat factor, one is protective) is not supported empirically in current data.
 3. Some high correlations may reflect shared proxy methodology (e.g., both from UCC) rather than true construct overlap. LLM-only correlations are needed for a cleaner signal.
+
+**Update (2026-02-27, halo effect confirmed):** A halo experiment (§18 of distillation-research.md) demonstrated that joint LLM scoring inflates inter-dimension correlations by ~0.15 on average. Mean |r| = 0.766 (joint) vs 0.656 (separated). Two genuine clusters emerged: Interpersonal Climate (authority_dynamics, contractual_clarity, trust_conditions, threat_exposure) and Internal Resources (regulatory_capacity, resilience_baseline, defensive_architecture), with bridge dimensions (cooling_capacity, energy_dissipation, hostility_index). The held-out test was re-scored with separated calls (one dimension per LLM call) to eliminate this contamination. The 10-dimension structure is retained; clusters are additive reporting layers only.
 
 **Remaining gap:** Full confirmatory factor analysis (CFA) requires records scored on all 10 dimensions simultaneously, which the current training data does not provide (each record has 1-6 dimensions). The 900 LLM-labeled records are closer (each scored on 1 dimension), but a dedicated labeling pass scoring all 10 dimensions on 500+ texts would be needed.
 

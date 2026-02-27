@@ -112,6 +112,13 @@ const PROTECTIVE_DIMENSIONS = new Set([
   "cooling_capacity", "defensive_architecture", "contractual_clarity"
 ]);
 
+// Cluster definitions from halo experiment (§18 of distillation-research.md)
+const CLUSTERS = {
+  interpersonal_climate: ["authority_dynamics", "contractual_clarity", "trust_conditions", "threat_exposure"],
+  internal_resources: ["regulatory_capacity", "resilience_baseline", "defensive_architecture"],
+  bridge: ["cooling_capacity", "energy_dissipation", "hostility_index"],
+};
+
 export function getAllDimensionIds(instruments) {
   return Object.keys(instruments.dimensions);
 }
@@ -170,6 +177,38 @@ export function aggregatePSQ(dimensionResults) {
     ((protectiveAvg - threatAvg + MAX_SCORE) / (2 * MAX_SCORE)) * 100
   ));
 
+  // Hierarchical reporting: cluster subscales + g-PSQ
+  const dimLookup = {};
+  for (const r of dimensionResults) {
+    if (r.score !== undefined && r.score !== null) {
+      dimLookup[r.dimension] = { score: r.score, confidence: r.confidence ?? 0.5 };
+    }
+  }
+
+  const clusters = {};
+  for (const [clusterName, memberDims] of Object.entries(CLUSTERS)) {
+    let sumW = 0, sumC = 0, n = 0;
+    for (const dim of memberDims) {
+      const d = dimLookup[dim];
+      if (!d) continue;
+      sumW += d.score * d.confidence;
+      sumC += d.confidence;
+      n++;
+    }
+    clusters[clusterName] = {
+      score: Math.round((sumC > 0 ? sumW / sumC : 5) * 100) / 100,
+      confidence: Math.round((n > 0 ? sumC / n : 0) * 1000) / 1000,
+      dimensions: memberDims,
+    };
+  }
+
+  let gSumW = 0, gSumC = 0, gN = 0;
+  for (const d of Object.values(dimLookup)) {
+    gSumW += d.score * d.confidence;
+    gSumC += d.confidence;
+    gN++;
+  }
+
   return {
     psq: Math.round(psq * 10) / 10,
     protective_avg: Math.round(protectiveAvg * 1000) / 1000,
@@ -177,6 +216,13 @@ export function aggregatePSQ(dimensionResults) {
     protective_n: protective.length,
     threat_n: threat.length,
     excluded,
+    hierarchy: {
+      clusters,
+      g_psq: {
+        score: Math.round((gSumC > 0 ? gSumW / gSumC : 5) * 100) / 100,
+        confidence: Math.round((gN > 0 ? gSumC / gN : 0) * 1000) / 1000,
+      },
+    },
     dimensions: dimensionResults.map(r => ({
       dimension: r.dimension,
       score: r.score,

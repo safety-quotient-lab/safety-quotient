@@ -86,7 +86,9 @@ All datasets used in PSQ student model training, with licenses, sizes, quality a
 |---|---|---|---|---|
 | data/held-out-test.jsonl | 100 | unlabeled-pool (20 per source) | 2026-02-27 | Generalization test, no composite/LLM overlap |
 
-Assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/held_out_labeled_b.json` (50 texts), both LLM-labeled independently. Abbreviation keys mapped to full dimension names by `scripts/assemble_held_out.py`.
+Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/held_out_labeled_b.json` (50 texts), both LLM-labeled jointly (all 10 dims per call). Abbreviation keys mapped to full dimension names by `scripts/assemble_held_out.py`.
+
+**Re-scored with separated labeling (2026-02-27):** All 100 texts re-scored one dimension at a time (10 separate LLM calls per text) to eliminate halo effect. Original joint-scored file archived as `data/held-out-test-joint.jsonl`. Separated scoring performed via `scripts/label_separated.py` extract/ingest/assemble workflow. All 100 records now have complete 10-dimension coverage with `teacher: "separated-llm"`. Halo validation confirmed mean inter-dimension |r| dropped from 0.766 (joint) to 0.656 (separated).
 
 ## Composite Summary (v12, 2026-02-27)
 

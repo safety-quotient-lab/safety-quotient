@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-26
-**Status:** v13 complete (test_r=0.553, held-out_r=0.428). CC threat_exposure removed, all synthetic+relabeled data included. ONNX exported (64MB INT8).
-**Next:** Resolve construct validity (halo effect confirmed), retrain after dimensionality decision.
+**Status:** v13 complete (test_r=0.553, held-out_r=0.402 against halo-free labels). CC threat_exposure removed, all synthetic+relabeled data included. ONNX exported (64MB INT8).
+**Next:** Relabel train-llm.jsonl with separated scoring, retrain v14, threat_exposure rehabilitation.
 
 ---
 
@@ -36,6 +36,7 @@
 16. [V10 Training: LLM Relabeling Impact](#16-v10-training-llm-relabeling-impact-2026-02-27) — relabeled 1,000 texts, held-out +10%, threat still broken
 17. [V13 Training: CC Fix + Full Data](#17-v13-training-cc-fix--full-data-2026-02-27) — Civil Comments threat removed, best test_r (0.553)
 18. [Construct Validity: Inter-Dimension Correlations](#18-construct-validity-inter-dimension-correlations-2026-02-27) — halo effect confirmed, cluster structure emerging
+19. [Separated Scoring & Hierarchical Reporting](#19-separated-scoring--hierarchical-reporting-2026-02-27) — halo-free held-out relabeling, g-PSQ + cluster subscales, validation
 13. [References](#13-references)
 
 ---
@@ -1857,6 +1858,70 @@ Four restructuring alternatives under consideration:
 **D. 3-level hierarchy:** g-PSQ → 4 clusters → 10 dimensions. Most informative, most complex.
 
 **Current leaning:** Option D (3-level) aligns best with the data. The separated correlations show genuine within-cluster overlap that survives halo removal, while between-cluster correlations drop substantially. But n=30 is too small for confirmatory factor analysis. A larger halo test (n=200+) would be needed before committing to restructuring.
+
+---
+
+## 19. Separated Scoring & Hierarchical Reporting (2026-02-27)
+
+### 19a. Separated Scoring Workflow
+
+Created `scripts/label_separated.py` — a workflow tool for halo-free in-conversation labeling. Instead of API calls, the scoring is done by Claude Code one dimension at a time in separate conversation contexts.
+
+**Subcommands:** `extract` (per-dimension batch files from input JSONL), `ingest` (import scored dimension), `assemble` (merge 10 dimensions into final JSONL), `status` (progress tracker), `validate` (compare joint vs separated inter-dimension correlations).
+
+**Compact scoring format:** `{"dim": "te", "scores": {"0": [score, conf], "1": [score, conf], ...}}`
+
+### 19b. Held-Out Re-Scoring (n=100)
+
+Re-scored all 100 held-out texts with separated calls (one dimension per pass, 10 passes total). Original joint-scored file archived as `data/held-out-test-joint.jsonl`.
+
+**Halo validation results** (44/45 pairs compared; 1 pair skipped for insufficient joint data):
+
+| Metric | Joint | Separated | Delta |
+|---|---|---|---|
+| Mean off-diagonal \|r\| | 0.766 | 0.656 | -0.111 |
+| Within-cluster mean \|r\| | 0.823 | 0.682 | -0.140 |
+| Between-cluster mean \|r\| | 0.748 | 0.647 | -0.101 |
+| Discriminant ratio | 1.10x | 1.05x | -0.05 |
+
+**Strong halo pairs (delta < -0.30):** 5 pairs — rb×cc (-0.44), hi×co (-0.41), hi×rb (-0.36), da×co (-0.36), rb×da (-0.31).
+
+**Genuine overlap (|delta| < 0.10):** 14 pairs — confirms stable cluster structure survives halo removal.
+
+**Discrimination ratio did not improve** (1.10x → 1.05x). This is because the original joint file had very sparse coverage (0 records with all 10 dims), making the baseline within/between comparison noisy. The mean |r| reduction of 0.111 is meaningful and consistent with the §18 pilot finding (0.147 on n=30).
+
+**Note on threat_exposure:** Several te× pairs showed *increased* correlation in separated scoring. This reflects more consistent threat scoring when evaluated independently (without being pulled toward a global impression), and aligns with threat's known rehabilitation need — it correlates with real constructs, the problem is signal weakness in the student model.
+
+### 19c. Held-Out Evaluation with Halo-Free Labels
+
+Re-ran `eval_held_out.py` against the separated labels:
+
+| Dimension | Old r (joint) | New r (separated) |
+|---|---|---|
+| threat_exposure | +0.12 | +0.16 |
+| hostility_index | n/a | +0.48 |
+| authority_dynamics | n/a | +0.46 |
+| energy_dissipation | n/a | +0.39 |
+| regulatory_capacity | n/a | +0.32 |
+| resilience_baseline | +0.56 | +0.50 |
+| trust_conditions | +0.58 | +0.50 |
+| cooling_capacity | +0.66 | +0.57 |
+| defensive_architecture | n/a | +0.37 |
+| contractual_clarity | n/a | +0.27 |
+| **AVERAGE** | **+0.428** | **+0.402** |
+
+The slight avg_r drop (0.428 → 0.402) is expected: halo-free labels are a harder evaluation target because they don't inflate correlations through shared anchoring. The new numbers are more honest measures of what the student model learned. Previous "n/a" dims now have scores because separated labels provide all 10 dims for every record.
+
+### 19d. Hierarchical Reporting
+
+Added g-PSQ general factor and cluster subscales as additive reporting layers in both `src/student.js` and `src/detector.js`.
+
+**Cluster definitions** (from §18 halo experiment):
+- **Interpersonal Climate:** authority_dynamics, contractual_clarity, trust_conditions, threat_exposure
+- **Internal Resources:** regulatory_capacity, resilience_baseline, defensive_architecture
+- **Bridge:** cooling_capacity, energy_dissipation, hostility_index
+
+**Implementation:** Confidence-weighted mean for cluster scores and g-PSQ. New `hierarchy` field in output alongside existing `scores`/`psq` — fully backwards compatible, no existing fields changed.
 
 ---
 
