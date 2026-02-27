@@ -41,7 +41,24 @@ Work through each step. Skip any that don't apply to the changes described in $A
 - If data was removed or filtered, note the change and rationale
 - Verify license information is current
 
-### 5. Update psychometric-evaluation.md
+### 5. Update journal.md
+
+- If a new training version was completed, add results to §14 (Current State) and update the metrics table
+- If a significant finding was made (data poisoning, construct validity issue, architecture decision), add a narrative entry to the appropriate section — write it as a story, not a log
+- If a new research direction opened (e.g., dimensionality restructuring), add a new section
+- Update the Table of Contents if sections were added
+- Keep the tone: first-person plural, honest about failures, suitable for a methods section
+- Skip if only minor code/config changes with no research significance
+
+### 5b. Update EXPERIMENTS.md
+
+- If a new training version completed, add a row to the Training Runs table
+- Include: version, date, architecture, epochs, LR, batch, test_r, held-out_r, data changes, config changes
+- If held-out evaluation was re-run, update the per-dimension results table
+- If calibration was re-run, note it in the calibration summary
+- Skip if no training or evaluation was done
+
+### 5c. Update psychometric-evaluation.md
 
 - If new validation results exist (held-out eval, test-retest, discriminant, known-groups), update the relevant sections
 - If confidence calibration was re-run, update calibration results

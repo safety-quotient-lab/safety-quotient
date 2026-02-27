@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-26
-**Status:** v10 complete (test_r=0.534, held-out_r=0.425). LLM relabeling improved held-out by 10%.
-**Next:** v11 training (add synthetic ad_8, te_2, ed_2, da_2), fix threat_exposure generalization, ONNX export.
+**Status:** v13 complete (test_r=0.553, held-out_r=0.428). CC threat_exposure removed, all synthetic+relabeled data included. ONNX exported (64MB INT8).
+**Next:** Resolve construct validity (halo effect confirmed), retrain after dimensionality decision.
 
 ---
 
@@ -34,6 +34,8 @@
 14. [V5–V8 Training Findings](#14-v5v8-training-findings-2026-02-27) — duplicate contamination, signal amplification, data pipeline fixes, synthetic strategy, model comparison
 15. [Held-Out Real-World Evaluation](#15-held-out-real-world-evaluation-2026-02-27) — 100 real-world texts, generalization gap analysis, dimension tiers
 16. [V10 Training: LLM Relabeling Impact](#16-v10-training-llm-relabeling-impact-2026-02-27) — relabeled 1,000 texts, held-out +10%, threat still broken
+17. [V13 Training: CC Fix + Full Data](#17-v13-training-cc-fix--full-data-2026-02-27) — Civil Comments threat removed, best test_r (0.553)
+18. [Construct Validity: Inter-Dimension Correlations](#18-construct-validity-inter-dimension-correlations-2026-02-27) — halo effect confirmed, cluster structure emerging
 13. [References](#13-references)
 
 ---
@@ -1723,6 +1725,138 @@ The model learned a "default to safe" prior from training data:
 Even after CC removal, composite threat_exposure still skews safe (913 at 9-10 vs 160 at 0-3). The 200 synthetic te_2 texts (70 at 0-2, 50 at 2.5-4) at 5x LLM weight should partially counterbalance this.
 
 **V13 plan**: Retrain with fixed composite (CC threat removed) + all synthetic + all relabeled data.
+
+---
+
+## 17. V13 Training: CC Fix + Full Data (2026-02-27)
+
+### 17a. Changes from v10
+
+1. **Civil Comments threat_exposure REMOVED** from composite builder — 1,754 poisoned records eliminated
+2. **All synthetic batches included**: ad_8 (305 auth), te_2 (200 threat), ed_2 (150 energy), da_2 (191 defensive)
+3. **All relabeled batches included**: thre, ener, regu, defe (250 each = 1,000 total)
+4. **Composite rebuilt**: 17,643 records (down from 17,682 — CC threat removed)
+5. **Total LLM data**: 4,199 records (1,353 API + 1,905 synthetic + 941 relabeled)
+
+### 17b. v13 Results
+
+| Metric | v10 | v13 | Change |
+|---|---|---|---|
+| test_r | 0.534 | 0.553 | +3.6% |
+| held-out_r | 0.425 | 0.428 | +0.7% |
+| Best epoch | 8 | 8 | Same |
+
+**Per-dimension held-out (v13):**
+
+| Dimension | r | MSE | n |
+|---|---|---|---|
+| threat_exposure | +0.12 | 16.42 | 53 |
+| hostility_index | +0.63 | 4.32 | 62 |
+| authority_dynamics | +0.46 | 3.37 | 34 |
+| energy_dissipation | +0.30 | 3.48 | 27 |
+| regulatory_capacity | +0.30 | 2.34 | 64 |
+| resilience_baseline | +0.56 | 2.03 | 41 |
+| trust_conditions | +0.58 | 4.61 | 52 |
+| cooling_capacity | +0.66 | 3.38 | 40 |
+| defensive_architecture | +0.32 | 3.47 | 59 |
+| contractual_clarity | +0.35 | 4.74 | 32 |
+
+**Assessment:** test_r improved meaningfully (+3.6%) but held-out barely moved. Threat exposure remains at 0.12 despite CC removal — the model checkpoint was trained with CC data in all previous epochs, and 8 epochs may not be enough to unlearn the prior. The additional synthetic/relabeled data improved test_r but the composite still dominates training signal due to volume.
+
+### 17c. Calibration (v13)
+
+Score calibration via isotonic regression:
+- MAE improvements: 4.3%–24.8% across dimensions
+- Best improvements: cooling_capacity (+24.8%), contractual_clarity (+24.2%), resilience_baseline (+21.9%)
+- Score range decompression: all dimensions expanded toward the 1–10 range
+
+Confidence calibration:
+- 6/10 dimensions had inverted raw confidence (negative r(conf,acc))
+- Post-calibration: all dimensions have non-negative r(conf,acc)
+- 2 dimensions (regulatory_capacity, cooling_capacity) calibrated to near-constant confidence
+
+### 17d. ONNX Export (v13)
+
+- Full precision: 254.4 MB, max score diff 0.000003 vs PyTorch
+- INT8 quantized: 64.0 MB (4.0x compression), max score diff 0.66 vs PyTorch
+- Quantization error is higher than ideal — future work may need FP16 or dynamic quantization
+
+---
+
+## 18. Construct Validity: Inter-Dimension Correlations (2026-02-27)
+
+### 18a. The Problem
+
+Computing inter-dimension correlations on held-out data (LLM-scored, all 10 dims per text, n=30 texts with complete coverage) revealed that nearly all dimension pairs correlated at r > 0.70. Many exceeded r > 0.90.
+
+This is a construct validity red flag. If all 10 dimensions move together, the instrument may be measuring one latent factor (general safety) rather than 10 distinct constructs. Discriminant validity requires that dimensions measuring different things correlate substantially less than 1.0.
+
+### 18b. Three Competing Explanations
+
+1. **General safety factor (p-factor):** Analogous to the g-factor in intelligence, there may be a genuine general factor of psychoemotional safety. All 10 dimensions load onto it, with unique variance on top. Precedent: DASS-21 depression/anxiety/stress, which are distinct constructs but share 40-60% variance.
+
+2. **Short text entanglement:** With 50-500 word texts, there may not be enough information to discriminate between dimensions. A hostile text is inherently also threatening, low-trust, and energy-draining.
+
+3. **LLM halo effect:** When the LLM scores all 10 dimensions in a single call, it may anchor on an overall impression and adjust individual scores around it — inflating inter-dimension correlations.
+
+### 18c. Halo Effect Experiment
+
+**Method:** 30 held-out texts were scored two ways:
+- **Joint:** All 10 dimensions in one LLM call (existing held-out labels)
+- **Separated:** Each dimension independently in separate LLM calls, 2 dimensions per call, high-correlation pairs deliberately split across different calls
+
+**Results:**
+
+| Metric | Joint | Separated |
+|---|---|---|
+| Mean off-diagonal r | +0.641 | +0.494 |
+| Halo inflation | — | -0.147 |
+
+**Strong halo pairs** (delta < -0.30, 15 pairs):
+- authority × resilience: 0.76 → 0.04 (delta -0.72)
+- cooling × resilience: 0.88 → 0.21 (delta -0.67)
+- contractual × defensive: 0.77 → 0.13 (delta -0.64)
+- contractual × resilience: 0.59 → -0.03 (delta -0.62)
+- cooling × regulatory: 0.89 → 0.34 (delta -0.55)
+
+**Genuine overlap pairs** (|delta| < 0.10, 16 pairs):
+- regulatory × resilience: 0.95 → 0.93 (delta -0.02, genuine construct overlap)
+- authority × trust: 0.83 → 0.88 (delta +0.05, genuine interpersonal-climate cluster)
+- authority × cooling: 0.74 → 0.71 (delta -0.03)
+
+**Higher when separated** (delta > +0.15, 5 pairs):
+- cooling × hostility: 0.02 → 0.85 (delta +0.83) — suppression effect in joint scoring
+- hostility × resilience: -0.65 → -0.07 (delta +0.58)
+- authority × contractual: 0.43 → 0.86 (delta +0.44)
+
+### 18d. Emerging Cluster Structure
+
+When halo is removed (using separated correlations), a clear structure emerges:
+
+**Cluster 1: Interpersonal Climate** (high mutual r: 0.70–0.88)
+- authority_dynamics, contractual_clarity, trust_conditions, threat_exposure
+
+**Cluster 2: Internal Resources** (high mutual r: 0.71–0.93)
+- regulatory_capacity, resilience_baseline, defensive_architecture
+
+**Bridge dimensions** (correlate with both clusters):
+- cooling_capacity (climate 0.58–0.76, resources 0.21–0.35)
+- energy_dissipation (climate 0.54–0.77, resources 0.42–0.52)
+- hostility_index (climate 0.55–0.69, resources -0.07–0.16)
+
+### 18e. Implications for Model Architecture
+
+Four restructuring alternatives under consideration:
+
+**A. Bifactor (10 + g):** Keep all 10 dimensions, add a general factor. Score = g + specific. Precedent: DASS-21, PCL-5.
+
+**B. JD-R 2-factor:** Collapse to Demands (climate) + Resources (internal). Matches Job Demands-Resources theory.
+
+**C. 4-factor:** Threat Climate, Power & Contract, Regulatory Resources, Relational Safety.
+
+**D. 3-level hierarchy:** g-PSQ → 4 clusters → 10 dimensions. Most informative, most complex.
+
+**Current leaning:** Option D (3-level) aligns best with the data. The separated correlations show genuine within-cluster overlap that survives halo removal, while between-cluster correlations drop substantially. But n=30 is too small for confirmatory factor analysis. A larger halo test (n=200+) would be needed before committing to restructuring.
 
 ---
 
