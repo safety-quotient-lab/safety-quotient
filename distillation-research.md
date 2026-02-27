@@ -1699,14 +1699,30 @@ Root cause analysis of the 6 weak dimensions revealed the composite proxy labels
 - **Tier 1 dimensions** (hostility, trust, cooling, resilience) remained stable or improved slightly
 - **contractual_clarity** regressed in held-out (-34%) despite strong test_r — likely small sample noise (n=32)
 
-**Threat exposure remains broken** (held-out r=0.09 despite test_r=0.68). The relabeled threat texts improved the training signal but the model still fails to generalize. Hypothesis: the 250 relabeled texts aren't enough to overcome the 1,285 Civil Comments records at score=10.0 in composite data. V11 will add 200 synthetic threat_exposure texts with balanced score distribution.
+**Threat exposure remains broken** (held-out r=0.09 despite test_r=0.68). Diagnosis (16e below) reveals a +4.31 mean bias — the model predicts "safe" (7-9) for everything, including texts about violence/harassment. Root cause: 1,754 Civil Comments records at threat_exposure=10.0 trained the model to default to "safe". Fix: removed Civil Comments threat_exposure from composite entirely (v13).
 
 **Updated dimension tiers (v10 held-out):**
 - **Tier 1 (r > 0.5)**: hostility (0.71), cooling (0.76), trust (0.68), resilience (0.57) — 4 dims
 - **Tier 2 (r 0.2-0.5)**: energy (0.35), regulatory (0.33), authority (0.31), defensive (0.24), contractual (0.21) — 5 dims
 - **Tier 3 (r < 0.1)**: threat_exposure (0.09) — 1 dim
 
-**V11 plan**: Ingest 4 additional synthetic batches (ad_8: 305 authority_dynamics, te_2: 200 threat_exposure, ed_2: 150 energy_dissipation, da_2: 191 defensive_architecture) to address remaining weak dimensions, especially threat_exposure.
+### 16e. Threat Exposure Failure Mode Diagnosis
+
+Detailed analysis of v10 predictions on the 53 held-out threat_exposure texts:
+
+- **Mean bias: +4.31** — model systematically over-predicts safety by 4+ points
+- **Prediction range: 4.7–9.4** — model cannot predict below 4.7 (zero predictions under 3.0)
+- **Label range: 1.0–8.5** — held-out texts are overwhelmingly low-threat (mean 3.14)
+- **36/53 predictions above 7.0** — model thinks almost everything is safe
+
+The model learned a "default to safe" prior from training data:
+1. **Civil Comments** (now removed): 1,754/1,853 records at score 9-10 with confidence 0.40
+2. **Berkeley**: 913/1,884 at score 9-10 with confidence 0.50
+3. **GoEmotions**: 1,781/1,815 at score 5-7 with confidence 0.25
+
+Even after CC removal, composite threat_exposure still skews safe (913 at 9-10 vs 160 at 0-3). The 200 synthetic te_2 texts (70 at 0-2, 50 at 2.5-4) at 5x LLM weight should partially counterbalance this.
+
+**V13 plan**: Retrain with fixed composite (CC threat removed) + all synthetic + all relabeled data.
 
 ---
 
