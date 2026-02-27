@@ -544,7 +544,36 @@ The separated scoring workflow establishes the tooling for halo-free labeling bu
 
 ---
 
-## 16. References
+## 16. Training Data Labeling Expansion and V14 (2026-02-27)
+
+### 16a. Completing the All-Dimensions Batch
+
+The 200-text batch assembled for v14 (`data/labeling-batch-weak-dims.jsonl`) was scored on all 10 dimensions using the separated workflow. The prior session had covered the three weakest dimensions (threat_exposure, regulatory_capacity, contractual_clarity). This session extended coverage to the remaining seven: hostility_index, authority_dynamics, energy_dissipation, resilience_baseline, trust_conditions, cooling_capacity, and defensive_architecture.
+
+Two hundred texts × 10 dimensions = 2,000 new separated-llm labels. Total separated-llm training labels now range from 203 (seven previously uncovered dimensions) to 653 (regulatory_capacity, which had priority in earlier sessions). The held-out benchmark (100 texts, all 10 dims, clean separated labels) remains unchanged.
+
+A practical constraint emerged: scoring outputs cannot exceed ~32,000 tokens per response. The fix — scoring in four batches of 50 texts per dimension — became the canonical batching protocol. Partial score files accumulate in `/tmp/psq_separated/{dim}_partial.json` across batches and are merged before ingestion.
+
+### 16b. Infrastructure: Checkpoint Safety
+
+A recurring problem surfaced: smoke-test training runs were silently overwriting the v13 production checkpoint (`models/psq-student/best.pt`). This is the kind of data loss that evades version control because model weights are not committed. The fix adds two CLI arguments to `distill.py`:
+
+- `--out DIR` — explicit output directory, defaulting to `models/psq-student` for backward compatibility
+- `--no-save` — smoke-test mode: checkpoints are written to a temporary directory and deleted on completion
+
+Future training runs should follow the convention `--out models/psq-vN`, reserving `models/psq-student/` for the current production checkpoint only.
+
+### 16c. V14 Initiated
+
+Training began with `python scripts/distill.py --db data/psq.db --out models/psq-v14`. All hyperparameters are identical to v13 — the only change is the additional training signal from 2,000 halo-free labels. Holding architecture and hyperparameters constant allows attribution of any performance change to the data quality improvement.
+
+The primary question is whether 200 separated-scored texts (per dimension) is sufficient to materially improve over the joint-scored baseline. For dimensions where the student model already performs moderately (cooling_capacity r = 0.57, trust_conditions r = 0.50), improvement may be marginal. For dimensions with weak signal (threat_exposure r = 0.16), the question is whether the architecture has capacity to learn threat at all, or whether the model has learned to suppress threat predictions from 13 training versions of conservative labeling.
+
+Results pending.
+
+---
+
+## 17. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

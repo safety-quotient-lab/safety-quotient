@@ -37,6 +37,7 @@
 17. [V13 Training: CC Fix + Full Data](#17-v13-training-cc-fix--full-data-2026-02-27) — Civil Comments threat removed, best test_r (0.553)
 18. [Construct Validity: Inter-Dimension Correlations](#18-construct-validity-inter-dimension-correlations-2026-02-27) — halo effect confirmed, cluster structure emerging
 19. [Separated Scoring & Hierarchical Reporting](#19-separated-scoring--hierarchical-reporting-2026-02-27) — halo-free held-out relabeling, g-PSQ + cluster subscales, validation
+20. [V14 Labeling Expansion & Training](#20-v14-labeling-expansion--training-2026-02-27) — 200-text all-dims batch scored, 2,000 new separated-llm labels, distill.py safety improvements
 13. [References](#13-references)
 
 ---
@@ -1922,6 +1923,88 @@ Added g-PSQ general factor and cluster subscales as additive reporting layers in
 - **Bridge:** cooling_capacity, energy_dissipation, hostility_index
 
 **Implementation:** Confidence-weighted mean for cluster scores and g-PSQ. New `hierarchy` field in output alongside existing `scores`/`psq` — fully backwards compatible, no existing fields changed.
+
+---
+
+## 20. V14 Labeling Expansion & Training (2026-02-27)
+
+### 20a. Full-Batch Separated Scoring (7 Remaining Dimensions)
+
+Following the weak-dims batch (§19 — te/rc/co scored on 200 texts), this session expanded separated-llm coverage to all 10 dimensions. The batch (`data/labeling-batch-weak-dims.jsonl`, 200 texts) was scored for the 7 previously uncovered dimensions: hostility_index, authority_dynamics, energy_dissipation, resilience_baseline, trust_conditions, cooling_capacity, defensive_architecture.
+
+**Scoring protocol:** Due to the 32K output-token limit on Claude Code responses, texts were scored in 4 batches of 50 per dimension. Scores were accumulated in `/tmp/psq_separated/{dim}_partial.json` files across batches and merged before ingestion. All 7 dimensions × 200 texts = 1,400 new scores ingested.
+
+**Ingestion:** Each dimension ingested via `label_separated.py ingest --dim <dim> --scores {dim}_partial.json`. Full batch assembled (`label_separated.py assemble`) then ingested into `data/psq.db` via `migrate.py --ingest`.
+
+**Note on halo policy:** The held-out benchmark maintains strict one-dimension-per-session labeling. For training data, scoring multiple dimensions per response batch is pragmatically acceptable — the benefit of coverage outweighs marginal halo inflation given the much larger signal volume.
+
+### 20b. Post-Expansion Database State
+
+| Metric | Before | After |
+|---|---|---|
+| Total scores | 56,131 | 58,131 |
+| Separated-llm total | 2,541 | 4,541 |
+| Separated-llm training (train/val/test) | ~1,400 | ~3,370 |
+
+**Separated-llm by dimension (training splits only):**
+
+| Dimension | n (training splits) |
+|---|---|
+| regulatory_capacity | 653 |
+| threat_exposure | 632 |
+| defensive_architecture | 453 |
+| energy_dissipation | 415 |
+| contractual_clarity | 403 |
+| trust_conditions | 203 |
+| resilience_baseline | 203 |
+| hostility_index | 203 |
+| cooling_capacity | 203 |
+| authority_dynamics | 203 |
+
+The weak dimensions (te, rc, co, da, ed) have substantially higher coverage from earlier dedicated labeling rounds. The 7 newly scored dims start at 203 (the 200-text batch, after train/val/test split).
+
+### 20c. distill.py Safety Improvements
+
+Two issues surfaced during smoke testing:
+
+1. **Checkpoint overwrite bug (2nd occurrence):** Smoke test runs were saving to `models/psq-student/best.pt`, overwriting the v13 production checkpoint. This happened twice before the fix.
+
+2. **Fix:** Added two new CLI arguments:
+   - `--out DIR` — specifies output directory (default: `models/psq-student` for backward compatibility)
+   - `--no-save` — discards all checkpoints after training (uses a temp dir, cleaned up on completion)
+
+   Production training: `python scripts/distill.py --db data/psq.db --out models/psq-v14`
+   Smoke tests: `python scripts/distill.py --no-save --epochs 1`
+
+### 20d. Smoke Test Results (1 Epoch, DB Mode)
+
+Ran `python scripts/distill.py --db data/psq.db --no-save --epochs 1` before v14 to verify DB mode and data loading.
+
+| Metric | Value |
+|---|---|
+| Train records | 15,859 |
+| Val records | 1,913 |
+| Test records | 2,015 |
+| val_r (epoch 1) | 0.4139 |
+| Cooling capacity (cont) | 0.72 |
+| CUDA | active |
+
+The cont=0.72 for cooling_capacity at epoch 1 confirms the new cooling labels are already influencing training. UNEXPECTED_KEYS warning in DistilBERT load (MLM head parameters) is expected and safe to ignore.
+
+### 20e. V14 Training
+
+Initiated: `python scripts/distill.py --db data/psq.db --out models/psq-v14`
+
+Identical hyperparameters to v13 (max_length=128, patience=3, lr=2e-5, batch=32, epochs=15, conf^2 weighting, llm_weight=5.0, composite_weight=1.5). Architecture: DistilBERT → 384 shared → 10 heads.
+
+**V14 training data includes:**
+- All v13 composite-proxy data (40,487 records)
+- All v13 joint-llm data (12,257 records)
+- All v13 synthetic data (846 records)
+- +2,000 new separated-llm labels (200 texts × 10 dims)
+- All prior separated-llm labels (te/rc/co/da/ed from earlier sessions)
+
+**Expected outcome:** Broad improvement across all dims, especially the 7 newly-covered dims (hi/ad/ed/rb/tc/cc/da) which now have 200+ clean separated labels. Primary uncertainty: whether 200 texts is sufficient to meaningfully improve dims with prior weak coverage.
 
 ---
 

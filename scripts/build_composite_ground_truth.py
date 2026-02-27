@@ -1,24 +1,11 @@
 """
 Build composite ground truth for PSQ student model training.
 
-Loads 4 datasets (Berkeley, Civil Comments, GoEmotions, UCC), maps their
-labels to PSQ dimension scores (0-10 scale), and outputs a unified JSONL
-training set. Each record contains text + per-dimension score/confidence
-derived from the dataset's ground truth labels.
+All design decisions (scales, formula params, disabled dims + reasons,
+emotion tables, subreddit weights, etc.) live in data/dataset_mappings.json.
+Edit that file to change a mapping. Never hardcode parameters here.
 
-PSQ Dimension → Dataset Mapping:
-  hostility_index       ← Berkeley hate_speech_score
-  threat_exposure       ← Civil Comments (threat, severe_toxicity)
-  energy_dissipation    ← GoEmotions (sadness, grief, disappointment) + Dreaddit (stress)
-  authority_dynamics    ← UCC (condescending)
-  regulatory_capacity   ← GoEmotions (anger, fear, nervousness, confusion)
-                        + ESConv (emotion intensity change, strategy labels)
-                        + EmpatheticDialogues (emotion context)
-  trust_conditions      ← GoEmotions (approval, disapproval) + UCC (dismissive)
-  cooling_capacity      ← GoEmotions (relief, caring, gratitude) + UCC (healthy)
-  contractual_clarity   ← UCC (generalisation_unfair)
-  resilience_baseline   ← EmpatheticDialogues (emotion context for adversity/growth)
-  defensive_architecture ← UCC (sarcastic) + LLM-labeled (Claude Code, DSQ-40/TKI rubric)
+Absorbs map_new_datasets.py — all 11 source datasets in one script.
 
 Output: data/composite-ground-truth.jsonl
 """
@@ -37,7 +24,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 os.chdir(ROOT)
 
-# PSQ dimension IDs (must match instruments.json)
 DIMS = [
     "threat_exposure", "hostility_index", "authority_dynamics",
     "energy_dissipation", "regulatory_capacity", "resilience_baseline",
@@ -45,775 +31,775 @@ DIMS = [
     "contractual_clarity",
 ]
 
-# Dimensions that are threat factors (lower score = more threat)
-THREAT_DIMS = {"threat_exposure", "hostility_index", "authority_dynamics", "energy_dissipation"}
 
-SAMPLES_PER_DATASET = 2000
+# ============================================================
+# Config loader
+# ============================================================
+
+def load_config():
+    path = ROOT / "data" / "dataset_mappings.json"
+    with open(path) as f:
+        return json.load(f)
 
 
-def scale_to_psq(values, source_min, source_max, invert=False):
-    """Map values from source range to PSQ 0-10 scale.
+# ============================================================
+# Scoring helpers  (read all params from cfg dicts)
+# ============================================================
 
-    For threat dimensions: high source value (e.g. high hate) → low PSQ score (0 = max threat).
-    For protective dimensions: high source value → high PSQ score.
-
-    Args:
-        invert: if True, high source = low PSQ (threat-like mapping)
-    """
-    values = np.clip(values, source_min, source_max)
-    normalized = (values - source_min) / (source_max - source_min)  # 0-1
+def scale_to_psq(value, source_min, source_max, invert=False):
+    value = np.clip(value, source_min, source_max)
+    normalized = (value - source_min) / (source_max - source_min)
     if invert:
         normalized = 1 - normalized
-    return np.round(normalized * 10, 1)
+    return round(float(normalized * 10), 1)
+
+
+def apply_scoring(row, scoring_cfg, dataset_cfg=None):
+    """Return score (0-10) or None if record should be skipped for this dim."""
+    t = scoring_cfg["type"]
+
+    if t == "scale":
+        v = row[scoring_cfg["field"]]
+        return scale_to_psq(v, scoring_cfg["source_min"], scoring_cfg["source_max"],
+                             scoring_cfg.get("invert", False))
+
+    if t == "weighted_scale":
+        total_w = sum(f["weight"] for f in scoring_cfg["fields"])
+        combined = sum(
+            f["weight"] * np.clip(row[f["field"]], f["source_min"], f["source_max"])
+            / (f["source_max"] - f["source_min"])
+            for f in scoring_cfg["fields"]
+        ) / total_w
+        if scoring_cfg["fields"][0].get("invert", True):
+            combined = 1 - combined
+        return round(float(combined * 10), 1)
+
+    if t == "cluster_binary":
+        neg_labels = scoring_cfg.get("neg_labels", [])
+        pos_labels = scoring_cfg.get("pos_labels", [])
+        dim_type   = scoring_cfg["dim_type"]
+        neutral    = scoring_cfg.get("neutral_score", 5.0)
+        rng        = scoring_cfg.get("range", 4.0)
+
+        neg_sum = sum(row[l] for l in neg_labels if l in row.index)
+        pos_sum = sum(row[l] for l in pos_labels if l in row.index)
+        neg_n   = len([l for l in neg_labels if l in row.index])
+        pos_n   = len([l for l in pos_labels if l in row.index])
+        total   = neg_n + pos_n
+        if total == 0:
+            return None
+
+        if dim_type == "threat":
+            score = neutral - (neg_sum / neg_n * rng) if neg_n else neutral
+        else:  # protective
+            if pos_n and neg_n:
+                score = neutral + (pos_sum / pos_n * rng) - (neg_sum / neg_n * rng)
+            elif pos_n:
+                score = neutral + (pos_sum / pos_n * rng)
+            elif neg_n:
+                score = neutral - (neg_sum / neg_n * rng)
+            else:
+                score = neutral
+
+        return round(float(np.clip(score, 0, 10)), 1)
+
+    if t == "linear":
+        v = row[scoring_cfg["field"]]
+        if "min_field_value" in scoring_cfg and v < scoring_cfg["min_field_value"]:
+            return None  # skip record for this dim
+        score = scoring_cfg["base"] + v * scoring_cfg["multiplier"]
+        return round(float(np.clip(score, scoring_cfg.get("clip_min", 0),
+                                        scoring_cfg.get("clip_max", 10))), 1)
+
+    if t == "emotion_lookup":
+        table_name = scoring_cfg["table"]
+        table = dataset_cfg[table_name]
+        emotion = row.get("emotion", row.get("context", ""))
+        if emotion not in table:
+            return None
+        noise = dataset_cfg.get("noise_range", 0)
+        base = table[emotion]
+        score = base + (np.random.uniform(-noise, noise) if noise else 0)
+        return round(float(np.clip(score, 0, 10)), 1)
+
+    raise ValueError(f"Unknown scoring type: {t}")
+
+
+def apply_confidence(row, conf_cfg, active_count=None, dataset_cfg=None):
+    """Return confidence (0-1)."""
+    t = conf_cfg["type"]
+
+    if t == "fixed":
+        return conf_cfg["value"]
+
+    if t == "linear_clip":
+        v = float(row.get(conf_cfg["field"], 0))
+        c = conf_cfg["base"] + v * conf_cfg["multiplier"]
+        c *= conf_cfg.get("scale", 1.0)
+        return round(float(np.clip(c, conf_cfg.get("min", 0), conf_cfg.get("max", 1))), 2)
+
+    if t == "std_err":
+        v = float(row[conf_cfg["field"]])
+        c = 1.0 - (v / conf_cfg["divisor"])
+        return round(float(np.clip(c, conf_cfg["min"], conf_cfg["max"])), 2)
+
+    if t == "abs_from_midpoint":
+        v = float(row[conf_cfg["field"]])
+        c = conf_cfg["base"] + abs(v - conf_cfg["midpoint"]) * conf_cfg["multiplier"]
+        return round(float(np.clip(c, conf_cfg.get("min", 0), conf_cfg.get("max", 1))), 2)
+
+    if t == "active_label_count":
+        if active_count is None:
+            return 0.5
+        thresholds = conf_cfg["thresholds"]
+        for max_active, val in thresholds:
+            if active_count <= max_active:
+                return val
+        return conf_cfg["default"]
+
+    if t == "annotator_std":
+        scores = []
+        for f in conf_cfg["score_fields"]:
+            s = row.get(f)
+            if s:
+                try:
+                    scores.append(float(s))
+                except ValueError:
+                    pass
+        if len(scores) < conf_cfg.get("min_annotators", 3):
+            return conf_cfg.get("min", 0.15)
+        std = np.std(scores)
+        c = conf_cfg["base"] + std * conf_cfg["std_multiplier"]
+        c *= conf_cfg.get("scale", 1.0)
+        return round(float(np.clip(c, conf_cfg.get("min", 0), conf_cfg.get("max", 1))), 2)
+
+    raise ValueError(f"Unknown confidence type: {t}")
+
+
+def active_label_count(row, scoring_cfg):
+    """Count active neg+pos labels for cluster_binary confidence."""
+    neg_sum = sum(row[l] for l in scoring_cfg.get("neg_labels", []) if l in row.index)
+    pos_sum = sum(row[l] for l in scoring_cfg.get("pos_labels", []) if l in row.index)
+    return int(neg_sum + pos_sum)
 
 
 def make_record(text, dimensions, source):
-    """Create a JSONL record."""
-    return {
-        "text": text,
-        "source": source,
-        "dimensions": dimensions,  # dict of dim_id -> {score, confidence}
-    }
+    return {"text": text, "source": source, "dimensions": dimensions}
 
 
-# =====================================================================
-# BERKELEY → hostility_index
-# =====================================================================
-def load_berkeley(n=SAMPLES_PER_DATASET):
-    print(f"\n{'='*60}")
-    print("Loading Berkeley → hostility_index")
-    print(f"{'='*60}")
+def apply_mappings(row, mappings, dataset_cfg):
+    """Apply all enabled mappings to a row. Return dims dict."""
+    dims = {}
+    for m in mappings:
+        if not m.get("enabled", True):
+            continue
+        dim = m["dimension"]
+        score = apply_scoring(row, m["scoring"], dataset_cfg)
+        if score is None:
+            continue
+        if m["scoring"]["type"] == "cluster_binary":
+            ac = active_label_count(row, m["scoring"])
+            conf = apply_confidence(row, m["confidence"], active_count=ac)
+        else:
+            conf = apply_confidence(row, m["confidence"], dataset_cfg=dataset_cfg)
+        dims[dim] = {"score": score, "confidence": conf}
+    return dims
 
-    df = pd.read_parquet("data/measuring-hate-speech.parquet")
-    agg = df.groupby("text").agg({
-        "hate_speech_score": "first",
-        "hatespeech": "mean",
-        "insult": "mean",
-        "violence": "mean",
-        "dehumanize": "mean",
-        "std_err": "first",
-    }).reset_index()
-    agg = agg[agg["text"].str.len() > 20].copy()
 
-    # Stratified sample by hate_speech_score quintiles
-    agg["quintile"] = pd.qcut(agg["hate_speech_score"], q=5, labels=False, duplicates="drop")
-    samples = []
-    per_q = n // 5
-    for q in sorted(agg["quintile"].unique()):
-        stratum = agg[agg["quintile"] == q]
-        take = min(per_q, len(stratum))
-        samples.append(stratum.sample(n=take, random_state=42))
+# ============================================================
+# Dataset loaders
+# ============================================================
+
+def load_berkeley(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading Berkeley → hostility_index\n{'='*60}")
+    df = pd.read_parquet(cfg["file"])
+    agg_cols = {"hate_speech_score": "first", "hatespeech": "mean",
+                "insult": "mean", "violence": "mean", "dehumanize": "mean", "std_err": "first"}
+    agg = df.groupby(cfg["text_field"]).agg(agg_cols).reset_index()
+    agg = agg[agg[cfg["text_field"]].str.len() > global_cfg["min_text_length"]].copy()
+
+    sc = cfg["sampling"]
+    agg["quintile"] = pd.qcut(agg[sc["field"]], q=5, labels=False, duplicates="drop")
+    per_q = sc["n"] // 5
+    samples = [agg[agg["quintile"] == q].sample(n=min(per_q, len(agg[agg["quintile"] == q])),
+               random_state=sc["random_state"])
+               for q in sorted(agg["quintile"].unique())]
     sample = pd.concat(samples).reset_index(drop=True)
-    print(f"  Sampled: {len(sample)} texts")
+    print(f"  Sampled: {len(sample)}")
 
     records = []
     for _, row in sample.iterrows():
-        # hate_speech_score range: -8.3 to +6.3
-        # High hate → low hostility_index PSQ score (more threat)
-        hostility_score = scale_to_psq(
-            row["hate_speech_score"], source_min=-8.3, source_max=6.3, invert=True
-        )
-        # Confidence: based on std_err (lower error = higher confidence)
-        # std_err range: 0.1 to 1.9, mean 0.475
-        conf = float(np.clip(1.0 - (row["std_err"] / 2.0), 0.3, 0.95))
-
-        # Also derive threat_exposure from violence subscale
-        # violence range: 0-4 ordinal (mean across annotators), higher = more violent
-        threat_score = scale_to_psq(row["violence"], source_min=0, source_max=4, invert=True)
-        threat_conf = 0.5  # ordinal, noisy
-
-        dims = {
-            "hostility_index": {"score": float(hostility_score), "confidence": round(conf, 2)},
-            "threat_exposure": {"score": float(threat_score), "confidence": threat_conf},
-        }
-        records.append(make_record(row["text"], dims, "berkeley"))
-
-    print(f"  Records: {len(records)} (hostility_index + threat_exposure)")
+        dims = apply_mappings(row, cfg["mappings"], cfg)
+        if dims:
+            records.append(make_record(row[cfg["text_field"]], dims, "berkeley"))
+    print(f"  Records: {len(records)}")
     return records
 
 
-# =====================================================================
-# CIVIL COMMENTS → threat_exposure (primary)
-# =====================================================================
-def load_civil_comments(n=SAMPLES_PER_DATASET):
-    print(f"\n{'='*60}")
-    print("Loading Civil Comments → threat_exposure")
-    print(f"{'='*60}")
-
+def load_civil_comments(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading Civil Comments → hostility_index\n{'='*60}")
     from datasets import load_dataset
-    ds = load_dataset("google/civil_comments", split="train")
+    ds = load_dataset(cfg["source"], split="train")
     df = ds.to_pandas()
-    df = df[df["text"].str.len() > 20].copy()
-    print(f"  Total: {len(df)} texts")
+    df = df[df["text"].str.len() > global_cfg["min_text_length"]].copy()
+    print(f"  Total: {len(df)}")
 
-    # Stratified sample by toxicity
-    df["stratum"] = pd.cut(df["toxicity"], bins=[0, 0.05, 0.2, 0.5, 0.8, 1.0],
-                            labels=["clean", "mild", "moderate", "high", "extreme"],
+    sc = cfg["sampling"]
+    df["stratum"] = pd.cut(df[sc["field"]], bins=sc["bins"], labels=sc["labels"],
                             include_lowest=True)
-    samples = []
-    per_s = n // 5
-    for s in ["clean", "mild", "moderate", "high", "extreme"]:
-        subset = df[df["stratum"] == s]
-        take = min(per_s, len(subset))
-        if take > 0:
-            samples.append(subset.sample(n=take, random_state=42))
+    per_s = sc["n"] // len(sc["labels"])
+    samples = [df[df["stratum"] == s].sample(n=min(per_s, len(df[df["stratum"] == s])),
+               random_state=sc["random_state"])
+               for s in sc["labels"] if len(df[df["stratum"] == s]) > 0]
     sample = pd.concat(samples).reset_index(drop=True)
-    print(f"  Sampled: {len(sample)} texts")
+    print(f"  Sampled: {len(sample)}")
 
     records = []
     for _, row in sample.iterrows():
-        # threat (0-1): fraction of annotators flagging threat
-        # Higher threat → lower threat_exposure PSQ score
-        threat_score = scale_to_psq(row["threat"], source_min=0, source_max=1, invert=True)
-        # Use number of annotators who agreed as confidence proxy
-        # Civil Comments values are fractions, so higher = more agreement
-        threat_conf = float(np.clip(0.4 + row["threat"] * 0.5, 0.4, 0.85))
-
-        # severe_toxicity contributes to threat_exposure too
-        sev_score = scale_to_psq(row["severe_toxicity"], source_min=0, source_max=1, invert=True)
-
-        # Combined threat score: weighted average
-        combined_threat = (float(threat_score) * 0.6 + float(sev_score) * 0.4)
-
-        # Also get hostility from insult + toxicity
-        hostility_score = scale_to_psq(
-            (row["toxicity"] + row["insult"]) / 2, source_min=0, source_max=1, invert=True
-        )
-        hostility_conf = float(np.clip(0.4 + row["toxicity"] * 0.4, 0.4, 0.80))
-
-        dims = {
-            # REMOVED threat_exposure: 95% of records score 9-10 ("perfectly safe")
-            # because the proxy maps "not threatening from author's POV" to "safe for
-            # target" — wrong. Texts describing harassment/abuse/violence get 10.0.
-            # 1,754/1,853 records at score>=9.0 actively poison the model.
-            # threat_exposure will be learned from LLM labels + synthetic data only.
-            "hostility_index": {"score": float(hostility_score), "confidence": round(hostility_conf, 2)},
-        }
-        records.append(make_record(row["text"], dims, "civil_comments"))
-
-    print(f"  Records: {len(records)} (threat_exposure + hostility_index)")
+        dims = apply_mappings(row, cfg["mappings"], cfg)
+        if dims:
+            records.append(make_record(row["text"], dims, "civil_comments"))
+    print(f"  Records: {len(records)}")
     return records
 
 
-# =====================================================================
-# GOEMOTIONS → emotional dimensions
-# =====================================================================
-def load_goemotions(n=SAMPLES_PER_DATASET):
-    print(f"\n{'='*60}")
-    print("Loading GoEmotions → emotional PSQ dimensions")
-    print(f"{'='*60}")
-
+def load_goemotions(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading GoEmotions → emotional dimensions\n{'='*60}")
     from datasets import load_dataset
-    ds = load_dataset("google-research-datasets/go_emotions", "simplified", split="train")
+    ds = load_dataset(cfg["source"], cfg.get("source_config", "simplified"), split="train")
     df = ds.to_pandas()
-    df = df[df["text"].str.len() > 20].copy()
-    print(f"  Total: {len(df)} texts")
-
-    # Get label names
+    df = df[df["text"].str.len() > global_cfg["min_text_length"]].copy()
     label_names = ds.features["labels"].feature.names
-
-    # Expand multi-label to binary columns
     for i, name in enumerate(label_names):
         df[name] = df["labels"].apply(lambda x: 1 if i in x else 0)
 
-    # Sample
-    sample = df.sample(n=min(n, len(df)), random_state=42).reset_index(drop=True)
-    print(f"  Sampled: {len(sample)} texts")
-
-    # PSQ dimension clusters
-    # Each maps to a set of GoEmotions labels with polarity
-    # Threat dimensions: presence of negative emotions → low score (more threat)
-    # Protective dimensions: presence of positive emotions → high score
-    dim_clusters = {
-        "threat_exposure": {
-            "negative": ["fear", "nervousness"],
-            "positive": [],
-            "type": "threat",
-        },
-        "hostility_index": {
-            "negative": ["anger", "annoyance", "disgust"],
-            "positive": [],
-            "type": "threat",
-        },
-        "energy_dissipation": {
-            "negative": ["sadness", "grief", "disappointment"],
-            "positive": [],
-            "type": "threat",
-        },
-        "regulatory_capacity": {
-            "negative": ["anger", "fear", "nervousness", "confusion"],
-            "positive": ["realization"],
-            "type": "protective",
-        },
-        "resilience_baseline": {
-            "negative": [],
-            "positive": ["optimism", "pride", "relief"],
-            "type": "protective",
-        },
-        "trust_conditions": {
-            "negative": ["disapproval"],
-            "positive": ["approval", "admiration"],
-            "type": "protective",
-        },
-        "cooling_capacity": {
-            "negative": [],
-            "positive": ["relief", "caring", "gratitude"],
-            "type": "protective",
-        },
-    }
+    sc = cfg["sampling"]
+    sample = df.sample(n=min(sc["n"], len(df)), random_state=sc["random_state"]).reset_index(drop=True)
+    print(f"  Sampled: {len(sample)}")
 
     records = []
     for _, row in sample.iterrows():
-        dims = {}
-        for dim_id, cluster in dim_clusters.items():
-            neg_labels = [l for l in cluster["negative"] if l in row.index]
-            pos_labels = [l for l in cluster["positive"] if l in row.index]
-
-            neg_sum = sum(row[l] for l in neg_labels) if neg_labels else 0
-            pos_sum = sum(row[l] for l in pos_labels) if pos_labels else 0
-            total_labels = len(neg_labels) + len(pos_labels)
-
-            if total_labels == 0:
-                continue
-
-            # For threat dimensions: negative emotions push score down
-            # For protective: positive emotions push score up
-            if cluster["type"] == "threat":
-                # More negative emotions present → lower PSQ score (more threat)
-                # No negative emotions → neutral (5)
-                if neg_labels:
-                    neg_frac = neg_sum / len(neg_labels)  # 0 or 1 per label
-                    score = 5.0 - (neg_frac * 4.0)  # range: 1-5
-                else:
-                    score = 5.0
-            else:
-                # Protective: positive emotions raise score, negative lower it
-                if pos_labels and neg_labels:
-                    pos_frac = pos_sum / len(pos_labels)
-                    neg_frac = neg_sum / len(neg_labels)
-                    score = 5.0 + (pos_frac * 3.0) - (neg_frac * 3.0)  # range: 2-8
-                elif pos_labels:
-                    pos_frac = pos_sum / len(pos_labels)
-                    score = 5.0 + (pos_frac * 3.0)  # range: 5-8
-                elif neg_labels:
-                    neg_frac = neg_sum / len(neg_labels)
-                    score = 5.0 - (neg_frac * 3.0)  # range: 2-5
-                else:
-                    score = 5.0
-
-            score = round(np.clip(score, 0, 10), 1)
-
-            # Confidence: based on how many labels in the cluster were active
-            active = neg_sum + pos_sum
-            if active == 0:
-                conf = 0.25  # no signal — low confidence
-            elif active == 1:
-                conf = 0.45
-            else:
-                conf = 0.60
-
-            dims[dim_id] = {"score": score, "confidence": conf}
-
+        dims = apply_mappings(row, cfg["mappings"], cfg)
         if dims:
             records.append(make_record(row["text"], dims, "goemotions"))
-
-    print(f"  Records: {len(records)} (up to 7 emotional dimensions each)")
+    print(f"  Records: {len(records)}")
     return records
 
 
-# =====================================================================
-# UCC → subtle conversational dimensions
-# =====================================================================
-def load_ucc(n=SAMPLES_PER_DATASET):
-    print(f"\n{'='*60}")
-    print("Loading UCC → authority, trust, contractual, defensive, cooling")
-    print(f"{'='*60}")
-
-    df = pd.read_csv("data/ucc.csv")
-    labels = ["hostile", "condescending", "dismissive", "antagonize",
-              "sarcastic", "generalisation_unfair", "healthy"]
-    agg = df.groupby("comment")[labels].mean().reset_index()
-    agg = agg[agg["comment"].str.len() > 20].copy()
+def load_ucc(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading UCC → authority, trust, contractual, defensive, cooling\n{'='*60}")
+    df = pd.read_csv(cfg["file"])
+    labels = cfg["aggregate_labels"]
+    agg = df.groupby(cfg["text_field"])[labels].mean().reset_index()
+    agg = agg[agg[cfg["text_field"]].str.len() > global_cfg["min_text_length"]].copy()
     print(f"  Unique comments: {len(agg)}")
 
-    # Stratified by hostile
-    agg["stratum"] = pd.cut(agg["hostile"], bins=[-0.01, 0.1, 0.3, 0.6, 1.01],
-                             labels=["none", "mild", "moderate", "high"])
-    samples = []
-    per_s = n // 4
-    for s in agg["stratum"].dropna().unique():
-        subset = agg[agg["stratum"] == s]
-        take = min(per_s, len(subset))
-        if take > 0:
-            samples.append(subset.sample(n=take, random_state=42))
+    sc = cfg["sampling"]
+    agg["stratum"] = pd.cut(agg[sc["field"]], bins=sc["bins"], labels=sc["labels"])
+    per_s = sc["n"] // len(sc["labels"])
+    samples = [agg[agg["stratum"] == s].sample(n=min(per_s, len(agg[agg["stratum"] == s])),
+               random_state=sc["random_state"])
+               for s in agg["stratum"].dropna().unique()]
     sample = pd.concat(samples).reset_index(drop=True)
-    print(f"  Sampled: {len(sample)} texts")
+    print(f"  Sampled: {len(sample)}")
 
     records = []
     for _, row in sample.iterrows():
-        dims = {}
-
-        # hostility_index ← hostile + antagonize (0-1 each)
-        hostility_raw = (row["hostile"] + row["antagonize"]) / 2
-        dims["hostility_index"] = {
-            "score": float(scale_to_psq(hostility_raw, 0, 1, invert=True)),
-            "confidence": round(0.45 + hostility_raw * 0.3, 2),
-        }
-
-        # authority_dynamics ← condescending (0-1)
-        # Condescension = power assertion → threat
-        # NOTE: proxy-LLM gap is +2.8 points. Halved twice (0.5 * 0.5 = 0.25x original)
-        # to let 100 LLM authority_dynamics labels at 5x weight dominate.
-        # Condescension is a real signal but too narrow — misses power dynamics breadth.
-        dims["authority_dynamics"] = {
-            "score": float(scale_to_psq(row["condescending"], 0, 1, invert=True)),
-            "confidence": round((0.35 + row["condescending"] * 0.3) * 0.25, 2),
-        }
-
-        # trust_conditions ← dismissive (0-1)
-        # Dismissiveness erodes trust → protective dimension goes down
-        dims["trust_conditions"] = {
-            "score": float(scale_to_psq(row["dismissive"], 0, 1, invert=True)),
-            "confidence": round(0.35 + row["dismissive"] * 0.3, 2),
-        }
-
-        # cooling_capacity ← healthy (0-1)
-        # Healthy conversation supports recovery → protective goes up
-        dims["cooling_capacity"] = {
-            "score": float(scale_to_psq(row["healthy"], 0, 1, invert=False)),
-            "confidence": round(0.35 + abs(row["healthy"] - 0.5) * 0.5, 2),
-        }
-
-        # contractual_clarity ← generalisation_unfair (0-1)
-        # REMOVED in v3b: proxy-LLM gap is +4.4 points, systematic bias of -2.32,
-        # and v3 training shows negative r (-0.10 → -0.02) — this proxy actively
-        # teaches the wrong signal. Contractual clarity will be learned from LLM
-        # labels only (150 samples at llm_weight=5x).
-        # dims["contractual_clarity"] = {
-        #     "score": float(scale_to_psq(row["generalisation_unfair"], 0, 1, invert=True)),
-        #     "confidence": round((0.30 + row["generalisation_unfair"] * 0.35) * 0.5, 2),
-        # }
-
-        # defensive_architecture ← sarcastic (0-1)
-        # Sarcasm = defense mechanism indicator (weak signal)
-        if row["sarcastic"] > 0.1:
-            dims["defensive_architecture"] = {
-                "score": round(5.0 - row["sarcastic"] * 2.0, 1),  # mild shift from neutral
-                "confidence": 0.15,  # very low — proxy-LLM gap confirmed, weak signal
-            }
-
-        records.append(make_record(row["comment"], dims, "ucc"))
-
-    print(f"  Records: {len(records)} (up to 6 dimensions each)")
+        dims = apply_mappings(row, cfg["mappings"], cfg)
+        if dims:
+            records.append(make_record(row[cfg["text_field"]], dims, "ucc"))
+    print(f"  Records: {len(records)}")
     return records
 
 
-# =====================================================================
-# DREADDIT → energy_dissipation
-# =====================================================================
-def load_dreaddit(n=SAMPLES_PER_DATASET):
-    print(f"\n{'='*60}")
-    print("Loading Dreaddit → energy_dissipation")
-    print(f"{'='*60}")
+def load_dreaddit(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading Dreaddit → energy_dissipation\n{'='*60}")
+    dfs = [pd.read_csv(f) for f in cfg["files"] if Path(f).exists()]
+    df = pd.concat(dfs, ignore_index=True)
+    df = df[df["text"].str.len() > cfg.get("min_text_length", global_cfg["min_text_length"])].copy()
+    print(f"  Total: {len(df)}")
 
-    df = pd.read_csv("data/dreaddit/dreaddit-train.csv")
-    test = pd.read_csv("data/dreaddit/dreaddit-test.csv")
-    df = pd.concat([df, test], ignore_index=True)
-    df = df[df["text"].str.len() > 40].copy()
-    print(f"  Total: {len(df)} posts")
-
-    # Use both label and LIWC features for nuanced scoring
-    # label=1 (stressed), label=0 (not stressed)
-    # Also use lex_liwc_negemo, lex_liwc_sad, lex_liwc_Tone for gradient
-
-    # Balanced sample
-    stressed = df[df["label"] == 1].sample(n=min(n // 2, len(df[df["label"] == 1])), random_state=42)
-    unstressed = df[df["label"] == 0].sample(n=min(n // 2, len(df[df["label"] == 0])), random_state=42)
+    sc = cfg["sampling"]
+    stressed   = df[df["label"] == 1].sample(n=min(sc["n"] // 2, len(df[df["label"] == 1])),
+                                              random_state=sc["random_state"])
+    unstressed = df[df["label"] == 0].sample(n=min(sc["n"] // 2, len(df[df["label"] == 0])),
+                                              random_state=sc["random_state"])
     sample = pd.concat([stressed, unstressed]).reset_index(drop=True)
     print(f"  Sampled: {len(sample)} ({len(stressed)} stressed, {len(unstressed)} not)")
 
-    # Subreddit severity mapping (from most severe to least)
-    subreddit_severity = {
-        "ptsd": 0.9, "domesticviolence": 0.85, "survivorsofabuse": 0.8,
-        "homeless": 0.7, "almosthomeless": 0.6, "anxiety": 0.5,
-        "stress": 0.4, "relationships": 0.3, "food_pantry": 0.5,
-        "assistance": 0.4,
-    }
+    sub_sev = cfg["subreddit_severity"]
+    default_sev = cfg["default_subreddit_severity"]
+    sf = cfg["score_formula"]
 
     records = []
     for _, row in sample.iterrows():
-        label = row["label"]
-        sub_sev = subreddit_severity.get(row["subreddit"], 0.5)
+        sev = sub_sev.get(row.get("subreddit", ""), default_sev)
+        if row["label"] == 1:
+            base = sf["stressed"]["base"] + (1.0 - sev) * sf["stressed"]["severity_multiplier"]
+        else:
+            base = sf["not_stressed"]["base"] + sev * sf["not_stressed"]["severity_multiplier"]
 
-        # Base score from label
-        if label == 1:  # stressed → low energy_dissipation (energy trapped)
-            # Subreddit severity modulates: PTSD stress = 1-2, mild stress = 3-4
-            base_score = 1.0 + (1.0 - sub_sev) * 3.0  # range: 1.3 - 4.0
-        else:  # not stressed → neutral to positive energy
-            base_score = 5.0 + sub_sev * 1.5  # range: 5.0 - 6.4
+        if sf["liwc_negemo_field"] in row.index and not pd.isna(row[sf["liwc_negemo_field"]]):
+            base -= min(row[sf["liwc_negemo_field"]] / sf["liwc_negemo_divisor"],
+                        sf["liwc_negemo_max_shift"])
+        if sf["liwc_tone_field"] in row.index and not pd.isna(row[sf["liwc_tone_field"]]):
+            base += row[sf["liwc_tone_field"]] / sf["liwc_tone_divisor"]
 
-        # LIWC refinement: use negemo and Tone if available
-        if "lex_liwc_negemo" in row.index and not pd.isna(row["lex_liwc_negemo"]):
-            negemo = row["lex_liwc_negemo"]
-            # High negative emotion → push score down slightly
-            base_score -= min(negemo / 10.0, 1.0)
-
-        if "lex_liwc_Tone" in row.index and not pd.isna(row["lex_liwc_Tone"]):
-            tone = row["lex_liwc_Tone"]
-            # High tone (positive) → push score up slightly
-            base_score += tone / 200.0  # small adjustment, max +0.5
-
-        score = round(np.clip(base_score, 0, 10), 1)
-
-        # Confidence: annotator agreement + label clarity
-        conf_base = float(row.get("confidence", 0.5))
-        conf = round(np.clip(0.3 + conf_base * 0.4, 0.35, 0.70), 2)
-
-        dims = {
-            "energy_dissipation": {"score": score, "confidence": conf},
-        }
+        score = round(float(np.clip(base, 0, 10)), 1)
+        conf_cfg = cfg["mappings"][0]["confidence"]
+        conf = apply_confidence(row, conf_cfg)
+        dims = {"energy_dissipation": {"score": score, "confidence": conf}}
         records.append(make_record(row["text"], dims, "dreaddit"))
 
-    print(f"  Records: {len(records)} (energy_dissipation)")
+    print(f"  Records: {len(records)}")
     return records
 
 
-# =====================================================================
-# ESConv → regulatory_capacity
-# =====================================================================
-def load_esconv(n=SAMPLES_PER_DATASET):
-    print(f"\n{'='*60}")
-    print("Loading ESConv → regulatory_capacity")
-    print(f"{'='*60}")
-
-    import json as json_mod
-
-    # Load all splits
-    records = []
-    for split_file in ["esconv-train.jsonl"]:
-        fpath = Path("data") / split_file
-        if not fpath.exists():
+def load_esconv(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading ESConv → regulatory_capacity\n{'='*60}")
+    convs = []
+    for fpath in cfg["files"]:
+        p = Path(fpath)
+        if not p.exists():
             continue
-        with open(fpath) as f:
+        with open(p) as f:
             for line in f:
-                rec = json_mod.loads(line)
-                conv = json_mod.loads(rec["text"])
-                records.append(conv)
+                rec = json.loads(line)
+                convs.append(json.loads(rec["text"]))
 
-    # Also load validation/test if available
     from datasets import load_dataset
     try:
-        ds = load_dataset("thu-coai/esconv")
-        for split in ["validation", "test"]:
+        ds = load_dataset(cfg["hf_source"])
+        for split in cfg.get("hf_splits", []):
             if split in ds:
                 for row in ds[split]:
-                    conv = json_mod.loads(row["text"])
-                    records.append(conv)
+                    convs.append(json.loads(row["text"]))
     except Exception:
         pass
 
-    print(f"  Total conversations: {len(records)}")
+    print(f"  Total conversations: {len(convs)}")
+    em_sev = cfg["emotion_severity"]
+    default_sev = cfg["default_emotion_severity"]
+    reg_strats = set(cfg["regulation_strategies"])
+    sf = cfg["score_formula"]
+    min_len = cfg.get("min_seeker_text_length", 40)
+    min_turns = cfg.get("min_dialog_turns", 4)
 
-    # Emotion type → dysregulation severity (how much regulatory strain)
-    emotion_severity = {
-        "anxiety": 0.7, "depression": 0.8, "sadness": 0.6, "anger": 0.75,
-        "fear": 0.7, "disgust": 0.5, "shame": 0.65, "nervousness": 0.6,
-        "guilt": 0.55, "jealousy": 0.5, "pain": 0.8,
-    }
-
-    # Strategy → regulation signal
-    regulation_strategies = {
-        "Reflection of feelings", "Restatement or Paraphrasing",
-        "Providing Suggestions", "Affirmation and Reassurance",
-    }
-
-    output_records = []
-    for conv in records:
+    output = []
+    for conv in convs:
         dialog = conv.get("dialog", [])
-        if len(dialog) < 4:
+        if len(dialog) < min_turns:
             continue
-
         emotion = conv.get("emotion_type", "unknown")
-        survey = conv.get("survey_score", {})
-
-        # Extract seeker text (the person showing regulation or dysregulation)
-        seeker_turns = [t["text"] for t in dialog if t.get("speaker") == "usr"]
-        seeker_text = " ".join(seeker_turns)
-
-        if len(seeker_text) < 40:
+        seeker_text = " ".join(t["text"] for t in dialog if t.get("speaker") == "usr")
+        if len(seeker_text) < min_len:
             continue
 
-        # Score based on emotion type severity
-        severity = emotion_severity.get(emotion, 0.5)
+        sev = em_sev.get(emotion, default_sev)
+        base = sf["base_from_severity"]["neutral_score"] + sev * sf["base_from_severity"]["severity_multiplier"]
 
-        # Emotion intensity change from survey (key signal for regulation)
-        seeker_survey = survey.get("seeker", {})
-        initial_intensity = int(seeker_survey.get("initial_emotion_intensity", 3))
-        final_intensity = int(seeker_survey.get("final_emotion_intensity", 3))
-        intensity_drop = initial_intensity - final_intensity  # positive = improvement
+        survey = conv.get("survey_score", {}).get("seeker", {})
+        initial = int(survey.get("initial_emotion_intensity", 3))
+        final   = int(survey.get("final_emotion_intensity", 3))
+        drop = initial - final
+        if drop > 0:
+            base += drop * sf["intensity_drop_bonus"]
+        elif drop < 0:
+            base += drop * sf["intensity_increase_penalty"]
 
-        # Count regulation strategies used by supporter (indicates regulation context)
-        supporter_strategies = [t.get("strategy", "") for t in dialog if t.get("speaker") == "sys"]
-        reg_strategy_count = sum(1 for s in supporter_strategies if s in regulation_strategies)
+        supporter_strats = [t.get("strategy", "") for t in dialog if t.get("speaker") == "sys"]
+        reg_count = sum(1 for s in supporter_strats if s in reg_strats)
 
-        # Base score: high severity emotion = low regulatory capacity shown
-        base_score = 5.0 - severity * 3.5  # range: 1.5 - 3.25 for most emotions
+        score = round(float(np.clip(base, 0, 10)), 1)
 
-        # Adjust for improvement: if intensity dropped, the person showed regulation
-        if intensity_drop > 0:
-            base_score += intensity_drop * 1.0  # +1 per intensity point drop
-        elif intensity_drop < 0:
-            base_score += intensity_drop * 0.5  # got worse = less regulation
+        cc = cfg["mappings"][0]["confidence"]
+        conf = cc["base"]
+        if initial != 3 or final != 3:
+            conf = cc["survey_threshold"]
+        if reg_count >= cc["strategy_min_count"]:
+            conf = cc["strategy_threshold"]
 
-        score = round(np.clip(base_score, 0, 10), 1)
+        dims = {"regulatory_capacity": {"score": score, "confidence": conf}}
+        output.append(make_record(seeker_text, dims, "esconv"))
 
-        # Confidence: higher when we have survey data
-        conf = 0.45
-        if initial_intensity != 3 or final_intensity != 3:  # non-default values
-            conf = 0.55
-        if reg_strategy_count > 3:
-            conf = 0.60
+    sc = cfg["sampling"]
+    if len(output) > sc["n"]:
+        np.random.seed(sc["random_seed"])
+        idx = np.random.choice(len(output), sc["n"], replace=False)
+        output = [output[i] for i in idx]
 
-        dims = {
-            "regulatory_capacity": {"score": score, "confidence": conf},
-        }
-        output_records.append(make_record(seeker_text, dims, "esconv"))
-
-    # Limit to n
-    if len(output_records) > n:
-        np.random.seed(42)
-        indices = np.random.choice(len(output_records), n, replace=False)
-        output_records = [output_records[i] for i in indices]
-
-    print(f"  Records: {len(output_records)} (regulatory_capacity)")
-    return output_records
+    print(f"  Records: {len(output)}")
+    return output
 
 
-# =====================================================================
-# EMPATHETIC DIALOGUES → resilience_baseline + regulatory_capacity
-# =====================================================================
-def load_empathetic_dialogues(n=SAMPLES_PER_DATASET):
-    print(f"\n{'='*60}")
-    print("Loading Empathetic Dialogues → resilience_baseline + regulatory_capacity")
-    print(f"{'='*60}")
-
-    df = pd.read_csv("data/empatheticdialogues/train.csv", on_bad_lines="skip")
-    print(f"  Total utterances: {len(df)}")
-
-    # Get situation descriptions (first turn of each conversation, speaker_idx=1)
-    # These are the most psychologically rich — the person describing their experience
-    situations = df[df["utterance_idx"] == 1][["conv_id", "context", "prompt", "utterance"]].copy()
-    situations = situations.drop_duplicates("conv_id")
+def load_empathetic_dialogues(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading Empathetic Dialogues → resilience + regulatory\n{'='*60}")
+    df = pd.read_csv(cfg["file"], on_bad_lines="skip")
+    situations = (df[df["utterance_idx"] == 1][["conv_id", "context", "prompt"]]
+                  .drop_duplicates("conv_id"))
     print(f"  Unique conversations: {len(situations)}")
 
-    # Emotion → resilience mapping
-    # High resilience emotions: those showing recovery, growth, strength
-    # Low resilience: those showing overwhelm, collapse, fragility
-    resilience_map = {
-        # High resilience (score 7-9)
-        "proud": 8.0, "confident": 7.5, "prepared": 7.5, "hopeful": 7.0,
-        "grateful": 7.5, "joyful": 7.0, "content": 7.0, "excited": 6.5,
-        "caring": 7.0, "faithful": 7.0, "trusting": 7.0,
-        # Moderate (5-6) — neutral or mild
-        "surprised": 5.5, "anticipating": 6.0, "impressed": 6.0,
-        "nostalgic": 5.5, "sentimental": 5.5,
-        # Low resilience (2-4) — adversity/overwhelm
-        "afraid": 3.5, "terrified": 2.0, "apprehensive": 4.0,
-        "devastated": 1.5, "lonely": 3.0, "sad": 3.5,
-        "ashamed": 3.0, "embarrassed": 3.5, "guilty": 3.5,
-        "angry": 4.0, "furious": 3.0,
-        "anxious": 3.5, "disgusted": 4.0,
-        "disappointed": 3.5, "jealous": 4.0,
-    }
-
-    # Emotion → regulatory capacity mapping
-    # High reg: emotions showing control, composure
-    # Low reg: emotions showing dysregulation, overwhelm
-    regulatory_map = {
-        # High regulation (7-8)
-        "content": 7.5, "grateful": 7.0, "caring": 7.0, "proud": 7.0,
-        "prepared": 7.5, "confident": 7.0, "faithful": 7.0, "trusting": 6.5,
-        # Moderate (5-6)
-        "surprised": 5.5, "hopeful": 6.0, "anticipating": 6.0,
-        "impressed": 6.0, "nostalgic": 5.5, "sentimental": 5.5,
-        "joyful": 6.5, "excited": 5.5,
-        # Low regulation (2-4)
-        "terrified": 2.0, "furious": 2.5, "devastated": 2.0,
-        "angry": 3.0, "anxious": 3.0, "afraid": 3.5,
-        "disgusted": 3.5, "ashamed": 3.5, "embarrassed": 4.0,
-        "lonely": 4.0, "sad": 4.0, "guilty": 4.0,
-        "disappointed": 4.0, "apprehensive": 4.0,
-        "annoyed": 4.0, "jealous": 4.0,
-    }
+    noise = cfg.get("noise_range", 0)
 
     records = []
     for _, row in situations.iterrows():
-        emotion = row["context"]
-        # Use the situation description (prompt) as the text — it's richer
         text = str(row["prompt"]).replace("_comma_", ",").replace("_period_", ".")
         if len(text) < 30:
             continue
-
-        dims = {}
-
-        # Resilience
-        if emotion in resilience_map:
-            r_score = resilience_map[emotion]
-            # Add small random noise to avoid exact duplicates per emotion
-            r_score = round(np.clip(r_score + np.random.uniform(-0.5, 0.5), 0, 10), 1)
-            dims["resilience_baseline"] = {
-                "score": r_score,
-                "confidence": 0.40,  # indirect mapping, moderate confidence
-            }
-
-        # Regulatory capacity
-        if emotion in regulatory_map:
-            reg_score = regulatory_map[emotion]
-            reg_score = round(np.clip(reg_score + np.random.uniform(-0.5, 0.5), 0, 10), 1)
-            dims["regulatory_capacity"] = {
-                "score": reg_score,
-                "confidence": 0.35,  # indirect mapping, lower confidence
-            }
-
+        dims = apply_mappings(row, cfg["mappings"], cfg)
         if dims:
             records.append(make_record(text, dims, "empathetic_dialogues"))
 
-    # Sample down if needed
-    if len(records) > n:
-        np.random.seed(42)
-        indices = np.random.choice(len(records), n, replace=False)
-        records = [records[i] for i in indices]
+    sc = cfg["sampling"]
+    if len(records) > sc["n"]:
+        np.random.seed(sc["random_seed"])
+        idx = np.random.choice(len(records), sc["n"], replace=False)
+        records = [records[i] for i in idx]
 
-    print(f"  Records: {len(records)} (resilience_baseline + regulatory_capacity)")
+    print(f"  Records: {len(records)}")
     return records
 
 
-# =====================================================================
-# MAIN: Combine and output
-# =====================================================================
-# =====================================================================
-# NEW DATASETS → trust, authority, contractual, defensive
-# =====================================================================
-def load_new_datasets():
-    """Load pre-mapped records from Diplomacy, CaSiNo, Politeness, ProsocialDialog.
-
-    These are generated by scripts/map_new_datasets.py and saved to
-    data/new-dataset-ground-truth.jsonl.
-    """
-    new_path = ROOT / "data" / "new-dataset-ground-truth.jsonl"
-    if not new_path.exists():
-        print(f"  [new_datasets] Not found at {new_path}, skipping")
-        print(f"  Run: python scripts/map_new_datasets.py")
+def load_diplomacy(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading Diplomacy → trust_conditions\n{'='*60}")
+    enabled = [m for m in cfg["mappings"] if m.get("enabled", True)]
+    if not enabled:
+        print("  All mappings disabled — skipping")
         return []
 
+    all_recs = []
+    for fpath in cfg["files"]:
+        p = Path(fpath)
+        if not p.exists():
+            continue
+        with open(p) as f:
+            for line in f:
+                all_recs.append(json.loads(line))
+
+    matrix = cfg["trust_score_matrix"]
     records = []
-    with open(new_path) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                records.append(json.loads(line))
+    for conv in all_recs:
+        msgs = conv["messages"]
+        sl_list = conv["sender_labels"]
+        rl_list = conv["receiver_labels"]
+        for i, msg in enumerate(msgs):
+            if len(msg.strip()) < 30:
+                continue
+            sl = sl_list[i] if i < len(sl_list) else None
+            rl = rl_list[i] if i < len(rl_list) else None
+            if sl is None:
+                continue
+            if sl == 1 and rl in (1, 2):
+                key = "truthful_perceived_truthful"
+            elif sl == 1 and rl == 0:
+                key = "truthful_perceived_deceptive"
+            elif sl == 0 and rl in (1, 2):
+                key = "deceptive_perceived_truthful"
+            elif sl == 0 and rl == 0:
+                key = "deceptive_perceived_deceptive"
+            else:
+                continue
+            mc = matrix[key]
+            noise = mc["score_noise"]
+            score = round(float(np.clip(mc["score_base"] + np.random.uniform(*noise), 0, 10)), 1)
+            dims = {"trust_conditions": {"score": score, "confidence": mc["confidence"]}}
+            records.append(make_record(msg, dims, "diplomacy"))
 
-    print(f"  [new_datasets] {len(records)} records loaded")
-    source_counts = {}
-    dim_counts = {}
-    for r in records:
-        source_counts[r["source"]] = source_counts.get(r["source"], 0) + 1
-        for d in r["dimensions"]:
-            dim_counts[d] = dim_counts.get(d, 0) + 1
-    for s, c in sorted(source_counts.items()):
-        print(f"    {s}: {c}")
-    for d, c in sorted(dim_counts.items()):
-        print(f"    → {d}: {c}")
+    sc = cfg["sampling"]
+    low  = [r for r in records if r["dimensions"]["trust_conditions"]["score"] < 5]
+    high = [r for r in records if r["dimensions"]["trust_conditions"]["score"] >= 5]
+    half = sc["n"] // 2
+    np.random.seed(sc["random_seed"])
+    if len(low) < half:
+        low_sample = (low * (half // max(len(low), 1) + 1))[:half]
+        np.random.shuffle(low_sample)
+    else:
+        idx = np.random.choice(len(low), half, replace=False)
+        low_sample = [low[i] for i in idx]
+    high_take = min(half, len(high))
+    idx = np.random.choice(len(high), high_take, replace=False)
+    high_sample = [high[i] for i in idx]
+    records = low_sample + high_sample
+    np.random.shuffle(records)
 
+    print(f"  Records: {len(records)}")
     return records
 
 
-def load_llm_labels():
-    """Load LLM-labeled data (Claude Code scoring sessions).
-
-    These are gold-standard labels from manual scoring using DSQ-40 + TKI rubric.
-    Currently covers defensive_architecture (50 records).
-    Records are weighted 3x vs heuristic labels in the training script.
-    """
-    llm_path = ROOT / "data" / "train-llm.jsonl"
-    if not llm_path.exists():
-        print(f"  [llm_labels] No LLM labels found at {llm_path}, skipping")
+def load_casino(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading CaSiNo → contractual_clarity\n{'='*60}")
+    p = Path(cfg["file"])
+    if not p.exists():
+        print("  Not found — skipping")
         return []
 
-    records = []
-    with open(llm_path) as f:
+    all_recs = []
+    with open(p) as f:
         for line in f:
-            line = line.strip()
-            if line:
-                rec = json.loads(line)
-                # Normalize to composite format
-                records.append({
-                    "text": rec["text"],
-                    "source": "llm_labeled",
-                    "dimensions": rec["dimensions"],
-                })
+            all_recs.append(json.loads(line))
+    print(f"  Total dialogues: {len(all_recs)}")
 
-    print(f"  [llm_labels] {len(records)} LLM-labeled records loaded")
-    dim_counts = {}
-    for r in records:
-        for d in r["dimensions"]:
-            dim_counts[d] = dim_counts.get(d, 0) + 1
-    for d, c in sorted(dim_counts.items()):
-        print(f"    {d}: {c}")
+    pos_strats = set(cfg["strategy_clarity"]["positive"])
+    neg_strats = set(cfg["strategy_clarity"]["negative"])
+    sat_bonus  = cfg["satisfaction_bonus"]
+    out_bonus  = cfg["outcome_bonus"]
+    sf         = cfg["score_formula"]
+    cf         = cfg["confidence_formula"]
+    max_len    = cfg.get("max_text_length", 2000)
 
+    records = []
+    for conv in all_recs:
+        chat_logs   = conv.get("chat_logs", [])
+        annotations = conv.get("annotations", [])
+        p_info      = conv.get("participant_info", {})
+
+        full_text = " ".join(e.get("text", "") for e in chat_logs if e.get("text", "").strip())
+        if len(full_text) < 50:
+            continue
+
+        pos_c = neg_c = total_ann = 0
+        for ann in annotations:
+            if len(ann) < 2:
+                continue
+            for s in ann[1].split(","):
+                s = s.strip()
+                total_ann += 1
+                if s in pos_strats:
+                    pos_c += 1
+                elif s in neg_strats:
+                    neg_c += 1
+
+        if total_ann == 0:
+            continue
+
+        score = (sf["base"] + (pos_c / total_ann) * sf["pos_ratio_multiplier"]
+                             + (neg_c / total_ann) * sf["neg_ratio_multiplier"])
+
+        for agent_key in ["mturk_agent_1", "mturk_agent_2"]:
+            sat = str(p_info.get(agent_key, {}).get("outcomes", {}).get("satisfaction", ""))
+            for key, bonus in sat_bonus.items():
+                if key in sat:
+                    score += bonus
+
+        last_data = next((e.get("task_data", {}).get("data", "") for e in reversed(chat_logs)
+                          if e.get("task_data", {}).get("data", "")), "")
+        for key, bonus in out_bonus.items():
+            if key in last_data:
+                score += bonus
+
+        score = round(float(np.clip(score, 0, 10)), 1)
+        conf  = round(float(np.clip(cf["base"] + total_ann * cf["per_annotation"],
+                                    cf["min"], cf["max"])), 2)
+        dims  = {"contractual_clarity": {"score": score, "confidence": conf}}
+        records.append(make_record(full_text[:max_len], dims, "casino"))
+
+    sc = cfg["sampling"]
+    if len(records) > sc["n"]:
+        np.random.seed(sc["random_seed"])
+        idx = np.random.choice(len(records), sc["n"], replace=False)
+        records = [records[i] for i in idx]
+
+    print(f"  Records: {len(records)}")
     return records
 
+
+def load_politeness(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading Stanford Politeness → authority_dynamics\n{'='*60}")
+    records = []
+    for src_name, fpath in cfg["files"].items():
+        p = Path(fpath)
+        if not p.exists():
+            print(f"  {src_name}: not found")
+            continue
+        import csv
+        with open(p) as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+        print(f"  {src_name}: {len(rows)} rows")
+
+        sf = cfg["score_formula"]
+        cf = cfg["confidence_formula"]
+
+        for row in rows:
+            text = row.get("Request", "").strip()
+            if len(text) < 30:
+                continue
+            try:
+                norm = float(row[sf["source_field"]])
+            except (ValueError, KeyError):
+                continue
+            score = round(float(np.clip(
+                sf["target_center"] + norm * sf["multiplier"],
+                sf["target_min"], sf["target_max"]
+            )), 1)
+
+            ind_scores = []
+            for f_name in cf["score_fields"]:
+                s = row.get(f_name)
+                if s:
+                    try:
+                        ind_scores.append(float(s))
+                    except ValueError:
+                        pass
+
+            if len(ind_scores) >= cf.get("min_annotators", 3):
+                std = np.std(ind_scores)
+                c = cf["base"] + std * cf["std_multiplier"]
+                c *= cf.get("scale", 1.0)
+                conf = round(float(np.clip(c, cf.get("min", 0), cf.get("max", 1))), 2)
+            else:
+                conf = cf.get("min", 0.15)
+
+            dims = {"authority_dynamics": {"score": score, "confidence": conf}}
+            records.append(make_record(text, dims, f"politeness_{src_name}"))
+
+    sc = cfg["sampling"]
+    if len(records) > sc["n"]:
+        np.random.seed(sc["random_seed"])
+        idx = np.random.choice(len(records), sc["n"], replace=False)
+        records = [records[i] for i in idx]
+
+    print(f"  Records: {len(records)}")
+    return records
+
+
+def load_prosocial(cfg, global_cfg):
+    print(f"\n{'='*60}\nLoading ProsocialDialog → defensive_architecture\n{'='*60}")
+    p = Path(cfg["file"])
+    if not p.exists():
+        print("  Not found — skipping")
+        return []
+
+    all_recs = []
+    with open(p) as f:
+        for line in f:
+            all_recs.append(json.loads(line))
+    print(f"  Total records: {len(all_recs)}")
+
+    safety_map   = cfg["safety_to_score"]
+    agree_bonus  = cfg["annotation_agreement_bonus"]
+    score_noise  = cfg.get("score_noise", 0.8)
+    min_text_len = cfg.get("min_text_length", global_cfg["min_text_length"])
+
+    records = []
+    for rec in all_recs:
+        ctx = rec.get("context", "").strip()
+        if len(ctx) < min_text_len:
+            continue
+        label = rec.get("safety_label", "")
+        if label not in safety_map:
+            continue
+        mc = safety_map[label]
+        base_score = mc["base_score"]
+        base_conf  = mc["base_conf"]
+
+        anns = rec.get("safety_annotations", [])
+        if len(anns) >= 3:
+            if len(set(anns)) == 1:
+                base_conf += agree_bonus["unanimous"]
+            elif len(set(anns)) == 2:
+                base_conf += agree_bonus["majority"]
+
+        score = round(float(np.clip(base_score + np.random.uniform(-score_noise, score_noise), 0, 10)), 1)
+        conf  = round(float(np.clip(base_conf, 0.25, 0.65)), 2)
+        dims  = {"defensive_architecture": {"score": score, "confidence": conf}}
+        records.append(make_record(ctx, dims, "prosocial"))
+
+    sc = cfg["sampling"]
+    sc_buckets = sc.get("buckets", {})
+    if sc_buckets:
+        by_bucket = {}
+        for rec in records:
+            s = rec["dimensions"]["defensive_architecture"]["score"]
+            for name, (lo, hi) in sc_buckets.items():
+                if lo <= s < hi:
+                    by_bucket.setdefault(name, []).append(rec)
+                    break
+        np.random.seed(sc["random_seed"])
+        per_bucket = sc["n"] // len(sc_buckets)
+        sampled = []
+        for bucket, pool in by_bucket.items():
+            take = min(per_bucket, len(pool))
+            if take > 0:
+                idx = np.random.choice(len(pool), take, replace=False)
+                sampled.extend(pool[i] for i in idx)
+        records = sampled
+    elif len(records) > sc["n"]:
+        np.random.seed(sc["random_seed"])
+        idx = np.random.choice(len(records), sc["n"], replace=False)
+        records = [records[i] for i in idx]
+
+    print(f"  Records: {len(records)}")
+    return records
+
+
+# ============================================================
+# Dispatch table
+# ============================================================
+
+LOADERS = {
+    "berkeley":              load_berkeley,
+    "civil_comments":        load_civil_comments,
+    "goemotions":            load_goemotions,
+    "ucc":                   load_ucc,
+    "dreaddit":              load_dreaddit,
+    "esconv":                load_esconv,
+    "empathetic_dialogues":  load_empathetic_dialogues,
+    "diplomacy":             load_diplomacy,
+    "casino":                load_casino,
+    "politeness":            load_politeness,
+    "prosocial":             load_prosocial,
+}
+
+
+# ============================================================
+# Main
+# ============================================================
 
 def main():
-    print("Building composite ground truth for PSQ student model")
-    print(f"Target: {SAMPLES_PER_DATASET} samples per dataset\n")
+    config     = load_config()
+    global_cfg = config["global"]
+    np.random.seed(global_cfg["random_seed"])
+
+    print(f"Building composite ground truth  (config version: {config['version']})")
+    print(f"Mappings config: data/dataset_mappings.json\n")
 
     all_records = []
+    for dataset_id, dataset_cfg in config["datasets"].items():
+        if dataset_id not in LOADERS:
+            print(f"  [SKIP] {dataset_id}: no loader")
+            continue
+        records = LOADERS[dataset_id](dataset_cfg, global_cfg)
+        all_records.extend(records)
 
-    # Load each dataset
-    all_records.extend(load_berkeley())
-    all_records.extend(load_civil_comments())
-    all_records.extend(load_goemotions())
-    all_records.extend(load_ucc())
-    all_records.extend(load_dreaddit())
-    all_records.extend(load_esconv())
-    all_records.extend(load_empathetic_dialogues())
-    all_records.extend(load_new_datasets())
-    # Note: LLM labels are NOT included here — they are loaded separately by
-    # distill.py with their own weight (llm_weight=5x). Including them here
-    # would double-count them in training.
+    print(f"\n{'='*60}\nTOTAL: {len(all_records)} records\n{'='*60}")
 
-    print(f"\n{'='*60}")
-    print(f"TOTAL: {len(all_records)} records")
-    print(f"{'='*60}")
-
-    # Statistics
-    dim_counts = {d: 0 for d in DIMS}
+    dim_counts    = {d: 0 for d in DIMS}
     source_counts = {}
     for rec in all_records:
         source_counts[rec["source"]] = source_counts.get(rec["source"], 0) + 1
         for dim_id in rec["dimensions"]:
-            dim_counts[dim_id] += 1
+            if dim_id in dim_counts:
+                dim_counts[dim_id] += 1
 
-    print(f"\n  By source:")
+    print("\n  By source:")
     for src, count in sorted(source_counts.items()):
-        print(f"    {src:20s}: {count:5d} records")
+        print(f"    {src:30s}: {count:5d}")
 
-    print(f"\n  By dimension (records with ground truth):")
+    print("\n  By dimension:")
     for dim_id in DIMS:
         count = dim_counts[dim_id]
-        tier = "A" if count > 2000 else "B" if count > 500 else "C"
-        print(f"    {dim_id:25s}: {count:5d}  (tier {tier})")
+        tier  = "A" if count > 2000 else "B" if count > 500 else "C"
+        print(f"    {dim_id:28s}: {count:5d}  (tier {tier})")
 
-    # Output JSONL
     out_path = Path("data/composite-ground-truth.jsonl")
     with open(out_path, "w") as f:
         for rec in all_records:
             f.write(json.dumps(rec) + "\n")
 
     size_mb = out_path.stat().st_size / 1024 / 1024
-    print(f"\n  Written to {out_path} ({size_mb:.1f} MB)")
-    print(f"  {len(all_records)} records total")
+    print(f"\n  Written: {out_path}  ({size_mb:.1f} MB, {len(all_records)} records)")
+    print(f"  Config version: {config['version']}")
 
 
 if __name__ == "__main__":

@@ -78,20 +78,37 @@ def cmd_extract(args):
     with open(input_path) as f:
         records = [json.loads(l) for l in f if l.strip()]
 
+    total = len(records)
+    if args.offset > 0:
+        records = records[args.offset:]
     if args.limit > 0:
         records = records[:args.limit]
+
+    if args.offset > 0 or args.limit > 0:
+        print(f"  Sub-batch: records {args.offset}–{args.offset + len(records) - 1} of {total}")
 
     instruments = load_instruments()
     WORK_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Save lookup (id → text + source) for all records
+    # Save lookup (id → text + source) — IDs are global (offset-aware)
     lookup = {}
     for i, rec in enumerate(records):
-        lookup[str(i)] = {"text": rec["text"], "source": rec.get("source", "unknown")}
+        lookup[str(args.offset + i)] = {"text": rec["text"], "source": rec.get("source", "unknown")}
 
     lookup_path = WORK_DIR / "lookup.json"
     with open(lookup_path, "w") as f:
         json.dump(lookup, f)
+
+    # Save session metadata (provenance for assembled output)
+    meta = {
+        "scorer": args.scorer,
+        "provider": args.provider,
+        "interface": args.interface,
+        "input_file": str(input_path),
+        "offset": args.offset,
+    }
+    with open(WORK_DIR / "session_meta.json", "w") as f:
+        json.dump(meta, f, indent=2)
 
     # Extract per-dimension batch files
     dims_to_extract = [args.dim] if args.dim else DIMS
@@ -114,7 +131,7 @@ def cmd_extract(args):
             },
             "count": len(records),
             "texts": [
-                {"id": i, "source": rec.get("source", "unknown"),
+                {"id": args.offset + i, "source": rec.get("source", "unknown"),
                  "text": rec["text"]}
                 for i, rec in enumerate(records)
             ],
@@ -188,13 +205,20 @@ def cmd_ingest(args):
             continue
         normalized[text_id] = {"score": score, "confidence": conf}
 
-    # Save to work dir
+    # Merge into existing scores (preserves prior sessions)
     WORK_DIR.mkdir(parents=True, exist_ok=True)
     out_path = WORK_DIR / f"{dim_id}_scores.json"
-    with open(out_path, "w") as f:
-        json.dump(normalized, f, indent=1)
+    existing = {}
+    if out_path.exists():
+        with open(out_path) as f:
+            existing = json.load(f)
+        print(f"  Merging with {len(existing)} existing scores")
 
-    print(f"Ingested {len(normalized)} scores for {dim_id} → {out_path}")
+    existing.update(normalized)
+    with open(out_path, "w") as f:
+        json.dump(existing, f, indent=1)
+
+    print(f"Ingested {len(normalized)} scores for {dim_id} → {out_path} ({len(existing)} total)")
 
 
 def cmd_assemble(args):
@@ -228,6 +252,16 @@ def cmd_assemble(args):
             print("Missing dimensions will get score=5, confidence=0.1")
             sys.exit(1)
 
+    # Load session metadata (provenance)
+    meta_path = WORK_DIR / "session_meta.json"
+    meta = {}
+    if meta_path.exists():
+        with open(meta_path) as f:
+            meta = json.load(f)
+    scorer    = meta.get("scorer", "claude-code")
+    provider  = meta.get("provider", "anthropic")
+    interface = meta.get("interface", "claude-code")
+
     # Assemble
     output_path = Path(args.output)
     count = 0
@@ -246,11 +280,15 @@ def cmd_assemble(args):
                 "text": rec["text"],
                 "source": rec.get("source", "unknown"),
                 "teacher": "separated-llm",
+                "scorer": scorer,
+                "provider": provider,
+                "interface": interface,
                 "dimensions": dimensions,
             }
             # Preserve extra fields
             for k in rec:
-                if k not in ("text", "source", "teacher", "dimensions"):
+                if k not in ("text", "source", "teacher", "scorer", "provider",
+                             "interface", "dimensions"):
                     out_rec[k] = rec[k]
 
             out.write(json.dumps(out_rec) + "\n")
@@ -557,7 +595,15 @@ def main():
     p_ext = sub.add_parser("extract", help="Extract per-dimension batch files")
     p_ext.add_argument("--input", required=True, help="Input JSONL file")
     p_ext.add_argument("--dim", default=None, help="Extract single dimension (optional)")
+    p_ext.add_argument("--offset", type=int, default=0, help="Skip first N records (for sub-batching)")
     p_ext.add_argument("--limit", type=int, default=0, help="Max records (0=all)")
+    p_ext.add_argument("--scorer", default="claude-sonnet-4-6",
+                       help="Model ID that will do the scoring (default: claude-sonnet-4-6)")
+    p_ext.add_argument("--provider", default="anthropic",
+                       help="LLM vendor (default: anthropic)")
+    p_ext.add_argument("--interface", default="claude-code",
+                       choices=["claude-code", "api"],
+                       help="How scoring will be invoked (default: claude-code)")
 
     p_ing = sub.add_parser("ingest", help="Import scored dimension results")
     p_ing.add_argument("--dim", required=True, help="Dimension name or abbreviation")

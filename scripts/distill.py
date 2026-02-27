@@ -8,20 +8,24 @@ Supported encoders (via --model-name):
   - distilbert-base-uncased    (default, 66M params, WordPiece tokenizer)
   - microsoft/deberta-v3-small (141M params, SentencePiece tokenizer)
 
-Training data sources:
-  1. Composite ground truth (data/composite-ground-truth.jsonl)
-     — mapped from Berkeley, Civil Comments, GoEmotions, UCC
-  2. Proxy-labeled data (data/train-proxy.jsonl)
-     — multi-signal proxy labels, lower confidence
-  3. LLM gold-standard (data/train-llm.jsonl)
-     — full 10-dimension labels from LLM teacher
+Training data sources (default: data/psq.db via best_scores view):
+  - DB path read via --db (default: data/psq.db)
+  - best_scores view picks highest-priority label per (text, dim):
+      separated-llm(1) > synthetic(2) > joint-llm(3) > composite-proxy(4)
+  - Split assignments persisted in splits table (80/10/10 md5 hash, frozen)
+  - Per-dimension sample weights: 5.0 for LLM/synthetic, 1.5 for proxy
+
+  --no-db falls back to reading JSONL files directly (legacy mode):
+    composite-ground-truth.jsonl, train-proxy.jsonl, train-llm.jsonl
 
 Loss: MSE(score) + 0.25 * MSE(confidence), masked where conf < threshold.
-LLM samples weighted 3x, composite 1.5x, proxy 1x.
+Per-dimension weighting: sample_weight * conf^2 so low-confidence proxy
+data contributes proportionally less than gold-standard LLM labels.
 
 Usage:
   python scripts/distill.py
   python scripts/distill.py --epochs 15 --lr 3e-5
+  python scripts/distill.py --no-db   # legacy JSONL mode
   python scripts/distill.py --eval-only --checkpoint models/psq-student/best
 """
 import os, sys
@@ -33,6 +37,7 @@ if not sys.stdout.line_buffering:
 import argparse
 import json
 import math
+import sqlite3
 import time
 import numpy as np
 from pathlib import Path
@@ -80,9 +85,6 @@ DEFAULTS = {
     "llm_weight": 5.0,
     "composite_weight": 1.5,
     "proxy_weight": 1.0,
-    # Cap proxy records per dimension to prevent drowning out LLM labels.
-    # Dimensions with proxy-LLM score gap > 2 points have actively harmful proxy data.
-    "proxy_cap_per_dim": 500,
     "patience": 3,
     "seed": 42,
 }
@@ -99,7 +101,9 @@ class PSQDataset(Dataset):
       - scores: [N_DIMS] float tensor (0-10 scale, NaN where missing)
       - confidences: [N_DIMS] float tensor (0-1, NaN where missing)
       - mask: [N_DIMS] bool tensor (True where dimension has a label)
-      - weight: float (sample weight based on teacher source)
+      - weights: [N_DIMS] float tensor — per-dimension sample weight.
+          DB mode: from training_data.sample_weight (5.0 LLM/synthetic, 1.5 proxy)
+          JSONL mode: scalar broadcast from teacher field
     """
 
     def __init__(self, records, tokenizer, max_length=256):
@@ -111,8 +115,13 @@ class PSQDataset(Dataset):
             scores = np.full(N_DIMS, np.nan)
             confs = np.full(N_DIMS, np.nan)
             mask = np.zeros(N_DIMS, dtype=bool)
+            # per-dim weights: default to proxy weight, overridden per dim
+            dim_weights = np.full(N_DIMS, DEFAULTS["proxy_weight"])
 
             dims = rec.get("dimensions", {})
+            # DB records carry "dim_weights" dict; JSONL records do not
+            jsonl_dim_weights = rec.get("dim_weights", {})
+
             for dim_id, val in dims.items():
                 if dim_id not in DIM_TO_IDX:
                     continue
@@ -123,25 +132,32 @@ class PSQDataset(Dataset):
                     scores[idx] = score
                     confs[idx] = conf
                     mask[idx] = True
+                    if dim_id in jsonl_dim_weights:
+                        dim_weights[idx] = jsonl_dim_weights[dim_id]
 
-            # Source weight
-            source = rec.get("teacher", rec.get("source", "proxy"))
-            if source in ("llm", "llm_labeled"):
-                weight = DEFAULTS["llm_weight"]
-            elif source in ("berkeley", "civil_comments", "goemotions", "ucc",
-                            "dreaddit", "esconv", "empathetic_dialogues",
-                            "diplomacy", "casino", "prosocial",
-                            "politeness_wikipedia", "politeness_stack-exchange"):
-                weight = DEFAULTS["composite_weight"]
-            else:
-                weight = DEFAULTS["proxy_weight"]
+            # JSONL mode: derive scalar weight from teacher/source, broadcast to all dims
+            if not jsonl_dim_weights:
+                source = rec.get("teacher", rec.get("source", "proxy"))
+                if source in ("llm", "llm_labeled", "separated-llm"):
+                    scalar_w = DEFAULTS["llm_weight"]
+                elif source in ("synthetic", "relabeled"):
+                    scalar_w = DEFAULTS["llm_weight"]
+                elif source in ("berkeley", "civil_comments", "goemotions", "ucc",
+                                "dreaddit", "esconv", "empathetic_dialogues",
+                                "diplomacy", "casino", "prosocial",
+                                "politeness_wikipedia", "politeness_stack-exchange"):
+                    scalar_w = DEFAULTS["composite_weight"]
+                else:
+                    scalar_w = DEFAULTS["proxy_weight"]
+                # Apply scalar weight only to labeled dims
+                dim_weights = np.where(mask, scalar_w, DEFAULTS["proxy_weight"])
 
             self.items.append({
                 "text": rec["text"],
                 "scores": scores,
                 "confidences": confs,
                 "mask": mask,
-                "weight": weight,
+                "weights": dim_weights,
             })
 
     def __len__(self):
@@ -162,7 +178,7 @@ class PSQDataset(Dataset):
             "scores": torch.tensor(item["scores"], dtype=torch.float32),
             "confidences": torch.tensor(item["confidences"], dtype=torch.float32),
             "mask": torch.tensor(item["mask"], dtype=torch.bool),
-            "weight": torch.tensor(item["weight"], dtype=torch.float32),
+            "weights": torch.tensor(item["weights"], dtype=torch.float32),
         }
 
 
@@ -232,8 +248,11 @@ def compute_loss(pred_scores, pred_confs, true_scores, true_confs, mask, weights
                  conf_power=2.0):
     """Masked loss: only compute where ground truth exists and confidence exceeds threshold.
 
-    Loss is weighted by true_confs**conf_power so low-confidence proxy data contributes
-    proportionally less than high-confidence gold-standard labels.
+    Loss is weighted by true_confs**conf_power * sample_weight so low-confidence proxy
+    data contributes proportionally less than high-confidence gold-standard labels.
+
+    weights: [batch, N_DIMS] — per-dimension sample weights from training_data.sample_weight.
+      5.0 for separated-llm/synthetic/joint-llm, 1.5 for composite-proxy.
 
     conf_power controls how aggressively low-confidence data is down-weighted:
       1.0 — linear (original): conf=0.26 contributes 50% of conf=0.52
@@ -256,11 +275,10 @@ def compute_loss(pred_scores, pred_confs, true_scores, true_confs, mask, weights
     safe_true_scores = torch.where(conf_mask, true_scores, torch.zeros_like(true_scores))
     safe_true_confs = torch.where(conf_mask, true_confs, torch.zeros_like(true_confs))
 
-    # Confidence-weighted loss: raise true_confs to conf_power so low-confidence
-    # proxy data (e.g. politeness authority at conf=0.26) contributes much less
-    # gradient than gold-standard LLM labels (conf 0.5-0.75).
-    # With conf_power=2: conf=0.26 → 0.068, conf=0.52 → 0.270 (4x ratio vs 2x linear)
-    conf_weights = (safe_true_confs ** conf_power) * conf_mask.float() * weights.unsqueeze(1)
+    # weights is [batch, N_DIMS] (per-dim sample weights from DB or broadcast scalar)
+    # conf^power * sample_weight: proxy data (conf~0.2, weight=1.5) gets ~0.06x
+    # vs separated-llm (conf~0.7, weight=5.0) at ~2.45x — 40x difference
+    conf_weights = (safe_true_confs ** conf_power) * conf_mask.float() * weights
 
     # Score loss (MSE)
     score_diff = (pred_scores - safe_true_scores) ** 2
@@ -325,17 +343,69 @@ def evaluate(model, dataloader, device):
     return results
 
 
-def train(args):
-    torch.manual_seed(DEFAULTS["seed"])
-    np.random.seed(DEFAULTS["seed"])
+def _load_splits_from_db(db_path):
+    """Load train/val/test records from psq.db using persisted split assignments.
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Device: {device}")
+    Returns (train_recs, val_recs, test_recs) where each record has:
+      text, dimensions: {dim: {score, confidence}}, dim_weights: {dim: float}
 
-    # Load data
-    print("\nLoading training data...")
+    Uses best_scores view: separated-llm > synthetic > joint-llm > composite-proxy.
+    Split assignments come from the splits table (persisted, not re-derived).
+    """
+    con = sqlite3.connect(db_path)
+
+    # training_data view is already filtered to split='train' with sample_weight
+    train_rows = con.execute(
+        "SELECT text_id, text, dimension, score, confidence, sample_weight "
+        "FROM training_data"
+    ).fetchall()
+
+    # val and test: query best_scores joined to splits
+    val_rows = con.execute(
+        """SELECT t.id, t.text, bs.dimension, bs.score, bs.confidence,
+                  CASE bs.method
+                      WHEN 'separated-llm'   THEN 5.0
+                      WHEN 'synthetic'       THEN 5.0
+                      WHEN 'joint-llm'       THEN 5.0
+                      WHEN 'composite-proxy' THEN 1.5
+                  END
+           FROM best_scores bs
+           JOIN texts  t  ON t.id = bs.text_id
+           JOIN splits sp ON sp.text_id = t.id AND sp.split = 'val'"""
+    ).fetchall()
+
+    test_rows = con.execute(
+        """SELECT t.id, t.text, bs.dimension, bs.score, bs.confidence,
+                  CASE bs.method
+                      WHEN 'separated-llm'   THEN 5.0
+                      WHEN 'synthetic'       THEN 5.0
+                      WHEN 'joint-llm'       THEN 5.0
+                      WHEN 'composite-proxy' THEN 1.5
+                  END
+           FROM best_scores bs
+           JOIN texts  t  ON t.id = bs.text_id
+           JOIN splits sp ON sp.text_id = t.id AND sp.split = 'test'"""
+    ).fetchall()
+    con.close()
+
+    return _rows_to_records(train_rows), _rows_to_records(val_rows), _rows_to_records(test_rows)
+
+
+def _rows_to_records(rows):
+    """Group (text_id, text, dim, score, conf, weight) rows into per-text records."""
+    texts = {}
+    for text_id, text, dim, score, conf, weight in rows:
+        if text_id not in texts:
+            texts[text_id] = {"text": text, "dimensions": {}, "dim_weights": {}}
+        texts[text_id]["dimensions"][dim] = {"score": score, "confidence": conf}
+        texts[text_id]["dim_weights"][dim] = weight
+    return list(texts.values())
+
+
+def _load_splits_from_jsonl(data_dir):
+    """Legacy: load from JSONL files and split by md5 hash (matching v13 behavior)."""
+    import hashlib
     all_records = []
-    data_dir = ROOT / "data"
 
     for fname in ["composite-ground-truth.jsonl", "train-proxy.jsonl", "train-llm.jsonl"]:
         fpath = data_dir / fname
@@ -351,12 +421,7 @@ def train(args):
         else:
             print(f"  {fname}: not found (skipping)")
 
-    if not all_records:
-        print("ERROR: No training data found")
-        return
-
-    # Deduplicate: if a text appears in multiple files, keep the LLM version
-    # (higher quality) and drop the composite/proxy version.
+    # Deduplicate: keep LLM version over composite
     seen_texts = {}
     dedup_records = []
     for rec in all_records:
@@ -366,25 +431,18 @@ def train(args):
         if text in seen_texts:
             prev_idx, prev_is_llm = seen_texts[text]
             if is_llm and not prev_is_llm:
-                # Replace composite with LLM version
                 dedup_records[prev_idx] = rec
                 seen_texts[text] = (prev_idx, True)
-            # Otherwise keep first (or LLM) version, skip this duplicate
         else:
             seen_texts[text] = (len(dedup_records), is_llm)
             dedup_records.append(rec)
 
     n_removed = len(all_records) - len(dedup_records)
     if n_removed > 0:
-        print(f"  Deduplicated: removed {n_removed} duplicate texts (kept LLM over composite)")
-    all_records = dedup_records
+        print(f"  Deduplicated: removed {n_removed} duplicates (kept LLM over composite)")
 
-    # Split: 80/10/10 using deterministic text hash.
-    # This ensures the same text always goes to the same split, even when
-    # the dataset grows between versions — making cross-version r comparable.
-    import hashlib
     train_recs, val_recs, test_recs = [], [], []
-    for rec in all_records:
+    for rec in dedup_records:
         h = int(hashlib.md5(rec["text"].encode()).hexdigest(), 16) % 100
         if h < 80:
             train_recs.append(rec)
@@ -392,8 +450,37 @@ def train(args):
             val_recs.append(rec)
         else:
             test_recs.append(rec)
+
+    return train_recs, val_recs, test_recs
+
+
+def train(args):
+    torch.manual_seed(DEFAULTS["seed"])
+    np.random.seed(DEFAULTS["seed"])
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
+
+    # Load data
+    print("\nLoading training data...")
+    data_dir = ROOT / "data"
+    db_path = ROOT / args.db
+
+    if not args.no_db and db_path.exists():
+        train_recs, val_recs, test_recs = _load_splits_from_db(db_path)
+        print(f"  DB: {db_path.name}")
+        print(f"  Split: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test")
+    else:
+        if not args.no_db:
+            print(f"  WARNING: {db_path} not found, falling back to JSONL")
+        train_recs, val_recs, test_recs = _load_splits_from_jsonl(data_dir)
+        print(f"  Split: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test")
+
+    if not train_recs:
+        print("ERROR: No training data found")
+        return
+
     np.random.shuffle(train_recs)
-    print(f"\n  Split: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test")
 
     # Tokenizer + datasets
     print(f"\nLoading tokenizer: {args.model_name}")
@@ -424,8 +511,15 @@ def train(args):
     # Training loop
     best_val_r = -1
     patience_counter = 0
-    save_dir = ROOT / "models" / "psq-student"
-    save_dir.mkdir(parents=True, exist_ok=True)
+    if args.no_save:
+        import tempfile
+        _tmp_dir = tempfile.mkdtemp(prefix="psq-smoke-")
+        save_dir = Path(_tmp_dir)
+    else:
+        save_dir = Path(args.out)
+        if not save_dir.is_absolute():
+            save_dir = ROOT / save_dir
+        save_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\nTraining for {args.epochs} epochs, {len(train_loader)} batches/epoch")
     eff_batch = args.batch_size * args.grad_accum
@@ -453,7 +547,7 @@ def train(args):
             true_scores = batch["scores"].to(device)
             true_confs = batch["confidences"].to(device)
             mask = batch["mask"].to(device)
-            weights = batch["weight"].to(device)
+            weights = batch["weights"].to(device)  # [batch, N_DIMS]
 
             # Replace NaN with 0 for torch
             true_scores = torch.where(torch.isnan(true_scores), torch.zeros_like(true_scores), true_scores)
@@ -542,29 +636,34 @@ def train(args):
     with open(save_dir / "test_results.json", "w") as f:
         json.dump(test_results, f, indent=2, cls=NumpyEncoder)
 
-    # Save config
-    with open(save_dir / "config.json", "w") as f:
-        json.dump({
-            "model_name": args.model_name,
-            "max_length": args.max_length,
-            "dimensions": DIMENSIONS,
-            "n_dims": N_DIMS,
-            "hyperparams": {k: getattr(args, k, v) for k, v in DEFAULTS.items()},
-            "timing": {
-                "total_seconds": round(total_elapsed, 1),
-                "avg_epoch_seconds": round(avg_epoch, 1),
-                "epoch_times": [round(t, 1) for t in epoch_times],
-                "n_epochs_run": len(epoch_times),
-                "n_train_samples": len(train_recs),
-            },
-        }, f, indent=2, cls=NumpyEncoder)
+    if not args.no_save:
+        # Save config
+        with open(save_dir / "config.json", "w") as f:
+            json.dump({
+                "model_name": args.model_name,
+                "max_length": args.max_length,
+                "dimensions": DIMENSIONS,
+                "n_dims": N_DIMS,
+                "data_source": "db" if (not args.no_db and (ROOT / args.db).exists()) else "jsonl",
+                "hyperparams": {k: getattr(args, k, v) for k, v in DEFAULTS.items()},
+                "timing": {
+                    "total_seconds": round(total_elapsed, 1),
+                    "avg_epoch_seconds": round(avg_epoch, 1),
+                    "epoch_times": [round(t, 1) for t in epoch_times],
+                    "n_epochs_run": len(epoch_times),
+                    "n_train_samples": len(train_recs),
+                },
+            }, f, indent=2, cls=NumpyEncoder)
 
-    # Save tokenizer for ONNX/JS inference
-    tokenizer_dir = save_dir / "tokenizer"
-    tokenizer.save_pretrained(str(tokenizer_dir))
-    print(f"  Tokenizer saved to {tokenizer_dir}/")
-
-    print(f"\nModel saved to {save_dir}/")
+        # Save tokenizer for ONNX/JS inference
+        tokenizer_dir = save_dir / "tokenizer"
+        tokenizer.save_pretrained(str(tokenizer_dir))
+        print(f"  Tokenizer saved to {tokenizer_dir}/")
+        print(f"\nModel saved to {save_dir}/")
+    else:
+        import shutil
+        shutil.rmtree(save_dir, ignore_errors=True)
+        print("\n[--no-save] Checkpoint discarded.")
     return test_results
 
 
@@ -592,6 +691,14 @@ def main():
     parser.add_argument("--patience", type=int, default=DEFAULTS["patience"])
     parser.add_argument("--grad-accum", type=int, default=1,
                        help="Gradient accumulation steps. Effective batch = batch-size * grad-accum.")
+    parser.add_argument("--db", default="data/psq.db",
+                       help="Path to psq.db (relative to project root, default: data/psq.db)")
+    parser.add_argument("--no-db", action="store_true",
+                       help="Force JSONL loading even if psq.db exists (legacy mode)")
+    parser.add_argument("--out", default="models/psq-student",
+                       help="Output directory for checkpoints and config (default: models/psq-student)")
+    parser.add_argument("--no-save", action="store_true",
+                       help="Discard checkpoints after training (smoke-test mode)")
     parser.add_argument("--eval-only", action="store_true")
     parser.add_argument("--checkpoint", default=None)
     args = parser.parse_args()

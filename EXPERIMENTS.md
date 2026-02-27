@@ -31,6 +31,7 @@ Version-by-version record of every training run, with hyperparameters, data chan
 | v11 | 2026-02-27 | DistilBERT | — | 2e-5 | 16 | — | — | +synthetic te_2, ed_2, da_2 (541 texts) | Killed early — ad_8 not ready |
 | v12 | 2026-02-27 | DistilBERT | — | 2e-5 | 16 | — | — | +synthetic ad_8 (305 auth) | Killed — trained on old composite (CC threat still in) |
 | **v13** | **2026-02-27** | **DistilBERT** | **8** | **2e-5** | **16** | **0.553** | **0.428** | CC threat_exposure REMOVED from composite, all synthetic + relabeled | Fixed composite (17,643 records), 4,199 LLM |
+| v14 | 2026-02-27 | DistilBERT | — | 2e-5 | 32 | — | — | +2,000 separated-llm labels (all 10 dims, 200 texts). DB mode. | Same hyperparams as v13. `--out models/psq-v14`. Training in progress. |
 
 ## Key Hyperparameters (v13, current)
 

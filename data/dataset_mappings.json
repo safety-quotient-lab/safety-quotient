@@ -1,0 +1,700 @@
+{
+  "_comment": "Canonical config for all composite ground truth mappings. All design decisions live here. Edit this file to add, change, or disable a mapping — never edit the Python script for that purpose.",
+  "version": "v13",
+  "created_at": "2026-02-27",
+
+  "global": {
+    "samples_per_dataset": 2000,
+    "random_seed": 42,
+    "min_text_length": 20
+  },
+
+  "datasets": {
+
+    "berkeley": {
+      "description": "Berkeley Measuring Hate Speech — hate speech severity scores from 11-point annotators",
+      "file": "data/measuring-hate-speech.parquet",
+      "text_field": "text",
+      "group_by": "text",
+      "sampling": {
+        "strategy": "stratified_quintile",
+        "field": "hate_speech_score",
+        "n": 2000,
+        "random_state": 42
+      },
+      "mappings": [
+        {
+          "dimension": "hostility_index",
+          "enabled": true,
+          "scoring": {
+            "type": "scale",
+            "field": "hate_speech_score",
+            "source_min": -8.3,
+            "source_max": 6.3,
+            "invert": true
+          },
+          "confidence": {
+            "type": "std_err",
+            "field": "std_err",
+            "divisor": 2.0,
+            "min": 0.3,
+            "max": 0.95
+          },
+          "notes": "hate_speech_score range -8.3 to +6.3; high hate → low PSQ score (invert=true)"
+        },
+        {
+          "dimension": "threat_exposure",
+          "enabled": true,
+          "scoring": {
+            "type": "scale",
+            "field": "violence",
+            "source_min": 0,
+            "source_max": 4,
+            "invert": true
+          },
+          "confidence": {
+            "type": "fixed",
+            "value": 0.5
+          },
+          "notes": "violence subscale 0-4 ordinal (mean across annotators). Noisy proxy — fixed low confidence."
+        }
+      ]
+    },
+
+    "civil_comments": {
+      "description": "Google Civil Comments — toxicity annotations on online comments",
+      "source": "google/civil_comments",
+      "sampling": {
+        "strategy": "stratified_bins",
+        "field": "toxicity",
+        "bins": [0, 0.05, 0.2, 0.5, 0.8, 1.0],
+        "labels": ["clean", "mild", "moderate", "high", "extreme"],
+        "n": 2000,
+        "random_state": 42
+      },
+      "mappings": [
+        {
+          "dimension": "threat_exposure",
+          "enabled": false,
+          "disabled_since": "v13",
+          "disabled_reason": "95% of records score 9-10 (perfectly safe). Proxy maps 'not threatening from author POV' to 'safe for target' — fundamentally wrong. 1,754/1,853 records at score>=9.0. Actively poisoned threat_exposure learning. Threat will be learned from LLM labels + synthetic data only.",
+          "scoring": {
+            "type": "weighted_scale",
+            "fields": [
+              {"field": "threat", "weight": 0.6, "source_min": 0, "source_max": 1, "invert": true},
+              {"field": "severe_toxicity", "weight": 0.4, "source_min": 0, "source_max": 1, "invert": true}
+            ]
+          },
+          "confidence": {
+            "type": "linear_clip",
+            "base": 0.4,
+            "field": "threat",
+            "multiplier": 0.5,
+            "min": 0.4,
+            "max": 0.85
+          }
+        },
+        {
+          "dimension": "hostility_index",
+          "enabled": true,
+          "scoring": {
+            "type": "weighted_scale",
+            "fields": [
+              {"field": "toxicity", "weight": 0.5, "source_min": 0, "source_max": 1, "invert": true},
+              {"field": "insult", "weight": 0.5, "source_min": 0, "source_max": 1, "invert": true}
+            ]
+          },
+          "confidence": {
+            "type": "linear_clip",
+            "base": 0.4,
+            "field": "toxicity",
+            "multiplier": 0.4,
+            "min": 0.4,
+            "max": 0.80
+          }
+        }
+      ]
+    },
+
+    "goemotions": {
+      "description": "Google GoEmotions — multi-label emotion classification of Reddit comments",
+      "source": "google-research-datasets/go_emotions",
+      "source_config": "simplified",
+      "sampling": {
+        "strategy": "random",
+        "n": 2000,
+        "random_state": 42
+      },
+      "mappings": [
+        {
+          "dimension": "threat_exposure",
+          "enabled": true,
+          "scoring": {
+            "type": "cluster_binary",
+            "neg_labels": ["fear", "nervousness"],
+            "pos_labels": [],
+            "dim_type": "threat",
+            "neutral_score": 5.0,
+            "range": 4.0
+          },
+          "confidence": {
+            "type": "active_label_count",
+            "thresholds": [[0, 0.25], [1, 0.45]],
+            "default": 0.60
+          }
+        },
+        {
+          "dimension": "hostility_index",
+          "enabled": true,
+          "scoring": {
+            "type": "cluster_binary",
+            "neg_labels": ["anger", "annoyance", "disgust"],
+            "pos_labels": [],
+            "dim_type": "threat",
+            "neutral_score": 5.0,
+            "range": 4.0
+          },
+          "confidence": {
+            "type": "active_label_count",
+            "thresholds": [[0, 0.25], [1, 0.45]],
+            "default": 0.60
+          }
+        },
+        {
+          "dimension": "energy_dissipation",
+          "enabled": true,
+          "scoring": {
+            "type": "cluster_binary",
+            "neg_labels": ["sadness", "grief", "disappointment"],
+            "pos_labels": [],
+            "dim_type": "threat",
+            "neutral_score": 5.0,
+            "range": 4.0
+          },
+          "confidence": {
+            "type": "active_label_count",
+            "thresholds": [[0, 0.25], [1, 0.45]],
+            "default": 0.60
+          }
+        },
+        {
+          "dimension": "regulatory_capacity",
+          "enabled": true,
+          "scoring": {
+            "type": "cluster_binary",
+            "neg_labels": ["anger", "fear", "nervousness", "confusion"],
+            "pos_labels": ["realization"],
+            "dim_type": "protective",
+            "neutral_score": 5.0,
+            "range": 3.0
+          },
+          "confidence": {
+            "type": "active_label_count",
+            "thresholds": [[0, 0.25], [1, 0.45]],
+            "default": 0.60
+          }
+        },
+        {
+          "dimension": "resilience_baseline",
+          "enabled": true,
+          "scoring": {
+            "type": "cluster_binary",
+            "neg_labels": [],
+            "pos_labels": ["optimism", "pride", "relief"],
+            "dim_type": "protective",
+            "neutral_score": 5.0,
+            "range": 3.0
+          },
+          "confidence": {
+            "type": "active_label_count",
+            "thresholds": [[0, 0.25], [1, 0.45]],
+            "default": 0.60
+          }
+        },
+        {
+          "dimension": "trust_conditions",
+          "enabled": true,
+          "scoring": {
+            "type": "cluster_binary",
+            "neg_labels": ["disapproval"],
+            "pos_labels": ["approval", "admiration"],
+            "dim_type": "protective",
+            "neutral_score": 5.0,
+            "range": 3.0
+          },
+          "confidence": {
+            "type": "active_label_count",
+            "thresholds": [[0, 0.25], [1, 0.45]],
+            "default": 0.60
+          }
+        },
+        {
+          "dimension": "cooling_capacity",
+          "enabled": true,
+          "scoring": {
+            "type": "cluster_binary",
+            "neg_labels": [],
+            "pos_labels": ["relief", "caring", "gratitude"],
+            "dim_type": "protective",
+            "neutral_score": 5.0,
+            "range": 3.0
+          },
+          "confidence": {
+            "type": "active_label_count",
+            "thresholds": [[0, 0.25], [1, 0.45]],
+            "default": 0.60
+          }
+        }
+      ]
+    },
+
+    "ucc": {
+      "description": "Undesirable Content Corpus — annotated conversational utterances for subtle harmful patterns",
+      "file": "data/ucc.csv",
+      "text_field": "comment",
+      "group_by": "comment",
+      "aggregate_labels": ["hostile", "condescending", "dismissive", "antagonize", "sarcastic", "generalisation_unfair", "healthy"],
+      "sampling": {
+        "strategy": "stratified_bins",
+        "field": "hostile",
+        "bins": [-0.01, 0.1, 0.3, 0.6, 1.01],
+        "labels": ["none", "mild", "moderate", "high"],
+        "n": 2000,
+        "random_state": 42
+      },
+      "mappings": [
+        {
+          "dimension": "hostility_index",
+          "enabled": true,
+          "scoring": {
+            "type": "weighted_scale",
+            "fields": [
+              {"field": "hostile", "weight": 0.5, "source_min": 0, "source_max": 1, "invert": true},
+              {"field": "antagonize", "weight": 0.5, "source_min": 0, "source_max": 1, "invert": true}
+            ]
+          },
+          "confidence": {
+            "type": "linear_clip",
+            "base": 0.45,
+            "field": "hostile",
+            "multiplier": 0.3,
+            "min": 0.3,
+            "max": 0.75
+          }
+        },
+        {
+          "dimension": "authority_dynamics",
+          "enabled": true,
+          "scoring": {
+            "type": "scale",
+            "field": "condescending",
+            "source_min": 0,
+            "source_max": 1,
+            "invert": true
+          },
+          "confidence": {
+            "type": "linear_clip",
+            "base": 0.35,
+            "field": "condescending",
+            "multiplier": 0.3,
+            "scale": 0.25,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "notes": "Condescension is real but too narrow — misses power dynamics breadth. Proxy-LLM gap is +2.8 points. confidence_scale=0.25 lets 100 LLM authority_dynamics labels at 5x weight dominate."
+        },
+        {
+          "dimension": "trust_conditions",
+          "enabled": true,
+          "scoring": {
+            "type": "scale",
+            "field": "dismissive",
+            "source_min": 0,
+            "source_max": 1,
+            "invert": true
+          },
+          "confidence": {
+            "type": "linear_clip",
+            "base": 0.35,
+            "field": "dismissive",
+            "multiplier": 0.3,
+            "min": 0.2,
+            "max": 0.65
+          }
+        },
+        {
+          "dimension": "cooling_capacity",
+          "enabled": true,
+          "scoring": {
+            "type": "scale",
+            "field": "healthy",
+            "source_min": 0,
+            "source_max": 1,
+            "invert": false
+          },
+          "confidence": {
+            "type": "abs_from_midpoint",
+            "field": "healthy",
+            "midpoint": 0.5,
+            "base": 0.35,
+            "multiplier": 0.5,
+            "min": 0.1,
+            "max": 0.85
+          }
+        },
+        {
+          "dimension": "contractual_clarity",
+          "enabled": false,
+          "disabled_since": "v3b",
+          "disabled_reason": "Proxy-LLM gap +4.4 points, systematic bias -2.32, v3 training showed r=-0.10 → -0.02 on held-out. generalisation_unfair teaches wrong signal (unfair generalisation ≠ unclear expectations). Contractual clarity learned from LLM labels only.",
+          "scoring": {
+            "type": "scale",
+            "field": "generalisation_unfair",
+            "source_min": 0,
+            "source_max": 1,
+            "invert": true
+          },
+          "confidence": {
+            "type": "linear_clip",
+            "base": 0.30,
+            "field": "generalisation_unfair",
+            "multiplier": 0.35,
+            "scale": 0.5,
+            "min": 0.0,
+            "max": 1.0
+          }
+        },
+        {
+          "dimension": "defensive_architecture",
+          "enabled": true,
+          "scoring": {
+            "type": "linear",
+            "field": "sarcastic",
+            "base": 5.0,
+            "multiplier": -2.0,
+            "min_field_value": 0.1,
+            "clip_min": 0,
+            "clip_max": 10
+          },
+          "confidence": {
+            "type": "fixed",
+            "value": 0.15
+          },
+          "notes": "Sarcasm as defense mechanism indicator. Very weak signal — proxy-LLM gap confirmed. skip_below_threshold=0.1 (no sarcasm → skip record for this dim)."
+        }
+      ]
+    },
+
+    "dreaddit": {
+      "description": "Dreaddit — Reddit posts annotated for stress, with LIWC features",
+      "files": ["data/dreaddit/dreaddit-train.csv", "data/dreaddit/dreaddit-test.csv"],
+      "min_text_length": 40,
+      "sampling": {
+        "strategy": "balanced",
+        "field": "label",
+        "n": 2000,
+        "random_state": 42
+      },
+      "subreddit_severity": {
+        "ptsd": 0.9,
+        "domesticviolence": 0.85,
+        "survivorsofabuse": 0.8,
+        "homeless": 0.7,
+        "almosthomeless": 0.6,
+        "anxiety": 0.5,
+        "stress": 0.4,
+        "relationships": 0.3,
+        "food_pantry": 0.5,
+        "assistance": 0.4
+      },
+      "default_subreddit_severity": 0.5,
+      "score_formula": {
+        "stressed": {
+          "base": 1.0,
+          "severity_multiplier": 3.0,
+          "severity_offset": 1.0,
+          "comment": "score = 1.0 + (1.0 - sub_sev) * 3.0, range 1.3 - 4.0"
+        },
+        "not_stressed": {
+          "base": 5.0,
+          "severity_multiplier": 1.5,
+          "comment": "score = 5.0 + sub_sev * 1.5, range 5.0 - 6.4"
+        },
+        "liwc_negemo_field": "lex_liwc_negemo",
+        "liwc_negemo_divisor": 10.0,
+        "liwc_negemo_max_shift": 1.0,
+        "liwc_tone_field": "lex_liwc_Tone",
+        "liwc_tone_divisor": 200.0
+      },
+      "mappings": [
+        {
+          "dimension": "energy_dissipation",
+          "enabled": true,
+          "scoring": {"type": "dreaddit"},
+          "confidence": {
+            "type": "linear_clip",
+            "base": 0.3,
+            "field": "confidence",
+            "multiplier": 0.4,
+            "min": 0.35,
+            "max": 0.70
+          }
+        }
+      ]
+    },
+
+    "esconv": {
+      "description": "ESConv — emotional support conversation dataset with survey scores",
+      "files": ["data/esconv-train.jsonl"],
+      "hf_source": "thu-coai/esconv",
+      "hf_splits": ["validation", "test"],
+      "min_seeker_text_length": 40,
+      "min_dialog_turns": 4,
+      "sampling": {
+        "strategy": "random",
+        "n": 2000,
+        "random_seed": 42
+      },
+      "emotion_severity": {
+        "anxiety": 0.7,
+        "depression": 0.8,
+        "sadness": 0.6,
+        "anger": 0.75,
+        "fear": 0.7,
+        "disgust": 0.5,
+        "shame": 0.65,
+        "nervousness": 0.6,
+        "guilt": 0.55,
+        "jealousy": 0.5,
+        "pain": 0.8
+      },
+      "default_emotion_severity": 0.5,
+      "regulation_strategies": [
+        "Reflection of feelings",
+        "Restatement or Paraphrasing",
+        "Providing Suggestions",
+        "Affirmation and Reassurance"
+      ],
+      "score_formula": {
+        "base_from_severity": {"neutral_score": 5.0, "severity_multiplier": -3.5},
+        "intensity_drop_bonus": 1.0,
+        "intensity_increase_penalty": 0.5,
+        "comment": "base = 5.0 - severity * 3.5; +1 per intensity point drop; -0.5 per point increase"
+      },
+      "mappings": [
+        {
+          "dimension": "regulatory_capacity",
+          "enabled": true,
+          "scoring": {"type": "esconv"},
+          "confidence": {
+            "type": "esconv_survey",
+            "base": 0.45,
+            "survey_threshold": 0.55,
+            "strategy_threshold": 0.60,
+            "strategy_min_count": 3
+          }
+        }
+      ]
+    },
+
+    "empathetic_dialogues": {
+      "description": "EmpatheticDialogues — situational descriptions labeled with 32 emotion contexts",
+      "file": "data/empatheticdialogues/train.csv",
+      "sampling": {
+        "strategy": "random",
+        "n": 2000,
+        "random_seed": 42
+      },
+      "resilience_map": {
+        "proud": 8.0, "confident": 7.5, "prepared": 7.5, "hopeful": 7.0,
+        "grateful": 7.5, "joyful": 7.0, "content": 7.0, "excited": 6.5,
+        "caring": 7.0, "faithful": 7.0, "trusting": 7.0,
+        "surprised": 5.5, "anticipating": 6.0, "impressed": 6.0,
+        "nostalgic": 5.5, "sentimental": 5.5,
+        "afraid": 3.5, "terrified": 2.0, "apprehensive": 4.0,
+        "devastated": 1.5, "lonely": 3.0, "sad": 3.5,
+        "ashamed": 3.0, "embarrassed": 3.5, "guilty": 3.5,
+        "angry": 4.0, "furious": 3.0,
+        "anxious": 3.5, "disgusted": 4.0,
+        "disappointed": 3.5, "jealous": 4.0
+      },
+      "regulatory_map": {
+        "content": 7.5, "grateful": 7.0, "caring": 7.0, "proud": 7.0,
+        "prepared": 7.5, "confident": 7.0, "faithful": 7.0, "trusting": 6.5,
+        "surprised": 5.5, "hopeful": 6.0, "anticipating": 6.0,
+        "impressed": 6.0, "nostalgic": 5.5, "sentimental": 5.5,
+        "joyful": 6.5, "excited": 5.5,
+        "terrified": 2.0, "furious": 2.5, "devastated": 2.0,
+        "angry": 3.0, "anxious": 3.0, "afraid": 3.5,
+        "disgusted": 3.5, "ashamed": 3.5, "embarrassed": 4.0,
+        "lonely": 4.0, "sad": 4.0, "guilty": 4.0,
+        "disappointed": 4.0, "apprehensive": 4.0,
+        "annoyed": 4.0, "jealous": 4.0
+      },
+      "noise_range": 0.5,
+      "mappings": [
+        {
+          "dimension": "resilience_baseline",
+          "enabled": true,
+          "scoring": {"type": "emotion_lookup", "table": "resilience_map"},
+          "confidence": {"type": "fixed", "value": 0.40},
+          "notes": "Indirect mapping via emotion label. Moderate confidence — emotion context is informative but not direct measurement."
+        },
+        {
+          "dimension": "regulatory_capacity",
+          "enabled": true,
+          "scoring": {"type": "emotion_lookup", "table": "regulatory_map"},
+          "confidence": {"type": "fixed", "value": 0.35},
+          "notes": "Slightly lower than resilience — regulatory capacity is harder to infer from emotion labels alone."
+        }
+      ]
+    },
+
+    "diplomacy": {
+      "description": "Diplomacy Deception — sender truthfulness + receiver perception labels",
+      "files": ["data/diplomacy/train.jsonl", "data/diplomacy/validation.jsonl", "data/diplomacy/test.jsonl"],
+      "sampling": {
+        "strategy": "balanced_trust",
+        "n": 2000,
+        "random_seed": 42,
+        "comment": "raw data is 95% truthful → mean 7.3, too high. Balance deceptive vs truthful."
+      },
+      "trust_score_matrix": {
+        "truthful_perceived_truthful": {"score_base": 7.5, "score_noise": [-0.5, 1.0], "confidence": 0.55},
+        "truthful_perceived_deceptive": {"score_base": 4.5, "score_noise": [-0.5, 0.5], "confidence": 0.50},
+        "deceptive_perceived_truthful": {"score_base": 2.0, "score_noise": [-0.5, 0.5], "confidence": 0.60},
+        "deceptive_perceived_deceptive": {"score_base": 3.5, "score_noise": [-0.5, 0.5], "confidence": 0.55}
+      },
+      "mappings": [
+        {
+          "dimension": "trust_conditions",
+          "enabled": false,
+          "disabled_since": "v3b",
+          "disabled_reason": "Labels measure sender intent (truthful vs deceptive), not textual trust indicators. 525 deceptive-but-believed records are fundamentally unlearnable — cooperative text scored 1.5-2.5 because sender was secretly lying. Teaches model cooperative language = low trust, contradicting all other sources. MAE 2.405 (worst of any source), 56.7% of trust_conditions error. See distillation-research.md §8z.",
+          "scoring": {"type": "diplomacy_matrix"}
+        }
+      ]
+    },
+
+    "casino": {
+      "description": "CaSiNo — negotiation dialogues with strategy annotations and satisfaction scores",
+      "file": "data/casino/train.jsonl",
+      "max_text_length": 2000,
+      "sampling": {
+        "strategy": "random",
+        "n": 2000,
+        "random_seed": 42
+      },
+      "strategy_clarity": {
+        "positive": ["elicit-pref", "promote-coordination", "self-need", "other-need"],
+        "negative": ["uv-part", "no-need"],
+        "neutral": ["empathy", "small-talk"]
+      },
+      "satisfaction_bonus": {
+        "Very satisfied": 0.5,
+        "Slightly satisfied": 0.25,
+        "dissatisfied": -0.5
+      },
+      "outcome_bonus": {
+        "accept": 0.5,
+        "reject": -1.5
+      },
+      "score_formula": {
+        "base": 5.0,
+        "pos_ratio_multiplier": 3.0,
+        "neg_ratio_multiplier": -4.0,
+        "comment": "base + pos_ratio * 3.0 - neg_ratio * 4.0 + sat_bonus + outcome_bonus"
+      },
+      "confidence_formula": {
+        "base": 0.40,
+        "per_annotation": 0.01,
+        "min": 0.40,
+        "max": 0.65
+      },
+      "mappings": [
+        {
+          "dimension": "contractual_clarity",
+          "enabled": true,
+          "scoring": {"type": "casino"},
+          "confidence": {"type": "casino"}
+        }
+      ]
+    },
+
+    "politeness": {
+      "description": "Stanford Politeness Corpus — annotated requests from Wikipedia and Stack Exchange",
+      "files": {
+        "wikipedia": "data/politeness/Stanford_politeness_corpus/wikipedia.annotated.csv",
+        "stack-exchange": "data/politeness/Stanford_politeness_corpus/stack-exchange.annotated.csv"
+      },
+      "sampling": {
+        "strategy": "random",
+        "n": 2000,
+        "random_seed": 42
+      },
+      "score_formula": {
+        "source_field": "Normalized Score",
+        "source_min": -3.0,
+        "source_max": 3.0,
+        "target_center": 5.0,
+        "multiplier": 1.0,
+        "target_min": 1,
+        "target_max": 9,
+        "comment": "psq_score = 5.0 + norm_score * 1.0, clipped [1, 9]"
+      },
+      "confidence_formula": {
+        "type": "annotator_std",
+        "score_fields": ["Score1", "Score2", "Score3", "Score4", "Score5"],
+        "base": 0.30,
+        "std_multiplier": -0.015,
+        "scale": 0.5,
+        "min": 0.15,
+        "max": 0.30,
+        "min_annotators": 3,
+        "comment": "halved confidence (was 0.30-0.65) — politeness ≠ authority dynamics. Compressed range (std=0.73 vs LLM 1.72), over-predicts +0.90-1.45. At 0.15-0.30, 100 LLM labels at 5x dominate."
+      },
+      "mappings": [
+        {
+          "dimension": "authority_dynamics",
+          "enabled": true,
+          "scoring": {"type": "politeness"},
+          "confidence": {"type": "politeness"},
+          "notes": "Politeness correlates with authority awareness but is a narrow proxy. Confidence halved vs original to let LLM labels dominate."
+        }
+      ]
+    },
+
+    "prosocial": {
+      "description": "ProsocialDialog — conversations with safety annotations and rules-of-thumb",
+      "file": "data/prosocial/train.jsonl",
+      "min_text_length": 30,
+      "sampling": {
+        "strategy": "stratified_score_buckets",
+        "buckets": {"low": [0, 3], "mid": [3, 5], "high": [5, 10]},
+        "n": 2000,
+        "random_seed": 42
+      },
+      "safety_to_score": {
+        "__needs_intervention__": {"base_score": 1.5, "base_conf": 0.60},
+        "__needs_caution__":      {"base_score": 3.0, "base_conf": 0.50},
+        "__probably_needs_caution__": {"base_score": 4.0, "base_conf": 0.40},
+        "__possibly_needs_caution__": {"base_score": 5.0, "base_conf": 0.35},
+        "__casual__":             {"base_score": 6.0, "base_conf": 0.30}
+      },
+      "annotation_agreement_bonus": {
+        "unanimous": 0.10,
+        "majority": 0.05
+      },
+      "score_noise": 0.8,
+      "mappings": [
+        {
+          "dimension": "defensive_architecture",
+          "enabled": true,
+          "scoring": {"type": "prosocial"},
+          "confidence": {"type": "prosocial"}
+        }
+      ]
+    }
+
+  }
+}
