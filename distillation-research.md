@@ -1,0 +1,1657 @@
+# PSQ Distillation Research: Proxy Validation & Ground Truth Selection
+
+**Date:** 2026-02-26
+**Status:** v9 complete (test_r=0.515, held-out_r=0.385). v10 data prep in progress (305 more auth synthetic).
+**Next:** v10 training, improve threat_exposure proxy coverage, ONNX export of best model.
+
+---
+
+## Table of Contents
+
+1. [Objective](#1-objective)
+2. [Proxy Teacher Validation](#2-proxy-teacher-validation) — detoxify vs Berkeley, construct mismatch
+3. [Multi-Model Proxy Benchmark](#3-multi-model-proxy-benchmark) — 5 models tested, correlation ceiling
+4. [Ground Truth Dataset Comparison](#4-ground-truth-dataset-comparison) — Berkeley, Civil Comments, GoEmotions, UCC
+5. [Composite Ground Truth Strategy](#5-composite-ground-truth-strategy) — tiered dimensions, mapping
+6. [Technical Notes](#6-technical-notes) — CUDA, file inventory
+7. [Training Results (v1)](#7-training-results-v1) — baseline, avg r=0.492
+8. [Data Expansion (v2)](#8-data-expansion-v2) — v2a through v2d, new datasets, bug fixes, error analysis
+   - 8a-8f: v2a (expanded datasets, weight fix)
+   - 8g-8l: v2b/v2c (labeling, confidence-weighted loss)
+   - 8m-8p: v2d (structural fixes, avg r=0.585)
+   - 8q-8r: New dataset integration (Diplomacy, CaSiNo, Politeness, ProsocialDialog)
+   - 8s-8v: v3 prep (training fixes, error analysis, architecture prep)
+   - 8w-8ab: v3/v3b (correlation analysis, proxy removal, diplomacy audit)
+   - 8ac-8ad: v4/v4b (authority collapse diagnosis, squared conf weighting fix)
+9. [Dataset Search Results](#9-dataset-search-results) — search log, gap analysis, reliability, V4 prep, validation battery
+   - 9b: Gap analysis
+   - 9c: V2d reliability spot check
+   - 9d: V4 preparation (confidence fix, calibration, DeBERTa)
+   - 9e: Psychometric validation battery (discriminant, calibration, known-groups)
+10. [Next Steps](#10-next-steps) — completed items, V4 roadmap
+11. [Psychometric Evaluation](#11-psychometric-evaluation) — summary
+12. [Theoretical Refinements](#12-theoretical-refinements-decisions-for-v4) — 9-factor model (defer), defensive arch redefinition (apply), score anchors (apply), validation study (design ready)
+14. [V5–V8 Training Findings](#14-v5v8-training-findings-2026-02-27) — duplicate contamination, signal amplification, data pipeline fixes, synthetic strategy, model comparison
+15. [Held-Out Real-World Evaluation](#15-held-out-real-world-evaluation-2026-02-27) — 100 real-world texts, generalization gap analysis, dimension tiers
+13. [References](#13-references)
+
+---
+
+## 1. Objective
+
+Distill PSQ scoring from LLM-based detection (10 API calls per post, ~60s, rate-limited) into a small local model (DeBERTa-v3-small, 44M params) that scores all 10 dimensions in one forward pass (~20ms, zero API cost).
+
+**Strategy:** Validate proxy teacher signals first, then build training pipeline.
+
+## 2. Proxy Teacher Validation
+
+### 2a. Initial Hypothesis
+
+Use `detoxify` (Jigsaw-trained toxicity model) as a proxy teacher to cheaply label ~20,000 training samples for hostility and threat dimensions, supplementing ~500 expensive LLM-labeled gold-standard samples.
+
+**Decision gate:** Pearson r > 0.7 between detoxify scores and Berkeley Measuring Hate Speech ground truth labels.
+
+### 2b. Berkeley Dataset Quality Analysis
+
+**Dataset:** UC Berkeley Measuring Hate Speech (`ucberkeley-dlab/measuring-hate-speech`)
+- 135,556 annotation rows, 39,565 unique texts
+- ~3.4 annotators per text (crowd-sourced)
+- `hate_speech_score`: continuous IRT-derived score, range -8.3 to +6.3
+- Subscale labels: ordinal 0-4 (hatespeech, insult, violence, dehumanize)
+
+**Annotation quality problems discovered:**
+
+| Subscale | % with annotator disagreement | % unanimous |
+|---|---|---|
+| insult | 72.9% | 27.1% |
+| dehumanize | 81.5% | 18.5% |
+| violence | 64.0% | 36.0% |
+| hatespeech | 40.5% | 59.5% |
+
+- Pairwise exact agreement on hatespeech: 68.6%
+- Pairwise binary agreement (hate vs not): 73.3%
+- IRT score std_err: mean 0.475 (3.2% of range) — most reliable column
+
+**Conclusion:** The subscale labels (insult, violence, dehumanize) are noisy ground truth. The IRT-derived `hate_speech_score` is the most reliable column but still carries measurement uncertainty.
+
+### 2c. Construct Mismatch Analysis
+
+**Detoxify measures:** "toxicity" — rude, disrespectful, or unreasonable content likely to make people leave a discussion. Trained on Wikipedia talk page comments (Jigsaw).
+
+**Berkeley measures:** "hate speech" — speech that attacks people based on protected characteristics. Annotated on YouTube, Reddit, Twitter/X social media posts.
+
+These are overlapping but distinct constructs:
+- "Fuck this weather" → toxic but not hate speech
+- "Those people don't deserve rights" → hate speech, may not sound toxic
+
+This construct gap creates a theoretical ceiling on achievable correlation regardless of model quality.
+
+### 2d. Detoxify vs Berkeley: Raw Results
+
+**Sample:** 1,000 texts, stratified by hate_speech_score quintiles.
+
+| Detoxify Attribute | Berkeley Label | Pearson r |
+|---|---|---|
+| toxicity | hate_speech_score | +0.56 |
+| insult | insult | +0.46 |
+| threat | violence | +0.43 |
+| identity_attack | dehumanize | +0.17 |
+| severe_toxicity | hatespeech | +0.37 |
+
+**Composite proxies:**
+| Composite | Berkeley Target | r |
+|---|---|---|
+| mean(toxicity, insult, identity_attack) → hostility_index | hate_speech_score | +0.55 |
+| mean(severe_toxicity, threat) → threat_exposure | violence | +0.38 |
+
+**Decision gate result:** MARGINAL (r=0.55, needed >0.7)
+
+### 2e. Effect of Aggregating Berkeley Labels
+
+When Berkeley labels are aggregated per text (mean across annotators) instead of using raw per-annotator rows, correlations improve:
+
+| Pair | Raw per-annotator | Aggregated (mean) |
+|---|---|---|
+| toxicity → hate_speech_score | 0.56 | **0.63** |
+| insult → insult | 0.46 | **0.57** |
+| threat → violence | 0.43 | 0.40 |
+| identity_attack → dehumanize | 0.17 | **0.22** |
+| severe_toxicity → hatespeech | 0.37 | **0.46** |
+| Composite hostility | 0.55 | **0.63** |
+
+**Conclusion:** ~15% of the correlation shortfall was due to Berkeley annotation noise, not detoxify quality. The real correlation ceiling against aggregated IRT scores is r≈0.63.
+
+## 3. Multi-Model Proxy Benchmark
+
+### 3a. Models Tested
+
+Tested 8 proxy models on 500 stratified Berkeley texts (aggregated labels):
+
+**Hate speech models:**
+1. `facebook/roberta-hate-speech-dynabench-r4-target` — DynaBench rounds
+2. `cardiffnlp/twitter-roberta-base-hate-latest` — TweetEval hate
+3. `Hate-speech-CNERG/dehatebert-mono-english` — DeHateBERT
+4. `tomh/toxigen_hatebert` — ToxiGen HateBERT (skipped: tokenizer issue)
+
+**Toxicity models:**
+5. `unitary/toxic-bert` — same org as detoxify
+6. `detoxify` (original) — Jigsaw multi-head
+
+**Sentiment + emotion:**
+7. `cardiffnlp/twitter-roberta-base-sentiment-latest`
+8. `cardiffnlp/twitter-roberta-base-emotion-multilabel-latest`
+
+### 3b. Leaderboard: r vs Berkeley hate_speech_score (IRT)
+
+| Model | r | Verdict |
+|---|---|---|
+| emotion: anger | **+0.659** | Best single signal |
+| detoxify: toxicity | **+0.658** | Tied |
+| detoxify: composite | +0.656 | No benefit from combining |
+| cardiff_hate | +0.653 | Best dedicated hate model |
+| emotion: disgust | +0.653 | Tied with cardiff |
+| sentiment: negative | +0.651 | Nearly identical |
+| toxic_bert | +0.593 | Moderate |
+| sentiment: positive | -0.541 | Inverted |
+| dehatebert | +0.489 | Surprisingly weak |
+| fb_dynabench | +0.480 | Surprisingly weak |
+| emotion: joy | -0.488 | Inverted |
+| emotion: sadness | +0.050 | No signal |
+| emotion: fear | -0.041 | No signal |
+
+### 3c. Key Finding: Correlation Ceiling
+
+All top models cluster tightly at r≈0.65. Purpose-built hate speech detectors, toxicity models, and generic emotion/sentiment models all hit the same ceiling. This is a **construct boundary**, not a model quality issue.
+
+**No proxy teacher pivot will exceed r≈0.65 against Berkeley labels.** The limitation is in the ground truth and the construct gap, not in the proxy models.
+
+### 3d. Decision: Multi-Signal Approach
+
+Instead of using one proxy model as a teacher, use **multiple signals as a feature vector**:
+- detoxify (6 attributes: toxicity, severe_toxicity, insult, threat, identity_attack, obscene)
+- sentiment (2: negative, positive)
+- emotion (5: anger, fear, joy, disgust, sadness)
+
+Total: 13-dimensional feature vector per text, each capturing a different facet.
+
+## 4. Ground Truth Dataset Comparison
+
+### 4a. Datasets Benchmarked
+
+Benchmarked 4 ground truth datasets against the full 12-signal proxy stack:
+
+1. **Berkeley Measuring Hate Speech** (current baseline) — 39,565 texts, IRT hate speech score
+2. **Jigsaw Civil Comments** — 1.8M texts, continuous 0-1 multi-attribute toxicity
+3. **GoEmotions** — 43,410 texts, 27 emotion labels (multi-label binary)
+4. **Unhealthy Conversations Corpus (UCC)** — 42,489 texts, hostile/condescending/dismissive/sarcastic/antagonize/generalisation_unfair/healthy
+
+SBIC (Social Bias Inference Corpus) could not be loaded — uses legacy HuggingFace loading script format no longer supported by current `datasets` library.
+
+### 4b. Berkeley Results (baseline)
+
+500 texts, stratified by hate_speech_score quintiles.
+
+| Signal | hate_speech_score | hatespeech | insult | violence | dehumanize |
+|---|---|---|---|---|---|
+| detox_toxicity | **+0.658** | +0.528 | **+0.645** | +0.304 | **+0.452** |
+| detox_insult | +0.627 | **+0.573** | +0.597 | +0.301 | +0.447 |
+| detox_threat | +0.284 | +0.247 | +0.213 | **+0.398** | +0.155 |
+| detox_identity_attack | +0.418 | +0.498 | +0.366 | +0.223 | +0.263 |
+| detox_severe_toxicity | +0.487 | +0.449 | +0.447 | +0.315 | +0.361 |
+| emo_anger | **+0.659** | +0.440 | +0.594 | +0.308 | +0.404 |
+| emo_disgust | +0.653 | +0.424 | +0.591 | +0.280 | +0.404 |
+| emo_fear | -0.040 | -0.143 | -0.060 | +0.015 | -0.067 |
+| emo_joy | -0.488 | -0.283 | -0.424 | -0.189 | -0.291 |
+| emo_sadness | +0.050 | -0.029 | +0.053 | -0.055 | +0.002 |
+| sent_negative | +0.651 | +0.397 | +0.603 | +0.254 | +0.408 |
+| sent_positive | -0.541 | -0.277 | -0.498 | -0.193 | -0.315 |
+
+**Best per label:**
+- hate_speech_score ← emo_anger (r=+0.659)
+- hatespeech ← detox_insult (r=+0.573)
+- insult ← detox_toxicity (r=+0.645)
+- violence ← detox_threat (r=+0.398)
+- dehumanize ← detox_toxicity (r=+0.452)
+
+### 4c. Civil Comments Results
+
+500 texts, stratified by toxicity (5 strata: clean/mild/moderate/high/extreme).
+
+| Signal | toxicity | severe_toxicity | obscene | threat | insult | identity_attack | sexual_explicit |
+|---|---|---|---|---|---|---|---|
+| detox_toxicity | **+0.489** | +0.298 | +0.383 | +0.111 | +0.486 | +0.018 | +0.137 |
+| detox_insult | +0.483 | +0.299 | +0.431 | -0.012 | **+0.522** | -0.017 | +0.110 |
+| detox_obscene | +0.288 | +0.280 | **+0.558** | -0.014 | +0.273 | -0.037 | **+0.329** |
+| detox_threat | +0.110 | +0.257 | +0.005 | **+0.508** | -0.010 | -0.017 | -0.002 |
+| detox_identity_attack | +0.229 | +0.286 | +0.077 | +0.122 | +0.177 | **+0.408** | -0.022 |
+| detox_severe_toxicity | +0.225 | **+0.282** | +0.247 | +0.173 | +0.176 | +0.127 | +0.134 |
+| emo_anger | +0.396 | +0.103 | +0.151 | +0.058 | +0.377 | +0.085 | -0.014 |
+| emo_disgust | +0.367 | +0.108 | +0.150 | +0.060 | +0.353 | +0.082 | -0.019 |
+| sent_negative | +0.397 | +0.146 | +0.134 | +0.117 | +0.373 | +0.038 | -0.022 |
+
+**Best per label:**
+- toxicity ← detox_toxicity (r=+0.489)
+- obscene ← detox_obscene (r=+0.558)
+- threat ← detox_threat (r=+0.508)
+- insult ← detox_insult (r=+0.522)
+- identity_attack ← detox_identity_attack (r=+0.408)
+
+**Notable:** Detoxify correlates better with Civil Comments (same Jigsaw lineage) on attribute-specific matching (obscene↔obscene, threat↔threat) than it does with Berkeley's cross-construct labels.
+
+### 4d. GoEmotions Results
+
+500 texts, random sample. Emotion labels are binary multi-label, grouped into PSQ dimension clusters.
+
+| PSQ Dimension | Emotion Cluster | Best Proxy | r |
+|---|---|---|---|
+| threat_exposure | fear, nervousness | emo_fear | **+0.446** |
+| hostility_index | anger, annoyance, disgust | emo_anger | +0.415 |
+| energy_dissipation | sadness, grief, disappointment | emo_sadness | +0.381 |
+| regulatory_capacity | anger, fear, nervousness, confusion | emo_fear | +0.250 |
+| cooling_capacity | relief, caring, gratitude | sent_positive | +0.245 |
+| trust_conditions | approval, admiration, disapproval | sent_positive | +0.266 |
+| resilience_baseline | optimism, pride, relief | emo_disgust | -0.104 |
+
+**GoEmotions is the only dataset providing ground truth for PSQ's emotional dimensions** (regulatory capacity, resilience, cooling capacity, energy dissipation, trust conditions). No other dataset covers these constructs.
+
+### 4e. Unhealthy Conversations Corpus Results
+
+500 texts, stratified by hostile (4 strata). Labels are mean annotator agreement (0-1 continuous).
+
+| Signal | hostile | condescend. | dismissive | antagonize | sarcastic | unfair_gen. | healthy |
+|---|---|---|---|---|---|---|---|
+| detox_toxicity | **+0.524** | **+0.285** | **+0.268** | **+0.505** | +0.011 | +0.141 | **-0.491** |
+| detox_insult | +0.449 | +0.249 | +0.223 | +0.474 | -0.011 | +0.111 | -0.424 |
+| detox_identity_attack | +0.193 | +0.076 | +0.057 | +0.206 | +0.005 | **+0.278** | -0.201 |
+| emo_anger | +0.332 | +0.148 | +0.153 | +0.285 | -0.075 | +0.234 | -0.236 |
+| emo_disgust | +0.313 | +0.122 | +0.131 | +0.256 | -0.100 | +0.236 | -0.210 |
+| emo_joy | -0.106 | -0.017 | -0.036 | -0.072 | **+0.161** | -0.089 | +0.051 |
+| sent_negative | +0.393 | +0.269 | +0.256 | +0.360 | +0.006 | +0.202 | -0.304 |
+
+**Best per label → PSQ dimension:**
+- hostile → hostility_index: detox_toxicity (r=+0.524)
+- condescending → authority_dynamics: detox_toxicity (r=+0.285)
+- dismissive → trust_conditions: detox_toxicity (r=+0.268)
+- antagonize → hostility_index: detox_toxicity (r=+0.505)
+- sarcastic → defensive_architecture: emo_joy (r=+0.161)
+- generalisation_unfair → contractual_clarity: detox_identity_attack (r=+0.278)
+- healthy → cooling_capacity: detox_toxicity (r=-0.491)
+
+**UCC is the only dataset providing ground truth for authority_dynamics, defensive_architecture, and contractual_clarity.** These are subtle conversational dynamics (condescension, sarcasm, unfair generalisation) that no toxicity or emotion model captures well.
+
+## 5. Composite Ground Truth Strategy
+
+### 5a. Rationale
+
+No single dataset is dramatically better than Berkeley. But each dataset covers different PSQ dimensions:
+
+| PSQ Dimension | Best Dataset | Best r | Category |
+|---|---|---|---|
+| 1. threat_exposure | Civil Comments (threat) | +0.51 | Strong |
+| 2. hostility_index | Berkeley (hate_speech_score) | +0.66 | Strong |
+| 3. authority_dynamics | UCC (condescending) | +0.28 | Weak |
+| 4. energy_dissipation | GoEmotions (sadness cluster) | +0.38 | Moderate |
+| 5. regulatory_capacity | GoEmotions (fear cluster) | +0.25 | Weak |
+| 6. resilience_baseline | GoEmotions (optimism cluster) | -0.10 | None |
+| 7. trust_conditions | GoEmotions (approval cluster) | +0.27 | Weak |
+| 8. cooling_capacity | GoEmotions (relief cluster) | +0.24 | Weak |
+| 9. defensive_architecture | UCC (sarcastic) | +0.16 | None |
+| 10. contractual_clarity | UCC (unfair_generalisation) | +0.28 | Weak |
+
+### 5b. Three Tiers of PSQ Dimensions
+
+**Tier A — Proxy-labelable (r > 0.4):** hostility_index, threat_exposure, energy_dissipation
+→ Use multi-signal proxy labels from detoxify + emotion + sentiment. Can label 20,000+ samples cheaply.
+
+**Tier B — Partially proxy-labelable (0.2 < r < 0.4):** authority_dynamics, regulatory_capacity, trust_conditions, cooling_capacity, contractual_clarity
+→ Use proxy labels as weak signal + LLM gold standard. Need more LLM samples for these dims.
+
+**Tier C — LLM-only (r < 0.2):** resilience_baseline, defensive_architecture
+→ No proxy coverage. These dimensions describe internal psychological processes that don't surface in text features. Require full LLM labeling.
+
+### 5c. Updated Data Collection Plan
+
+| Source | Samples | Dimensions Covered | Cost |
+|---|---|---|---|
+| Multi-signal proxy (detoxify+emotion+sentiment) | 20,000 | Tier A (3 dims) | Free, ~10 min |
+| Multi-signal proxy (weak) | 20,000 | Tier B (5 dims, conf 0.2-0.4) | Free, same batch |
+| LLM gold standard | 500+ | All 10 dims | ~10 hrs, API cost |
+| LLM supplementary | 500+ | Tier B+C (7 dims) | ~5 hrs, API cost |
+
+### 5d. Dimension-to-Dataset Mapping for Composite Ground Truth
+
+| PSQ Dimension | Primary Ground Truth | Labels Used | Proxy Signals |
+|---|---|---|---|
+| threat_exposure | Civil Comments | threat, severe_toxicity | detox_threat, detox_severe_toxicity, emo_fear |
+| hostility_index | Berkeley | hate_speech_score | detox_toxicity, emo_anger, emo_disgust, sent_negative |
+| authority_dynamics | UCC | condescending | detox_toxicity, sent_negative |
+| energy_dissipation | GoEmotions + **Dreaddit** | sadness+grief+disappointment, **stress label+LIWC** | emo_sadness |
+| regulatory_capacity | GoEmotions + **ESConv + EmpatheticDialogues** | anger+fear+nervousness+confusion, **emotion intensity change, strategy labels, emotion context** | emo_fear, emo_anger |
+| resilience_baseline | **EmpatheticDialogues** + LLM | **emotion→adversity/growth mapping** | — |
+| trust_conditions | GoEmotions + UCC | approval+dismissive | sent_positive, detox_toxicity (inv) |
+| cooling_capacity | GoEmotions + UCC | relief+caring+healthy | sent_positive, detox_toxicity (inv) |
+| defensive_architecture | UCC + **LLM** | sarcastic, **DSQ-40/TKI rubric** | — |
+| contractual_clarity | UCC | generalisation_unfair | detox_identity_attack |
+
+## 6. Technical Notes
+
+### 6a. CUDA Compatibility
+
+GPU: NVIDIA GeForce GTX 1060 (compute capability 6.1, Pascal architecture)
+PyTorch 2.10.0+cu128 only supports sm_70+ (Volta and newer).
+**Resolution:** Installed PyTorch 2.4.0+cu121 (last version with Pascal sm_61 support). Training and inference both run on GPU successfully.
+
+### 6b. Files Produced
+
+```
+scripts/
+  validate_proxy.py            — Initial detoxify vs Berkeley validation
+  benchmark_proxies.py         — 8-model proxy comparison
+  benchmark_ground_truth.py    — 4-dataset ground truth comparison
+  build_composite_ground_truth.py — 8-source composite builder (Berkeley, Civil Comments,
+                                    GoEmotions, UCC, Dreaddit, ESConv, EmpatheticDialogues, LLM)
+  distill.py                   — DistilBERT training script (multi-head, confidence-weighted loss, timing)
+  eval.py                      — Detailed per-dimension evaluation
+  export_onnx.py               — ONNX export + INT8 quantization
+
+src/
+  student.js                   — Node.js ONNX inference provider (lazy-init, WordPiece tokenizer)
+  providers.js                 — Provider factory (openrouter, claude, workersai, student)
+  detector.js                  — PSQ detection logic + aggregation
+
+data/
+  measuring-hate-speech.parquet  — Berkeley dataset (14 MB)
+  ucc.csv                        — Unhealthy Conversations Corpus (33 MB)
+  dreaddit/                      — Dreaddit train/test CSVs (stress detection)
+  esconv-train.jsonl             — ESConv conversations (emotional support)
+  empatheticdialogues/           — Facebook Empathetic Dialogues (32 emotion contexts)
+  composite-ground-truth.jsonl   — Unified training set (13,649 records, 6.7 MB)
+  train-llm.jsonl                — Claude Code gold-standard labels (400 records, 7 dimensions)
+  proxy-validation/
+    validation_summary.json      — Initial proxy validation results
+    model_comparison.json        — Multi-model benchmark results
+    correlation_matrix.png       — Detoxify vs Berkeley heatmap
+    scatter_*.png                — Per-pair scatter plots
+
+models/psq-student/
+  best.pt                        — Best DistilBERT checkpoint (255 MB)
+  config.json                    — Model config + hyperparameters + timing data
+  eval_results.json              — Per-dimension evaluation metrics
+  tokenizer/                     — Saved tokenizer for ONNX inference (created by export_onnx.py)
+  model.onnx                     — Full precision ONNX model (created by export_onnx.py)
+  model_quantized.onnx           — INT8 quantized ONNX model (created by export_onnx.py)
+
+requirements.txt               — Python dependencies (includes onnxruntime)
+package.json                   — Node.js dependencies (includes onnxruntime-node)
+venv/                          — Python virtual environment
+```
+
+## 7. Training Results (v1)
+
+### Setup
+- **Model:** DistilBERT-base-uncased (66.7M params, all trainable)
+- **Data:** 7,949 composite ground truth records (80/10/10 split)
+- **Hardware:** GTX 1060 6GB (PyTorch 2.4.0 + CUDA 12.1 for Pascal sm_61 support)
+- **Hyperparams:** batch=32, max_length=128, lr=2e-5, patience=3
+- **Best epoch:** 3/10 (early stopped at epoch 6)
+
+### Test Set Pearson r by Dimension
+
+| Dimension | r | Tier | ±1pt | ±2pt | n |
+|---|---|---|---|---|---|
+| threat_exposure | +0.69 | A | 56.6% | 78.7% | 602 |
+| hostility_index | +0.64 | A | 48.0% | 75.9% | 794 |
+| cooling_capacity | +0.55 | B | 51.9% | 74.2% | 399 |
+| trust_conditions | +0.47 | B | 45.4% | 74.4% | 399 |
+| authority_dynamics | +0.46 | B | 18.2% | 51.0% | 192 |
+| contractual_clarity | +0.42 | B | 34.9% | 74.0% | 192 |
+| energy_dissipation | +0.13 | A* | 94.2% | 99.0% | 207 |
+| defensive_architecture | +0.13 | C | 96.1% | 100% | 103 |
+| resilience_baseline | +0.07 | C | 100% | 100% | 207 |
+| regulatory_capacity | +0.04 | C | 98.6% | 99.0% | 207 |
+
+*Energy dissipation reclassified — low r but very high accuracy (scores clustered near 5.0).
+
+### Tier Averages
+- **Tier A:** r = +0.59
+- **Tier B:** r = +0.42
+- **Tier C:** r = +0.09
+- **Overall:** r = +0.47
+
+### Confidence Calibration
+Only cooling_capacity shows good calibration (r=-0.18). Most dimensions are miscalibrated — the model's confidence scores don't yet predict actual error magnitude. This is expected given that ground truth confidence values come from heterogeneous sources.
+
+### Analysis
+1. **Tier A/B dimensions perform as expected.** The top 6 dimensions (r=0.42-0.69) have strong ground truth from dedicated datasets. This matches the r≈0.65 correlation ceiling found during proxy benchmarking.
+2. **Tier C dimensions are near-random.** Energy, regulatory, resilience, and defensive have very low r, but also very high ±1pt accuracy — because the ground truth is mostly centered around 5.0 (the default "no signal" score). The model learns to predict ~5.0 for these, which is technically accurate but uninformative.
+3. **The bottleneck is data, not model capacity.** Tier C dimensions need LLM gold-standard labels to improve. 500 LLM-labeled samples covering all 10 dimensions would likely lift these substantially.
+
+## 8. Data Expansion (v2)
+
+### 8a. Problem
+
+The v1 model had near-random performance on 4 dimensions (energy_dissipation, regulatory_capacity, resilience_baseline, defensive_architecture). Root cause: these dimensions had only heuristic-mapped ground truth centered around score 5.0 — the model learned to always predict ~5.0.
+
+### 8b. Constraint
+
+No API budget available. OpenRouter free limits exhausted. Solution: use free public datasets + Claude Code as zero-cost LLM labeler.
+
+### 8c. New Dataset Sources
+
+Three public datasets added to the composite ground truth:
+
+| Dataset | Records | Dimension | Mapping Strategy |
+|---|---|---|---|
+| **Dreaddit** (Columbia) | 2,000 | energy_dissipation | Binary stress label + subreddit severity + LIWC negemo/Tone features. Stressed texts → scores 1.3-4.0, non-stressed → 5.0-6.4. |
+| **ESConv** (THU-COAI) | 1,300 | regulatory_capacity | Emotion type severity + initial→final intensity drop + regulation strategy count. High severity + poor recovery → low scores. |
+| **Empathetic Dialogues** (Facebook) | 2,000 | resilience_baseline, regulatory_capacity | 32 emotion contexts mapped to resilience (e.g., "proud"→8.0, "terrified"→2.0) and regulation scores. ±0.5 noise to avoid clustering. |
+
+**ANGST** and **SWMH** datasets were investigated but are gated (require access approval).
+
+### 8d. Claude Code LLM Labeling Sessions
+
+Used Claude Code (Opus 4) as a zero-cost expert labeler, scoring texts against the full PSQ instrument rubrics.
+
+**defensive_architecture** — 50 texts scored using DSQ-40 (mature/neurotic/immature defenses) + TKI (conflict modes):
+- Sources: 10 each from Dreaddit, ESConv, UCC, Civil Comments, GoEmotions
+- Score distribution: 2-8 range, mean=4.84, mean_confidence=0.58
+- Key patterns: mature defenses (sublimation, humor, anticipation) → high scores; immature (projection, splitting, denial) → low scores; freeze/avoidance → very low
+
+**resilience_baseline** — 50 texts scored using BRS (bounce-back ability) + CD-RISC (personal competence, trust in instincts, acceptance of change):
+- Sources: 10 each from Dreaddit, ESConv, Empathetic Dialogues, Civil Comments, GoEmotions
+- Score distribution: 1-8 range, mean=4.50, mean_confidence=0.57
+- Key patterns: recovery language, past-success confidence, purpose → high; helplessness, permanent damage framing, stuck-in-aftermath → low
+
+**regulatory_capacity** — 50 texts scored using DERS (emotion regulation difficulties) + ERQ (reappraisal vs suppression):
+- Sources: 10 each from ESConv, Dreaddit, Empathetic Dialogues, GoEmotions, UCC
+- Score distribution: 1-8 range, mean=4.66, mean_confidence=0.58
+- Key patterns: cognitive reappraisal, goal-directed behavior under stress, impulse control → high; "can't handle it," emotional overwhelm, suppression demands, violent ideation → low
+
+**authority_dynamics** — 50 texts scored using ABS (Abusive Supervision Scale) + MLQ (Multifactor Leadership Questionnaire):
+- Sources: all 50 from UCC (only dataset with authority_dynamics labels), stratified by proxy score into 5 bins (0-3, 3-4.5, 4.5-5.5, 5.5-7, 7-10)
+- Score distribution: 1-6 range, mean=3.95, mean_confidence=0.52
+- Key patterns: ridiculing/dismissing from authority position (abs_1, abs_2) → low scores; intellectual contempt, pathologizing dissent → 2-3; peer-level political commentary without power dynamics → 5; calling out power imbalance or advocating for fair discourse → 6
+- Notable: proxy scores skewed high (mean=6.7) while LLM scores skewed low (mean=3.95) — most UCC comments involve some degree of power assertion/condescension that the heuristic mapping underweights
+- Challenging cases: texts with explicit threats (TEXT 23, "I would absolutely run you over") scored 1.0; racial stereotyping from assumed superiority (TEXT 43) scored 1.5; explicit hierarchy justification calling workers "drones" (TEXT 36) scored 2.5
+
+### 8e. Composite Ground Truth v2
+
+| Source | Records |
+|---|---|
+| Berkeley | 2,000 |
+| Civil Comments | 2,000 |
+| GoEmotions | 2,000 |
+| UCC | 1,949 |
+| Dreaddit | 2,000 |
+| ESConv | 1,300 |
+| Empathetic Dialogues | 2,000 |
+| LLM-labeled (Claude Code) | 300 |
+| **Total** | **13,549** |
+
+Per-dimension coverage (v1 → v2):
+
+| Dimension | v1 | v2 | Change |
+|---|---|---|---|
+| threat_exposure | 6,000 | 6,000 | — |
+| hostility_index | 7,949 | 7,949 | — |
+| authority_dynamics | 1,949 | **1,999** | +3% (50 gold-standard) |
+| energy_dissipation | 2,000 | **4,000** | +100% |
+| regulatory_capacity | 2,000 | **5,350** | +168% |
+| resilience_baseline | 2,000 | **3,982** | +99% |
+| trust_conditions | 3,949 | 3,949 | — |
+| cooling_capacity | 3,949 | 3,949 | — |
+| defensive_architecture | 1,065 | **1,115** | +5% (50 gold-standard) |
+| contractual_clarity | 1,949 | 1,949 | — |
+
+### 8f. Training Script Bug Fixes
+
+Two sample weighting bugs discovered and fixed in `distill.py`:
+
+1. **LLM-labeled source not recognized:** Records with `"source": "llm_labeled"` fell through to proxy weight (1x) instead of LLM weight (3x). Fixed by adding `"llm_labeled"` to the LLM source check.
+
+2. **New dataset sources not recognized:** `dreaddit`, `esconv`, `empathetic_dialogues` fell through to proxy weight (1x) instead of composite weight (1.5x). Fixed by adding all 7 source names to the composite source check.
+
+These bugs affected the v1 training run (new dataset sources were weighted 1x instead of 1.5x).
+
+### 8g. Training Results (v2a) — Expanded Datasets, Before Weight Fix
+
+v2a trained on 13,249 records (3 new datasets but without LLM labels, and with the sample weighting bugs still present — dreaddit/esconv/empathetic_dialogues incorrectly weighted 1x instead of 1.5x).
+
+- **Data:** 13,249 composite ground truth records (80/10/10 split → 10,599 train)
+- **Best epoch:** 3/10 (early stopped at epoch 6)
+
+### v1 → v2a Comparison
+
+| Dimension | v1 r | v2a r | Change | Notes |
+|---|---|---|---|---|
+| **resilience_baseline** | +0.07 | **+0.72** | **+0.65** | Empathetic Dialogues emotion→resilience mapping |
+| **regulatory_capacity** | +0.04 | **+0.64** | **+0.60** | ESConv + Empathetic Dialogues |
+| **energy_dissipation** | +0.13 | **+0.64** | **+0.51** | Dreaddit stress labels |
+| threat_exposure | +0.69 | +0.68 | -0.01 | Stable |
+| hostility_index | +0.64 | +0.63 | -0.01 | Stable |
+| trust_conditions | +0.47 | +0.51 | +0.04 | Slight gain |
+| cooling_capacity | +0.55 | +0.48 | -0.07 | Small regression |
+| contractual_clarity | +0.42 | +0.45 | +0.03 | Slight gain |
+| authority_dynamics | +0.46 | +0.39 | -0.07 | Small regression |
+| defensive_architecture | +0.13 | +0.10 | -0.03 | Still weak (LLM labels not yet in training) |
+
+### v2a Tier Averages
+- **Tier A:** 0.59 → **0.65** (+0.06)
+- **Tier B:** 0.42 → **0.52** (+0.10)
+- **Tier C:** 0.09 → **0.57** (+0.48)
+- **Overall:** 0.47 → **0.58** (+0.11)
+
+### v2a Analysis
+
+1. **The three weakest dimensions saw massive gains.** resilience_baseline (+0.65), regulatory_capacity (+0.60), and energy_dissipation (+0.51) all jumped from near-random to strong performance. This confirms the v1 analysis: the bottleneck was data quality, not model capacity.
+
+2. **resilience_baseline now leads all dimensions** at r=+0.72, surpassing even threat_exposure (+0.68). The Empathetic Dialogues emotion→resilience mapping proved highly effective as ground truth.
+
+3. **The top-6 dimensions from v1 are stable.** threat_exposure and hostility_index held steady. cooling_capacity and authority_dynamics showed small regressions (-0.07 each), likely due to the larger training set diluting their signal slightly.
+
+4. **defensive_architecture remains stuck** at r≈0.10. It was the only dimension that got no new dataset source — just 1,065 weak heuristic-mapped UCC records. The 50 LLM-labeled records and 50 regulatory_capacity LLM labels were not included in this training run.
+
+5. **pred_std now tracks true_std much better.** In v1, many dimensions showed severe variance compression (pred_std=0.13 vs true_std=0.40). In v2a, the expanded data produces wider, more realistic prediction distributions (e.g., energy_dissipation pred_std=1.21 vs true_std=1.50, compared to v1's 0.13 vs 0.40).
+
+### 8h. v2b Training (In Progress)
+
+v2b retrains on the full 13,399-record composite including:
+- 150 LLM-labeled gold-standard records (3x weight): 50 defensive_architecture, 50 resilience_baseline, 50 regulatory_capacity
+- Corrected sample weights: dreaddit/esconv/empathetic_dialogues at 1.5x (was 1x)
+- `llm_labeled` source correctly receiving 3x weight (was 1x)
+
+Expected improvements over v2a:
+- **defensive_architecture:** should improve from 0.10 — the 50 gold-standard labels provide the first real signal for this dimension
+- **resilience_baseline / regulatory_capacity:** may see marginal gains from gold-standard calibration on top of already-strong heuristic data
+- **All new dataset sources:** should benefit from the 1x→1.5x weight correction
+
+### 8i. Additional Claude Code Labeling Sessions
+
+**contractual_clarity** — 50 texts scored using PCI (Psychological Contract Inventory) + COPSOQ Role Clarity:
+- Sources: all 50 from UCC, stratified by proxy score into 5 bins (0-3, 3-5, 5-7, 7-8.5, 8.5-10)
+- Score distribution: 2-7.5 range, mean=4.14, mean_confidence=0.48
+- Key patterns: bad-faith negotiation accusations, goalpost-shifting, conspiracy framing → low; explicit standards/expectations, constructive policy argument → high
+- Notable: proxy scores skewed very high (mean=8.5) while LLM scores centered lower (mean=4.14) — most UCC comments lack contractual clarity signals or actively violate them
+
+**defensive_architecture (batch 2)** — 50 more texts (100 total for this dimension):
+- Sources: 30 from UCC (stratified by proxy score), 5 each from Dreaddit, ESConv, Empathetic Dialogues, GoEmotions
+- Score distribution: 1.5-7.0 range, mean=3.90, mean_confidence=0.50
+- Key patterns from diverse sources: defense depletion under chronic stress (Dreaddit/ESConv) → 2-3; complete defensive breakdown (hospitalization) → 2; normalizing help-seeking, boundary advice → 7; neutral life events → 5-5.5
+- Challenging cases: therapeutic frameworks that strip defenses (TEXT E2, critiquing "radical acceptance" for rape survivors) scored 1.5; pathologizing/dehumanizing groups (TEXT 24-25) scored 2.0
+
+**trust_conditions** — 50 texts scored using OTI (Organizational Trust Inventory) + ITS (Interpersonal Trust Scale):
+- Sources: all 50 from UCC, stratified by proxy score into 5 bins
+- Score distribution: 1.5-7.5 range, mean=4.11, mean_confidence=0.48
+- Key patterns: good-faith engagement, acknowledging other viewpoints → high; ad hominem attacks, categorical dismissal, tribal loyalty demands → low; political commentary without trust signals → neutral ~5
+
+**cooling_capacity** — 50 texts scored using ERQ-R (Emotion Regulation Questionnaire - Reappraisal) + REQ (Recovery Experience Questionnaire) + CDM (Crisis Development Model):
+- Sources: all 50 from UCC, stratified by proxy score into 5 bins
+- Score distribution: 1.5-7.0 range, mean=3.96, mean_confidence=0.49
+- Key patterns: de-escalation language, reframing conflict, humor as defusion → high; escalation, inflammatory rhetoric, emotional flooding → low; factual disagreement without emotional regulation → neutral ~4-5
+
+### 8j. Composite Ground Truth v2c
+
+| Source | Records |
+|---|---|
+| Berkeley | 2,000 |
+| Civil Comments | 2,000 |
+| GoEmotions | 2,000 |
+| UCC | 1,949 |
+| Dreaddit | 2,000 |
+| ESConv | 1,300 |
+| Empathetic Dialogues | 2,000 |
+| LLM-labeled (Claude Code) | **400** |
+| **Total** | **13,649** |
+
+Per-dimension coverage (v2 → v2c):
+
+| Dimension | v2 | v2c | LLM Labels |
+|---|---|---|---|
+| threat_exposure | 6,000 | 6,000 | — |
+| hostility_index | 7,949 | 7,949 | — |
+| authority_dynamics | 1,949 | **1,999** | 50 |
+| energy_dissipation | 4,000 | 4,000 | — |
+| regulatory_capacity | 5,350 | 5,350 | 50 |
+| resilience_baseline | 3,982 | 3,982 | 50 |
+| trust_conditions | 3,949 | **3,999** | **50** |
+| cooling_capacity | 3,949 | **3,999** | **50** |
+| defensive_architecture | 1,115 | **1,165** | **100** |
+| contractual_clarity | 1,949 | **1,999** | **50** |
+
+### 8k. Confidence-Weighted Loss Fix
+
+**Problem discovered:** For weak dimensions (defensive_architecture, authority_dynamics, contractual_clarity), UCC heuristic proxy data had 5-20x more effective weight than gold-standard LLM labels. The loss function used confidence as a binary mask (threshold 0.15) — a UCC record with conf=0.25 got identical gradient to an LLM record with conf=0.75.
+
+**Fix:** Changed `compute_loss()` in `distill.py` to multiply loss by `true_confs` instead of using confidence as a binary mask. Now a record with conf=0.25 contributes 1/3 the gradient of one with conf=0.75.
+
+**Effective weight ratios before/after fix:**
+
+| Dimension | UCC Dominance (before) | UCC Dominance (after) |
+|---|---|---|
+| defensive_architecture | 5.3x | 2.5x |
+| authority_dynamics | 19.5x | 16.9x |
+| contractual_clarity | 19.5x | 14.2x |
+
+The fix still leaves UCC dominant for authority_dynamics and contractual_clarity — but with the 50 gold-standard LLM labels now contributing proportionally more gradient, the model should start learning the correct score distribution instead of the biased proxy distribution.
+
+### 8l. v2c Training Results
+
+v2c trained on 13,649-record composite with 400 LLM labels + confidence-weighted loss fix. Best epoch 7/10.
+
+| Dimension | v2b r | v2c r | Delta | Notes |
+|---|---|---|---|---|
+| threat_exposure | 0.692 | **0.680** | -0.01 | Stable |
+| hostility_index | 0.637 | **0.599** | -0.04 | Small regression |
+| authority_dynamics | 0.380 | **0.429** | +0.05 | 50 LLM labels helping |
+| energy_dissipation | 0.629 | **0.719** | +0.09 | New best |
+| regulatory_capacity | 0.655 | **0.639** | -0.02 | Small regression |
+| resilience_baseline | 0.713 | **0.717** | +0.00 | Stable near target |
+| trust_conditions | 0.513 | **0.510** | -0.00 | 50 LLM labels, marginal |
+| cooling_capacity | 0.482 | **0.493** | +0.01 | 50 LLM labels, marginal |
+| defensive_architecture | 0.261 | **0.508** | +0.25 | Big jump — 100 LLM labels |
+| contractual_clarity | 0.419 | **0.607** | +0.19 | Big jump — 50 LLM labels |
+| **AVERAGE** | 0.538 | **0.600** | +0.06 | |
+
+### 8m. Structural Fixes for v2d
+
+**Problem:** Proxy-LLM score gap analysis revealed systematic bias in 3 dimensions:
+- authority_dynamics: proxy mean=6.7, LLM mean=3.95 (gap +2.8)
+- contractual_clarity: proxy mean=8.5, LLM mean=4.14 (gap +4.4)
+- threat_exposure: proxy mean=7.70, LLM mean=4.06 (gap +3.6)
+
+**Fixes applied:**
+1. **LLM weight 3x → 5x** in distill.py — gives gold-standard labels stronger gradient signal
+2. **Halved UCC proxy confidence** for authority_dynamics (conf * 0.5) and contractual_clarity (conf * 0.5) in build_composite_ground_truth.py
+3. **Lowered defensive_architecture UCC confidence** from 0.25 to 0.15
+
+### 8n. Additional Claude Code Labeling Sessions (continued)
+
+**energy_dissipation** — 50 texts scored using REQ (Recovery Experience Questionnaire) + COR (Conservation of Resources Theory):
+- Sources: 25 Dreaddit, 25 GoEmotions
+- Score distribution: mean=4.25, mean_confidence=0.34
+- Proxy-LLM gap: +0.19 (small, proxy well-calibrated for this dim)
+
+**threat_exposure** — 50 texts scored using NAQ (Negative Acts Questionnaire) + COPSOQ Threats of Violence:
+- Sources: 17 Berkeley, 17 Civil Comments, 16 GoEmotions
+- Score distribution: mean=4.06, mean_confidence=0.36
+- Proxy-LLM gap: +3.64 (huge — proxy overestimates safety for hate speech texts)
+
+**hostility_index** — 50 texts scored using Cook-Medley Hostility Scale (CMHS) + Buss-Perry Aggression Questionnaire (BPAQ):
+- Sources: 13 Berkeley, 13 Civil Comments, 13 UCC, 11 GoEmotions
+- Score distribution: 0.5-9.5 range, mean=4.73, std=2.54, mean_confidence=0.71
+- Proxy-LLM gap: +0.79 (moderate, proxy reasonably calibrated)
+- Key patterns: dehumanization/slurs → 0-1; direct insults, contemptuous dismissal → 1.5-3; hostile attribution bias, partisan cynicism → 3-4.5; mild sarcasm/criticism → 5-6.5; neutral/supportive → 7-9.5
+
+### 8o. Composite Ground Truth v2d
+
+| Source | Records |
+|---|---|
+| Berkeley | 2,000 |
+| Civil Comments | 2,000 |
+| GoEmotions | 2,000 |
+| UCC | 1,949 |
+| Dreaddit | 2,000 |
+| ESConv | 1,300 |
+| Empathetic Dialogues | 2,000 |
+| LLM-labeled (Claude Code) | **550** |
+| **Total** | **13,799** |
+
+Per-dimension LLM label coverage:
+
+| Dimension | LLM Labels | Total Records | LLM % |
+|---|---|---|---|
+| threat_exposure | 50 | 6,050 | 0.8% |
+| hostility_index | **50** | 7,999 | 0.6% |
+| authority_dynamics | 50 | 1,999 | 2.5% |
+| energy_dissipation | 50 | 4,050 | 1.2% |
+| regulatory_capacity | 50 | 5,350 | 0.9% |
+| resilience_baseline | 50 | 3,982 | 1.3% |
+| trust_conditions | 50 | 3,999 | 1.3% |
+| cooling_capacity | 50 | 3,999 | 1.3% |
+| defensive_architecture | 100 | 1,165 | 8.6% |
+| contractual_clarity | 50 | 1,999 | 2.5% |
+
+### 8p. v2d Training Results
+
+v2d trained with 550 LLM labels + structural fixes. Config: 11,479 train samples, llm_weight=5x, max_length=128, 10 epochs (202s/epoch, 34 min total).
+
+| Dimension | v2c val r | v2d val r | Δ | v2d test r |
+|---|---|---|---|---|
+| threat_exposure | 0.634 | **0.649** | +0.015 | 0.688 |
+| hostility_index | 0.602 | 0.591 | -0.011 | 0.624 |
+| authority_dynamics | 0.429 | **0.476** | +0.047 | 0.437 |
+| energy_dissipation | 0.719 | 0.698 | -0.021 | 0.624 |
+| regulatory_capacity | 0.619 | **0.639** | +0.020 | 0.635 |
+| resilience_baseline | 0.716 | 0.725 | +0.009 | 0.700 |
+| trust_conditions | 0.493 | 0.479 | -0.014 | 0.471 |
+| cooling_capacity | 0.510 | 0.507 | -0.003 | 0.516 |
+| defensive_architecture | 0.380 | 0.377 | -0.003 | **0.495** |
+| contractual_clarity | 0.399 | 0.395 | -0.004 | 0.331 |
+| **avg r** | **0.600** | **0.589** | **-0.011** | **0.585** |
+
+**Analysis:** Mixed results. Authority_dynamics improved most (+0.047) from targeted labeling. Defensive_architecture test r jumped to 0.495 despite flat val r. Overall avg slightly regressed — the 5x LLM weight may be over-fitting to small LLM label set.
+
+### 8q. Additional Claude Code Labeling Sessions (batch 2)
+
+Expanded LLM labels from 550 → 800 total:
+- **+50 defensive_architecture** (batch 3, 150 total): Mean=3.78, conf=0.54. 25 UCC + 5 each from dreaddit/esconv/civil_comments/goemotions/empathetic_dialogues.
+- **+50 trust_conditions** (batch 2, 100 total): Mean=4.65, conf=0.50. 20 UCC + 15 GoEmotions + 15 Diplomacy.
+- **+50 cooling_capacity** (batch 2, 100 total): Mean=4.32, conf=0.43. 20 UCC + 15 GoEmotions + 10 ESConv + 5 Empathetic Dialogues.
+- **+50 authority_dynamics** (batch 2, 100 total): Mean=4.92, conf=0.54. 15 UCC + 15 Politeness Wikipedia + 15 Politeness Stack Exchange + 5 GoEmotions.
+- **+50 contractual_clarity** (batch 2, 100 total): Mean=4.68, conf=0.49. 20 UCC + 15 CaSiNo + 15 civil_comments/goemotions.
+
+### 8r. New Dataset Integration (v3 composite)
+
+Downloaded and mapped 4 priority datasets via `scripts/map_new_datasets.py`:
+- **Diplomacy Deception** → trust_conditions (2,000 records, balanced low/high trust)
+- **CaSiNo Negotiation** → contractual_clarity (396 records, strategy + satisfaction + deal outcome)
+- **Stanford Politeness** → authority_dynamics (2,000 records, Wikipedia + Stack Exchange)
+- **ProsocialDialog** → defensive_architecture (1,998 records, 5-level safety labels)
+
+V3 composite (19,643 records, LLM labels excluded — loaded separately by distill.py):
+| Dimension | v2d records | v3 records | Δ |
+|---|---|---|---|
+| threat_exposure | 6,050 | 6,000 | -50 (LLM removed) |
+| hostility_index | 7,999 | 7,949 | -50 |
+| authority_dynamics | 1,999 | **3,949** | +1,950 |
+| defensive_architecture | 1,165 | **3,063** | +1,898 |
+| trust_conditions | 3,999 | **5,949** | +1,950 |
+| contractual_clarity | 1,999 | **2,345** | +346 |
+| **Total** | **13,799** | **19,643** | **+5,844** |
+
+All 10 dims tier A. LLM labels (800) loaded separately with llm_weight=5x.
+
+### 8s. v3 Training Fixes
+
+1. **LLM double-counting fixed**: Composite no longer includes LLM labels — distill.py loads them from train-llm.jsonl with proper 5x weight
+2. **New dataset sources properly weighted**: diplomacy, casino, politeness_*, prosocial now get composite_weight=1.5 (was 1.0 proxy_weight)
+3. **max_length=256**: Doubled from 128 to capture longer new texts (CaSiNo dialogues, Diplomacy conversations)
+
+### 8t. v2d Error Analysis
+
+Full error analysis on v2d model across all 20,443 records. Script: `scripts/error_analysis.py`, results: `models/psq-student/error_analysis.json`.
+
+#### Dimension performance ranking
+
+| Dimension | MAE | RMSE | Pearson r | Bias | Range Compression |
+|---|---|---|---|---|---|
+| energy_dissipation | 0.424 | 0.719 | **0.907** | -0.126 | 1.02 |
+| threat_exposure | 0.676 | 1.107 | **0.898** | -0.038 | 0.93 |
+| hostility_index | 0.713 | 1.099 | **0.895** | -0.043 | 0.96 |
+| resilience_baseline | 0.446 | 0.665 | **0.879** | -0.024 | 1.02 |
+| cooling_capacity | 0.833 | 1.270 | **0.830** | +0.104 | 0.92 |
+| regulatory_capacity | 0.511 | 0.730 | **0.803** | -0.008 | 0.89 |
+| authority_dynamics | 1.551 | 1.996 | 0.626 | +0.385 | 0.89 |
+| trust_conditions | 1.415 | 1.983 | 0.576 | +0.204 | 0.73 |
+| contractual_clarity | 2.391 | 2.851 | 0.388 | **-1.808** | 0.48 |
+| defensive_architecture | 1.166 | 1.471 | **0.125** | +0.202 | 0.59 |
+
+Top 6 dimensions (r > 0.80) work well with neutral bias and healthy score range. Bottom 4 have clear structural problems.
+
+#### Critical dimension failures
+
+**contractual_clarity (r=0.388, worst MAE):**
+- Severe systematic under-prediction: bias = -1.81 (model predicts ~2 points too low on average)
+- Extreme range compression: pred_std=1.15 vs actual_std=2.38 (ratio 0.48). Model collapses to narrow band around 6.2.
+- Only 26.5% of predictions within 1 point of actual score; 33.7% off by 3+ points.
+- UCC proxy labels are the main culprit (bias -2.32) — proxy scores ~8.5 while LLM scores ~4.7.
+
+**defensive_architecture (r=0.125, essentially random):**
+- Predictions cluster at 5.5-5.9 regardless of actual score.
+- Range compression ratio 0.59 (pred_std=0.79 vs true_std=1.33).
+- Root cause: defense mechanisms (projection, denial, sublimation) are subtle psychological constructs that lack clear textual markers. May not be learnable from surface text alone.
+
+**trust_conditions (r=0.576, diplomacy problem):**
+- Diplomacy dataset has MAE=2.405 (worst source). Strategic politeness reads as genuine trust.
+- Example: "An alliance would sound good to me!" → pred=9.1, actual=1.7 (strategic deception).
+- The core challenge: polite ≠ trustworthy, and the model can't distinguish.
+
+**authority_dynamics (r=0.626, over-prediction):**
+- Politeness datasets have strong positive bias: Wikipedia +1.45, Stack Exchange +0.90.
+- The model conflates linguistic politeness markers with healthy authority dynamics.
+
+#### Source dataset difficulty
+
+| Source | MAE | Bias | Notes |
+|---|---|---|---|
+| diplomacy | 2.405 | +0.779 | Worst — strategic deception undetectable |
+| politeness_wikipedia | 1.849 | +1.446 | Surface politeness misleads model |
+| politeness_stack-exchange | 1.478 | +0.896 | Same pattern, less severe |
+| ucc | 1.477 | -0.511 | Sarcasm and informal language under-read |
+| prosocial | 1.467 | +0.190 | Safety-level mapping has noise |
+| berkeley | 0.731 | -0.004 | Neutral — best calibrated proxy |
+| casino | 0.624 | +0.272 | Small dataset but low error |
+| claude_code (LLM) | 0.483 | +0.096 | **Lowest error** — confirms LLM label quality |
+| goemotions | 0.435 | +0.075 | Best overall — clear emotional signals |
+
+Key insight: LLM-labeled data (MAE=0.483) is by far the most learnable, confirming the value of gold-standard labels over proxy mappings.
+
+#### Error patterns
+
+1. **Sarcasm/irony confuse the model.** UCC texts with sarcastic tone are read at face value → large errors on trust, authority, contractual dims.
+2. **Strategic politeness ≠ trust.** Diplomacy messages use cooperative language to mask deception. The model cannot detect this without deeper discourse-level features.
+3. **Ambiguous emotional valence.** Politically charged content gets misclassified on threat_exposure (e.g., "People give Trump a break" → pred=9.8, actual=0.0).
+4. **Short texts lose context.** 128-token limit misses contextual cues needed for resilience_baseline and regulatory_capacity scoring.
+
+#### Range compression problem
+
+Three dimensions show severe regression-to-the-mean:
+
+| Dimension | Pred Std | True Std | Compression |
+|---|---|---|---|
+| contractual_clarity | 1.15 | 2.38 | 0.48 |
+| defensive_architecture | 0.79 | 1.33 | 0.59 |
+| trust_conditions | 1.74 | 2.37 | 0.73 |
+
+When the model is uncertain, it hedges toward the mean. These are exactly the dimensions where textual signals are weakest. Potential mitigation: distribution-matched calibration post-processing.
+
+#### Recommendations
+
+1. **contractual_clarity**: Drop or heavily downweight UCC proxy labels (bias -2.32). More LLM labels + CaSiNo data in v3 should help.
+2. **defensive_architecture**: May require a specialized approach — either a defense-mechanism feature extractor, significantly more LLM data, or reframing dimension markers to be more text-observable.
+3. **trust_conditions + diplomacy**: The model must learn polite ≠ trustworthy. The balanced diplomacy data in v3 explicitly teaches this (50% are strategic deception with low trust scores). V3 will test if this is learnable.
+4. **Sarcasm handling**: A sarcasm detection pre-pass or additional sarcasm feature could help UCC performance.
+5. **Range de-compression**: Post-processing calibration step to rescale compressed predictions to match empirical distribution.
+
+### 8u. Pipeline Validation & Architecture Prep
+
+Three parallel validation tasks completed:
+
+**1. ONNX export + Node.js inference (end-to-end):**
+- Export produces 254 MB full-precision + 64 MB INT8 quantized ONNX models.
+- Node.js inference via `src/student.js` works (~47-100ms per text).
+- Fixed `student.js` line 48 syntax bug (invalid optional chaining after `new`).
+- Fixed `export_onnx.py`: added eager attention for transformers 5.x, vocab.json extraction for Node.js.
+- Installed `onnx` package (required by `torch.onnx.export`).
+
+**2. DeBERTa-v3-small architecture ready:**
+- `--model-name microsoft/deberta-v3-small` works as clean switch.
+- Only change: `AutoModel.from_pretrained(model_name, use_safetensors=True).float()` in `PSQStudent.__init__`.
+- Fixes: CVE-2025-32434 safetensors block + float16→float32 cast.
+- DeBERTa ONNX export verified: 540.7 MB, max score diff 0.000002 vs PyTorch.
+- 141M params (vs DistilBERT 66.7M) — larger but typically 3-5 points better on NLU benchmarks.
+
+**3. Deterministic train/val/test splits:**
+- Replaced seed-based random shuffle with hash-based split (`md5(text) % 100`).
+- Same text always goes to same split regardless of dataset size changes.
+- Distribution verified: 80.1% / 9.7% / 10.2% (target 80/10/10).
+- LLM labels distribute naturally: 82.5% / 9.5% / 8.0%.
+
+### 8v. Additional LLM Labeling (batch 3)
+
+Expanded from 800 → 900 total LLM labels:
+- **+50 contractual_clarity** (batch 3, 150 total): Mean=5.65, std=0.94. Sources: 25 CaSiNo + 9 civil_comments + 10 goemotions + 6 berkeley. CaSiNo subsample mean=6.32, other sources mean≈5.0 — much closer to center than UCC proxy's 8.5.
+- **+50 defensive_architecture** (batch 4, 200 total): Mean=4.73, std=1.05. Sources: 20 prosocial + 15 UCC + 15 mixed (dreaddit/esconv/goemotions/empathetic_dialogues).
+
+### 8w. v3 Training (In Progress)
+
+Config: 16,354 train / 2,044 val / 2,045 test. 20,443 total records (19,643 composite + 800 LLM, loaded separately). max_length=256, 512 batches/epoch, ~10 min/epoch, ~100 min total.
+
+V3 changes from v2d:
+- +42% training data (16,354 vs 11,479 samples)
+- 4 new datasets properly weighted (composite_weight=1.5)
+- LLM double-counting eliminated
+- max_length 128→256
+- Deterministic hash-based splits
+- New dataset sources: diplomacy, casino, politeness_*, prosocial
+
+### 8x. Dimension Correlation Analysis
+
+Computed pairwise Pearson correlations across all records where both dimensions have ground truth scores. This tests whether the 10-dimension structure holds empirically (see psychometric-evaluation.md §3c).
+
+**Strongly correlated pairs (|r| > 0.5):**
+
+| Pair | r | n | Interpretation |
+|---|---|---|---|
+| regulatory_capacity ↔ resilience_baseline | 0.877 | 3,932 | Both measure emotion regulation capacity — may be one factor |
+| hostility_index ↔ cooling_capacity | 0.840 | 3,949 | Hostile content lacks cooling — construct overlap expected |
+| authority_dynamics ↔ trust_conditions | 0.787 | 3,949 | Power dynamics and trust deeply intertwined |
+| hostility_index ↔ authority_dynamics | 0.737 | 3,949 | Hostile content correlates with poor authority dynamics |
+| hostility_index ↔ trust_conditions | 0.687 | 3,949 | Hostility erodes trust — expected |
+| authority_dynamics ↔ cooling_capacity | 0.650 | 1,949 | Both UCC-sourced — may reflect shared proxy methodology |
+| trust_conditions ↔ cooling_capacity | 0.583 | 1,949 | Moderate expected overlap |
+
+**Near-zero pairs (good discriminant validity):** 15 pairs with |r| < 0.2, confirming dimensions like energy_dissipation, threat_exposure, and defensive_architecture measure distinct constructs.
+
+**Summary statistics:** Mean off-diagonal |r| = 0.257, median = 0.174. The 10-factor structure is partially supported — 7/45 pairs show high correlation, suggesting some dimensions could be combined (especially regulatory_capacity + resilience_baseline). However, full CFA requires records scored on all 10 dimensions simultaneously, which we don't yet have.
+
+**Limitation:** Some high correlations may reflect shared proxy methodology (e.g., both from UCC) rather than true construct overlap. LLM-only correlations needed for cleaner signal.
+
+### 8y. V3b Preparation: Drop UCC Contractual Clarity Proxy
+
+**Rationale:** V3 training epochs 1-3 show contractual_clarity r = -0.10 → -0.04 → -0.02 (negative correlation — model learning *wrong* direction). Error analysis (§8t) confirmed UCC proxy has:
+- Systematic bias of -2.32 points
+- proxy-LLM gap of +4.4 points
+- The `generalisation_unfair` → contractual_clarity mapping is conceptually weak ("Very large" gap per psychometric evaluation §4)
+
+**Change:** Commented out UCC contractual_clarity proxy in `build_composite_ground_truth.py`. Contractual clarity coverage drops from ~2,345 records (mostly UCC noise) to 396 records (diplomacy, casino — better proxy fit). The dimension will now rely primarily on 150 LLM gold-standard labels at 5x weight.
+
+**Rebuilt composite:** 19,643 records total (same count — UCC records still provide 5 other dimensions). Contractual_clarity drops from tier A to tier C (396 records).
+
+**V3b training plan:** After v3 completes, retrain with rebuilt composite. Expect contractual_clarity to improve from negative r to positive (LLM labels should dominate without proxy noise). Target: r > 0.3 (up from -0.02).
+
+### 8z. Diplomacy Proxy Audit & Removal
+
+**Finding:** Diplomacy dataset is the single worst source of training error (MAE 2.405 — 4x worse than GoEmotions, 2x worse than UCC). Despite being only 33.6% of trust_conditions training data, it accounts for 56.7% of that dimension's total error.
+
+**Root cause:** Diplomacy labels measure *sender intent* (was the player lying?), not *textual trust indicators* (does this text create trust?). The mapping conflates two different constructs:
+
+| Category | Count | Score | Problem |
+|---|---|---|---|
+| Deceptive + Believed | 525 | 1.5-2.5 | **Unlearnable** — cooperative text scored low because sender secretly lied. Model predicts 8-9, gets penalized 6-7 points. |
+| Truthful + Doubted | 408 | 4.0-5.0 | **Contradictory** — identical-looking text to 7.5-scored truthful-believed, but scored 4.5 |
+| Deceptive + Caught | 68 | 3.0-4.0 | Marginal — textual cues are retrospective admission, not deception markers |
+| Truthful + Believed | 999 | 7.0-8.5 | Redundant — GoEmotions already teaches this pattern more cleanly |
+
+Example: *"You, sir, are a terrific ally!"* scored 1.5 (deceptive sender) — model correctly reads cooperative tone and predicts ~8.5. The 7-point error actively degrades learning.
+
+**Action:** Removed `load_diplomacy()` from `map_new_datasets.py`. Trust_conditions drops from 5,949 to 3,949 records (still tier A with 100 LLM labels at 5x weight). Expected trust_conditions MAE improvement: ~35%.
+
+### 8aa. Additional LLM Labeling — Batch 4 & 5
+
+**Batch 4: Defensive architecture** — 250 new labels (total: 450)
+- Score distribution: 32 low (0-2), 56 low-mid (2-4), 126 neutral (4-6), 36 high (6-10)
+- Mean 4.46, median 5.0, range 0.5-9.0
+- Stratified across all 12 source datasets
+
+**Batch 5: Contractual clarity** — 250 labels in progress (will bring total to 400)
+
+**Updated LLM label counts (after batch 4, pending batch 5):**
+| Dimension | Count | Change |
+|---|---|---|
+| authority_dynamics | 100 | — |
+| contractual_clarity | 150 (+250 pending) | +250 |
+| cooling_capacity | 100 | — |
+| defensive_architecture | 450 | +250 |
+| energy_dissipation | 50 | — |
+| hostility_index | 50 | — |
+| regulatory_capacity | 50 | — |
+| resilience_baseline | 50 | — |
+| threat_exposure | 50 | — |
+| trust_conditions | 100 | — |
+| **Total** | **1,150 (+250 pending)** | **+500** |
+
+### 8ab. V3b Composite Summary
+
+V3b composite rebuilt with two proxy removals:
+1. UCC contractual_clarity (§8y) — bias -2.32, negative r in v3
+2. Diplomacy trust_conditions (§8z) — MAE 2.405, unlearnable deception labels
+
+| Metric | V3 | V3b |
+|---|---|---|
+| Composite records | 19,643 | 17,643 |
+| LLM labels | 800 | 1,150 (pending: 1,400) |
+| trust_conditions proxy | 5,949 | 3,949 |
+| contractual_clarity proxy | 396 | 396 |
+| Harmful proxy sources | 2 | 0 |
+
+## 9. Dataset Search Results
+
+Comprehensive search for dedicated datasets for the 5 hardest dimensions (see §11 for full list):
+
+**Top picks by dimension:**
+| Dimension | Dataset | Size | License | PSQ Fit |
+|---|---|---|---|---|
+| authority_dynamics | Enron + Power Annotations | 500K emails + hierarchy | Public domain | STRONG |
+| authority_dynamics | Stanford Politeness Corpus | 4,353 annotated | MIT | GOOD |
+| contractual_clarity | CaSiNo Negotiation | 1,030 dialogues | CC-BY 4.0 | GOOD |
+| defensive_architecture | HealMe (cognitive distortions) | Multi-round therapy | Research | GOOD |
+| defensive_architecture | ProsocialDialog | 58K dialogues, 497K labels | CC-BY 4.0 | MODERATE |
+| cooling_capacity | ESConv (already have) | 1,300 conversations | CC-BY-NC 4.0 | STRONG |
+| cooling_capacity | EmpatheticDialogues (already have) | 25K conversations | CC-BY 4.0 | GOOD |
+| trust_conditions | Diplomacy Deception | 17,289 messages | ODC-By 1.0 | STRONG |
+| trust_conditions | Wikipedia RfA | 198K votes + text | CC-SA | GOOD |
+
+**Priority downloads for v3:**
+1. Diplomacy Deception → trust_conditions (sender/receiver truthfulness labels)
+2. CaSiNo → contractual_clarity (negotiation strategy annotations)
+3. Stanford Politeness Corpus → authority_dynamics (power-politeness correlation)
+4. ProsocialDialog → defensive_architecture (5-level safety scale + RoTs)
+
+**Key gap:** No publicly available dataset has DSQ-40 style defense mechanism labels on text. HealMe cognitive distortion data is the closest proxy.
+
+## 9b. Gap Analysis (2026-02-26)
+
+### Training Version History
+
+| Version | Arch | Composite | LLM Labels | Train Split | Val avg_r | Test avg_r | Best Epoch | Key Change |
+|---|---|---|---|---|---|---|---|---|
+| v1 | DistilBERT | 5,949 | 0 | 4,737 | 0.492 | — | 7/10 | Baseline: Berkeley + Civil Comments only |
+| v2a | DistilBERT | 7,949 | 550 | 6,842 | 0.515 | — | 10/10 | +GoEmotions +UCC, LLM labels |
+| v2b | DistilBERT | 7,949 | 550 | 6,842 | 0.530 | — | 8/10 | Fixed NaN masking bug |
+| v2c | DistilBERT | 9,949 | 700 | 7,200 | 0.550 | — | 6/10 | Confidence-weighted loss |
+| v2d | DistilBERT | 11,479 | 800 | 9,183 | 0.589 | **0.585** | 9/10 | LLM weight 5x, UCC conf halved, proxy cap 500 |
+| v3 | DistilBERT | 19,643 | 800 | 16,354 | 0.540 | 0.526 | 3/6 | +Diplomacy/CaSiNo/Politeness/ProsocialDialog — **regressed** (proxy poison) |
+| v3b | DistilBERT | 17,643 | 1,375 | 15,266 | 0.570 | **0.578** | 5/8 (early stop) | Removed diplomacy + UCC contractual, +575 LLM labels |
+| v4 | DeBERTa-v3-small | 19,618 | 1,975 | 17,366 | 0.496 | — (killed) | 4/10 | **Killed**: authority=-0.05 (politeness noise). Two-phase conf, 141M params |
+| v4b | DeBERTa-v3-small | 17,682 | 1,960 | 15,764 | *training* | *training* | — | Cleaned composite, conf^2.0 weighting, no diplomacy/dupes |
+
+### Per-Dimension Comparison (test r)
+
+| Dimension | v2d | v3 | v3b | v3b vs v2d | Status |
+|---|---|---|---|---|---|
+| resilience_baseline | **0.700** | 0.693 | 0.703 | +0.003 | Strong |
+| energy_dissipation | 0.624 | **0.702** | 0.688 | +0.064 | Strong |
+| threat_exposure | **0.688** | 0.676 | 0.681 | -0.007 | Strong |
+| contractual_clarity | 0.331 | -0.040 | **0.658** | **+0.327** | Good (was Failed) |
+| hostility_index | 0.624 | 0.609 | **0.621** | -0.003 | Good |
+| regulatory_capacity | **0.635** | 0.611 | 0.570 | -0.065 | Moderate |
+| cooling_capacity | **0.516** | 0.449 | 0.497 | -0.019 | Moderate |
+| authority_dynamics | 0.437 | 0.419 | **0.484** | +0.047 | Moderate |
+| trust_conditions | **0.471** | 0.430 | 0.462 | -0.009 | Weak |
+| defensive_architecture | **0.495** | 0.277 | 0.364 | -0.131 | Poor |
+
+**V3b key insights:**
+- **Contractual clarity massively recovered** (+0.327 vs v2d) — removing poisoned UCC proxy + adding 400 LLM labels worked
+- **Defensive architecture dropped** (-0.131 vs v2d) — v2d had only 147 test samples (inflated r?), v3b has 362 (more reliable estimate)
+- Authority dynamics improved (+0.047) with Politeness data (even de-weighted)
+- Average test r: v3b (0.578) vs v2d (0.585) — v2d slightly ahead on average, but v3b has healthier dimension profile
+- **V3b is a better foundation for v4**: no dimension catastrophically fails, weakest dim (defensive_architecture 0.364) is realistic
+
+**V3 key insight:** V3 regressed on 9/10 dimensions despite +42% data. New datasets brought more noise than signal — diplomacy trust poisoning, expanded proxy data drowning LLM signal for defensive_architecture. Only energy_dissipation improved (Dreaddit stress labels are a clean proxy).
+
+### Data Quality Tiers
+
+| Tier | Dimensions | Proxy Quality | LLM Labels | Expected v3b r |
+|---|---|---|---|---|
+| **A — Strong proxy** | threat, hostility, energy | r>0.65 | 50 each | 0.65-0.75 |
+| **B — Adequate proxy** | regulatory, resilience | r~0.55 | 50 each | 0.60-0.70 |
+| **C — Weak proxy** | cooling, trust, authority | r~0.40, conceptual gaps | 100 each | 0.45-0.55 |
+| **D — Proxy harmful/absent** | contractual, defensive | Removed or near-random | 400-450 each | 0.30-0.50 |
+
+### Proxy Audit Status
+
+| Source → Dimension | Records | Status | Issue |
+|---|---|---|---|
+| Berkeley → hostility | 2,000 | Good | IRT-derived, high validity |
+| Civil Comments → threat | 2,000 | Good | Large-scale, reasonable proxy |
+| GoEmotions → regulatory/cooling/trust | 2,000 | Fair | Emotion presence ≠ regulation support |
+| UCC → hostility/authority/trust/cooling | 1,949 | Mixed | authority halved conf; contractual **REMOVED** |
+| Dreaddit → energy | 2,000 | Good | Stress labels map well |
+| ESConv → regulatory | 1,300 | Good | Counseling strategies relevant |
+| EmpDialogues → resilience/regulatory | 2,000 | Fair | Emotion context indirect |
+| **Politeness → authority** | **2,000** | **Weak** | Politeness ≠ authority dynamics; compressed range 2.1-7.6 (std=0.73 vs LLM 1.72); over-predicts +0.90-1.45 |
+| Casino → contractual | 396 | Fair | Negotiation relevant but small |
+| Prosocial → defensive | 1,998 | Fair | Safety labels ≠ defense mechanisms |
+| ~~Diplomacy → trust~~ | ~~2,000~~ | **REMOVED** | Sender intent ≠ textual trust, MAE 2.405 |
+
+### Politeness → Authority Assessment
+
+Not catastrophic like diplomacy, but weak:
+- Score range compressed: 2.1-7.6, std=0.73 (vs LLM 1.0-8.5, std=1.72)
+- "Awesome exercise! How do I donate?" → 7.6 authority_dynamics (meaningless)
+- "No offense, kid, but..." → 2.4 (rude ≠ authority abuse)
+- **Recommendation for v4:** Lower confidence from 0.30-0.55 to 0.15-0.30, not remove entirely
+
+### LLM Label Coverage
+
+| Dimension | LLM | Proxy | Ratio | Assessment |
+|---|---|---|---|---|
+| hostility_index | 50 | 7,949 | 1:159 | Low — proxy excellent, acceptable |
+| threat_exposure | 50 | 6,000 | 1:120 | Low — proxy excellent, acceptable |
+| regulatory_capacity | 50 | 5,300 | 1:106 | Low |
+| energy_dissipation | 50 | 4,000 | 1:80 | Low |
+| resilience_baseline | 50 | 3,932 | 1:79 | Low |
+| trust_conditions | 100 | 3,949 | 1:39 | Moderate — proxy mediocre |
+| cooling_capacity | 100 | 3,949 | 1:39 | Moderate — proxy weak |
+| authority_dynamics | 100 | 3,949 | 1:39 | Moderate — proxy weak |
+| **defensive_architecture** | **450** | **3,063** | **1:7** | Good — LLM dominating |
+| **contractual_clarity** | **400** | **396** | **1:1** | Good — LLM at 5x weight dominates |
+
+### What V3b Targets
+
+1. **contractual_clarity**: -0.04 → target 0.30+. UCC proxy removed, 400 LLM labels dominate.
+2. **trust_conditions**: 0.43 → target 0.50+. Diplomacy poison removed.
+3. **defensive_architecture**: 0.28 → target 0.35+. 450 LLM labels (up from 200).
+
+### What V3b Won't Fix
+
+- **authority_dynamics** (0.42): politeness proxy still noisy, only 100 LLM labels
+- **cooling_capacity** (0.45): UCC `healthy` is weak signal, only 100 LLM labels
+- **Proxy ceiling**: tier A dimensions already near ~0.65 proxy ceiling
+
+### Remaining Actions (Priority Order)
+
+| Action | Priority | Effort | Expected Impact |
+|---|---|---|---|
+| DeBERTa-v3-small (script ready) | High | 1 training run | +3-5 points all dims |
+| Lower politeness conf to 0.15-0.30 | Medium | 5 min | +0.02-0.05 authority |
+| Label 200+ cooling_capacity | Medium | 1 agent run | +0.05-0.10 cooling |
+| Label 200+ trust_conditions | Medium | 1 agent run | +0.05-0.10 trust |
+| Range de-compression (isotonic regression) | Medium | New script | +0.02-0.05 all dims |
+| Label 200+ authority_dynamics | Low | 1 agent run | +0.03-0.05 authority |
+
+### 8ac. V4 DeBERTa: Authority Collapse & Kill Decision
+
+V4 launched with DeBERTa-v3-small on 19,618 records (pre-cleanup composite) with two-phase confidence. By epoch 4, authority_dynamics was **-0.05** (negative correlation) while other dims looked healthy (energy 0.74, contractual 0.70). Killed training to diagnose.
+
+**Root cause analysis:**
+
+89% of authority_dynamics training data is noise:
+- **Politeness proxy** (2,000 records): std=0.78 vs LLM std=1.72, conf=0.26. All texts cluster around 5.0 with minimal spread.
+- **UCC proxy** (1,949 records): conf=0.12 after halving. Near-random labels.
+- **LLM labels** (100 records): conf=0.52, genuine authority signal — but only 11% of authority data.
+
+With linear confidence weighting (`conf^1.0`), the effective weight ratio was only 2:1 (LLM vs politeness). DeBERTa, being smarter than DistilBERT, found the "pattern" in the politeness data faster — and that pattern was: *everything is ~5.0*. This created a gravity well that pulled authority predictions toward the mean, destroying correlation.
+
+**Fix: Squared confidence weighting (`conf_power=2.0`)**
+
+Changed loss weighting from `conf` to `conf^2.0`:
+
+| Source | Conf | Linear weight | Squared weight | Ratio vs LLM |
+|---|---|---|---|---|
+| LLM | 0.52 | 0.52 | 0.270 | 1.0x |
+| Politeness | 0.26 | 0.26 | 0.068 | 0.25x |
+| UCC | 0.12 | 0.12 | 0.014 | 0.05x |
+
+Effective LLM/politeness ratio: **4:1** (was 2:1). UCC authority is nearly silenced at 0.05x.
+
+### 8ad. V4b Launch
+
+Launched v4b with three fixes:
+1. **Cleaned composite**: 17,682 records (removed 15 diplomacy + 1,873 duplicates)
+2. **Squared confidence**: `--conf-power 2.0`
+3. **Cleaned LLM labels**: 1,960 records (removed 15 diplomacy)
+
+Early epoch comparison (v4b vs v4):
+
+| Epoch | v4b val_r | v4 val_r | v4b authority | v4 authority |
+|---|---|---|---|---|
+| 1 | 0.320 | 0.365 | -0.14 | -0.07 |
+| 2 | 0.443 | 0.451 | **+0.01** | +0.06 |
+| 3 | 0.476 | 0.497 | -0.01 | +0.01 |
+
+v4b starts slower (squared weighting suppresses more data) but authority crossed zero at epoch 2. The real test is epochs 5+ when the model is fully converged — v4 authority went from +0.06 (ep2) → -0.05 (ep4) due to noise overfitting. v4b should hold steady or improve.
+
+## 9c. V2d Reliability Spot Check
+
+Reliability evidence derived from v2d error analysis data (20,443 records). This addresses psychometric-evaluation.md §3a.
+
+### Intra-Model Determinism
+
+Neural network in eval mode (no dropout, no sampling) produces identical outputs for identical inputs — intra-model reliability r=1.0 by construction. Verified: same checkpoint, same text → same score. **This is necessary but trivially satisfied for deterministic models.**
+
+Note: inter-model reliability (Claude vs GPT-4 vs student) and inter-run reliability (same LLM, different runs) remain untested.
+
+### Range Compression (Score Discrimination)
+
+Does the model use the full 0-10 scoring range, or does it hedge toward the mean?
+
+| Dimension | Pred Std | True Std | Compression | Pred Range | Verdict |
+|---|---|---|---|---|---|
+| energy_dissipation | 1.66 | 1.63 | 1.02 | 0.8-7.0 | **Excellent** — full range |
+| resilience_baseline | 1.36 | 1.34 | 1.02 | 1.6-8.1 | **Excellent** |
+| hostility_index | 2.34 | 2.43 | 0.96 | 0.6-9.7 | **Good** |
+| threat_exposure | 2.33 | 2.51 | 0.93 | 0.8-9.9 | **Good** |
+| cooling_capacity | 2.06 | 2.24 | 0.92 | 0.7-9.5 | **Good** |
+| authority_dynamics | 2.11 | 2.38 | 0.89 | 1.2-9.5 | **Acceptable** |
+| regulatory_capacity | 1.08 | 1.21 | 0.89 | 1.6-7.8 | **Acceptable** |
+| trust_conditions | 1.74 | 2.37 | 0.73 | 1.4-9.6 | **Weak** — compresses range |
+| defensive_architecture | 0.79 | 1.33 | 0.59 | 1.7-7.9 | **Poor** — heavy compression |
+| contractual_clarity | 1.15 | 2.38 | 0.48 | 2.2-8.0 | **Very poor** — predicts a narrow band |
+
+Compression < 0.70 indicates the model cannot reliably distinguish high from low scores on that dimension.
+
+### Split Consistency (Generalization)
+
+Train/val/test MAE spread reveals overfitting:
+
+| Dimension | Train MAE | Val MAE | Test MAE | Spread | Verdict |
+|---|---|---|---|---|---|
+| defensive_architecture | 1.163 | 1.167 | 1.189 | 0.027 | **Excellent** — stable |
+| contractual_clarity | 2.388 | 2.354 | 2.455 | 0.101 | **Good** — stable (but all high) |
+| regulatory_capacity | 0.494 | 0.500 | 0.654 | 0.160 | **Good** |
+| resilience_baseline | 0.421 | 0.443 | 0.635 | 0.214 | **Acceptable** |
+| trust_conditions | 1.372 | 1.391 | 1.782 | 0.410 | **Acceptable** |
+| energy_dissipation | 0.386 | 0.332 | 0.793 | 0.461 | **Moderate** — test gap |
+| authority_dynamics | 1.492 | 1.609 | 1.977 | 0.485 | **Moderate** |
+| threat_exposure | 0.606 | 0.617 | 1.286 | 0.680 | **Weak** — overfitting |
+| cooling_capacity | 0.769 | 0.702 | 1.458 | 0.756 | **Weak** — overfitting |
+| hostility_index | 0.640 | 0.590 | 1.415 | 0.825 | **Weak** — overfitting |
+
+Note: test set uses hash-based split — train/val/test populations may differ systematically. Large spreads on threat_exposure and hostility_index may reflect test-set distribution differences (Berkeley's IRT scores have different characteristics than Civil Comments).
+
+### Systematic Bias
+
+| Dimension | Bias | Direction | Concern |
+|---|---|---|---|
+| contractual_clarity | **-1.808** | under-predicts | **Severe** — UCC proxy pulled scores down |
+| authority_dynamics | +0.385 | over-predicts | Moderate — politeness inflation |
+| trust_conditions | +0.204 | over-predicts | Mild |
+| defensive_architecture | +0.202 | over-predicts | Mild |
+| energy_dissipation | -0.126 | slight under | Negligible |
+| cooling_capacity | +0.104 | slight over | Negligible |
+| hostility_index | -0.043 | neutral | Negligible |
+| threat_exposure | -0.038 | neutral | Negligible |
+| resilience_baseline | -0.024 | neutral | Negligible |
+| regulatory_capacity | -0.008 | neutral | Negligible |
+
+### Error Distribution
+
+% of predictions within error buckets:
+
+| Dimension | <1pt | 1-2pt | 2-3pt | 3-5pt | >5pt |
+|---|---|---|---|---|---|
+| energy_dissipation | **90.5%** | 6.7% | 1.6% | 1.2% | 0.0% |
+| resilience_baseline | **89.2%** | 9.3% | 1.0% | 0.5% | 0.0% |
+| regulatory_capacity | **87.0%** | 10.5% | 2.1% | 0.4% | 0.0% |
+| threat_exposure | **83.7%** | 10.0% | 2.6% | 3.2% | 0.5% |
+| hostility_index | **79.1%** | 14.4% | 3.6% | 2.3% | 0.6% |
+| cooling_capacity | **73.2%** | 16.6% | 6.2% | 3.4% | 0.7% |
+| trust_conditions | 53.6% | 20.6% | 11.9% | 11.0% | 2.8% |
+| defensive_architecture | 51.5% | 30.0% | 14.5% | 3.9% | 0.0% |
+| authority_dynamics | 43.8% | 26.3% | 15.9% | 12.5% | 1.5% |
+| contractual_clarity | 26.5% | 12.6% | 27.2% | **28.4%** | **5.3%** |
+
+Top 5 dimensions: >79% of predictions within 1 point of ground truth. Bottom 2 (authority, contractual): >30% off by 2+ points.
+
+### Reliability Summary
+
+**What these results show:**
+- **6 dimensions** (energy, resilience, regulatory, threat, hostility, cooling) show good measurement properties: low bias, good range utilization, >73% predictions within 1 point
+- **2 dimensions** (trust, authority) show moderate measurement properties: mild bias, some range compression, acceptable but not strong
+- **2 dimensions** (defensive, contractual) show poor measurement properties: severe range compression, high error rates, contractual has -1.81 systematic bias
+
+**What remains untested** (from psychometric-evaluation.md §3a):
+- Inter-model reliability (Claude vs GPT-4 vs Gemini scoring same texts)
+- Inter-run LLM reliability (same LLM, same text, different runs)
+- Human inter-rater reliability (expert psychologist agreement)
+- Test-retest with student model on perturbed inputs (robustness)
+- Internal consistency (Cronbach's α across items within each dimension)
+
+## 9d. V4 Preparation
+
+Changes staged for the next training run after v3b:
+
+### Proxy Confidence Reductions
+- **Politeness → authority_dynamics**: confidence halved from 0.30-0.65 (mean 0.46) to 0.15-0.30 (mean 0.25). Politeness ≠ authority dynamics — compressed range, over-predicts +0.90-1.45.
+- **UCC → authority_dynamics**: confidence halved again from 0.18-0.33 (mean 0.24) to 0.09-0.16 (mean 0.11). Condescension is a real signal but too narrow for full authority dynamics.
+
+### Calibration Pipeline
+Created `scripts/calibrate.py` — per-dimension isotonic regression fitted on validation set:
+- Loads best.pt, runs inference on val split, fits `IsotonicRegression(y_min=0, y_max=10)`
+- Outputs `models/psq-student/calibration.json` with piecewise linear lookup tables
+- Addresses range compression problem (defensive_architecture pred_std/true_std = 0.59, trust_conditions = 0.73)
+- Falls back to linear rescaling if scikit-learn unavailable
+
+### Inference Integration
+Updated `src/student.js` to consume calibration.json:
+- Loads calibration map at `init()` (optional — graceful fallback if file missing)
+- `calibrate(dimName, rawScore)` applies piecewise linear interpolation per dimension
+- Applied transparently in `score()` before returning results
+
+### Additional LLM Labels (In Progress)
+- cooling_capacity: 100 → 300 (DONE)
+- trust_conditions: 100 → 300 (labeling agent running)
+- authority_dynamics: 100 → 300 (labeling agent running)
+- Expected total after all agents: ~2,000 LLM labels
+
+### DeBERTa Launch Script
+`scripts/launch_v4_deberta.sh` — backs up v3b results, launches `--model-name microsoft/deberta-v3-small --epochs 10 --max-length 256`. 141M params vs DistilBERT 66.7M.
+
+### Test-Retest Reliability (Perturbation Stability)
+
+Ran `scripts/test_retest_reliability.py` on v2d ONNX model (quantized, CPU) with 500 test-split samples and 5 perturbation types.
+
+**ICC(3,1) per dimension:**
+
+| Dimension | ICC(3,1) | MAD | Pearson r (avg across perturbations) |
+|---|---|---|---|
+| threat_exposure | 0.955 | 0.226 | 0.964 |
+| energy_dissipation | 0.952 | 0.135 | 0.961 |
+| cooling_capacity | 0.944 | 0.212 | 0.955 |
+| hostility_index | 0.941 | 0.240 | 0.954 |
+| resilience_baseline | 0.939 | 0.121 | 0.959 |
+| trust_conditions | 0.935 | 0.239 | 0.959 |
+| authority_dynamics | 0.928 | 0.223 | 0.950 |
+| contractual_clarity | 0.928 | 0.138 | 0.954 |
+| regulatory_capacity | 0.918 | 0.116 | 0.945 |
+| defensive_architecture | 0.909 | 0.123 | 0.927 |
+| **Average** | **0.935** | **0.177** | **0.953** |
+
+**Per-perturbation impact:**
+- `case_change`, `whitespace`: zero effect (uncased model, tokenizer normalizes)
+- `word_drop`: MAD=0.216, r=0.957 — robust to missing words
+- `typo`: MAD=0.279, r=0.938 — minor sensitivity to character swaps
+- `no_punct`: MAD=0.392, r=0.896 — strongest perturbation (punctuation carries real signal)
+
+**Verdict:** All 10 dimensions exceed ICC > 0.90 (excellent). The model captures construct-level features, not surface noise. Punctuation sensitivity is linguistically valid (intensity markers). Results saved to `models/psq-student/test_retest_results.json`.
+
+## 9e. Psychometric Validation Battery (v2d ONNX)
+
+Three validation analyses run on the v2d quantized ONNX model against test split.
+
+### Discriminant Validity vs Sentiment
+
+`scripts/validate_discriminant_sentiment.py` — 800 test samples, VADER compound as baseline.
+
+**Result: STRONG** — Mean |r| with sentiment = 0.205. 9/10 dimensions have |r| < 0.30. PSQ is clearly not just measuring positive/negative. Incremental R² over sentiment: +0.39 to +0.78 on 8/9 dimensions. Only defensive_architecture fails (R²=0.02 for PSQ alone).
+
+### Confidence Calibration
+
+`scripts/validate_confidence_calibration.py` — 1,974 test records, binned reliability analysis.
+
+**Result: PROBLEMATIC** — 6/10 dimensions have INVERTED calibration (higher conf → higher error). Reliability diagram non-monotonic (MAE rises 0.73→0.92 as conf increases). Root cause: proxy data has high confidence on biased labels. The model faithfully reproduces teacher confidence (r=0.51–0.86) but teacher confidence itself is miscalibrated for proxies.
+
+### Confidence Fix (implemented)
+
+**Root cause analysis:** `distill.py` line 258 trains `MSE(pred_conf, teacher_conf)`. But proxy mappings assign high confidence to records with strong proxy signals (e.g., Berkeley `hate_speech_score > 0.8` → conf 0.60). These "confident" proxy labels have the *most* systematic bias — the mapping error is largest for extreme values. So the model learns: high teacher confidence → predict high confidence → but those predictions are the most biased → inverted calibration.
+
+The 3 dimensions with CORRECT calibration (contractual_clarity, authority_dynamics, defensive_architecture) have the fewest proxy records and most LLM labels — confirming the root cause.
+
+**Fix: Two-phase confidence training** (added to `distill.py`):
+- `--conf-mode two-phase` (new default):
+  - Epochs 1-2: `conf_mode="off"` — no confidence loss, train scores only
+  - Epochs 3+: `conf_mode="accuracy"` — confidence target = `1 - |score_error|/5`
+    - Perfect prediction → conf target 1.0
+    - Error of 2.5 points → conf target 0.5
+    - Error of 5+ points → conf target 0.0
+  - Uses `pred_scores.detach()` so score gradients don't leak through confidence targets
+- Legacy modes preserved: `--conf-mode teacher` (original), `--conf-mode accuracy` (from epoch 1)
+
+**Inference fix:** `calibrate.py` now fits confidence calibration too (isotonic regression mapping raw conf → actual accuracy). `student.js` applies both score and confidence calibration via `calibrateConfidence()`.
+
+**V4 launch script updated** to use `--conf-mode two-phase --conf-warmup-epochs 2`.
+
+### Known-Groups Validity
+
+`scripts/validate_known_groups.py` — 7 source groups (Berkeley, Civil Comments, GoEmotions, Prosocial, Politeness, LLM, Other).
+
+**Result: MIXED** — All 10 dimensions show significant group separation (ANOVA p<0.001, η²=0.07–0.37). But only 3/8 naive theoretical predictions confirmed. The "failures" are informative: Civil Comments is a more threatening *environment* than Berkeley hate speech (correctly: casual toxicity > targeted attacks for threat_exposure). Politeness scoring high on hostility reflects the known proxy contamination.
+
+## 10. Next Steps
+
+### Completed
+
+1. ~~Evaluate v2b results~~ **DONE** (see §8h)
+2. ~~Label all 10 dimensions (550 total)~~ **DONE**
+3. ~~Structural fixes (LLM weight 5x, halved UCC proxy conf)~~ **DONE** (see §8m)
+4. ~~ONNX export script~~ **DONE** (`scripts/export_onnx.py`)
+5. ~~Node.js ONNX inference provider~~ **DONE** (`src/student.js`, wired into `providers.js`)
+6. ~~Install onnxruntime (Python + Node.js)~~ **DONE**
+7. ~~Add timing instrumentation~~ **DONE**
+8. ~~Dataset search for 5 hard dimensions~~ **DONE** (see §9)
+9. ~~Evaluate v2d results~~ **DONE** (see §8p) — avg r=0.589
+10. ~~Download priority datasets~~ **DONE** (Diplomacy, CaSiNo, Politeness, ProsocialDialog)
+11. ~~Build ground truth mappings for new datasets~~ **DONE** (see §8r, 6,394 records)
+12. ~~Label 900 total LLM labels (all 10 dims)~~ **DONE** (see §8q, §8v)
+13. ~~Fix LLM double-counting in training pipeline~~ **DONE** (see §8s)
+14. ~~Error analysis on v2d~~ **DONE** (see §8t)
+15. ~~ONNX pipeline end-to-end validation~~ **DONE** (see §8u)
+16. ~~DeBERTa-v3-small architecture ready~~ **DONE** (see §8u)
+17. ~~Deterministic hash-based train/val/test splits~~ **DONE** (see §8u)
+
+18. ~~Test-retest reliability (perturbation stability)~~ **DONE** (§9d) — ICC=0.935, all 10 dims excellent
+19. ~~Discriminant validity vs sentiment~~ **DONE** (§9e) — mean |r|=0.205, PSQ distinct from sentiment
+20. ~~Confidence calibration analysis~~ **DONE** (§9e) — 6/10 inverted, fix implemented
+21. ~~Known-groups validity~~ **DONE** (§9e) — all ANOVA sig, 3/8 predictions confirmed
+22. ~~Fix confidence training (two-phase)~~ **DONE** (§9e) — `--conf-mode two-phase` in distill.py
+23. ~~Fix calibrate.py model architecture~~ **DONE** — matched PSQStudent arch to distill.py
+24. ~~Rebuild composite for v4~~ **DONE** — 19,618 records (17,643 proxy + 1,975 LLM)
+25. ~~Data provenance card~~ **DONE** — `data/DATA-PROVENANCE.md`
+26. ~~Table of contents for distillation-research.md~~ **DONE**
+
+27. ~~Evaluate v3b results~~ **DONE** — test_r=0.578, early-stopped epoch 8 (best epoch 5, val_r=0.570)
+28. ~~Launch v4 DeBERTa~~ **DONE** — killed at epoch 4, authority=-0.05 (see §8ac)
+29. ~~Run calibration on v3b~~ **DONE** — score calibration improved all 10 dims (MAE -2.4% to -20.2%), confidence inversions fixed
+30. ~~Consider theoretical refinements for v4+~~ **DONE** — see §12
+31. ~~Diagnose authority_dynamics collapse~~ **DONE** — politeness noise at conf=0.26, squared weighting fix (see §8ac)
+32. ~~Fix student.js tokenizer for DeBERTa~~ **DONE** — replaced custom WordPiece with `@huggingface/transformers` AutoTokenizer
+33. ~~Clean composite~~ **DONE** — removed 15 diplomacy + 1,873 duplicates (19,618 → 17,682)
+34. ~~Update export_onnx.py for DeBERTa~~ **DONE** — architecture-agnostic, saves correct tokenizer
+35. ~~Comparison script~~ **DONE** — `scripts/compare_versions.py` auto-detects versions
+
+### In Progress
+
+36. V4b DeBERTa training — running, epoch 3 done (val_r=0.476, authority=-0.01)
+37. ONNX export — ready to run when v4b completes (`scripts/export_onnx.py`)
+
+### V4 Roadmap (if v3 plateaus at r ≈ 0.59)
+
+The v2d error analysis (§8t) identified clear failure modes for the 4 weakest dimensions. V4 should address these systematically, in priority order:
+
+**A. Data quality triage — contractual_clarity (r=0.388, bias=-1.81):** ~~DONE (§8y, §8aa)~~
+- ~~Drop UCC proxy labels for this dimension entirely (bias -2.32, actively harmful)~~ **DONE**
+- ~~Increase CaSiNo weight or augment with more negotiation data~~ CaSiNo retained (396 records)
+- ~~Target 300+ LLM gold-standard labels~~ **DONE** — 400 labels (150 existing + 250 batch 5)
+- Apply distribution-matched calibration post-processing to de-compress the predicted range (pred_std=1.15, actual_std=2.38)
+
+**B. Architecture change — DeBERTa-v3-small (all dimensions):**
+- Already validated: `--model-name microsoft/deberta-v3-small --max-length 256`
+- 141M params (vs DistilBERT 66.7M), typically 3-5 points better on NLU benchmarks
+- ONNX export verified (540.7 MB full precision)
+- Higher capacity may help with subtle constructs (defensive_architecture, trust_conditions) that require deeper semantic understanding
+
+**C. Defensive_architecture rethink (r=0.125, near random):** *Partially addressed (§8aa)*
+- Current approach may be fundamentally limited: defense mechanisms (projection, denial, sublimation) lack clear textual markers
+- Options:
+  1. ~~**More LLM data**: increase from 200 → 500+ gold labels~~ **DONE** — 450 labels (200 existing + 250 batch 4)
+  2. **Specialized feature extractor**: add a defense-mechanism detection head that looks for specific linguistic patterns (absolutist language for splitting, blame-shifting for projection, emotional detachment for intellectualization)
+  3. **Redefine dimension markers**: shift from DSQ-40 clinical constructs to more text-observable proxies (e.g., cognitive distortion markers from HealMe dataset, emotional regulation patterns)
+  4. **Accept lower ceiling**: defensive_architecture may be inherently harder to score from text alone — consider setting a realistic target of r ≥ 0.4 rather than r ≥ 0.7
+
+**D. Trust_conditions + diplomacy deception (r=0.576):** ~~DONE (§8z)~~
+- ~~The model reads strategic politeness as genuine trust (pred=9.1, actual=1.7)~~ **Root cause confirmed**: diplomacy labels measure sender intent, not textual trust indicators
+- ~~V3 already includes 2000 balanced diplomacy records~~ **REMOVED** — deceptive-but-believed records are fundamentally unlearnable from text alone (cooperative language scored 1.5 because sender secretly lied)
+- Trust_conditions now relies on GoEmotions (2,000) + UCC (1,949) + 100 LLM labels at 5x weight
+- Sarcasm/irony detection pre-pass would still help UCC trust scoring
+
+**E. Authority_dynamics calibration (r=0.626, bias +0.39):**
+- Politeness datasets over-predict authority dynamics (+1.45 Wikipedia, +0.90 Stack Exchange)
+- The model conflates linguistic politeness with healthy authority relations
+- Fix: lower confidence on politeness-derived authority_dynamics labels, or apply a source-specific bias correction during training
+
+**F. General improvements:**
+- **Sarcasm handling**: a sarcasm detection module or feature would improve UCC performance across trust, authority, and contractual dimensions
+- **Range de-compression**: calibration post-processing step using isotonic regression or Platt scaling, fitted on validation set, to rescale compressed dimension predictions to match empirical score distributions
+- **Longer context**: max_length=256 in v3 helps but some texts (full negotiations, therapy conversations) would benefit from 512. Trade-off: 2x VRAM + slower training
+- **Curriculum learning**: train on easy dimensions first (hostility, threat), then fine-tune on hard dimensions (defensive, contractual) with higher learning rate on those heads only
+
+## 11. Psychometric Evaluation
+
+Full evaluation against psychometric best practices documented in `psychometric-evaluation.md`.
+
+**Key findings (updated 2026-02-26):**
+- Theoretical grounding: **Strong** (170+ validated instruments across 10 dimensions)
+- Test-retest reliability: **Excellent** (ICC=0.935, all 10 dims > 0.90)
+- Discriminant validity: **Strong** (mean |r|=0.205 vs VADER sentiment; PSQ adds ΔR²=0.39-0.78 over sentiment)
+- Known-groups validity: **Mixed** (all 10 dims differentiate groups, but naive predictions only 38% confirmed)
+- Confidence calibration: **Problematic** (6/10 inverted) → **Fix implemented** (two-phase training + isotonic post-hoc)
+- Construct validity: **Preliminary** (7/45 pairs r>0.5; regulatory↔resilience r=0.877 suggests merging)
+- Factor analysis: **Not done** (need all-10-dim labels on 500+ texts)
+- Inter-rater reliability: **Not measured** (needs human experts)
+- Convergent/criterion validity: **Not measured** (needs Edmondson/PSC-12 comparison)
+- ~~Formula inconsistency~~ **RESOLVED**
+- Current appropriate uses: research tool, exploratory analysis, decision support, longitudinal tracking
+- Not yet appropriate: automated moderation, legal/forensic, clinical screening, hiring decisions
+
+**Validation roadmap:** 4 phases (reliability → human validation → construct validation → norming/bias). Phase 1 partially complete (test-retest done, inter-model pending).
+
+## 12. Theoretical Refinements: Decisions for V4+
+
+*Based on proposals in `theoretical-refinements.md`, evaluated against empirical findings from v2d/v3/v3b.*
+
+### 12a. Dimension Reduction: 10 → 9 Factor Model — **DEFER to post-v4**
+
+**Proposal:** Merge regulatory_capacity + resilience_baseline into "Regulatory Resilience" (r=0.877 between them).
+
+**Decision:** Defer. The correlation is compelling, but we should first:
+1. Get v4 DeBERTa results — if DeBERTa separates them better, the case for merging weakens
+2. Run CFA on 500+ fully-scored texts (all 10 dims simultaneously) to confirm empirically
+3. The merge is reversible (keep both scores, merge at aggregation), so there's no urgency
+
+**Rationale:** Premature merging risks losing granularity that matters for specific use cases. The high correlation may partly reflect proxy methodology (both draw from GoEmotions emotional labels). The current 10-dimension model works; optimize later.
+
+### 12b. Defensive Architecture Redefinition — **APPLY for v4 LLM labeling**
+
+**Proposal:** Redefine from clinical defense mechanisms (DSQ-40, DMRS, Vaillant hierarchy) to text-observable boundary/protection patterns.
+
+**Decision:** Apply. This is the highest-impact change available:
+- Defensive architecture is consistently the worst performer (v2d: 0.495 on 147 samples, v3b: 0.364 on 362 samples)
+- The current definition targets intrapsychic processes that are fundamentally unobservable in text
+- The 450 existing LLM labels already measure boundaries (not clinical defense mechanisms) — the rubric naturally drifted toward what's measurable
+- The redefined construct has a higher psychometric ceiling (r≈0.65+ achievable vs r≈0.40 max for clinical defenses)
+
+**Action for v4:**
+- Update the LLM labeling rubric to use the boundary/protection definition
+- Do NOT relabel existing data — the existing 450 labels already measure this construct
+- Future LLM batches should use the new rubric for labeling consistency
+- Consider adding TKI (conflict handling) and Rathus Assertiveness Scale as instruments
+
+### 12c. Score Anchors — **APPLY for future LLM labeling**
+
+**Proposal:** Concrete 5-point anchor examples (0, 2.5, 5, 7.5, 10) for each dimension.
+
+**Decision:** Apply. The anchors in `theoretical-refinements.md` §3 are well-calibrated and should:
+- Improve LLM labeling consistency by providing concrete scoring examples
+- Reduce inter-run variability (currently ~0.3 MAD on re-scoring)
+- Serve as the basis for human rater training if/when we pursue inter-rater reliability
+
+**Action:** Include anchors in the LLM labeling prompt for future batches. Do not re-score existing data.
+
+### 12d. Validation Study — **DESIGN now, execute at r ≥ 0.60 average**
+
+**Proposal:** Cross-sectional correlational study with 30+ teams, comparing PSQ scores against Edmondson Psychological Safety Scale, PSC-12, and real-world outcomes (turnover, complaints).
+
+**Decision:** The design in `theoretical-refinements.md` §4 is solid. Key targets:
+- PSQ vs Edmondson: r ≥ 0.50
+- Incremental validity over sentiment: ΔR² ≥ 0.05
+- Minimum: 30 teams / 200 individuals
+
+**Gate:** Execute when the student model achieves stable test_r ≥ 0.60 average across all dimensions. Current best (v3b) is 0.578 — close but not there. V4 DeBERTa should close the gap.
+
+### Summary
+
+| Refinement | Decision | When | Impact |
+|---|---|---|---|
+| 9-factor model (merge reg+res) | Defer | Post-v4, after CFA | Moderate |
+| Redefine defensive architecture | Apply | v4 LLM labeling | High |
+| Score anchors | Apply | v4 LLM labeling | Moderate |
+| Validation study design | Ready | At r ≥ 0.60 | Critical |
+
+---
+
+## 14. V5–V8 Training Findings (2026-02-27)
+
+### 14a. The Duplicate Contamination Problem
+
+Investigation of v5 regression (avg_r=0.474 vs v3b=0.578) revealed that ALL 3,110 LLM records in `train-llm.jsonl` shared text with `composite-ground-truth.jsonl`:
+
+- **Records 0–1375 (old API labels):** gap=0.00 with composite — exact score copies. The LLM had parroted proxy scores, providing zero independent signal. Effect: 6.5x combined weight (1.5 composite + 5.0 LLM) with perfect agreement. Accidentally beneficial.
+- **Records 1376–3110 (in-conversation labels):** disagreed with composite by 2–3 points on threat/hostility/trust. 70–90% neutral-band scores vs 40–60% for composite. Created conflicting training signal on the same texts.
+
+Root cause of v5 regression: label conflict from conversation labels, not the data pipeline changes.
+
+### 14b. Signal Amplification Insight
+
+v3b outperformed all subsequent models because the old API duplicates acted as an accidental signal amplifier — 1,376 texts at 6.5x effective weight with perfectly consistent labels. This was circular (LLM copies of proxy labels), not convergent validity.
+
+**Why we don't replicate this:**
+1. Teacher labels identical to proxy labels means zero independent information — violates knowledge distillation principles
+2. v3b's test set uses the same proxy labels, so "fitting consistent noise" inflates apparent performance
+3. The proper mechanism for upweighting is explicit sample weights, not record duplication
+4. The 0.484 authority_dynamics score in v3b likely reflects overfitting to politeness-proxy patterns (all ~5.0), not real authority signal
+
+### 14c. Data Pipeline Fixes
+
+1. **Built unlabeled text pool** (`data/unlabeled-pool.jsonl`): 17,451 unique texts from raw datasets with zero composite overlap. Source for future LLM labeling.
+2. **Cleaned `train-llm.jsonl`:** removed all 3,110 duplicate records. Replaced with 210 synthetic texts covering all 10 dimensions at full 0–10 score range.
+3. **Added dedup guard to `distill.py`:** when same text appears in both composite and LLM files, keeps LLM version (higher weight), drops composite copy.
+4. **Zeroed authority_dynamics in composite** for 3,515 records from politeness_stack-exchange, politeness_wikipedia, and ucc sources — these mapped "politeness" → authority ≈ 5.0, drowning real signal.
+
+### 14d. Synthetic Text Strategy
+
+Generated 210 synthetic texts targeting dimensions with poor proxy coverage:
+- authority_dynamics (70 texts): full 0–10 range, workplace/institutional/family/community scenarios
+- contractual_clarity (20): explicit/implicit/absent agreements
+- trust_conditions (20): betrayal through deep trust
+- cooling_capacity (20): emotional regulation success/failure
+- defensive_architecture (20): boundary patterns
+- regulatory_capacity (20): emotion regulation strategies
+- threat_exposure + hostility_index (20): combined signal
+- energy_dissipation + resilience_baseline (20): combined signal
+
+Each text scored on primary dimension plus 2–4 secondary dimensions with confidence weights.
+
+### 14e. Training Run Comparison
+
+| Model | Arch | Data | avg_r | thre | host | auth | ener | regu | resi | trus | cool | defe | cont |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| v3b | DistilBERT | old composite + API dupes | **0.578** | 0.681 | 0.621 | 0.484 | 0.688 | 0.570 | 0.703 | 0.462 | 0.497 | 0.364 | 0.658 |
+| v4b | DeBERTa | old composite + API dupes | 0.470 | 0.611 | 0.574 | -0.040 | **0.701** | 0.567 | 0.672 | 0.258 | 0.346 | 0.386 | 0.595 |
+| v5 | DistilBERT | dirty (all dupes + conflicts) | 0.474 | 0.617 | 0.578 | -0.057 | 0.680 | 0.527 | 0.660 | 0.344 | 0.420 | 0.354 | 0.597 |
+| v6 | DistilBERT | clean + 180 synth, old composite | 0.513 | 0.675 | 0.600 | -0.006 | 0.669 | 0.551 | 0.668 | 0.393 | 0.469 | **0.403** | **0.693** |
+| v8 | DistilBERT | restored API + 210 synth, auth fix | 0.511 | **0.698** | 0.583 | 0.000 | 0.662 | 0.533 | 0.659 | 0.388 | 0.456 | 0.438 | 0.700 |
+| v9 | DistilBERT | +274 auth synth, auth fix | 0.515 | 0.671 | 0.578 | **0.197** | 0.639 | 0.525 | 0.596 | 0.430 | 0.452 | 0.399 | 0.610 |
+
+Key findings:
+- DeBERTa (2x params, 3x slower) consistently underperforms DistilBERT on this task
+- Synthetic texts improved defensive_architecture (+0.039) and contractual_clarity (+0.035) over v3b in v6
+- **v9 achieved first positive authority_dynamics (0.197)** — 274 targeted synthetic texts broke through where zeroing noisy labels alone (v8) could not
+- v3b's headline 0.578 is partially inflated by fitting to noisy proxy patterns that are consistent between train/test
+- v10 in preparation: 305 more auth + 368 contractual synthetic texts targeting 1,000 meaningful samples per dimension
+
+---
+
+## 15. Held-Out Real-World Evaluation (2026-02-27)
+
+### 15a. Motivation
+
+Test set correlations (avg_r=0.515 for v9) may be inflated by:
+1. **Synthetic style leakage**: 70% of auth test set and 57% of contractual test set are synthetic texts — same writing style as training, though different texts
+2. **Proxy pattern fitting**: Model may learn proxy dataset artifacts rather than genuine PSQ dimensions
+3. **Composite self-correlation**: Composite labels derived from aggregated proxies, then tested against same proxy-derived splits
+
+A held-out evaluation on real-world text with independent LLM labels provides a fair generalization estimate.
+
+### 15b. Methodology
+
+1. **Sampled 100 diverse texts** from the unlabeled pool (20 per source: Berkeley hate speech, Civil Comments, GoEmotions, Prosocial Dialog, EsConv)
+2. **Independent LLM labeling**: Each text scored on only observable dimensions (3-6 per text), using the PSQ scoring rubric with score anchors
+3. **No overlap**: These texts were never in composite training data, LLM training data, or any synthetic batch
+4. **Assembly**: `scripts/assemble_held_out.py` maps abbreviated dimension keys → full names, outputs `data/held-out-test.jsonl`
+
+### 15c. Results (v9 DistilBERT, test_r=0.515)
+
+| Dimension | Held-out r | Test r | MSE | n | p<.05 |
+|---|---|---|---|---|---|
+| threat_exposure | +0.092 | +0.578 | 24.45 | 53 | |
+| **hostility_index** | **+0.703** | +0.671 | 3.97 | 62 | * |
+| authority_dynamics | +0.169 | +0.197 | 5.26 | 34 | |
+| energy_dissipation | +0.305 | +0.639 | 3.26 | 27 | |
+| regulatory_capacity | +0.179 | +0.525 | 2.51 | 64 | |
+| **resilience_baseline** | **+0.522** | +0.596 | 1.92 | 41 | * |
+| **trust_conditions** | **+0.633** | +0.430 | 4.08 | 52 | * |
+| **cooling_capacity** | **+0.704** | +0.452 | 2.66 | 40 | * |
+| defensive_architecture | +0.229 | +0.399 | 3.81 | 59 | |
+| contractual_clarity | +0.317 | +0.610 | 4.78 | 32 | |
+| **AVERAGE** | **+0.385** | +0.515 | | | |
+
+### 15d. Analysis
+
+**Tier 1 — Strong generalization (r > 0.5):**
+- Hostility index (0.70), cooling capacity (0.70), trust conditions (0.63), resilience baseline (0.52)
+- These dimensions had strong composite proxy coverage from validated psychometric instruments (BPAQ, CPI, OTI, CD-RISC)
+- Held-out r actually *exceeds* test r for trust and cooling — these dimensions generalize better than test set suggests
+
+**Tier 2 — Weak generalization (r 0.15-0.35):**
+- Energy dissipation (0.31), contractual clarity (0.32), defensive architecture (0.23), authority dynamics (0.17), regulatory capacity (0.18)
+- These rely heavily on proxy labels or synthetic data — model learned dataset-specific patterns, not the true construct
+
+**Tier 3 — No generalization (r < 0.1):**
+- Threat exposure (0.09) — dramatic collapse from test r=0.578 to held-out r=0.09
+- The composite proxies for threat (COPSOQ, NAQ) measure workplace-specific threat; real-world text spans many contexts
+- MSE=24.45 indicates model is systematically wrong, not just noisy
+
+**Key insight**: The held-out average (0.385) vs test average (0.515) represents a **25% generalization gap**. Four dimensions genuinely work; six need better training signal. Threat exposure needs complete proxy redesign.
+
+---
+
+## 13. References
+
+- Kennedy, C.J., et al. (2020). Constructing interval variables via faceted Rasch measurement and multitask deep learning: a hate speech application. *arXiv:2009.10277*.
+- Hanu, L. & Unitary team. (2020). Detoxify. GitHub. https://github.com/unitaryai/detoxify
+- Borkan, D., et al. (2019). Nuanced Metrics for Measuring Unintended Bias with Real Data for Text Classification. *WWW'19*.
+- Demszky, D., et al. (2020). GoEmotions: A Dataset of Fine-Grained Emotions. *ACL 2020*.
+- Price, I., et al. (2020). Six Attributes of Unhealthy Conversations. *ALW 2020*.
+- Sap, M., et al. (2020). Social Bias Frames: Reasoning about Social and Power Implications of Language. *ACL 2020*.

@@ -63,8 +63,8 @@ The availability and effectiveness of de-escalation mechanisms — both internal
 **7. Energy Dissipation Pathways** (*psychoemotional energy dissipation*)
 When psychoemotional energy accumulates — through stress, conflict, suppression, or overstimulation — it must dissipate. The PSQ accounts for whether healthy dissipation pathways exist (expression, movement, creative outlet, rest) or whether energy is trapped, building toward rupture or implosion.
 
-**8. Defensive Architecture** (*psychoemotional defense*)
-The available protective mechanisms — boundaries, assertive communication, withdrawal options, advocacy structures, legal protections. Defenses that are accessible, proportionate, and non-punished raise the PSQ. Defenses that are absent, stigmatized, or met with retaliation indicate a low-safety environment regardless of surface conditions.
+**8. Defensive Architecture (Boundary & Protection Patterns)** (*psychoemotional defense*)
+The degree to which content supports, respects, or undermines the establishment and maintenance of interpersonal boundaries and self-protective behaviors. High scores indicate content that validates boundary-setting, respects limits, enables assertiveness, and permits withdrawal without punishment. Low scores indicate content that shames self-protection, violates stated boundaries, punishes assertiveness, or strips protective options.
 
 **9. Authority Dynamics** (*psychoemotional authority quotient*)
 Power asymmetry is one of the most significant determinants of psychoemotional safety. The authority quotient of an environment or relationship measures how power is distributed, exercised, and checked. Unchecked authority in the presence of psychoemotional vulnerability is a primary driver of low PSQ.
@@ -76,11 +76,13 @@ The degree to which expectations, obligations, and consequences are explicit, mu
 
 ### What the Quotient Measures
 
-The PSQ is not a single number but a profile across these dimensions, expressible as:
+The PSQ is not a single number but a profile across these dimensions. The overall PSQ score (0–100) reflects the balance between protective and threat factors:
 
-> **PSQ = f(regulatory capacity, resilience, trust, cooling capacity, defensive access, contractual clarity) / f(hazard exposure, hostility, authority imbalance, energy entrapment)**
+> **PSQ = ((protective_avg − threat_avg + 10) / 20) × 100**
 
-The numerator represents **protective factors** — the engineered and intrinsic capacities that create and sustain safety. The denominator represents **threat factors** — the forces that degrade, compromise, or destroy it.
+Where each dimension is scored 0–10 (5 = neutral), **protective_avg** is the confidence-weighted average of the 6 protective dimensions, and **threat_avg** is the confidence-weighted average of the 4 threat dimensions (inverted so that high raw threat scores produce high threat_avg values). PSQ = 100 means maximum protection with zero threat; PSQ = 0 means zero protection with maximum threat; PSQ = 50 is neutral.
+
+The protective factors represent the engineered and intrinsic capacities that create and sustain safety. The threat factors represent the forces that degrade, compromise, or destroy it.
 
 A PSQ assessment may be applied to:
 

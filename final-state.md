@@ -37,9 +37,10 @@ the 10 PSQ dimensions as evaluation criteria
        evaluates: does the content introduce, amplify, or mitigate psychoemotional hazards?
        indicators: bullying language, unreasonable demands, threats, intimidation,
                    exclusion, chronic invalidation, ambient hostility, gaslighting
-       scoring: 0 = content actively introduces threat
-                1 = content is neutral or threat-ambiguous
-                2 = content actively mitigates or removes threat
+       scoring: 0–10 scale
+                0 = content actively introduces severe threat (violence, abuse)
+                5 = content is neutral or threat-ambiguous
+                10 = content actively mitigates or removes threat
 
     2. Regulatory Capacity
        instruments: ERQ (Gross & John 2003), DERS (Gratz & Roemer 2004),
@@ -47,9 +48,10 @@ the 10 PSQ dimensions as evaluation criteria
        evaluates: does the content support or undermine the capacity to regulate emotional states?
        indicators: reappraisal encouragement, suppression demands, space for processing,
                    emotional flooding triggers, grounding language, dysregulation cascades
-       scoring: 0 = content demands suppression or triggers dysregulation
-                1 = content is emotionally neutral
-                2 = content actively supports healthy regulation
+       scoring: 0–10 scale
+                0 = content demands suppression or triggers severe dysregulation
+                5 = content is emotionally neutral
+                10 = content actively supports healthy regulation
 
     3. Resilience Baseline
        instruments: CD-RISC (Connor & Davidson 2003), BRS (Smith et al. 2008),
@@ -58,9 +60,10 @@ the 10 PSQ dimensions as evaluation criteria
        evaluates: does the content build, sustain, or erode resilience?
        indicators: growth framing, recovery acknowledgment, competence reinforcement,
                    learned helplessness induction, catastrophizing, hope language
-       scoring: 0 = content erodes resilience or induces helplessness
-                1 = content is neutral regarding resilience
-                2 = content actively builds or reinforces resilience
+       scoring: 0–10 scale
+                0 = content erodes resilience or induces helplessness
+                5 = content is neutral regarding resilience
+                10 = content actively builds or reinforces resilience
        note: high resilience in the presence of persistent threat indicates endurance,
              not safety — this dimension must be read alongside dimension 1
 
@@ -73,9 +76,10 @@ the 10 PSQ dimensions as evaluation criteria
        indicators: consistency, follow-through language, transparency, deception markers,
                    promise-breaking, credibility signals, vulnerability reciprocity,
                    verification demands vs. good faith
-       scoring: 0 = content actively destroys or exploits trust
-                1 = content is trust-neutral
-                2 = content actively builds or repairs trust
+       scoring: 0–10 scale
+                0 = content actively destroys or exploits trust
+                5 = content is trust-neutral
+                10 = content actively builds or repairs trust
 
     5. Hostility Index
        instruments: Cook-Medley Hostility Scale (Cook & Medley 1954), Buss-Perry Aggression
@@ -85,9 +89,10 @@ the 10 PSQ dimensions as evaluation criteria
        indicators: contempt, cynicism, sarcasm aimed to wound, dehumanizing language,
                    passive aggression, overt aggression, competitive dominance,
                    verbal abuse, dismissiveness
-       scoring: 0 = content is actively hostile or provokes hostility
-                1 = content is neutral
-                2 = content actively reduces hostility or models non-hostile engagement
+       scoring: 0–10 scale
+                0 = content is severely hostile or provokes hostility
+                5 = content is neutral
+                10 = content actively reduces hostility or models non-hostile engagement
        note: this dimension is inverted in the PSQ formula — high hostility lowers safety
 
     6. Cooling Capacity
@@ -99,9 +104,10 @@ the 10 PSQ dimensions as evaluation criteria
        indicators: temporal buffers ("let's pause"), reframing language, acknowledgment
                    before correction, escalation triggers, urgency pressure,
                    permission to step back, breathing room
-       scoring: 0 = content actively escalates or removes cooling options
-                1 = content is neutral regarding escalation/de-escalation
-                2 = content actively de-escalates or creates cooling space
+       scoring: 0–10 scale
+                0 = content actively escalates or removes cooling options
+                5 = content is neutral regarding escalation/de-escalation
+                10 = content actively de-escalates or creates cooling space
 
     7. Energy Dissipation Pathways
        instruments: Effort-Recovery Model (Meijman & Mulder 1998), Conservation of Resources
@@ -112,22 +118,31 @@ the 10 PSQ dimensions as evaluation criteria
        indicators: recovery permission, creative outlet acknowledgment, rest framing,
                    relentless demand language, guilt for rest, burnout normalization,
                    sustainable pace signals, flow-enabling conditions
-       scoring: 0 = content traps energy or demands relentless expenditure
-                1 = content is neutral regarding energy
-                2 = content actively supports healthy dissipation and recovery
+       scoring: 0–10 scale
+                0 = content traps energy or demands relentless expenditure
+                5 = content is neutral regarding energy
+                10 = content actively supports healthy dissipation and recovery
        note: this dimension is inverted in the PSQ formula — trapped energy lowers safety
 
-    8. Defensive Architecture
-       instruments: DSQ (Bond et al. 1983), DMRS (Perry 1990), Vaillant hierarchy (1977),
-                    TKI (Thomas & Kilmann 1974), ROCI-II (Rahim 1983),
+    8. Defensive Architecture (Boundary & Protection Patterns)
+       instruments: TKI (Thomas & Kilmann 1974), ROCI-II (Rahim 1983),
                     Nonviolent Communication (Rosenberg 2003)
-       evaluates: does the content support healthy boundaries and defenses or strip them?
-       indicators: boundary language, assertiveness support, withdrawal permission,
-                   boundary violation, retaliation for self-protection, dismissal of limits,
-                   advocacy enablement, defense shaming
-       scoring: 0 = content strips defenses or punishes self-protection
-                1 = content is neutral regarding defenses
-                2 = content actively supports healthy boundaries and protective mechanisms
+       theoretical background: DSQ (Bond et al. 1983), DMRS (Perry 1990),
+                    Vaillant hierarchy (1977) — retained as theoretical grounding
+                    but not primary scoring instruments (these measure intrapsychic
+                    processes not directly observable in text)
+       evaluates: does the content support, respect, or undermine the establishment
+                  and maintenance of interpersonal boundaries and self-protective behaviors?
+       indicators: boundary-setting validation, respect for stated limits, assertiveness
+                   enablement, withdrawal permission without punishment, boundary violation,
+                   retaliation for self-protection, dismissal of limits, advocacy enablement,
+                   defense shaming, stripping of protective options
+       scoring: 0–10 scale
+                0 = content shames self-protection, violates boundaries, punishes assertiveness,
+                    or strips protective options
+                5 = content is neutral regarding boundaries and self-protection
+                10 = content validates boundary-setting, respects limits, enables assertiveness,
+                     and permits withdrawal without punishment
 
     9. Authority Dynamics
        instruments: French & Raven's Bases of Power (1959), Multifactor Leadership Questionnaire
@@ -137,9 +152,10 @@ the 10 PSQ dimensions as evaluation criteria
        indicators: coercive language, legitimate authority signaling, expert vs. positional
                    power, empowerment language, micromanagement, autonomy support,
                    unilateral decision-making, participatory framing, obedience demands
-       scoring: 0 = content abuses authority or enforces unchecked power asymmetry
-                1 = content is neutral regarding power
-                2 = content distributes power appropriately or checks authority
+       scoring: 0–10 scale
+                0 = content abuses authority or enforces unchecked power asymmetry
+                5 = content is neutral regarding power
+                10 = content distributes power appropriately or checks authority
        note: this dimension is inverted in the PSQ formula — unchecked authority lowers safety
 
     10. Contractual Clarity
@@ -151,35 +167,48 @@ the 10 PSQ dimensions as evaluation criteria
         indicators: explicit expectations, mutual agreement language, shifting goalposts,
                     unspoken rules, unilateral redefinition, informed consent,
                     consequence clarity, role ambiguity, bait-and-switch patterns
-        scoring: 0 = content creates ambiguity, shifts terms, or violates contracts
-                 1 = content is neutral regarding expectations
-                 2 = content actively clarifies expectations and honors agreements
+        scoring: 0–10 scale
+                 0 = content creates ambiguity, shifts terms, or violates contracts
+                 5 = content is neutral regarding expectations
+                 10 = content actively clarifies expectations and honors agreements
 
 
 PSQ computation
 
 
-    protective factors (numerator):
-        regulatory capacity + resilience baseline + trust conditions +
-        cooling capacity + defensive architecture + contractual clarity
+    each dimension is scored 0–10, where 5 = neutral.
+    confidence scores (0.0–1.0) accompany every dimension score.
+    dimensions with confidence < 0.6 are excluded from aggregation.
 
-    threat factors (denominator):
-        threat exposure + hostility index + energy entrapment + authority imbalance
+    protective factors (6 dimensions):
+        regulatory capacity, resilience baseline, trust conditions,
+        cooling capacity, defensive architecture, contractual clarity
 
-    where energy entrapment = (2 - energy dissipation score)
-    and authority imbalance = (2 - authority dynamics score)
+    threat factors (4 dimensions, inverted):
+        threat exposure, hostility index, energy dissipation, authority dynamics
+        inversion: threat_score = 10 - raw_score
+        (so 0 raw = maximum threat → 10 threat points,
+         10 raw = maximum safety → 0 threat points)
 
-    PSQ profile = protective factors score / threat factors score
+    aggregation uses confidence-weighted averages:
+        protective_avg = sum(score_i × conf_i) / sum(conf_i)   for included protective dims
+        threat_avg     = sum(threat_score_i × conf_i) / sum(conf_i)   for included threat dims
 
-    per-dimension scores: each dimension scored 0-2
-    protective factors range: 0-12
-    threat factors range: 0-8 (before inversion adjustment)
+        if no dimensions qualify (all excluded by confidence gate), default to 5 (neutral).
+
+    PSQ score (0–100):
+        PSQ = ((protective_avg - threat_avg + 10) / 20) × 100
+
+        boundary conditions:
+            protective_avg=10, threat_avg=0  → PSQ = 100 (maximum safety)
+            protective_avg=0, threat_avg=10  → PSQ = 0   (maximum threat)
+            protective_avg=5, threat_avg=5   → PSQ = 50  (neutral)
 
     overall PSQ classification:
-        critical    — protective < 4 or any single threat dimension at 0
-        low         — protective 4-6 or threat factors > 5
-        moderate    — protective 7-9 and threat factors 3-5
-        high        — protective 10-12 and threat factors < 3
+        critical    — PSQ < 20 or any single threat dimension scores 0
+        low         — PSQ 20–40
+        moderate    — PSQ 40–70
+        high        — PSQ > 70
 
 
 evaluation prompt
@@ -205,7 +234,7 @@ evaluation prompt
     "{context}"
 
     for each of the 10 dimensions, provide:
-    - score (0-2)
+    - score (integer 0–10, where 5 = neutral)
     - rationale (specific evidence from the content)
     - confidence (0.0-1.0)
     - instrument basis (which validated instrument informed your assessment)
@@ -216,7 +245,7 @@ evaluation prompt
         "context_type": "workplace|relationship|legal|clinical|educational|public",
         "dimensions": {
             "threat_exposure": {
-                "score": 0-2,
+                "score": 0-10,
                 "rationale": "string with specific textual evidence",
                 "confidence": 0.0-1.0,
                 "instruments": ["COPSOQ", "NAQ"]
@@ -232,8 +261,9 @@ evaluation prompt
             "contractual_clarity": { ... }
         },
         "psq_profile": {
-            "protective_score": 0-12,
-            "threat_score": 0-8,
+            "psq": 0-100,
+            "protective_avg": 0-10,
+            "threat_avg": 0-10,
             "overall_classification": "critical|low|moderate|high"
         },
         "flags": ["string — urgent safety concerns requiring immediate attention"],
@@ -244,8 +274,9 @@ evaluation prompt
     critical constraints:
     - never diagnose a person — you evaluate content
     - always cite specific textual evidence for every score
-    - if evidence is ambiguous, score 1 and note the ambiguity
+    - if evidence is ambiguous, score 5 (neutral) and note the ambiguity
     - confidence below 0.5 means the dimension may not be assessable from this content
+    - absence of signal ≠ negative signal: content that does not address a dimension = score 5, low confidence
     - flag any content that scores 0 on threat exposure, hostility, or authority dynamics
       as requiring immediate human review
     - cultural context matters — note when an evaluation may not generalize
@@ -293,15 +324,16 @@ response schema
         ethical_notes — limitations, cultural considerations, what cannot be determined
 
     DimensionScore:
-        score — integer, 0 to 2
+        score — integer, 0 to 10 (5 = neutral)
         rationale — text with specific textual evidence
         confidence — decimal, 0.0 to 1.0
         instruments — list of instrument abbreviations used in assessment
         evidence — list of specific quotes from the evaluated content
 
     PSQSummary:
-        protective_score — integer, 0 to 12
-        threat_score — integer, 0 to 8
+        psq — decimal, 0 to 100
+        protective_avg — decimal, 0 to 10 (confidence-weighted average of 6 protective dimensions)
+        threat_avg — decimal, 0 to 10 (confidence-weighted average of 4 inverted threat dimensions)
         overall_classification — critical, low, moderate, or high
         narrative — plain language summary of what the profile means
 

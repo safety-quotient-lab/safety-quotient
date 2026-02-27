@@ -13,9 +13,12 @@
 //   node src/ingest.js --dry-run                          # print posts without evaluating
 //   node src/ingest.js --limit 10                         # stop after 10 evaluations
 //   node src/ingest.js --rpm 8                            # override requests-per-minute
+//   node src/ingest.js --save data/train.jsonl            # append scored results to JSONL
+//   node src/ingest.js --dry-run --save data/unlabeled.jsonl  # save text only (no eval)
 
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { appendFileSync, mkdirSync } from "node:fs";
 import { config } from "dotenv";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -47,6 +50,7 @@ function parseArgs(argv) {
     dryRun: false,
     limit: Infinity,
     rpm: null,
+    save: null,
   };
 
   for (let i = 2; i < argv.length; i++) {
@@ -59,6 +63,7 @@ function parseArgs(argv) {
       case "--dry-run":     args.dryRun = true; break;
       case "--limit":       args.limit = parseInt(argv[++i], 10); break;
       case "--rpm":         args.rpm = parseInt(argv[++i], 10); break;
+      case "--save":        args.save = argv[++i]; break;
     }
   }
 
@@ -97,6 +102,22 @@ function formatStreamProfile(profile) {
     `  PSQ: ${profile.psq}/100  |  Protective: ${profile.protective_avg.toFixed(1)}/10 (n=${profile.protective_n})  |  Threat: ${profile.threat_avg.toFixed(1)}/10 (n=${profile.threat_n})${exNote}`,
     ...dims,
   ].join("\n");
+}
+
+// --- Save to JSONL ---
+
+function initSave(savePath) {
+  if (!savePath) return null;
+  const dir = dirname(join(ROOT, savePath));
+  mkdirSync(dir, { recursive: true });
+  const fullPath = join(ROOT, savePath);
+  console.log(`Saving results to ${fullPath}`);
+  return fullPath;
+}
+
+function appendRecord(savePath, record) {
+  if (!savePath) return;
+  appendFileSync(savePath, JSON.stringify(record) + "\n");
 }
 
 // --- Jetstream connection ---
@@ -161,9 +182,12 @@ async function main() {
   console.log(`Filters: lang=${args.lang || "any"}, minLength=${args.minLength}, sample=${args.sample}`);
   if (args.dryRun) console.log(`Mode: DRY RUN (no evaluations)`);
   if (args.limit < Infinity) console.log(`Limit: ${args.limit} evaluations`);
+  if (args.save) console.log(`Save: ${args.save}`);
+
+  const savePath = initSave(args.save);
 
   const rpmOpts = args.rpm ? { rpm: args.rpm } : {};
-  const provider = createProvider(args.provider, process.env, rpmOpts);
+  const provider = args.dryRun ? null : createProvider(args.provider, process.env, rpmOpts);
 
   let evalCount = 0;
   let skipCount = 0;
@@ -188,7 +212,17 @@ async function main() {
       console.log(`\n[#${evalCount} | ${elapsed}s | seen:${postsSeen} skip:${skipCount} err:${errorCount}]`);
       console.log(`  @${post.did.slice(8, 20)}... "${preview}${post.text.length > 80 ? "..." : ""}"`);
 
-      if (args.dryRun) continue;
+      if (args.dryRun) {
+        // Save text only (for later labeling)
+        appendRecord(savePath, {
+          text: post.text,
+          did: post.did,
+          langs: post.langs,
+          createdAt: post.createdAt,
+          rkey: post.rkey,
+        });
+        continue;
+      }
 
       try {
         if (isProfile) {
@@ -200,6 +234,22 @@ async function main() {
           }
           const profile = aggregatePSQ(dimResults);
           console.log(formatStreamProfile(profile));
+
+          // Save full profile
+          appendRecord(savePath, {
+            text: post.text,
+            did: post.did,
+            createdAt: post.createdAt,
+            provider: args.provider,
+            teacher: "llm",
+            psq: profile.psq,
+            dimensions: Object.fromEntries(
+              dimResults.map(r => [r.dimension, {
+                score: r.score,
+                confidence: r.confidence,
+              }])
+            ),
+          });
         } else {
           const dimension = getDimension(instruments, dimensionIds[0]);
           const result = await detect(provider, dimension, post.text);
@@ -207,6 +257,21 @@ async function main() {
           if (result.rationale) {
             console.log(`  ${result.rationale.slice(0, 120)}`);
           }
+
+          // Save single dimension
+          appendRecord(savePath, {
+            text: post.text,
+            did: post.did,
+            createdAt: post.createdAt,
+            provider: args.provider,
+            teacher: "llm",
+            dimensions: {
+              [result.dimension]: {
+                score: result.score,
+                confidence: result.confidence,
+              },
+            },
+          });
         }
       } catch (err) {
         errorCount++;

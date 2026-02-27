@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { StudentProvider } from "./student.js";
 
 // --- Shared helpers ---
 
@@ -266,7 +267,10 @@ export function createProvider(name, env, { rpm } = {}) {
       }
       return new WorkersAIProvider(env.CLOUDFLARE_ACCOUNT_ID, env.CLOUDFLARE_API_TOKEN, opts);
 
+    case "student":
+      return new StudentProvider();
+
     default:
-      throw new Error(`Unknown provider: ${name}. Use: openrouter, claude, workersai`);
+      throw new Error(`Unknown provider: ${name}. Use: openrouter, claude, workersai, student`);
   }
 }

@@ -15,17 +15,17 @@
       "description": "The nature, frequency, intensity, and proximity of psychoemotional threats present in the environment",
       "psq_role": "threat_factor",
       "scoring": {
-        "0": "extreme direct threat — violence, severe abuse, or sustained targeted harassment",
-        "1": "strong threat — explicit intimidation, dehumanization, or aggressive confrontation",
-        "2": "clear threat — insults, contempt, or hostile framing directed at individuals/groups",
-        "3": "moderate threat — dismissive language, mild antagonism, or coded hostility",
-        "4": "mild threat — slight tension, sarcasm, or passive negativity",
-        "5": "neutral — no discernible threat or safety signals",
-        "6": "mild safety — generally civil tone, low-tension communication",
-        "7": "moderate safety — respectful engagement, absence of threat cues",
-        "8": "clear safety — warm, inclusive language with active care for others",
-        "9": "strong safety — explicit protection, advocacy, or threat mitigation",
-        "10": "maximum safety — active prevention of threat with structural safeguards"
+        "0": "extreme direct threat \u2014 violence, severe abuse, or sustained targeted harassment",
+        "1": "strong threat \u2014 explicit intimidation, dehumanization, or aggressive confrontation",
+        "2": "clear threat \u2014 insults, contempt, or hostile framing directed at individuals/groups",
+        "3": "moderate threat \u2014 dismissive language, mild antagonism, or coded hostility",
+        "4": "mild threat \u2014 slight tension, sarcasm, or passive negativity",
+        "5": "neutral \u2014 no discernible threat or safety signals",
+        "6": "mild safety \u2014 generally civil tone, low-tension communication",
+        "7": "moderate safety \u2014 respectful engagement, absence of threat cues",
+        "8": "clear safety \u2014 warm, inclusive language with active care for others",
+        "9": "strong safety \u2014 explicit protection, advocacy, or threat mitigation",
+        "10": "maximum safety \u2014 active prevention of threat with structural safeguards"
       },
       "instruments": [
         {
@@ -194,7 +194,7 @@
           "id": "copsoq",
           "name": "Copenhagen Psychosocial Questionnaire",
           "abbreviation": "COPSOQ",
-          "authors": "Kristensen, T.S., Hannerz, H., Høgh, A., & Borg, V.",
+          "authors": "Kristensen, T.S., Hannerz, H., H\u00f8gh, A., & Borg, V.",
           "year": 2005,
           "revised": 2018,
           "construct": "Psychosocial work environment and hazards",
@@ -285,6 +285,38 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "I know where you live. Every day you don't comply, it gets worse for you and your family.",
+          "expected_score": 0,
+          "expected_confidence": 0.95,
+          "rationale": "Sustained severe threat with explicit targeting of family. Maximum threat exposure."
+        },
+        {
+          "text": "You better not mess this up again or there will be consequences.",
+          "expected_score": 2.5,
+          "expected_confidence": 0.75,
+          "rationale": "Moderate, intermittent threat. Vague consequences but clearly coercive."
+        },
+        {
+          "text": "The quarterly report is due next Friday. Please submit your sections by Wednesday.",
+          "expected_score": 5,
+          "expected_confidence": 0.6,
+          "rationale": "Neutral workplace communication. No threat signals present."
+        },
+        {
+          "text": "This is a safe space. No judgement here \u2014 share what you're comfortable with.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.7,
+          "rationale": "Low threat with explicit protective signals. Validates comfort boundaries."
+        },
+        {
+          "text": "Nothing you say here will be used against you. This conversation is confidential and you can stop at any time.",
+          "expected_score": 10,
+          "expected_confidence": 0.9,
+          "rationale": "Zero threat with explicit multi-layered protection: confidentiality, consent, exit option."
+        }
       ]
     },
     "regulatory_capacity": {
@@ -293,17 +325,17 @@
       "description": "The capacity to modulate emotional states in response to threat without collapse, suppression, or overflow",
       "psq_role": "protective_factor",
       "scoring": {
-        "0": "extreme dysregulation demand — content forces suppression or triggers emotional collapse",
-        "1": "strong dysregulation — provokes overwhelming emotional response",
-        "2": "clear dysregulation — models or demands poor emotional management",
-        "3": "moderate strain — content taxes regulatory capacity",
-        "4": "mild strain — slight emotional challenge without support",
-        "5": "neutral — no regulatory demand or support",
-        "6": "mild support — generally calm, emotionally stable communication",
-        "7": "moderate support — models composed emotional engagement",
-        "8": "clear support — actively supports healthy emotional processing",
-        "9": "strong support — teaches or reinforces regulatory strategies",
-        "10": "maximum support — exemplary emotional regulation modeling with explicit guidance"
+        "0": "extreme dysregulation demand \u2014 content forces suppression or triggers emotional collapse",
+        "1": "strong dysregulation \u2014 provokes overwhelming emotional response",
+        "2": "clear dysregulation \u2014 models or demands poor emotional management",
+        "3": "moderate strain \u2014 content taxes regulatory capacity",
+        "4": "mild strain \u2014 slight emotional challenge without support",
+        "5": "neutral \u2014 no regulatory demand or support",
+        "6": "mild support \u2014 generally calm, emotionally stable communication",
+        "7": "moderate support \u2014 models composed emotional engagement",
+        "8": "clear support \u2014 actively supports healthy emotional processing",
+        "9": "strong support \u2014 teaches or reinforces regulatory strategies",
+        "10": "maximum support \u2014 exemplary emotional regulation modeling with explicit guidance"
       },
       "instruments": [
         {
@@ -540,25 +572,57 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "You should be ashamed. Everyone is laughing at you. There's no excuse for what you did and you know it.",
+          "expected_score": 0,
+          "expected_confidence": 0.9,
+          "rationale": "Overwhelms regulation via shame flooding, social humiliation, and invalidation. No recovery pathway offered."
+        },
+        {
+          "text": "I can't believe you would do something so stupid. What were you thinking?",
+          "expected_score": 2.5,
+          "expected_confidence": 0.7,
+          "rationale": "Strains regulation with contempt and rhetorical attack, but less sustained than 0."
+        },
+        {
+          "text": "Here's the update on the project timeline. We're on track for the March milestone.",
+          "expected_score": 5,
+          "expected_confidence": 0.6,
+          "rationale": "Neutral factual communication with no emotional regulation demand."
+        },
+        {
+          "text": "I can see this is frustrating. Let's break it down into smaller pieces and tackle one thing at a time.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "Validates emotion, offers concrete coping strategy (chunking). Supports adaptive regulation."
+        },
+        {
+          "text": "It's completely normal to feel overwhelmed right now. What helped you cope last time something like this happened?",
+          "expected_score": 10,
+          "expected_confidence": 0.85,
+          "rationale": "Normalizes emotion, activates prior coping resources, builds regulatory self-efficacy."
+        }
       ]
     },
     "resilience_baseline": {
       "id": "resilience_baseline",
       "name": "Resilience Baseline",
-      "description": "The capacity to absorb disruption and return to functional equilibrium — contributes to safety but is not a substitute for it",
+      "description": "The capacity to absorb disruption and return to functional equilibrium \u2014 contributes to safety but is not a substitute for it",
       "psq_role": "protective_factor",
       "scoring": {
-        "0": "extreme erosion — induces helplessness, despair, or total defeat",
-        "1": "strong erosion — significantly undermines agency or coping capacity",
-        "2": "clear erosion — models fragility or learned helplessness",
-        "3": "moderate erosion — discouraging tone, mild hopelessness",
-        "4": "mild erosion — slightly undermines confidence or persistence",
-        "5": "neutral — no resilience impact",
-        "6": "mild reinforcement — generally encouraging tone",
-        "7": "moderate reinforcement — models persistence or adaptive coping",
-        "8": "clear reinforcement — actively builds confidence or agency",
-        "9": "strong reinforcement — celebrates overcoming adversity",
-        "10": "maximum reinforcement — exemplary resilience modeling with structural support"
+        "0": "extreme erosion \u2014 induces helplessness, despair, or total defeat",
+        "1": "strong erosion \u2014 significantly undermines agency or coping capacity",
+        "2": "clear erosion \u2014 models fragility or learned helplessness",
+        "3": "moderate erosion \u2014 discouraging tone, mild hopelessness",
+        "4": "mild erosion \u2014 slightly undermines confidence or persistence",
+        "5": "neutral \u2014 no resilience impact",
+        "6": "mild reinforcement \u2014 generally encouraging tone",
+        "7": "moderate reinforcement \u2014 models persistence or adaptive coping",
+        "8": "clear reinforcement \u2014 actively builds confidence or agency",
+        "9": "strong reinforcement \u2014 celebrates overcoming adversity",
+        "10": "maximum reinforcement \u2014 exemplary resilience modeling with structural support"
       },
       "instruments": [
         {
@@ -748,6 +812,38 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "You'll never recover from this. This failure defines you. Everyone will remember.",
+          "expected_score": 0,
+          "expected_confidence": 0.9,
+          "rationale": "Catastrophizing + identity fusion with failure. Actively undermines belief in recovery."
+        },
+        {
+          "text": "Some people just aren't cut out for this. Maybe you should give up.",
+          "expected_score": 2.5,
+          "expected_confidence": 0.7,
+          "rationale": "Discourages resilience through essentialist framing ('aren't cut out') and surrender suggestion."
+        },
+        {
+          "text": "The meeting has been moved to 3pm. Room 204.",
+          "expected_score": 5,
+          "expected_confidence": 0.5,
+          "rationale": "Neutral logistical content. No resilience-relevant signals."
+        },
+        {
+          "text": "This is a setback, not the end. You've gotten through harder things before.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "Reframes adversity, activates resilience narrative through past-success recall."
+        },
+        {
+          "text": "What you went through was genuinely difficult, and the fact that you're here talking about it shows real strength. What did you learn from it?",
+          "expected_score": 10,
+          "expected_confidence": 0.85,
+          "rationale": "Validates difficulty, identifies demonstrated strength, promotes growth integration."
+        }
       ]
     },
     "trust_conditions": {
@@ -756,17 +852,17 @@
       "description": "The reasonable expectation that others within the system will not exploit vulnerability",
       "psq_role": "protective_factor",
       "scoring": {
-        "0": "extreme betrayal — active deception, exploitation of vulnerability, or gaslighting",
-        "1": "strong trust destruction — clear bad faith, manipulation, or breach of confidence",
-        "2": "clear trust damage — cynicism, dishonesty cues, or unreliability",
-        "3": "moderate trust erosion — skepticism, veiled motives, or inconsistency",
-        "4": "mild trust erosion — slight unreliability or guarded communication",
-        "5": "neutral — no trust signals either way",
-        "6": "mild trust building — generally honest, straightforward communication",
-        "7": "moderate trust building — transparency, consistency, or good faith signals",
-        "8": "clear trust building — active vulnerability, honesty, or reliability",
-        "9": "strong trust building — deep reciprocity, confession, or trust repair",
-        "10": "maximum trust — exemplary mutual trust with structural accountability"
+        "0": "extreme betrayal \u2014 active deception, exploitation of vulnerability, or gaslighting",
+        "1": "strong trust destruction \u2014 clear bad faith, manipulation, or breach of confidence",
+        "2": "clear trust damage \u2014 cynicism, dishonesty cues, or unreliability",
+        "3": "moderate trust erosion \u2014 skepticism, veiled motives, or inconsistency",
+        "4": "mild trust erosion \u2014 slight unreliability or guarded communication",
+        "5": "neutral \u2014 no trust signals either way",
+        "6": "mild trust building \u2014 generally honest, straightforward communication",
+        "7": "moderate trust building \u2014 transparency, consistency, or good faith signals",
+        "8": "clear trust building \u2014 active vulnerability, honesty, or reliability",
+        "9": "strong trust building \u2014 deep reciprocity, confession, or trust repair",
+        "10": "maximum trust \u2014 exemplary mutual trust with structural accountability"
       },
       "instruments": [
         {
@@ -929,25 +1025,57 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "I read your private messages and shared them with the team. You should be more careful what you write.",
+          "expected_score": 0,
+          "expected_confidence": 0.95,
+          "rationale": "Active trust violation: privacy breach + victim-blaming. Destroys vulnerability safety."
+        },
+        {
+          "text": "I said I'd help, but honestly, it's not really my problem. Figure it out yourself.",
+          "expected_score": 2.5,
+          "expected_confidence": 0.75,
+          "rationale": "Broken promise + dismissal. Erodes trust through commitment withdrawal."
+        },
+        {
+          "text": "The store closes at 9pm on weekdays and 6pm on weekends.",
+          "expected_score": 5,
+          "expected_confidence": 0.5,
+          "rationale": "Neutral factual content. No trust-relevant signals."
+        },
+        {
+          "text": "I appreciate you telling me that. I won't share it with anyone else unless you want me to.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "Acknowledges vulnerability, promises confidentiality, preserves agency over disclosure."
+        },
+        {
+          "text": "I made a mistake last week and I want to own it. Here's what happened, here's what I should have done, and here's what I'll do differently.",
+          "expected_score": 10,
+          "expected_confidence": 0.9,
+          "rationale": "Maximum trust: voluntary accountability, transparency, corrective commitment."
+        }
       ]
     },
     "hostility_index": {
       "id": "hostility_index",
       "name": "Hostility Index",
-      "description": "Hostility — whether overt aggression, passive undermining, or structural antagonism — as a direct countervailing force against safety",
+      "description": "Hostility \u2014 whether overt aggression, passive undermining, or structural antagonism \u2014 as a direct countervailing force against safety",
       "psq_role": "threat_factor",
       "scoring": {
-        "0": "extreme hostility — direct threats, slurs, violent language, or dehumanization",
-        "1": "strong hostility — overt aggression, contempt, or targeted verbal abuse",
-        "2": "clear hostility — insults, derision, or aggressive dismissiveness",
-        "3": "moderate hostility — passive aggression, sarcasm with hostile intent, or mockery",
-        "4": "mild hostility — slight edge, irritation, or dismissive tone",
-        "5": "neutral — no hostile or anti-hostile signals",
-        "6": "mild warmth — generally civil and non-confrontational",
-        "7": "moderate warmth — polite, respectful engagement",
-        "8": "clear warmth — friendly, affirming, or inclusive language",
-        "9": "strong anti-hostility — active de-escalation, empathy, or reconciliation",
-        "10": "maximum anti-hostility — exemplary non-hostile engagement, conflict resolution"
+        "0": "extreme hostility \u2014 direct threats, slurs, violent language, or dehumanization",
+        "1": "strong hostility \u2014 overt aggression, contempt, or targeted verbal abuse",
+        "2": "clear hostility \u2014 insults, derision, or aggressive dismissiveness",
+        "3": "moderate hostility \u2014 passive aggression, sarcasm with hostile intent, or mockery",
+        "4": "mild hostility \u2014 slight edge, irritation, or dismissive tone",
+        "5": "neutral \u2014 no hostile or anti-hostile signals",
+        "6": "mild warmth \u2014 generally civil and non-confrontational",
+        "7": "moderate warmth \u2014 polite, respectful engagement",
+        "8": "clear warmth \u2014 friendly, affirming, or inclusive language",
+        "9": "strong anti-hostility \u2014 active de-escalation, empathy, or reconciliation",
+        "10": "maximum anti-hostility \u2014 exemplary non-hostile engagement, conflict resolution"
       },
       "calibration_anchors": [
         {
@@ -1190,17 +1318,17 @@
       "description": "The availability and effectiveness of de-escalation mechanisms, both internal and external",
       "psq_role": "protective_factor",
       "scoring": {
-        "0": "extreme escalation — actively inflames, removes all de-escalation options",
-        "1": "strong escalation — provokes immediate fight-or-flight response",
-        "2": "clear escalation — raises emotional temperature significantly",
-        "3": "moderate escalation — adds tension or narrows response options",
-        "4": "mild escalation — slightly raises stakes or urgency",
-        "5": "neutral — no escalation or de-escalation signals",
-        "6": "mild cooling — generally calm pace, low urgency",
-        "7": "moderate cooling — provides space for reflection or pause",
-        "8": "clear cooling — actively lowers temperature, offers temporal buffers",
-        "9": "strong cooling — explicit de-escalation, mediation, or soothing",
-        "10": "maximum cooling — exemplary de-escalation with structural cooling mechanisms"
+        "0": "extreme escalation \u2014 actively inflames, removes all de-escalation options",
+        "1": "strong escalation \u2014 provokes immediate fight-or-flight response",
+        "2": "clear escalation \u2014 raises emotional temperature significantly",
+        "3": "moderate escalation \u2014 adds tension or narrows response options",
+        "4": "mild escalation \u2014 slightly raises stakes or urgency",
+        "5": "neutral \u2014 no escalation or de-escalation signals",
+        "6": "mild cooling \u2014 generally calm pace, low urgency",
+        "7": "moderate cooling \u2014 provides space for reflection or pause",
+        "8": "clear cooling \u2014 actively lowers temperature, offers temporal buffers",
+        "9": "strong cooling \u2014 explicit de-escalation, mediation, or soothing",
+        "10": "maximum cooling \u2014 exemplary de-escalation with structural cooling mechanisms"
       },
       "instruments": [
         {
@@ -1209,7 +1337,7 @@
           "abbreviation": "ERQ-R",
           "authors": "Gross, J.J. & John, O.P.",
           "year": 2003,
-          "construct": "Cognitive reappraisal as a cooling mechanism — changing interpretation to change emotional impact",
+          "construct": "Cognitive reappraisal as a cooling mechanism \u2014 changing interpretation to change emotional impact",
           "subscales": [
             {
               "id": "erqr_core",
@@ -1349,7 +1477,7 @@
               "items": [
                 {
                   "id": "cdm_1",
-                  "construct": "Anxiety stage — supportive response",
+                  "construct": "Anxiety stage \u2014 supportive response",
                   "textual_indicators": [
                     "I can see you're upset",
                     "acknowledging distress before problem-solving",
@@ -1360,7 +1488,7 @@
                 },
                 {
                   "id": "cdm_2",
-                  "construct": "Defensive stage — directive response",
+                  "construct": "Defensive stage \u2014 directive response",
                   "textual_indicators": [
                     "clear, calm boundaries",
                     "here is what we can do",
@@ -1371,7 +1499,7 @@
                 },
                 {
                   "id": "cdm_3",
-                  "construct": "Tension reduction — therapeutic rapport",
+                  "construct": "Tension reduction \u2014 therapeutic rapport",
                   "textual_indicators": [
                     "now that things have calmed down",
                     "let's talk about what happened",
@@ -1382,7 +1510,7 @@
                 },
                 {
                   "id": "cdm_4",
-                  "construct": "Escalation patterns — what cooling looks like when absent",
+                  "construct": "Escalation patterns \u2014 what cooling looks like when absent",
                   "textual_indicators": [
                     "pouring fuel on fire",
                     "matching anger with anger",
@@ -1396,6 +1524,38 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "Don't you DARE walk away from this! We're settling this RIGHT NOW. You don't get to run from consequences!",
+          "expected_score": 0,
+          "expected_confidence": 0.9,
+          "rationale": "Maximum escalation: blocks exit, demands immediate confrontation, eliminates cooling pathways."
+        },
+        {
+          "text": "You always do this! You're just like your mother \u2014 impossible to reason with!",
+          "expected_score": 2.5,
+          "expected_confidence": 0.75,
+          "rationale": "Escalation via absolutes ('always'), character attack, and family comparison."
+        },
+        {
+          "text": "The next bus arrives in 12 minutes according to the schedule.",
+          "expected_score": 5,
+          "expected_confidence": 0.5,
+          "rationale": "Neutral factual content. No escalation or de-escalation signals."
+        },
+        {
+          "text": "I can see we're both getting heated. Can we take a break and come back to this in an hour?",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "De-escalation: acknowledges mutual state, proposes temporal buffer, preserves relationship."
+        },
+        {
+          "text": "I understand you're angry, and you have reason to be. Let's take a moment to breathe. When you're ready, I'd like to understand your perspective fully.",
+          "expected_score": 10,
+          "expected_confidence": 0.85,
+          "rationale": "Maximum cooling: validates emotion, offers somatic pause, centers the other's perspective."
+        }
       ]
     },
     "energy_dissipation": {
@@ -1404,17 +1564,17 @@
       "description": "Whether healthy dissipation pathways exist or whether energy is trapped, building toward rupture or implosion",
       "psq_role": "threat_factor",
       "scoring": {
-        "0": "extreme entrapment — traps all energy with no outlet, demands relentless engagement",
-        "1": "strong entrapment — significantly restricts expression or recovery",
-        "2": "clear entrapment — blocks healthy dissipation pathways",
-        "3": "moderate burden — adds sustained pressure with limited relief",
-        "4": "mild burden — slightly constrains energy release",
-        "5": "neutral — no energy impact",
-        "6": "mild dissipation — generally allows for natural processing",
-        "7": "moderate dissipation — supports expression or creates breathing room",
-        "8": "clear dissipation — actively supports recovery, rest, or creative outlet",
-        "9": "strong dissipation — facilitates healthy release and renewal",
-        "10": "maximum dissipation — exemplary support for rest, expression, and recovery"
+        "0": "extreme entrapment \u2014 traps all energy with no outlet, demands relentless engagement",
+        "1": "strong entrapment \u2014 significantly restricts expression or recovery",
+        "2": "clear entrapment \u2014 blocks healthy dissipation pathways",
+        "3": "moderate burden \u2014 adds sustained pressure with limited relief",
+        "4": "mild burden \u2014 slightly constrains energy release",
+        "5": "neutral \u2014 no energy impact",
+        "6": "mild dissipation \u2014 generally allows for natural processing",
+        "7": "moderate dissipation \u2014 supports expression or creates breathing room",
+        "8": "clear dissipation \u2014 actively supports recovery, rest, or creative outlet",
+        "9": "strong dissipation \u2014 facilitates healthy release and renewal",
+        "10": "maximum dissipation \u2014 exemplary support for rest, expression, and recovery"
       },
       "instruments": [
         {
@@ -1423,7 +1583,7 @@
           "abbreviation": "REQ",
           "authors": "Sonnentag, S. & Fritz, C.",
           "year": 2007,
-          "construct": "Recovery experiences — detachment, relaxation, mastery, control — as energy dissipation mechanisms",
+          "construct": "Recovery experiences \u2014 detachment, relaxation, mastery, control \u2014 as energy dissipation mechanisms",
           "note": "Mastery and control subscales complement the detachment/relaxation items used in cooling_capacity",
           "subscales": [
             {
@@ -1462,7 +1622,7 @@
           "abbreviation": "COR",
           "authors": "Hobfoll, S.E.",
           "year": 1989,
-          "construct": "Stress occurs when resources are threatened, lost, or not regained after investment — resource spirals",
+          "construct": "Stress occurs when resources are threatened, lost, or not regained after investment \u2014 resource spirals",
           "subscales": [
             {
               "id": "cor_loss",
@@ -1481,7 +1641,7 @@
                 },
                 {
                   "id": "cor_l2",
-                  "construct": "Loss spirals — initial loss leading to further losses",
+                  "construct": "Loss spirals \u2014 initial loss leading to further losses",
                   "textual_indicators": [
                     "everything is falling apart",
                     "one thing after another",
@@ -1509,7 +1669,7 @@
               "items": [
                 {
                   "id": "cor_g1",
-                  "construct": "Resource gain spirals — investments yielding returns",
+                  "construct": "Resource gain spirals \u2014 investments yielding returns",
                   "textual_indicators": [
                     "things are building momentum",
                     "investment paying off",
@@ -1520,7 +1680,7 @@
                 },
                 {
                   "id": "cor_g2",
-                  "construct": "Resource caravans — supportive conditions traveling together",
+                  "construct": "Resource caravans \u2014 supportive conditions traveling together",
                   "textual_indicators": [
                     "support from multiple sources",
                     "things aligning",
@@ -1533,25 +1693,57 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "There's no time to rest. You have to keep going. People are counting on you. If you stop now, everything falls apart.",
+          "expected_score": 0,
+          "expected_confidence": 0.9,
+          "rationale": "Traps energy: blocks recovery, weaponizes obligation, catastrophizes rest."
+        },
+        {
+          "text": "Must be nice to take breaks. Some of us actually have work to do.",
+          "expected_score": 2.5,
+          "expected_confidence": 0.7,
+          "rationale": "Shames recovery through passive-aggressive comparison. Discourages healthy dissipation."
+        },
+        {
+          "text": "The library opens at 8am and closes at 10pm Monday through Saturday.",
+          "expected_score": 5,
+          "expected_confidence": 0.5,
+          "rationale": "Neutral factual content. No energy/recovery signals."
+        },
+        {
+          "text": "You've been working hard. Take the afternoon off \u2014 the work will be there tomorrow.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "Acknowledges effort, grants permission for recovery, normalizes temporal perspective."
+        },
+        {
+          "text": "Your wellbeing matters more than the deadline. Let's talk about what you need to recharge, and I'll help redistribute the workload.",
+          "expected_score": 10,
+          "expected_confidence": 0.85,
+          "rationale": "Prioritizes person over task, offers collaborative support, removes structural barriers to recovery."
+        }
       ]
     },
     "defensive_architecture": {
       "id": "defensive_architecture",
-      "name": "Defensive Architecture",
-      "description": "Available protective mechanisms — boundaries, assertive communication, withdrawal options, advocacy structures",
+      "name": "Defensive Architecture (Boundary & Protection Patterns)",
+      "description": "The degree to which content supports, respects, or undermines the establishment and maintenance of interpersonal boundaries and self-protective behaviors. High scores indicate content that validates boundary-setting, respects limits, enables assertiveness, and permits withdrawal without punishment. Low scores indicate content that shames self-protection, violates stated boundaries, punishes assertiveness, or strips protective options.",
       "psq_role": "protective_factor",
       "scoring": {
-        "0": "extreme stripping — completely removes defenses, punishes all self-protection",
-        "1": "strong stripping — severely undermines boundaries or retaliates against defense",
-        "2": "clear stripping — stigmatizes defensive responses or boundary-setting",
-        "3": "moderate undermining — pressures against boundaries or dismisses self-protection",
-        "4": "mild undermining — slightly discourages defensive responses",
-        "5": "neutral — no impact on defensive capacity",
-        "6": "mild support — generally respects personal space and limits",
-        "7": "moderate support — acknowledges boundaries or validates self-protection",
-        "8": "clear support — actively reinforces healthy boundaries",
-        "9": "strong support — advocates for defensive access and protective mechanisms",
-        "10": "maximum support — exemplary boundary modeling with structural protections"
+        "0": "extreme stripping \u2014 completely removes defenses, punishes all self-protection",
+        "1": "strong stripping \u2014 severely undermines boundaries or retaliates against defense",
+        "2": "clear stripping \u2014 stigmatizes defensive responses or boundary-setting",
+        "3": "moderate undermining \u2014 pressures against boundaries or dismisses self-protection",
+        "4": "mild undermining \u2014 slightly discourages defensive responses",
+        "5": "neutral \u2014 no impact on defensive capacity",
+        "6": "mild support \u2014 generally respects personal space and limits",
+        "7": "moderate support \u2014 acknowledges boundaries or validates self-protection",
+        "8": "clear support \u2014 actively reinforces healthy boundaries",
+        "9": "strong support \u2014 advocates for defensive access and protective mechanisms",
+        "10": "maximum support \u2014 exemplary boundary modeling with structural protections"
       },
       "instruments": [
         {
@@ -1568,7 +1760,7 @@
               "items": [
                 {
                   "id": "dsq_m1",
-                  "construct": "Sublimation — channeling unacceptable impulses into socially acceptable activities",
+                  "construct": "Sublimation \u2014 channeling unacceptable impulses into socially acceptable activities",
                   "textual_indicators": [
                     "redirecting frustration into productive action",
                     "using anger as motivation",
@@ -1579,7 +1771,7 @@
                 },
                 {
                   "id": "dsq_m2",
-                  "construct": "Humor — using comedy to manage conflict or distress",
+                  "construct": "Humor \u2014 using comedy to manage conflict or distress",
                   "textual_indicators": [
                     "lightening tension through humor",
                     "self-deprecating humor that builds connection",
@@ -1590,7 +1782,7 @@
                 },
                 {
                   "id": "dsq_m3",
-                  "construct": "Anticipation — realistic planning for future discomfort",
+                  "construct": "Anticipation \u2014 realistic planning for future discomfort",
                   "textual_indicators": [
                     "preparing for difficulty",
                     "planning for foreseeable challenges",
@@ -1601,7 +1793,7 @@
                 },
                 {
                   "id": "dsq_m4",
-                  "construct": "Suppression — conscious decision to postpone attention to a problem",
+                  "construct": "Suppression \u2014 conscious decision to postpone attention to a problem",
                   "textual_indicators": [
                     "let's table this for now",
                     "I'll deal with that when the time comes",
@@ -1618,7 +1810,7 @@
               "items": [
                 {
                   "id": "dsq_n1",
-                  "construct": "Undoing — trying to negate previous actions through opposite behavior",
+                  "construct": "Undoing \u2014 trying to negate previous actions through opposite behavior",
                   "textual_indicators": [
                     "excessive apologizing",
                     "overcorrection",
@@ -1629,7 +1821,7 @@
                 },
                 {
                   "id": "dsq_n2",
-                  "construct": "Idealization — attributing exaggerated positive qualities to others",
+                  "construct": "Idealization \u2014 attributing exaggerated positive qualities to others",
                   "textual_indicators": [
                     "putting someone on a pedestal",
                     "they can do no wrong",
@@ -1646,7 +1838,7 @@
               "items": [
                 {
                   "id": "dsq_i1",
-                  "construct": "Projection — attributing own unacceptable thoughts/feelings to others",
+                  "construct": "Projection \u2014 attributing own unacceptable thoughts/feelings to others",
                   "textual_indicators": [
                     "you're the one who is angry",
                     "attributing own feelings to target",
@@ -1657,7 +1849,7 @@
                 },
                 {
                   "id": "dsq_i2",
-                  "construct": "Passive aggression — indirect expression of hostility",
+                  "construct": "Passive aggression \u2014 indirect expression of hostility",
                   "textual_indicators": [
                     "fine, whatever",
                     "backhanded compliance",
@@ -1669,7 +1861,7 @@
                 },
                 {
                   "id": "dsq_i3",
-                  "construct": "Denial — refusal to acknowledge painful realities",
+                  "construct": "Denial \u2014 refusal to acknowledge painful realities",
                   "textual_indicators": [
                     "that didn't happen",
                     "everything is fine when clearly not",
@@ -1680,7 +1872,7 @@
                 },
                 {
                   "id": "dsq_i4",
-                  "construct": "Splitting — seeing others as all good or all bad",
+                  "construct": "Splitting \u2014 seeing others as all good or all bad",
                   "textual_indicators": [
                     "absolute language about people",
                     "they're evil / they're perfect",
@@ -1775,7 +1967,7 @@
               "items": [
                 {
                   "id": "tki_avo1",
-                  "construct": "Not pursuing own or the other person's concerns — sidestepping or postponing",
+                  "construct": "Not pursuing own or the other person's concerns \u2014 sidestepping or postponing",
                   "textual_indicators": [
                     "let's not talk about this",
                     "conflict avoidance",
@@ -1788,25 +1980,57 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "You don't get to have boundaries with me. After everything I've done for you, how dare you say no?",
+          "expected_score": 0,
+          "expected_confidence": 0.95,
+          "rationale": "Strips defenses: denies right to boundaries, weaponizes obligation, punishes assertiveness."
+        },
+        {
+          "text": "You're so dramatic. It's not a big deal. Stop being so sensitive about everything.",
+          "expected_score": 2.5,
+          "expected_confidence": 0.75,
+          "rationale": "Shames self-protection through minimization and pathologizing of normal boundary responses."
+        },
+        {
+          "text": "The conference registration deadline is March 15th. Early bird pricing ends March 1st.",
+          "expected_score": 5,
+          "expected_confidence": 0.5,
+          "rationale": "Neutral factual content. No boundary-relevant signals."
+        },
+        {
+          "text": "If that situation feels unsafe to you, trust that feeling. You don't owe anyone an explanation for protecting yourself.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "Validates protective instinct, removes justification burden, supports boundary autonomy."
+        },
+        {
+          "text": "You have the right to say no at any point. Here are your options for reporting. Nothing will happen without your explicit consent, and there will be no retaliation.",
+          "expected_score": 10,
+          "expected_confidence": 0.9,
+          "rationale": "Maximum protection: explicit rights, actionable options, consent requirement, anti-retaliation guarantee."
+        }
       ]
     },
     "authority_dynamics": {
       "id": "authority_dynamics",
       "name": "Authority Dynamics",
-      "description": "How power is distributed, exercised, and checked — unchecked authority in the presence of psychoemotional vulnerability is a primary driver of low PSQ",
+      "description": "How power is distributed, exercised, and checked \u2014 unchecked authority in the presence of psychoemotional vulnerability is a primary driver of low PSQ",
       "psq_role": "threat_factor",
       "scoring": {
-        "0": "extreme abuse — unchecked power wielded to harm, dominate, or silence",
-        "1": "strong abuse — coercive authority, intimidation, or control without accountability",
-        "2": "clear imbalance — authority used to dismiss, override, or marginalize",
-        "3": "moderate imbalance — subtle power plays, condescension, or gatekeeping",
-        "4": "mild imbalance — slight authoritarian tone or unacknowledged privilege",
-        "5": "neutral — no power dynamics present or relevant",
-        "6": "mild equity — generally egalitarian communication",
-        "7": "moderate equity — acknowledges power differences, shares decision-making",
-        "8": "clear equity — actively distributes power or elevates others",
-        "9": "strong equity — models accountable authority, invites challenge",
-        "10": "maximum equity — exemplary power-sharing with structural checks"
+        "0": "extreme abuse \u2014 unchecked power wielded to harm, dominate, or silence",
+        "1": "strong abuse \u2014 coercive authority, intimidation, or control without accountability",
+        "2": "clear imbalance \u2014 authority used to dismiss, override, or marginalize",
+        "3": "moderate imbalance \u2014 subtle power plays, condescension, or gatekeeping",
+        "4": "mild imbalance \u2014 slight authoritarian tone or unacknowledged privilege",
+        "5": "neutral \u2014 no power dynamics present or relevant",
+        "6": "mild equity \u2014 generally egalitarian communication",
+        "7": "moderate equity \u2014 acknowledges power differences, shares decision-making",
+        "8": "clear equity \u2014 actively distributes power or elevates others",
+        "9": "strong equity \u2014 models accountable authority, invites challenge",
+        "10": "maximum equity \u2014 exemplary power-sharing with structural checks"
       },
       "instruments": [
         {
@@ -1916,7 +2140,7 @@
               "items": [
                 {
                   "id": "mlq_t1",
-                  "construct": "Idealized influence — acting as a role model",
+                  "construct": "Idealized influence \u2014 acting as a role model",
                   "textual_indicators": [
                     "leading by example language",
                     "walking the talk",
@@ -1927,7 +2151,7 @@
                 },
                 {
                   "id": "mlq_t2",
-                  "construct": "Inspirational motivation — articulating a compelling vision",
+                  "construct": "Inspirational motivation \u2014 articulating a compelling vision",
                   "textual_indicators": [
                     "here's where we're going and why",
                     "shared purpose language",
@@ -1938,7 +2162,7 @@
                 },
                 {
                   "id": "mlq_t3",
-                  "construct": "Intellectual stimulation — encouraging innovation and questioning",
+                  "construct": "Intellectual stimulation \u2014 encouraging innovation and questioning",
                   "textual_indicators": [
                     "what do you think",
                     "I'd like to hear your perspective",
@@ -1949,7 +2173,7 @@
                 },
                 {
                   "id": "mlq_t4",
-                  "construct": "Individualized consideration — attending to each person's needs",
+                  "construct": "Individualized consideration \u2014 attending to each person's needs",
                   "textual_indicators": [
                     "checking in on individual wellbeing",
                     "acknowledging unique circumstances",
@@ -1966,7 +2190,7 @@
               "items": [
                 {
                   "id": "mlq_tr1",
-                  "construct": "Contingent reward — clarifying expectations and recognizing accomplishments",
+                  "construct": "Contingent reward \u2014 clarifying expectations and recognizing accomplishments",
                   "textual_indicators": [
                     "clear expectation-setting",
                     "if you do X you'll receive Y",
@@ -1977,7 +2201,7 @@
                 },
                 {
                   "id": "mlq_tr2",
-                  "construct": "Management by exception — intervening only when standards are not met",
+                  "construct": "Management by exception \u2014 intervening only when standards are not met",
                   "textual_indicators": [
                     "only hearing when something is wrong",
                     "absence of positive feedback",
@@ -2018,6 +2242,38 @@
             }
           ]
         }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "I am the boss. You will do exactly what I say, when I say it. If you don't like it, there's the door. And don't think about complaining \u2014 I know people.",
+          "expected_score": 0,
+          "expected_confidence": 0.95,
+          "rationale": "Maximum authority abuse: unchecked power, eliminates voice, threatens retaliation for dissent."
+        },
+        {
+          "text": "This is not a discussion. The decision is made. Your job is to execute, not to have opinions.",
+          "expected_score": 2.5,
+          "expected_confidence": 0.8,
+          "rationale": "Coercive authority: suppresses input, reduces subordinate to instrument."
+        },
+        {
+          "text": "The new policy takes effect on April 1st. Details are in the attached document.",
+          "expected_score": 5,
+          "expected_confidence": 0.5,
+          "rationale": "Neutral policy communication. Authority is present but neither abusive nor distributive."
+        },
+        {
+          "text": "I have a proposal, but I want to hear everyone's input before we decide. Every perspective matters here.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "Distributed authority: leader shares power, solicits input, values diverse perspectives."
+        },
+        {
+          "text": "This affects all of us equally, so we'll decide together. I'll facilitate, but my vote counts the same as yours. If anyone feels pressured, we can do anonymous voting.",
+          "expected_score": 10,
+          "expected_confidence": 0.85,
+          "rationale": "Maximum healthy authority: equal power, procedural safeguards, pressure detection mechanism."
+        }
       ]
     },
     "contractual_clarity": {
@@ -2026,17 +2282,17 @@
       "description": "The degree to which expectations, obligations, and consequences are explicit, mutual, and enforceable",
       "psq_role": "protective_factor",
       "scoring": {
-        "0": "extreme violation — gaslighting, total term-shifting, or deliberate betrayal of agreements",
-        "1": "strong violation — clear breach of expectations or unilateral redefinition",
-        "2": "clear ambiguity — hidden agendas, unstated rules, or misleading framing",
-        "3": "moderate ambiguity — vague expectations or shifting goalposts",
-        "4": "mild ambiguity — slightly unclear terms or implicit assumptions",
-        "5": "neutral — no contractual signals",
-        "6": "mild clarity — generally straightforward communication",
-        "7": "moderate clarity — explicit expectations, consistent framing",
-        "8": "clear clarity — transparent terms, mutual understanding",
-        "9": "strong clarity — explicit mutual agreements with accountability",
-        "10": "maximum clarity — exemplary contractual transparency with structural enforcement"
+        "0": "extreme violation \u2014 gaslighting, total term-shifting, or deliberate betrayal of agreements",
+        "1": "strong violation \u2014 clear breach of expectations or unilateral redefinition",
+        "2": "clear ambiguity \u2014 hidden agendas, unstated rules, or misleading framing",
+        "3": "moderate ambiguity \u2014 vague expectations or shifting goalposts",
+        "4": "mild ambiguity \u2014 slightly unclear terms or implicit assumptions",
+        "5": "neutral \u2014 no contractual signals",
+        "6": "mild clarity \u2014 generally straightforward communication",
+        "7": "moderate clarity \u2014 explicit expectations, consistent framing",
+        "8": "clear clarity \u2014 transparent terms, mutual understanding",
+        "9": "strong clarity \u2014 explicit mutual agreements with accountability",
+        "10": "maximum clarity \u2014 exemplary contractual transparency with structural enforcement"
       },
       "instruments": [
         {
@@ -2120,7 +2376,7 @@
                 },
                 {
                   "id": "pci_b2",
-                  "construct": "Violation — emotional response to perceived breach",
+                  "construct": "Violation \u2014 emotional response to perceived breach",
                   "textual_indicators": [
                     "I feel betrayed",
                     "emotional weight of broken promise",
@@ -2149,7 +2405,7 @@
           "id": "copsoq_role",
           "name": "COPSOQ Role Clarity Subscale",
           "abbreviation": "COPSOQ-RC",
-          "authors": "Kristensen, T.S., Hannerz, H., Høgh, A., & Borg, V.",
+          "authors": "Kristensen, T.S., Hannerz, H., H\u00f8gh, A., & Borg, V.",
           "year": 2005,
           "construct": "Clarity of role expectations and responsibilities",
           "subscales": [
@@ -2192,7 +2448,7 @@
                 },
                 {
                   "id": "copsoq_rc4",
-                  "construct": "Role ambiguity — not knowing what is expected",
+                  "construct": "Role ambiguity \u2014 not knowing what is expected",
                   "textual_indicators": [
                     "I don't know what you want from me",
                     "unclear expectations",
@@ -2204,6 +2460,38 @@
               ]
             }
           ]
+        }
+      ],
+      "calibration_anchors": [
+        {
+          "text": "I never said that. You're imagining things. We never had that agreement \u2014 you must have misunderstood.",
+          "expected_score": 0,
+          "expected_confidence": 0.95,
+          "rationale": "Maximum ambiguity via gaslighting: denies agreements, questions perception, shifts blame."
+        },
+        {
+          "text": "Well, things change. What I expected last month isn't what I expect now. You should have anticipated that.",
+          "expected_score": 2.5,
+          "expected_confidence": 0.75,
+          "rationale": "Shifting expectations without acknowledgment. Retroactive standard-changing."
+        },
+        {
+          "text": "It rained 3.2 inches yesterday, above the seasonal average of 2.1 inches.",
+          "expected_score": 5,
+          "expected_confidence": 0.5,
+          "rationale": "Neutral factual content. No contractual or expectation signals."
+        },
+        {
+          "text": "Here's what I need from you: the draft by Friday, with the three sections we discussed. I'll provide feedback by Monday.",
+          "expected_score": 7.5,
+          "expected_confidence": 0.8,
+          "rationale": "Clear expectations with specific deliverables, timeline, and mutual obligations."
+        },
+        {
+          "text": "Let's put this in writing so we're both clear. You'll handle X, I'll handle Y. If either of us can't deliver, we'll notify the other by Z date. If we disagree, we'll use [specific process]. Does this capture your understanding?",
+          "expected_score": 10,
+          "expected_confidence": 0.9,
+          "rationale": "Maximum clarity: written documentation, mutual obligations, contingency plan, dispute resolution, consent check."
         }
       ]
     }
