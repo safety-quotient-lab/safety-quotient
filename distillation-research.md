@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-26
-**Status:** v9 complete (test_r=0.515, held-out_r=0.385). v10 data prep in progress (305 more auth synthetic).
-**Next:** v10 training, improve threat_exposure proxy coverage, ONNX export of best model.
+**Status:** v10 complete (test_r=0.534, held-out_r=0.425). LLM relabeling improved held-out by 10%.
+**Next:** v11 training (add synthetic ad_8, te_2, ed_2, da_2), fix threat_exposure generalization, ONNX export.
 
 ---
 
@@ -33,6 +33,7 @@
 12. [Theoretical Refinements](#12-theoretical-refinements-decisions-for-v4) — 9-factor model (defer), defensive arch redefinition (apply), score anchors (apply), validation study (design ready)
 14. [V5–V8 Training Findings](#14-v5v8-training-findings-2026-02-27) — duplicate contamination, signal amplification, data pipeline fixes, synthetic strategy, model comparison
 15. [Held-Out Real-World Evaluation](#15-held-out-real-world-evaluation-2026-02-27) — 100 real-world texts, generalization gap analysis, dimension tiers
+16. [V10 Training: LLM Relabeling Impact](#16-v10-training-llm-relabeling-impact-2026-02-27) — relabeled 1,000 texts, held-out +10%, threat still broken
 13. [References](#13-references)
 
 ---
@@ -1644,6 +1645,68 @@ A held-out evaluation on real-world text with independent LLM labels provides a 
 - MSE=24.45 indicates model is systematically wrong, not just noisy
 
 **Key insight**: The held-out average (0.385) vs test average (0.515) represents a **25% generalization gap**. Four dimensions genuinely work; six need better training signal. Threat exposure needs complete proxy redesign.
+
+---
+
+## 16. V10 Training: LLM Relabeling Impact (2026-02-27)
+
+### 16a. Intervention
+
+Root cause analysis of the 6 weak dimensions revealed the composite proxy labels were fundamentally broken:
+- **Score clustering**: 34-48% of records at exactly 5.0 (neutral) for energy, regulatory, defensive
+- **Distribution asymmetry**: threat_exposure had 21:1 high-to-low ratio; energy_dissipation max was 6.8
+- **Zero signal**: authority_dynamics mean confidence 0.045 (effectively dead)
+- **Wrong labels**: 1,285 Civil Comments records scored threat_exposure=10.0 ("perfectly safe") despite describing harassment, abuse, violence
+
+**Strategy**: LLM relabeling of 1,000 existing composite texts (250 each for threat_exposure, energy_dissipation, regulatory_capacity, defensive_architecture). Same real-world texts, correct labels. Dedup in distill.py replaces composite version with LLM version at 5x weight.
+
+### 16b. V10 Test Results (DistilBERT, 8 epochs, early stop)
+
+| Dimension | v9 test_r | v10 test_r | Change |
+|---|---|---|---|
+| threat_exposure | +0.578 | **+0.677** | +17% |
+| hostility_index | +0.671 | +0.588 | -12% |
+| authority_dynamics | +0.197 | +0.213 | +8% |
+| energy_dissipation | +0.639 | **+0.642** | +0.5% |
+| regulatory_capacity | +0.525 | +0.523 | flat |
+| resilience_baseline | +0.596 | +0.585 | flat |
+| trust_conditions | +0.430 | +0.521 | +21% |
+| cooling_capacity | +0.452 | +0.451 | flat |
+| defensive_architecture | +0.399 | +0.409 | +3% |
+| contractual_clarity | +0.610 | **+0.803** | +32% |
+| **AVERAGE** | **+0.515** | **+0.534** | **+4%** |
+
+### 16c. V10 Held-Out Results
+
+| Dimension | v9 held-out | v10 held-out | Change |
+|---|---|---|---|
+| threat_exposure | +0.092 | +0.093 | flat (still broken) |
+| **hostility_index** | +0.703 | **+0.711** | stable |
+| authority_dynamics | +0.169 | **+0.311** | **+84%** |
+| energy_dissipation | +0.305 | **+0.350** | +15% |
+| regulatory_capacity | +0.179 | **+0.333** | **+86%** |
+| **resilience_baseline** | +0.522 | **+0.566** | +8% |
+| **trust_conditions** | +0.633 | **+0.684** | +8% |
+| **cooling_capacity** | +0.704 | **+0.757** | +8% |
+| defensive_architecture | +0.229 | +0.241 | +5% |
+| contractual_clarity | +0.317 | +0.209 | -34% |
+| **AVERAGE** | **+0.385** | **+0.425** | **+10%** |
+
+### 16d. Analysis
+
+**LLM relabeling works.** The 1,000 relabeled texts improved held-out r by 10% overall:
+- **authority_dynamics** (+84%) and **regulatory_capacity** (+86%) saw the biggest gains — these had the worst proxy labels
+- **Tier 1 dimensions** (hostility, trust, cooling, resilience) remained stable or improved slightly
+- **contractual_clarity** regressed in held-out (-34%) despite strong test_r — likely small sample noise (n=32)
+
+**Threat exposure remains broken** (held-out r=0.09 despite test_r=0.68). The relabeled threat texts improved the training signal but the model still fails to generalize. Hypothesis: the 250 relabeled texts aren't enough to overcome the 1,285 Civil Comments records at score=10.0 in composite data. V11 will add 200 synthetic threat_exposure texts with balanced score distribution.
+
+**Updated dimension tiers (v10 held-out):**
+- **Tier 1 (r > 0.5)**: hostility (0.71), cooling (0.76), trust (0.68), resilience (0.57) — 4 dims
+- **Tier 2 (r 0.2-0.5)**: energy (0.35), regulatory (0.33), authority (0.31), defensive (0.24), contractual (0.21) — 5 dims
+- **Tier 3 (r < 0.1)**: threat_exposure (0.09) — 1 dim
+
+**V11 plan**: Ingest 4 additional synthetic batches (ad_8: 305 authority_dynamics, te_2: 200 threat_exposure, ed_2: 150 energy_dissipation, da_2: 191 defensive_architecture) to address remaining weak dimensions, especially threat_exposure.
 
 ---
 

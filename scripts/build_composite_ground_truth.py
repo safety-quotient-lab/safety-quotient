@@ -182,7 +182,11 @@ def load_civil_comments(n=SAMPLES_PER_DATASET):
         hostility_conf = float(np.clip(0.4 + row["toxicity"] * 0.4, 0.4, 0.80))
 
         dims = {
-            "threat_exposure": {"score": round(combined_threat, 1), "confidence": round(threat_conf, 2)},
+            # REMOVED threat_exposure: 95% of records score 9-10 ("perfectly safe")
+            # because the proxy maps "not threatening from author's POV" to "safe for
+            # target" — wrong. Texts describing harassment/abuse/violence get 10.0.
+            # 1,754/1,853 records at score>=9.0 actively poison the model.
+            # threat_exposure will be learned from LLM labels + synthetic data only.
             "hostility_index": {"score": float(hostility_score), "confidence": round(hostility_conf, 2)},
         }
         records.append(make_record(row["text"], dims, "civil_comments"))

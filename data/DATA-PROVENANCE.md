@@ -9,7 +9,7 @@ All datasets used in PSQ student model training, with licenses, sizes, quality a
 | Dataset | License | Records | PSQ Dimensions | Quality | Audit Status |
 |---|---|---|---|---|---|
 | **Berkeley Measuring Hate Speech** | CC-BY 4.0 | 2,000 | threat_exposure, hostility_index | Good (IRT-derived scores, multi-annotator) | Clean |
-| **Civil Comments** (Google/Jigsaw) | CC0 1.0 | 2,000 | threat_exposure, hostility_index | Good (crowd-annotated, large scale) | Clean |
+| **Civil Comments** (Google/Jigsaw) | CC0 1.0 | 2,000 | hostility_index | Good (crowd-annotated, large scale) | threat_exposure REMOVED |
 | **GoEmotions** (Google) | Apache 2.0 | 2,000 | regulatory_capacity, resilience_baseline, trust_conditions, cooling_capacity, hostility_index, energy_dissipation, defensive_architecture | Moderate (27 emotion labels, proxy gap to PSQ constructs) | Clean |
 | **UCC** (Unhealthy Conversations) | CC-BY 4.0 | 1,949 | authority_dynamics, trust_conditions, cooling_capacity, hostility_index, defensive_architecture | Mixed | Partially removed |
 
@@ -17,6 +17,10 @@ All datasets used in PSQ student model training, with licenses, sizes, quality a
 - `condescending → authority_dynamics`: retained but confidence halved (0.25x) — narrow construct, +2.8 bias
 - `generalisation_unfair → contractual_clarity`: **REMOVED** in v3b — bias -2.32, negative r, actively harmful
 - Other mappings (hostile, dismissive, sarcastic): retained with reduced confidence
+
+**Civil Comments audit notes:**
+- `threat + severe_toxicity → threat_exposure`: **REMOVED** in v10 — 95% of records (1,754/1,853) scored 9-10 ("perfectly safe") because proxy maps "not threatening from author's POV" to "safe for target". Texts describing harassment, rape, ethnic cleansing got score 10.0. Actively poisoned threat_exposure training.
+- `toxicity + insult → hostility_index`: retained — works correctly (toxicity is a valid hostility proxy)
 
 ### Tier 2: Expanded Sources (added v2d/v3)
 
@@ -42,7 +46,7 @@ All datasets used in PSQ student model training, with licenses, sizes, quality a
 
 **API labels (1,353 records):** Claude LLM teacher labels from unlabeled pool. These were originally 1,376 but 23 internal duplicates removed in v9. Covers all 10 dimensions, 50-450 per dim depending on composite coverage.
 
-**Synthetic labels (1,059 records as of 2026-02-27):** Targeted generation for signal-starved dimensions. All written by Claude, scored on single primary dimension.
+**Synthetic labels (1,905 records as of 2026-02-27):** Targeted generation for signal-starved dimensions. All written by Claude, scored on single primary dimension.
 
 | Batch | File | Count | Target dimension | Date |
 |---|---|---|---|---|
@@ -51,14 +55,25 @@ All datasets used in PSQ student model training, with licenses, sizes, quality a
 | ad_5 | psq_synthetic_ad_5.json | 87 | authority_dynamics (education/family) | 2026-02-27 |
 | ad_6 | psq_synthetic_ad_6.json | 87 | authority_dynamics (institutional/government) | 2026-02-27 |
 | ad_7 | psq_synthetic_ad_7.json | 100 | authority_dynamics (community/online) | 2026-02-27 |
+| ad_8 | psq_synthetic_ad_8.json | 305 | authority_dynamics (all contexts, balanced) | 2026-02-27 |
 | co_2 | psq_synthetic_co_2.json | 185 | contractual_clarity | 2026-02-27 |
 | co_3 | psq_synthetic_co_3.json | 183 | contractual_clarity | 2026-02-27 |
+| te_2 | psq_synthetic_te_2.json | 200 | threat_exposure (low-score heavy) | 2026-02-27 |
+| ed_2 | psq_synthetic_ed_2.json | 150 | energy_dissipation | 2026-02-27 |
+| da_2 | psq_synthetic_da_2.json | 191 | defensive_architecture | 2026-02-27 |
 | tc_2 | psq_synthetic_tc_2.json | 30 | trust_conditions | 2026-02-27 |
 | cc_2 | psq_synthetic_cc_2.json | 30 | cooling_capacity | 2026-02-27 |
 | rb_2 | psq_synthetic_rb_2.json | 20 | resilience_baseline | 2026-02-27 |
 | rc_2 | psq_synthetic_rc_2.json | 20 | regulatory_capacity | 2026-02-27 |
 
-**v10 pending:** ad_8 (305 authority_dynamics texts, all 6 contexts) — not yet ingested as of 2026-02-27
+**Relabeled records (941 records as of 2026-02-27):** Existing composite texts relabeled by Claude on specific dimensions where proxy labels were broken.
+
+| Batch | File | Count | Target dimension | Date |
+|---|---|---|---|---|
+| relabel_thre | psq_relabeled_thre.json | 250 | threat_exposure | 2026-02-27 |
+| relabel_ener | psq_relabeled_ener.json | 250 | energy_dissipation | 2026-02-27 |
+| relabel_regu | psq_relabeled_regu.json | 250 | regulatory_capacity | 2026-02-27 |
+| relabel_defe | psq_relabeled_defe.json | 250 | defensive_architecture | 2026-02-27 |
 
 **Design notes:**
 - Auth_dynamics zeroed in composite for politeness/UCC sources (3,515 records) — too noisy for proxy labeling
@@ -73,28 +88,28 @@ All datasets used in PSQ student model training, with licenses, sizes, quality a
 
 Assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/held_out_labeled_b.json` (50 texts), both LLM-labeled independently. Abbreviation keys mapped to full dimension names by `scripts/assemble_held_out.py`.
 
-## Composite Summary (v9, 2026-02-27)
+## Composite Summary (v12, 2026-02-27)
 
 | Metric | Value |
 |---|---|
-| Total records | ~21,094 (17,682 composite + 2,412 LLM/synthetic) |
-| Composite proxy records | 17,682 (auth zeroed for 3,515 politeness/UCC records) |
-| LLM records | 1,353 API + 1,059 synthetic = 2,412 |
+| Total records | ~21,842 (17,643 composite + 4,199 LLM) |
+| Composite proxy records | 17,643 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
+| LLM records | 1,353 API + 1,905 synthetic + 941 relabeled = 4,199 |
 | Held-out test records | 100 (separate, not in training) |
 | Train / Val / Test | ~80% / 10% / 10% (hash-based text split) |
-| Source datasets | 11 active (2 removed) |
+| Source datasets | 11 active (2 removed, 1 partially removed) |
 | Dimensions covered | 10/10 |
-| Weakest dimension (composite) | authority_dynamics (244 meaningful composite records) |
-| v10 target | 1,000 meaningful samples per dimension (composite + synthetic) |
+| v12 training | all synthetic (ad_8, te_2, ed_2, da_2) + relabeled (thre, ener, regu, defe) |
 
 ## Data Pipeline
 
 ```
-build_composite_ground_truth.py → composite-ground-truth.jsonl (17,682)
+build_composite_ground_truth.py → composite-ground-truth.jsonl (17,643)
   ↑ includes map_new_datasets.py results automatically
-LLM labeling / synthetic gen     → train-llm.jsonl (2,412 currently)
+LLM labeling / synthetic gen     → train-llm.jsonl (4,199 currently)
   via: label_batch_helper.py append-synthetic --input <file>
   via: batch_label_llm.js (API-labeled pool texts)
+  via: ingest_v10_data.py (bulk ingest synthetic + relabeled batches)
 build_unlabeled_pool.py          → unlabeled-pool.jsonl (17,451 texts)
   (raw dataset texts not in composite)
 assemble_held_out.py             → data/held-out-test.jsonl (100 texts)
