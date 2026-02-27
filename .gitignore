@@ -21,6 +21,11 @@ data/prosocial/
 data/ucc.csv
 data/proxy-validation/
 
+# SQLite database (binary, derived from schema.sql + migrate.py)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
 # Backup files
 data/*.bak
 data/*.bak2
