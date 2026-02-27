@@ -51,20 +51,23 @@ optimizer:           AdamW (weight_decay=0.01)
 scheduler:           linear warmup (10% of steps) + linear decay
 ```
 
-## Held-Out Results by Dimension (v13)
+## Held-Out Results by Dimension (v13, separated labels)
+
+Re-scored with separated LLM calls (one dimension per call) to eliminate halo effect. All 100 texts now have complete 10-dimension coverage.
 
 | Dimension | r | MSE | n | Notes |
 |---|---|---|---|---|
-| threat_exposure | +0.12 | 16.42 | 53 | Still broken — CC poisoning effect persists in model |
-| hostility_index | +0.63 | 4.32 | 62 | Strong — best proxy coverage |
-| authority_dynamics | +0.46 | 3.37 | 34 | Improved — ad_8 synthetic helped |
-| energy_dissipation | +0.30 | 3.48 | 27 | Moderate — range compression from composite |
-| regulatory_capacity | +0.30 | 2.34 | 64 | Moderate — relabeling helped |
-| resilience_baseline | +0.56 | 2.03 | 41 | Strong — GoEmotions + Empathetic Dialogues |
-| trust_conditions | +0.58 | 4.61 | 52 | Strong — reliable since v3 |
-| cooling_capacity | +0.66 | 3.38 | 40 | Strong — GoEmotions proxy works |
-| defensive_architecture | +0.32 | 3.47 | 59 | Moderate — redefined construct |
-| contractual_clarity | +0.35 | 4.74 | 32 | Moderate — small dataset |
+| threat_exposure | +0.16 | 13.62 | 99 | Still weakest — CC poisoning effect persists in model |
+| hostility_index | +0.48 | 5.63 | 99 | Strong — best proxy coverage |
+| authority_dynamics | +0.46 | 1.69 | 93 | Improved — ad_8 synthetic helped |
+| energy_dissipation | +0.39 | 1.99 | 99 | Moderate — range compression from composite |
+| regulatory_capacity | +0.32 | 1.56 | 99 | Moderate — relabeling helped |
+| resilience_baseline | +0.50 | 1.30 | 99 | Strong — GoEmotions + Empathetic Dialogues |
+| trust_conditions | +0.50 | 4.30 | 99 | Strong — reliable since v3 |
+| cooling_capacity | +0.57 | 2.76 | 99 | Strong — GoEmotions proxy works |
+| defensive_architecture | +0.37 | 1.95 | 88 | Moderate — redefined construct |
+| contractual_clarity | +0.27 | 2.16 | 89 | Moderate — small dataset |
+| **Average** | **+0.402** | | | **Down from 0.428 (joint) — harder benchmark** |
 
 ## Calibration Summary (v13)
 
