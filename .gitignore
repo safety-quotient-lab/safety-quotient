@@ -6,3 +6,21 @@ __pycache__/
 *.pyc
 *.egg-info/
 dist/
+
+# Raw source datasets (too large / not redistributable)
+data/casino/
+data/diplomacy/
+data/dreaddit/
+data/dreaddit.zip
+data/empatheticdialogues/
+data/empatheticdialogues.tar.gz
+data/esconv-train.jsonl
+data/measuring-hate-speech.parquet
+data/politeness/
+data/prosocial/
+data/ucc.csv
+data/proxy-validation/
+
+# Backup files
+data/*.bak
+data/*.bak2
