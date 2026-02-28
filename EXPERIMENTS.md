@@ -75,9 +75,9 @@ Version-by-version record of every training run, with hyperparameters, data chan
 **Notes on v22c:** **Curriculum learning adds NO benefit over proxy removal alone (v22c 0.638 < v22a 0.682, Δ=−0.044). Curriculum REJECTED.** All 10 dims worse than v22a. Largest regressions: HI (−0.114), TE (−0.091), DA (−0.070), CC (−0.055). Worst test_r of the v22 series (0.431) due to proxy-clean test split from test-clean batch ingestion. The complete 2×2 ablation (v22a/v22b/v22c) confirms proxy removal alone is the sufficient and dominant intervention. v22a remains the production candidate.
 
 | **v23** | **2026-02-28** | **DistilBERT** | **0.387** | **2e-5** | **32** | **0.696** | **NEW BEST** | +5,500 separated-llm: ccda (200 texts), proxy-audit (200 texts), held-out-expand (150 texts) × 10 dims. DB: 22,186 texts, 90,361 scores. | `--drop-proxy-dims`. Same config as v22a. 8 epochs (early stop). |
-| v24 | 2026-02-28 | DistilBERT | — | 2e-5 | 16 (eff. 32) | — | **Training** | Same data as v23 (no new labels). Context length experiment. | `--drop-proxy-dims --max-length 256 --batch-size 16 --grad-accum 2`. Smoke test: 1 epoch, 649s, no OOM. |
+| v24 | 2026-02-28 | DistilBERT | 10 | 2e-5 | 16 (eff. 32) | — | 0.6702 | Same data as v23 (no new labels). Context length experiment: 256-token context. | `--drop-proxy-dims --max-length 256 --batch-size 16 --grad-accum 2`. |
 
-**Notes on v24:** Context length ablation: does 256-token context improve held-out_r vs v23's 128-token context? Effective batch size preserved (16×2=32). Training time ~11 min/epoch. Metrics pending.
+**Notes on v24:** Context length ablation. 256 tokens regresses vs v23 (128 tok): −0.026 average (0.696→0.670). Only 2/10 dims improved (CC +0.022, AD +0.014). Worst regressions: CO −0.078, TE −0.063, HI −0.043. **128-token context confirmed superior.** Not promoted.
 
 **Notes on v23:** New data since v22a: 550 texts × 10 dims = 5,500 new separated-LLM labels. CO-targeted (ccda), source-diverse (proxy-audit: goemotions/ucc/casino/berkeley), general (held-out-expand). Proxy audit confirmed proxy-drop: all DROPPED dims show near-zero/negative proxy-LLM r within those sources. **Held-out: 7/10 dims improved.** Big winners: ED +0.056 (0.712→0.768), CO +0.045 (0.504→0.549), AD +0.030 (0.679→0.709), RC +0.026, CC +0.021. Regressions: HI -0.028 (0.719→0.691), RB -0.020 (0.640→0.621), TE -0.005 (flat). Test_r lower than v22a (0.387 vs 0.457) — test-split paradox: proxy-labeled test texts no longer in training distribution. **Promoted to production (replacing v22a).**
 
@@ -129,6 +129,42 @@ With `batch_size=16, grad_accum=2`: 32 samples per update (v21; also needed for 
 **CLI:** `python scripts/distill.py --max-length 256 --batch-size 16 --grad-accum 2 --out models/psq-v24`
 
 ## Held-Out Results by Dimension
+
+### v24 (context length: 256 tokens, 2026-02-28)
+
+256-token context, batch=16, grad-accum=2. Same data as v23. 100 real-world held-out texts.
+
+| Dimension | r | Δ vs v23 | Notes |
+|---|---|---|---|
+| regulatory_capacity | +0.782 | +0.000 | Flat |
+| energy_dissipation | +0.767 | −0.001 | Flat |
+| cooling_capacity | +0.761 | **+0.022** | Improved |
+| authority_dynamics | +0.723 | **+0.014** | Improved |
+| threat_exposure | +0.737 | −0.063 | **Regression** |
+| trust_conditions | +0.653 | −0.036 | Regression |
+| hostility_index | +0.648 | −0.043 | Regression |
+| resilience_baseline | +0.588 | −0.033 | Regression |
+| defensive_architecture | +0.572 | −0.036 | Regression |
+| contractual_clarity | +0.471 | **−0.078** | **Largest regression** |
+| **Average** | **+0.670** | **−0.026** | **128-token context (v23) is superior. Longer context does not help at DistilBERT scale on this corpus.** |
+
+### v23 (current production best, 2026-02-28)
+
+`--drop-proxy-dims`: proxy removed for TE, TC, CC, AD, ED. +550 texts (ccda + proxy-audit + held-out-expand batches). 100 real-world held-out texts.
+
+| Dimension | r | Δ vs v22a | Notes |
+|---|---|---|---|
+| threat_exposure | +0.800 | −0.005 | Flat from v22a — strong baseline |
+| regulatory_capacity | +0.782 | +0.026 | Improved |
+| energy_dissipation | +0.768 | **+0.056** | Strong gain |
+| cooling_capacity | +0.739 | +0.020 | Improved |
+| authority_dynamics | +0.709 | +0.030 | Improved |
+| hostility_index | +0.691 | −0.028 | Slight regression from strong baseline |
+| trust_conditions | +0.689 | +0.010 | Improved |
+| resilience_baseline | +0.621 | −0.019 | Slight regression |
+| defensive_architecture | +0.608 | +0.001 | Flat |
+| contractual_clarity | +0.549 | **+0.045** | Strong gain — weakest dim still |
+| **Average** | **+0.696** | **+0.014** | **New best. 7/10 dims improved. Promoted to production.** |
 
 ### v22a (new best, 2026-02-28)
 

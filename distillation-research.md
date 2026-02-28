@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v23 held-out_r=**0.696** (new best, +0.014 vs v22a). Data quality: +550 texts (ccda 200 + proxy-audit 200 + held-out-expand 150) × 10 dims = 5,500 new separated-llm labels. 7/10 dims improved: ED +0.056 (0.712→0.768), CO +0.045 (0.504→0.549), AD +0.030, RC +0.026, CC +0.020. Minor regressions: HI -0.028, RB -0.019 (both from strong baselines >0.62). ONNX re-exported (254 MB / 64 MB quantized). AD description updated in psq-definition.md §9 to reflect peer-context status negotiation finding.
-**Next:** Begin expert validation recruitment. Complete psq-definition.md rubric review (AD anchors, CO distribution). CMV v23 rerun complete (§59, AUC=0.5735). DonD v23 rerun complete (§60, AUC=0.732, T3b confirmed). Three new labeling batches extracted: UCC (150), civil_comments (100), extreme-adco (118).
+**Status:** v23 held-out_r=**0.696** (production best). v24 context length experiment complete (§61): 256-token context regresses −0.026 to 0.670, **128 tokens confirmed superior**. v25 (512 tok) training on GPU; v26 (128 tok, LR=1e-5) queued. CGA-Wiki T2 temporal analysis in progress.
+**Next:** v25/v26 results → EXPERIMENTS.md + §61 update. T2 temporal analysis → §61b + journal.md §24 update. Expert validation recruitment. Three labeling batches pending: UCC(150), civil_comments(100), extreme-adco(118).
 
 ---
 
@@ -75,6 +75,7 @@
 58. [v23 Results: Data Quality Drives Sustained Improvement](#58-v23-results-data-quality-drives-sustained-improvement-2026-02-28) — held-out_r=0.696 (new best, +0.014 vs v22a); +550 texts across 3 batches; 7/10 dims improved; AD description updated; ONNX re-exported.
 59. [Criterion Validity: CMV v23 Rerun](#59-criterion-validity-cmv-v23-rerun-2026-02-28) — AUC=0.5735 (was 0.590 v16); TE non-significance confirms adversarial proxy artifact; 7/10 dims significant; CO not a persuasion predictor.
 60. [Criterion Validity: DonD v23 Rerun + T3b Confirmed](#60-criterion-validity-dond-v23-rerun--t3b-confirmed-2026-02-28) — AUC=0.732 (+0.046 vs v18); TE displaces ED as top bivariate predictor; T3b confirmed (AD predicts deal not points); 28.7pp deal gap.
+61. [Context Length Experiment: v24/v25/v26 + CGA-Wiki T2 Temporal Analysis](#61-context-length-experiment-v24-256-tok-v25-512-tok-v26-lr1e-5-2026-02-28) — v24 (256 tok): held-out_r=0.670 (−0.026 vs v23); 128 tokens confirmed superior. v25/v26 training. T2 cross-lagged analysis pending.
 13. [References](#13-references)
 
 ---
@@ -4899,6 +4900,50 @@ In v18, AD bivariate r_pb=−0.026 (effectively zero). In v23, r_pb=+0.138. The 
 | T3b (AD predicts deal not points) | Untested | Confirmed | — | Key construct validity evidence |
 
 ---
+
+## §61. Context Length Experiment: v24 (256 tok), v25 (512 tok), v26 (LR=1e-5) (2026-02-28)
+
+### 61a. Motivation
+
+v23 uses 128-token context (`max_length=128`), which truncates ~28% of held-out texts and a comparable fraction of training data. The hypothesis: longer context captures more of each text's psychological dynamics, potentially improving prediction of dimensions that depend on conversational arc (ED, TE, TC). The experiment sweeps 128 → 256 → 512 tokens while preserving the effective batch size (32 samples per gradient update) via gradient accumulation.
+
+**Design:** Hardware constraint (GTX 1060, 6 GB VRAM) requires halving batch_size when doubling max_length. Effective batch preserved: batch_size × grad_accum = 32 in all cases. v26 tests LR sensitivity at the proven 128-token configuration rather than context length.
+
+### 61b. v24 Results (256-token context, 2026-02-28)
+
+**Result: 256 tokens regresses. 128-token context (v23) is superior.**
+
+v24 held-out_r = **0.670** (−0.026 vs v23's 0.696). Only 2/10 dims improved:
+
+| Dimension | v23 r | v24 r | Δ | Notes |
+|---|---|---|---|---|
+| regulatory_capacity | 0.782 | 0.782 | 0.000 | Flat |
+| energy_dissipation | 0.768 | 0.767 | −0.001 | Flat |
+| cooling_capacity | 0.739 | 0.761 | **+0.022** | Improved — benefits from full context |
+| authority_dynamics | 0.709 | 0.723 | **+0.014** | Improved |
+| threat_exposure | 0.800 | 0.737 | −0.063 | Regression |
+| trust_conditions | 0.689 | 0.653 | −0.036 | Regression |
+| hostility_index | 0.691 | 0.648 | −0.043 | Regression |
+| resilience_baseline | 0.621 | 0.588 | −0.033 | Regression |
+| defensive_architecture | 0.608 | 0.572 | −0.036 | Regression |
+| contractual_clarity | 0.549 | 0.471 | **−0.078** | **Largest regression** |
+| **Average** | **0.696** | **0.670** | **−0.026** | **128 tokens superior** |
+
+**Interpretation:** Longer context does not help at DistilBERT scale on this corpus. Possible explanations: (1) the relevant safety-relevant signal is concentrated in early text windows; (2) DistilBERT's 6-layer attention cannot effectively leverage long-range dependencies that a larger model (e.g., DeBERTa) could exploit; (3) the GPU batch size reduction (32→16 per step) introduces more gradient variance despite identical effective batch size. v24 not promoted.
+
+### 61c. v25 and v26 (in progress, 2026-02-28)
+
+v25 (512 tokens, batch=8, grad-accum=4) is **training on GPU** (as of 2026-02-28). Eval → `/tmp/psq_v25_eval.txt` when complete.
+
+v26 (128 tokens, LR=1e-5 — half of v23's 2e-5) is queued after v25. Tests whether slower training with the proven 128-token configuration can push held-out_r above 0.696. Eval → `/tmp/psq_v26_eval.txt` when complete.
+
+Results will be documented here when the unattended queue completes.
+
+### 61d. CGA-Wiki Temporal Analysis (in progress, 2026-02-28)
+
+`scripts/criterion_cgawiki_temporal.py` is scoring all 25,351 individual utterances from the CGA-Wiki corpus (4,179 conversations, 2,094 derailing + 2,085 control) with v23. This tests T2 from journal.md §24: does AD deteriorate *before* HI/TE in conversations that derail (cross-lagged correlation analysis)?
+
+The script computes r(AD_t, HI_{t+1}) vs r(HI_t, AD_{t+1}) in derailing conversations and performs a Fisher z-test to determine directional asymmetry. Results will be added to §61d and journal.md §24 when complete.
 
 ## 13. References
 
