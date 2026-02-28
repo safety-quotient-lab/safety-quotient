@@ -33,7 +33,7 @@ import argparse
 import hashlib
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from itertools import combinations
 from pathlib import Path
 
@@ -265,7 +265,7 @@ def cmd_ingest(args):
     print(f"Ingested {len(normalized)} scores for {dim_id} → {out_path} ({len(existing)} total)")
 
     # Log timing if --started-at was provided
-    now = datetime.now(timezone.utc)
+    now = datetime.now().astimezone()
     batch_name = None
     meta_path = WORK_DIR / "session_meta.json"
     if meta_path.exists():
@@ -285,7 +285,7 @@ def cmd_ingest(args):
         try:
             started = datetime.fromisoformat(args.started_at)
             if started.tzinfo is None:
-                started = started.replace(tzinfo=timezone.utc)
+                started = started.astimezone()  # assume local time
             duration_min = (now - started).total_seconds() / 60
             entry["started_at"] = started.isoformat()
             entry["duration_minutes"] = round(duration_min, 1)
