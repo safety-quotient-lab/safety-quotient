@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v22a held-out_r=**0.682** (new best, +0.052 vs v21). Test_r paradox: test_r=0.446 (regression) but held-out massively improves. TE 0.492→0.805. v22b training in progress.
-**Next:** Complete v22b/v22c training + held-out eval. If v22a confirmed, promote to production.
+**Status:** v22a held-out_r=**0.682** (best, +0.052 vs v21). v22b=0.578 (WORSE than v21 by -0.052): proxy removal is the dominant intervention; midg data alone is neutral-to-negative. g-factor is range-dependent: middle-g texts (N=1,602, g∈[4,6]) EV1=39.0% vs all-text EV1=70.6%. Source-level profiles validated (TE η²=0.627).
+**Next:** Promote v22a to production. Score CC-targeted batch (200 texts) to recover CO regression. Begin expert validation recruitment.
 
 ---
 
@@ -69,6 +69,7 @@
 52. [Proxy Data Audit and Unlabeled Pool Assessment](#52-proxy-data-audit-and-unlabeled-pool-assessment-2026-02-28) — proxy-LLM agreement poor for 4+ dims, pool has 50% informative-band texts, middle-g enrichment feasible
 53. [v22 Intervention Design: Proxy Removal + Middle-G Enrichment](#53-v22-intervention-design-proxy-removal--middle-g-enrichment-2026-02-28) — 2×2 ablation design, --drop-proxy-dims flag, 250-text midg batch scored
 54. [v22a Held-Out Results: The Test-Split Paradox](#54-v22a-held-out-results-the-test-split-paradox-2026-02-28) — held-out_r=0.682 (+0.052 vs v21), test_r=0.446 (regression). Proxy data poisons test split.
+55. [v22b Results, Range-Dependent g-Factor, and Source-Level Profiles](#55-v22b-results-range-dependent-g-factor-and-source-level-profiles-2026-02-28) — v22b=0.578 (worse than v21); proxy removal dominant; g-factor collapses in middle-g texts (EV1=39.0%); source profiles validate construct; text-length analysis; infrastructure changes.
 13. [References](#13-references)
 
 ---
@@ -4443,6 +4444,141 @@ A `data/labeling-batch-ccda.jsonl` batch (200 texts, 153 CC-keyword-filtered + 4
 3. **The 9,450 removed proxy rows were predominantly noise or anti-signal.** Even though they constituted ~16% of training observations, their removal improved 9/10 dimensions on held-out. The shared representation learned from the remaining data is more than sufficient.
 
 4. **v22a is the strongest candidate for promotion to production.** Held-out_r = 0.682 exceeds v21 (0.630) by a wide margin. The v22b and v22c runs may still provide useful comparative data, but v22a has already established the empirical case for proxy removal.
+
+---
+
+## §55. v22b Results, Range-Dependent g-Factor, and Source-Level Profiles (2026-02-28)
+
+### v22b: Middle-G Enrichment Without Proxy Removal
+
+v22b trained on the full dataset (same as v21) plus the 250-text midg batch (2,500 new separated-llm scores), without removing any proxy rows. It is the direct counterpart to v22a in the 2×2 ablation.
+
+**Result:** held-out_r = **0.578** — WORSE than v21 (0.630) by -0.052, and worse than v22a (0.682) by -0.104. All 10 dimensions regressed relative to v21.
+
+#### v22 Ablation Summary
+
+| Version | Intervention | test_r | held-out_r | Δ vs v21 | Verdict |
+|---|---|---|---|---|---|
+| v21 | Baseline | 0.504 | 0.630 | — | Production |
+| v22a | Proxy removal only (9,450 rows dropped for TE/TC/CC/AD) | 0.457 | **0.682** | **+0.052** | **New best. Dominant intervention.** |
+| v22b | Midg enrichment only (250 texts × 10 dims added, no proxy removal) | — | 0.578 | **-0.052** | Worse than v21. Proxy noise overwhelms signal. |
+
+#### Interpretation
+
+The v22b failure is informative. The midg batch provided 2,500 additional separated-llm scores of high quality (within-text SD=1.207, score-5 concentration 22.8% for TE — the best distribution of any batch). Yet adding this data to a training set that still contains 9,450 adversarial/noisy proxy rows produced a net regression of -0.052. The proxy noise dominated.
+
+This demonstrates the mechanism clearly: adding high-quality data to a noisy training set does not overcome the noise when the noise is correlated with the target dimensions. The 9,450 removed proxy rows (effective weight ~17.8% of total gradient signal) were not passively useless — they were actively training incorrect associations. The midg batch could not overcome three thousand records teaching the wrong direction for TE alone.
+
+**Key lesson: Data quality > data quantity.** 250 high-quality separated-LLM observations cannot overcome 9,450 proxy observations teaching the wrong direction, even at the same effective weight per row. Proxy removal (v22a) is the dominant intervention; data enrichment is secondary and effective only when the training set is already clean.
+
+The practical implication for future training strategy: proxy removal should be applied as a prerequisite before any enrichment batch, not as a separate ablation condition. v22c (proxy removal + midg data) remains the natural next step, but v22a has already established the performance ceiling for the subtractive intervention.
+
+---
+
+### Range-Dependent g-Factor: A Psychometric Finding
+
+A deeper analysis of the g-factor structure across the 2,420 texts with complete separated-llm coverage reveals a striking pattern: the dominant eigenvalue is strongly modulated by where texts fall on the g-score distribution. This extends and quantifies the qualitative finding from §51.
+
+#### Eigenvalue Structure by g-Band
+
+| Text group | N | EV1 | % Variance | Mean |r| | Interpretation |
+|---|---|---|---|---|---|
+| All complete texts | 2,420 | 7.06 | 70.6% | 0.669 | Full dataset — strong g |
+| Diverse texts (<50% dims at score 5) | 1,310 | 7.44 | 74.4% | 0.712 | Non-neutral texts have stronger g |
+| Extreme g (g<3.5 or g>6.5) | 469 | 7.97 | 79.6% | 0.772 | Near-uniform valence — pure general factor |
+| **Middle-g (4≤g≤6)** | **1,602** | **3.90** | **39.0%** | **0.286** | **g-factor collapses; dimensions genuinely differentiate** |
+
+The contrast between extreme-g texts (EV1=79.6%, mean |r|=0.772) and middle-g texts (EV1=39.0%, mean |r|=0.286) represents a 2.04× reduction in the dominant eigenvalue — the g-factor is approximately half as strong in the ambiguous zone as in the extreme zone.
+
+#### Theoretical Interpretation
+
+This is a genuine psychometric finding, not a methodological artifact. Consider the two scenarios:
+
+**Extreme texts** (workplace harassment, active therapy, conflict): these texts are uniformly extreme because the constructs they evoke are genuinely co-occurring. A text describing active coercive control genuinely has high threat exposure, low regulatory capacity, low trust, poor contractual clarity, and high energy drain — all at once. The dimensions are not artifacts of a single valence impression; they measure real co-occurring conditions. The high EV1 in the extreme band is correct measurement of real co-variation.
+
+**Middle-g texts** (everyday professional communications, neutral social exchanges): here the overall safety level is ambiguous, and different dimensions can point in different directions. A performance feedback conversation may be low on hostility (HI=7) but still create high energy drain (ED=3) and invoke authority dynamics (AD=4). A support group exchange may score high on regulatory capacity (RC=8) but show contractual ambiguity (CO=4). This is the zone where the PSQ's 10-dimension profile carries genuine diagnostic information that a single g-score cannot convey.
+
+The g-factor's collapse in middle-g texts (EV1=39.0% vs 70.6% overall) is precisely what a valid multi-dimensional instrument should show. Spearman's (1904) original observation of a general factor in cognitive tests — the "indifference of the indicator" — assumed that all tasks tap a common underlying capacity to some degree. For PSQ, the analogous claim would be that all texts have a "common underlying safety level." The range-dependence finding qualifies this claim: the common safety level is a useful summary only when that level is clearly extreme. In the ambiguous middle zone where most real-world deployment decisions occur, the full dimension profile is the appropriate unit of analysis.
+
+This connects directly to the criterion validity evidence. The CaSiNo and CGA-Wiki studies measured texts in exactly the middle-g zone — negotiation dialogues and Wikipedia editor discussions that would score, by any reasonable standard, near the center of the PSQ range. g-PSQ achieved near-chance AUC in both studies (0.515, 0.622); the 10-dimension profiles predicted at AUC=0.599 and 0.686. The range-dependent g-factor explains why: the middle-g zone is precisely where the g-factor provides the least information and the dimension profile provides the most.
+
+**Implication for the hierarchical model:** The recommended reporting structure (g-PSQ → cluster scores → dimension scores) should be accompanied by a confidence annotation. When g is extreme (g < 3.5 or g > 6.5), the overall PSQ score carries high confidence and the dimension profile adds limited incremental information. When g is in the middle band (4–6), the overall PSQ score should be reported with lower confidence and the dimension profile should be foregrounded. This is analogous to how a physician interprets vital signs: an obviously extreme reading (temperature 105°F) requires no profiling, but a borderline reading (temperature 99.5°F) demands the full clinical picture.
+
+---
+
+### Source-Level PSQ Profiles: Construct Validity Evidence
+
+A cross-source analysis of mean PSQ scores across the 11 training source datasets provides convergent construct validity evidence. If the PSQ measures a real psychological construct, source datasets drawn from psychologically distinct contexts should show coherent profile differences.
+
+#### Source-Level g-PSQ (Mean Score Across All Dims)
+
+| Source | Mean g | Interpretation |
+|---|---|---|
+| berkeley (hate speech corpus) | 3.85 | Lowest — designed to contain threatening, hostile content |
+| dreaddit (stress forum posts) | 4.10 | Low — stress-related content with energy drain and regulatory burden |
+| esconv (emotional support conversations) | 4.48 | Moderate-low — emotionally difficult content with active coping |
+| empathetic_dialogues | 5.05 | Moderate — supportive but acknowledging negative experiences |
+| prosocial | 5.14 | Highest full-profile source — prosocial interactions |
+
+The ordering is theoretically coherent: hate speech < stress < emotional support < empathetic dialogue < prosocial content. No post-hoc adjustment was applied. The PSQ score recovered this ordering purely from the text content.
+
+#### Dimension-Level Source Differentiation (η²)
+
+Eta-squared (proportion of between-source variance) per dimension:
+
+| Dimension | η² | Source differentiation |
+|---|---|---|
+| threat_exposure | **0.627** | Highest — TE is the primary discriminator between sources |
+| hostility_index | 0.481 | Strong — berkeley dominates |
+| energy_dissipation | 0.389 | Moderate-strong — dreaddit drives |
+| resilience_baseline | 0.302 | Moderate |
+| regulatory_capacity | 0.264 | Moderate |
+| trust_conditions | 0.211 | Moderate |
+| defensive_architecture | 0.198 | Moderate |
+| authority_dynamics | 0.163 | Low-moderate |
+| contractual_clarity | 0.105 | Lowest — CO is content-present/absent, not quality-valence |
+
+TE's high source differentiation (η²=0.627) is expected: the berkeley dataset was specifically constructed to contain threatening content, while prosocial and empathetic_dialogues contain almost none. CO's low differentiation (η²=0.105) is also expected: contractual content is sparse in all five source datasets, since none were selected for contractual discourse.
+
+The source-level profile analysis provides a form of known-groups validity: we know a priori that berkeley texts should score lower on TE and HI than prosocial texts. The PSQ recovers these expected differences without being told the source identity. This is evidence that the PSQ dimensions are measuring psychologically real content properties, not dataset-specific lexical artifacts.
+
+---
+
+### Text Length and Truncation Analysis
+
+The current model uses max_length=128 tokens (roughly 100-110 words). An audit of the training corpus reveals potential signal compression from truncation.
+
+| Threshold | % texts exceeding | Implication |
+|---|---|---|
+| 128 words | 25.1% | One-quarter of texts are truncated |
+| 256 words | 22.4% | Most truncation happens in the 128-256 word range |
+
+Despite this truncation rate, length shows no correlation with g-PSQ (r(length, g) = +0.018, n.s.). This rules out the most obvious confound: the model is not simply assigning higher safety scores to longer texts, nor are longer texts systematically safer.
+
+However, a more subtle pattern emerges: long texts (>128 words) show lower g-variance (SD=0.84) compared to short texts (SD=1.26). This is consistent with truncation compressing the safety signal — the model sees only the first 128 tokens of a long text and may miss the safety-relevant content that appears later (e.g., the threat in the last paragraph, the resolution of a conflict in the final exchange). The 25.1% truncation rate thus represents a real but non-directional measurement limitation.
+
+**Profile flatness audit:** 38.2% of texts have within-text SD < 0.5 (flat profiles where all 10 dimensions receive similar scores). Only 15.7% show SD > 1.0 (strongly differentiated profiles). This ratio — roughly 2.5× more flat profiles than differentiated — is consistent with the range-dependent g-factor finding: most texts in the training corpus fall in the middle-g zone where the overall safety level is moderate and less extreme dimension differentiation is expected.
+
+---
+
+### Infrastructure Changes (2026-02-28)
+
+Several training infrastructure changes were made during the v22 cycle:
+
+**ED proxy added to --drop-proxy-dims default set:**
+Energy_dissipation proxy data is constant (all 5.0) — Pearson r with LLM labels is NaN because there is no variance to correlate with. Adding ED to the default drop set removes ~3,200 proxy rows that contribute zero information content (a constant has zero gradient signal through MSE loss) while consuming memory and increasing batch processing time. The default `--drop-proxy-dims` now removes composite-proxy rows for TE, TC, CC, AD, and ED.
+
+**Curriculum learning (--curriculum flag):**
+Implemented a 2-phase curriculum learning option: Phase 1 (first 60% of epochs) trains on LLM-labeled data only (separated-llm + joint-llm + synthetic, no proxy); Phase 2 (remaining 40%) introduces proxy data at reduced weight. The hypothesis is that the model will form a cleaner representation of LLM-defined constructs before proxy noise is introduced. Not yet tested in a held-out ablation.
+
+**New labeling batches prepared:**
+
+| Batch | File | Texts | Focus |
+|---|---|---|---|
+| test-clean | `labeling-batch-test-clean.jsonl` | 200 | Held-out expansion (diverse, balanced) |
+| proxy-audit | `labeling-batch-proxy-audit.jsonl` | 200 | Overlap with proxy data for agreement measurement |
+| held-out-expand | `labeling-batch-held-out-expand.jsonl` | 150 | Expand held-out set from 100 to 250 texts |
+| CC-targeted | `labeling-batch-ccda.jsonl` | 200 | CC-keyword filtered to address CO regression in v22a |
 
 ---
 

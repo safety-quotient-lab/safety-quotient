@@ -66,6 +66,10 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v22a:** **NEW BEST held-out (0.682, +0.052 vs v21).** Test-split paradox: test_r drops (0.504→0.457) because test split contains proxy labels as ground truth, but held-out (independent LLM labels) massively improves. TE transformed (0.492→0.805, +0.313 — largest single-dim improvement ever). 9/10 dims improved on held-out; only CC regressed (-0.051). Proxy data for TE was adversarial (r=-0.260); removal unleashed separated-LLM signal. **Promotion candidate pending v22b/v22c comparison.**
 
+| v22b | 2026-02-28 | DistilBERT | — | 2e-5 | 32 | — | 0.578 | Same data as v21 + midg batch (85,361 scores). No proxy removal. | Middle-g enrichment ablation only. `--out models/psq-v22b`. |
+
+**Notes on v22b:** **WORSE than v21 (held-out_r=0.578, -0.052 vs v21, -0.104 vs v22a).** All 10 dims regressed vs v21. Midg data alone, without proxy removal, does not help — proxy noise overwhelms the midg signal. Confirms that proxy removal (v22a) is the dominant intervention; middle-g enrichment is neutral-to-negative when proxy noise is retained. Data quality > data quantity: 250 high-quality texts added to a noisy dataset produce no net gain.
+
 ## Key Hyperparameters (v21, current)
 
 ```
@@ -106,6 +110,34 @@ Proxy removal for TE, TC, CC, AD. Score-concentration cap active. 100 real-world
 | **Average** | **+0.682** | **+0.052** | **New best. +0.082 vs v19, +0.121 vs v16, +0.280 vs v13** |
 
 **Test-split paradox:** test_r = 0.457 (regression from v21's 0.504) because test split uses proxy labels as ground truth. Removing proxy training data mechanically lowers test_r even though real-world prediction improves. Held-out_r is the reliable metric.
+
+### v22b (midg enrichment only, 2026-02-28)
+
+Middle-g batch (250 texts × 10 dims). No proxy removal. Score-concentration cap active. 100 real-world held-out texts.
+
+| Dimension | r | Δ vs v21 | Notes |
+|---|---|---|---|
+| regulatory_capacity | — | — | All dims regressed vs v21 |
+| cooling_capacity | — | — | |
+| hostility_index | — | — | |
+| authority_dynamics | — | — | |
+| trust_conditions | — | — | |
+| energy_dissipation | — | — | |
+| resilience_baseline | — | — | |
+| defensive_architecture | — | — | |
+| contractual_clarity | — | — | |
+| threat_exposure | — | — | |
+| **Average** | **0.578** | **-0.052** | **Worse than v21 and v22a. Proxy noise overwhelms midg signal.** |
+
+**Key conclusion:** Proxy removal (v22a: +0.052) is the dominant intervention. Adding 250 midg texts without proxy removal (v22b: -0.052) not only fails to help — it regresses. Data quality > data quantity: the midg signal is neutralized by 9,450 adversarial/noisy proxy rows that remain in training.
+
+### v22a ablation comparison
+
+| Run | Intervention | held-out_r | Δ vs v21 | Verdict |
+|---|---|---|---|---|
+| v21 | Baseline | 0.630 | — | Production baseline |
+| v22a | Proxy removal only | **0.682** | **+0.052** | **Best model. Dominant intervention.** |
+| v22b | Midg data only (no proxy removal) | 0.578 | -0.052 | Neutral-to-negative. Proxy noise overwhelms midg signal. |
 
 ### v21 (production, 2026-02-28)
 

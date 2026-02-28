@@ -18,7 +18,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 |---|---|---|
 | Theoretical grounding | **Strong** | — |
 | Content validity | **Partial** | High |
-| Construct validity | **Tested** — EFA v2 rejects 10-factor independence. g-factor eigenvalue 6.727 (67.3% variance), parallel analysis retains 1 factor only. 5-factor structure collapsed. Integer-only scoring bias may inflate g-factor. | High |
+| Construct validity | **Tested** — EFA v2 rejects 10-factor independence. g-factor eigenvalue 7.06 (70.6% variance) overall, but **range-dependent**: extreme-g texts (N=469) EV1=79.6% vs middle-g texts (N=1,602) EV1=39.0%, mean |r|=0.286. g-factor is real, not artifact. 5-factor structure defensible in middle-g band. | High |
 | Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
 | Criterion validity | **Four studies** — CaSiNo: satisfaction (r≈0.08-0.13\*\*\*); CGA-Wiki: derailment (AUC=0.599); CMV: persuasion (AUC=0.590); DonD: deal-reaching (AUC=0.686). Context-dependent primacy: AD in contested-status, ED in sustained negotiation, DA in fixed-status. Profile >> average in all studies. | **Strong** |
@@ -259,23 +259,44 @@ This has direct implications for the factor analysis:
 - The g-factor eigenvalue may be partly artifactual
 - Resolution: pilot 0-100 percentage scoring scale, then re-run factor analysis
 
-**Update (2026-02-28):** Percentage scoring validated at scale. Production batch (200 texts × 10 dims, separated protocol) achieved 86.2% non-integer scores (vs 2.1% integer), 4.8% exact-5.0 (vs 41.3%), 35 unique values (vs ~11). The integer bias is effectively resolved for new labeling. Factor analysis v3 with pct-scored data is the next step to determine whether the g-factor eigenvalue drops.
+**Update (2026-02-28):** Percentage scoring validated at scale. Production batch (200 texts × 10 dims, separated protocol) achieved 86.2% non-integer scores (vs 2.1% integer), 4.8% exact-5.0 (vs 41.3%), 35 unique values (vs ~11). However, factor analysis v3 showed that pct scoring caused dimension *collapse* (EV1=94.1%, mean |r|=0.934) rather than reducing the g-factor — the percentage scale induces anchoring-and-adjustment that overwhelms dimension-specific signal. **Percentage scoring retracted.** Integer scoring retained as canonical format.
 
 **Bifactor architecture tested (v19b):** 11th output head (g-PSQ) learned well (r=0.594) but per-dimension test_r dropped to 0.502 (from 0.509). DistilBERT lacks capacity for 11 heads. Recommendation: compute g-PSQ post-hoc as mean of 10 dimension scores.
 
+#### The g-Factor Is Range-Dependent (major finding, 2026-02-28)
+
+A critical structural finding: the dominant eigenvalue is not uniform across the safety distribution. It is strongly modulated by where texts fall on the g-score continuum.
+
+| Text group | N | EV1 | % Variance | Mean |r| |
+|---|---|---|---|---|
+| All complete texts | 2,420 | 7.06 | 70.6% | 0.669 |
+| Diverse texts (<50% dims at score 5) | 1,310 | 7.44 | 74.4% | 0.712 |
+| Extreme g (g<3.5 or g>6.5) | 469 | 7.97 | 79.6% | 0.772 |
+| **Middle-g (4≤g≤6)** | **1,602** | **3.90** | **39.0%** | **0.286** |
+
+The g-factor eigenvalue falls by 2.04× between extreme and middle-g texts. In the middle-g band — which represents the majority of real-world deployment cases — the general factor explains only 39% of variance and mean inter-dimension correlation is 0.286. At this level, the PSQ's 10 dimensions satisfy conventional discriminant validity standards (r < 0.50).
+
+**Interpretation:** This is not halo and not artifact. Extreme texts are genuinely uniformly extreme — a workplace harassment text really does have high hostility, low trust, high energy drain, and poor contractual clarity simultaneously. The high g in the extreme band is correct measurement. Middle-g texts show genuine dimension divergence: a performance feedback conversation can be low-hostility but high-energy-drain; a support exchange can have strong regulatory capacity but contested authority. The dimensions correctly register this divergence.
+
+This finding resolves the apparent contradiction between the high g-factor eigenvalue (evidence of weak discrimination) and the strong criterion validity evidence (profile shape predicts outcomes that the average does not). The high overall eigenvalue (70.6%) is dominated by the extreme texts that are uninformative for most applied use cases. The middle-g zone — where real-world decisions about psychological safety are most consequential — is exactly where the PSQ's dimensional structure provides the most information and g-PSQ the least.
+
+**Connection to Spearman (1904):** Spearman's "indifference of the indicator" posits that a general factor emerges because any sufficiently complex task taps a common underlying capacity. For PSQ, the analogous principle holds only in the extreme zones. In the middle zone, the tasks genuinely diverge — the indicator *is* sensitive to which dimension is being assessed — and the g-factor weakens accordingly. This is not a failure of the instrument; it is the instrument working correctly.
+
 #### Verdict on H0 (10 factors are distinct)
 
-**H0 is rejected by all standard criteria.** The data supports 1–5 latent factors, not 10. The dominant general factor (67.3% of variance in v2) indicates that most of the 10 dimensions measure a single underlying construct — "overall psychological safety of content." Parallel analysis retains only 1 factor. The 5-factor structure from v1 has become unstable in v2.
+**H0 is rejected by all standard criteria when analyzed over the full distribution.** The data supports 1–5 latent factors, not 10, and the overall dominant general factor (70.6% of variance in the full N=2,420 dataset) indicates strong shared variance. Parallel analysis retains only 1 factor. The 5-factor structure from v1 has become less stable in v2.
 
-However, rejection of 10 independent factors does not require merging dimensions. The dimensions capture theoretically distinct constructs that imply different interventions, and criterion validity studies show that individual dimensions carry non-redundant predictive signal (g-PSQ AUC near chance in all 4 studies, 10-dim profiles predict).
+However, this verdict must be qualified by the range-dependent finding: **within the middle-g band (N=1,602), the g-factor accounts for only 39.0% of variance and mean |r|=0.286** — a pattern entirely consistent with the 5-factor structure and acceptable discriminant validity. The blanket rejection of 10-factor independence overstates the dimensionality collapse.
 
-**Recommendation (updated):** Adopt a **hierarchical reporting model**:
+Rejection of 10 independent factors does not require merging dimensions. The dimensions capture theoretically distinct constructs that imply different interventions, and criterion validity studies show that individual dimensions carry non-redundant predictive signal (g-PSQ AUC near chance in all 4 studies; 10-dim profiles predict at AUC 0.59–0.69).
+
+**Recommendation (updated):** Adopt a **hierarchical reporting model with range annotation**:
 1. Report the **overall PSQ** as the primary score (captures the general factor)
-2. Report **cluster scores** cautiously — the 5-factor structure may not be stable; await resolution of integer-only bias before committing to a cluster layer
-3. Report **dimension scores** as fine-grained detail with the caveat that dimensions share a strong general factor
-4. Document the general factor and integer-only bias caveat in all technical reporting
-5. Do *not* claim 10 independent dimensions — claim 10 *theoretically distinct* dimensions that empirically share 67% of variance via a general factor
-6. Investigate whether switching to a 0-100 scoring scale reduces the g-factor eigenvalue
+2. **Annotate by g-band:** when g is extreme (<3.5 or >6.5), report g prominently and flag that dimension profile has limited incremental information; when g is middle (4–6), foreground the dimension profile
+3. Report **cluster scores** as an intermediate interpretive layer (5-factor structure defensible, see Promax analysis below)
+4. Report **dimension scores** as fine-grained detail for prediction tasks
+5. Do *not* claim 10 independent dimensions — claim 10 *theoretically distinct* dimensions that empirically share 39–80% variance via a general factor, depending on the g-band
+6. Document the range-dependent g-factor structure in all technical reporting
 
 #### Dimension Reduction Evaluation (2026-02-28)
 

@@ -396,11 +396,15 @@ def evaluate(model, dataloader, device, bifactor=False):
     return results
 
 
-def _load_splits_from_db(db_path, no_cap=False, drop_proxy_dims=None):
+def _load_splits_from_db(db_path, no_cap=False, drop_proxy_dims=None, curriculum=False):
     """Load train/val/test records from psq.db using persisted split assignments.
 
     Returns (train_recs, val_recs, test_recs) where each record has:
       text, dimensions: {dim: {score, confidence}}, dim_weights: {dim: float}
+
+    When curriculum=True, returns (base_recs, proxy_recs, val_recs, test_recs):
+      base_recs:  LLM-only training data (separated-llm, joint-llm, synthetic)
+      proxy_recs: composite-proxy training data (supplementary, lower weight)
 
     Uses best_scores view: separated-llm > synthetic > joint-llm > composite-proxy.
     Split assignments come from the splits table (persisted, not re-derived).
@@ -410,31 +414,51 @@ def _load_splits_from_db(db_path, no_cap=False, drop_proxy_dims=None):
     """
     con = sqlite3.connect(db_path)
 
-    # training_data view is already filtered to split='train' with sample_weight
-    if drop_proxy_dims:
-        # Fetch with method column so we can filter proxy rows for specific dims
-        all_train = con.execute(
-            "SELECT text_id, text, dimension, score, confidence, sample_weight, method "
-            "FROM training_data"
-        ).fetchall()
-        drop_set = set(drop_proxy_dims)
-        train_rows = []
+    # Fetch all training data with method column for filtering
+    all_train = con.execute(
+        "SELECT text_id, text, dimension, score, confidence, sample_weight, method "
+        "FROM training_data"
+    ).fetchall()
+
+    drop_set = set(drop_proxy_dims) if drop_proxy_dims else set()
+
+    if curriculum:
+        # Split into LLM base and proxy supplement
+        base_rows = []
+        proxy_rows = []
         dropped = 0
         for r in all_train:
-            if r[2] in drop_set and r[6] == 'composite-proxy':
+            is_proxy = r[6] == 'composite-proxy'
+            if is_proxy and r[2] in drop_set:
                 dropped += 1
+            elif is_proxy:
+                proxy_rows.append(r[:6])
             else:
-                train_rows.append(r[:6])  # strip method column
+                base_rows.append(r[:6])
         if dropped:
             print(f"  Dropped {dropped} proxy rows for dims: {', '.join(sorted(drop_set))}")
-    else:
-        train_rows = con.execute(
-            "SELECT text_id, text, dimension, score, confidence, sample_weight "
-            "FROM training_data"
-        ).fetchall()
+        print(f"  Curriculum split: {len(base_rows)} base (LLM) + {len(proxy_rows)} proxy rows")
 
-    if not no_cap:
-        train_rows = _cap_score_concentration(train_rows)
+        if not no_cap:
+            base_rows = _cap_score_concentration(base_rows)
+            proxy_rows = _cap_score_concentration(proxy_rows)
+    else:
+        # Standard: single training set
+        if drop_set:
+            train_rows = []
+            dropped = 0
+            for r in all_train:
+                if r[2] in drop_set and r[6] == 'composite-proxy':
+                    dropped += 1
+                else:
+                    train_rows.append(r[:6])
+            if dropped:
+                print(f"  Dropped {dropped} proxy rows for dims: {', '.join(sorted(drop_set))}")
+        else:
+            train_rows = [r[:6] for r in all_train]
+
+        if not no_cap:
+            train_rows = _cap_score_concentration(train_rows)
 
     # val and test: query best_scores joined to splits
     val_rows = con.execute(
@@ -464,7 +488,12 @@ def _load_splits_from_db(db_path, no_cap=False, drop_proxy_dims=None):
     ).fetchall()
     con.close()
 
-    return _rows_to_records(train_rows), _rows_to_records(val_rows), _rows_to_records(test_rows)
+    val_recs = _rows_to_records(val_rows)
+    test_recs = _rows_to_records(test_rows)
+
+    if curriculum:
+        return _rows_to_records(base_rows), _rows_to_records(proxy_rows), val_recs, test_recs
+    return _rows_to_records(train_rows), val_recs, test_recs
 
 
 def _rows_to_records(rows):
@@ -589,13 +618,25 @@ def train(args):
     data_dir = ROOT / "data"
     db_path = ROOT / args.db
 
+    curriculum = getattr(args, "curriculum", False)
     if not args.no_db and db_path.exists():
         drop_dims = args.drop_proxy_dims.split(",") if args.drop_proxy_dims else None
-        train_recs, val_recs, test_recs = _load_splits_from_db(
-            db_path, no_cap=args.no_cap, drop_proxy_dims=drop_dims)
-        print(f"  DB: {db_path.name}")
-        print(f"  Split: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test")
+        if curriculum:
+            base_recs, proxy_recs, val_recs, test_recs = _load_splits_from_db(
+                db_path, no_cap=args.no_cap, drop_proxy_dims=drop_dims, curriculum=True)
+            train_recs = base_recs  # Phase 1 uses base only
+            print(f"  DB: {db_path.name}")
+            print(f"  Curriculum: {len(base_recs)} base + {len(proxy_recs)} proxy / "
+                  f"{len(val_recs)} val / {len(test_recs)} test")
+        else:
+            train_recs, val_recs, test_recs = _load_splits_from_db(
+                db_path, no_cap=args.no_cap, drop_proxy_dims=drop_dims)
+            print(f"  DB: {db_path.name}")
+            print(f"  Split: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test")
     else:
+        if curriculum:
+            print("ERROR: Curriculum learning requires DB mode (--no-db not supported)")
+            return
         if not args.no_db:
             print(f"  WARNING: {db_path} not found, falling back to JSONL")
         train_recs, val_recs, test_recs = _load_splits_from_jsonl(data_dir)
@@ -652,6 +693,10 @@ def train(args):
     print(f"\nTraining for {args.epochs} epochs, {len(train_loader)} batches/epoch")
     eff_batch = args.batch_size * args.grad_accum
     print(f"  LR: {args.lr}, batch: {args.batch_size} (effective: {eff_batch}), patience: {args.patience}")
+    if curriculum:
+        curriculum_split = getattr(args, "curriculum_split", 3)
+        print(f"  Curriculum: Phase 1 (LLM base) epochs 1-{curriculum_split}, "
+              f"Phase 2 (+proxy) epochs {curriculum_split+1}-{args.epochs}")
     print(f"  Confidence mode: {args.conf_mode}", end="")
     if args.conf_mode == "two-phase":
         print(f" (off for {args.conf_warmup_epochs} epochs, then accuracy)")
@@ -662,8 +707,23 @@ def train(args):
 
     train_start = time.time()
     epoch_times = []
+    curriculum_switched = False
 
     for epoch in range(1, args.epochs + 1):
+        # Curriculum: switch to full dataset (base + proxy) at split epoch
+        if curriculum and not curriculum_switched and epoch > curriculum_split:
+            full_recs = base_recs + proxy_recs
+            np.random.shuffle(full_recs)
+            train_ds = PSQDataset(full_recs, tokenizer, args.max_length)
+            train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=0)
+            # Reset scheduler for remaining epochs
+            remaining_steps = (len(train_loader) // args.grad_accum) * (args.epochs - epoch + 1)
+            remaining_warmup = int(remaining_steps * 0.05)  # brief re-warmup
+            scheduler = get_linear_schedule_with_warmup(optimizer, remaining_warmup, remaining_steps)
+            curriculum_switched = True
+            print(f"\n  === Curriculum Phase 2: adding {len(proxy_recs)} proxy records "
+                  f"({len(full_recs)} total), {len(train_loader)} batches/epoch ===\n")
+
         epoch_start = time.time()
         model.train()
         epoch_loss = 0.0
@@ -758,8 +818,9 @@ def train(args):
     # Timing summary
     total_elapsed = time.time() - train_start
     avg_epoch = sum(epoch_times) / len(epoch_times) if epoch_times else 0
+    n_train_total = len(base_recs) + len(proxy_recs) if curriculum else len(train_recs)
     print(f"\nTiming: {total_elapsed:.0f}s total, {avg_epoch:.0f}s/epoch avg, "
-          f"{len(epoch_times)} epochs, {len(train_recs)} train samples")
+          f"{len(epoch_times)} epochs, {n_train_total} train samples")
 
     # Final evaluation on test set
     print(f"\nLoading best model for test evaluation...")
@@ -794,12 +855,18 @@ def train(args):
             "bifactor": bifactor,
             "data_source": "db" if (not args.no_db and (ROOT / args.db).exists()) else "jsonl",
             "hyperparams": {k: getattr(args, k, v) for k, v in DEFAULTS.items()},
+            "curriculum": {
+                "enabled": curriculum,
+                "split_epoch": getattr(args, "curriculum_split", 3) if curriculum else None,
+                "n_base_records": len(base_recs) if curriculum else None,
+                "n_proxy_records": len(proxy_recs) if curriculum else None,
+            } if curriculum else None,
             "timing": {
                 "total_seconds": round(total_elapsed, 1),
                 "avg_epoch_seconds": round(avg_epoch, 1),
                 "epoch_times": [round(t, 1) for t in epoch_times],
                 "n_epochs_run": len(epoch_times),
-                "n_train_samples": len(train_recs),
+                "n_train_samples": n_train_total,
                 },
             }
         with open(save_dir / "config.json", "w") as f:
@@ -850,11 +917,17 @@ def main():
     parser.add_argument("--no-cap", action="store_true",
                        help="Disable score-concentration cap (default: cap enabled)")
     parser.add_argument("--drop-proxy-dims", nargs="?",
-                       const="threat_exposure,trust_conditions,contractual_clarity,authority_dynamics",
+                       const="threat_exposure,trust_conditions,contractual_clarity,authority_dynamics,energy_dissipation",
                        default=None,
-                       help="Drop proxy labels for these dims (poor LLM agreement). "
-                            "No args = default set (TE, TC, CC, AD). "
+                       help="Drop proxy labels for these dims (no/adversarial LLM agreement). "
+                            "No args = default set (TE, TC, CC, AD, ED). "
                             "Or specify comma-separated dims.")
+    parser.add_argument("--curriculum", action="store_true",
+                       help="Curriculum learning: Phase 1 trains on LLM data only "
+                            "(separated-llm, joint-llm, synthetic), Phase 2 adds proxy data. "
+                            "Use --curriculum-split to set the transition epoch.")
+    parser.add_argument("--curriculum-split", type=int, default=3,
+                       help="Epoch after which proxy data is added in curriculum mode (default: 3).")
     parser.add_argument("--no-save", action="store_true",
                        help="Discard checkpoints after training (smoke-test mode)")
     parser.add_argument("--bifactor", action="store_true",
