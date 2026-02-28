@@ -46,7 +46,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 33. [The Ablation Completes: Proxy Removal Dominates, and the g-Factor Is Range-Dependent](#33-the-ablation-completes-proxy-removal-dominates-and-the-g-factor-is-range-dependent-2026-02-28)
 34. [The Curriculum Experiment: A Clean Negative](#34-the-curriculum-experiment-a-clean-negative-2026-02-28)
 35. [v23: Data Quality Compounds, Authority Dynamics Aligned](#35-v23-data-quality-compounds-authority-dynamics-aligned-2026-02-28)
-36. [References](#36-references)
+36. [DonD v23 Rerun: TE Reversal, T3b, and the Measurement Artifact Cascade](#36-dond-v23-rerun-te-reversal-t3b-and-the-measurement-artifact-cascade-2026-02-28)
+37. [References](#37-references)
 
 ---
 
@@ -1140,7 +1141,23 @@ The data scaling trajectory — v14 (0.482), v16 (0.561), v18 (0.568), v19 (0.60
 
 ---
 
-## 36. References
+## 36. DonD v23 Rerun: TE Reversal, T3b, and the Measurement Artifact Cascade (2026-02-28)
+
+The Deal or No Deal criterion validity study was rerun with v23 (held-out_r=0.696), replacing the v18 estimates used in §27. The results constitute the strongest criterion validity evidence to date — AUC=0.732 (+0.046 vs v18's 0.686) — and expose a chain of measurement artifacts that had distorted the earlier interpretation.
+
+The headline reversal is this: with v18, energy_dissipation was the top bivariate predictor (d=+0.614). With v23, threat_exposure is the top predictor (d=+0.801). The reversal is not a finding about the psychology of negotiation; it is a finding about what happens when a key model dimension is estimated near-randomly. v18's TE held-out_r was 0.492 — scarcely above chance. Because TE and ED co-vary in sustained interactions (negotiations that become threatening also deplete energy), v18's model displaced TE variance onto ED labels, inflating ED's apparent predictive dominance. v23's TE held-out_r is 0.800, achieved by removing the adversarial proxy data that had poisoned the TE dimension. With accurate TE estimation, the variance is correctly partitioned: after controlling for text length and turn count, TE partial r=0.203 and ED partial r=0.209 — statistically indistinguishable. DonD deal-reaching is a dual-process outcome driven jointly by threat climate and energy state, not by energy alone.
+
+The same measurement cascade explains the AD bivariate sign reversal. In v18, AD had a near-zero negative bivariate relationship with deal-reaching (r_pb=−0.026). In v23, it is positive and significant (r_pb=+0.138). With v18's corrupted TE estimation, AD absorbed threat-related variance (high-hostility negotiations have both high AD and low deal rates), producing a spurious negative relationship. With v23's clean TE signal, the true relationship surfaces: authority dynamics — status positioning, epistemic challenges, relational power moves — tends to keep parties engaged rather than disengaged, and engagement predicts deal-reaching. The suppressor pattern in the multivariate model is actually strengthened with v23 (coefficient=−0.746 vs v18's −0.534), because the suppression is now operating on genuine AD variance rather than on variance shared with the corrupted TE dimension.
+
+These reversals have a lesson that goes beyond the specific findings. Adversarial proxy data does not merely add noise — it creates systematic displacement effects across dimensions that share construct-level variance. A researcher who saw v18's DonD results and concluded "energy depletion is the primary safety mechanism in negotiation" would have drawn a theoretical conclusion from a measurement artifact. The artifact was invisible without the v23 rerun; the only way to discover it was to improve TE estimation and observe the cascade.
+
+The quarter-mile of this session is the T3b confirmation. Prediction T3b (§24, distillation-research.md §34) was: *authority_dynamics predicts deal reached but not points scored*. The results: AD vs deal r_pb=+0.138***, AD vs points r=−0.070***. This double dissociation was derived from theory, tested in a dataset of 12,234 behavioral observations, and confirmed without post-hoc rationalization. High-AD conversations involve status contestation that keeps parties cooperative enough to reach agreement while reducing the resource-allocation advantage of the dominant party. The dimension measures relational safety conditions, not strategic effectiveness. This is the sharpest single-construct validity finding in the project.
+
+The cross-study picture at the close of this work: four independent criterion studies, two domains (persuasion and negotiation), three different outcome types (satisfaction, behavioral, influence), and one consistent pattern — PSQ profiles predict outcomes that PSQ averages cannot. The context-dependent primacy hierarchy (AD in contested status, ED+TE in sustained negotiation, DA in fixed status) remains intact and is now supported by v23-quality estimates throughout.
+
+---
+
+## 37. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

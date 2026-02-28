@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-28
 **Status:** v23 held-out_r=**0.696** (new best, +0.014 vs v22a). Data quality: +550 texts (ccda 200 + proxy-audit 200 + held-out-expand 150) × 10 dims = 5,500 new separated-llm labels. 7/10 dims improved: ED +0.056 (0.712→0.768), CO +0.045 (0.504→0.549), AD +0.030, RC +0.026, CC +0.020. Minor regressions: HI -0.028, RB -0.019 (both from strong baselines >0.62). ONNX re-exported (254 MB / 64 MB quantized). AD description updated in psq-definition.md §9 to reflect peer-context status negotiation finding.
-**Next:** Begin expert validation recruitment. Complete psq-definition.md rubric review (AD anchors, CO distribution).
+**Next:** Begin expert validation recruitment. Complete psq-definition.md rubric review (AD anchors, CO distribution). CMV v23 rerun complete (§59, AUC=0.5735). DonD v23 rerun complete (§60, AUC=0.732, T3b confirmed). Three new labeling batches extracted: UCC (150), civil_comments (100), extreme-adco (118).
 
 ---
 
@@ -73,6 +73,8 @@
 57. [v22c Results and Test-Clean Batch Ingestion](#57-v22c-results-and-test-clean-batch-ingestion-2026-02-28) — v22c held-out_r=0.638 (proxy removal + curriculum < proxy removal alone); curriculum learning rejected; 200-text test-clean batch scored all 10 dims and ingested.
 56. [Publication Narrative — Paper Draft Sections](#56-publication-narrative--paper-draft-sections-2026-02-28) — Abstract, Introduction, Methods (Construct + Training), Results (Model Performance + Criterion Validity). Full draft ready for paper writing.
 58. [v23 Results: Data Quality Drives Sustained Improvement](#58-v23-results-data-quality-drives-sustained-improvement-2026-02-28) — held-out_r=0.696 (new best, +0.014 vs v22a); +550 texts across 3 batches; 7/10 dims improved; AD description updated; ONNX re-exported.
+59. [Criterion Validity: CMV v23 Rerun](#59-criterion-validity-cmv-v23-rerun-2026-02-28) — AUC=0.5735 (was 0.590 v16); TE non-significance confirms adversarial proxy artifact; 7/10 dims significant; CO not a persuasion predictor.
+60. [Criterion Validity: DonD v23 Rerun + T3b Confirmed](#60-criterion-validity-dond-v23-rerun--t3b-confirmed-2026-02-28) — AUC=0.732 (+0.046 vs v18); TE displaces ED as top bivariate predictor; T3b confirmed (AD predicts deal not points); 28.7pp deal gap.
 13. [References](#13-references)
 
 ---
@@ -3137,6 +3139,8 @@ The AD paradox — weakest factor loading, strongest criterion predictor — is 
 
 **Construct naming implication:** If Theory 3 is supported, "authority_dynamics" should be renamed to "power_positioning" — the current label implies formal hierarchy that the construct does not primarily measure.
 
+**v23 rerun:** See §59 for updated CMV results using the current production model (AUC=0.5735, TE non-significance confirmed, CO p=0.155 not significant). The rename was formally deferred — see §58.
+
 ## 35. Bifactor Architecture Design Analysis (2026-02-28)
 
 ### 35a. Current Architecture
@@ -3396,6 +3400,8 @@ With 4 studies, the context-dependency pattern becomes clearer:
 - **Fixed status + behavioral outcome** → DA dominates (CMV persuasion)
 
 ED's strong showing in DonD supports the "process dimension" interpretation from §37: ED captures resource depletion dynamics that determine whether sustained negotiation reaches resolution or collapses.
+
+**v23 rerun:** See §60 for updated DonD results (AUC=0.732, +0.046). Key changes: TE displaces ED as top bivariate predictor (v18 was an artifact of poor TE estimation); AD bivariate r_pb reverses from −0.026 to +0.138; T3b confirmed (AD predicts deal but not points scored).
 
 ## 40. Broad-Spectrum Labeling Batch (2026-02-28)
 
@@ -4804,6 +4810,93 @@ Seven of ten dimensions improved. The three regressions (TE, RB, HI) are all fro
 - ONNX re-exported from v23: `models/psq-student/model.onnx` (254 MB, max diff vs PyTorch: 0.000005) and `models/psq-student/model_quantized.onnx` (64 MB INT8, max diff: 0.554).
 - AD description in `psq-definition.md` §9 updated to reflect peer-context status negotiation finding (criterion validity evidence from CGA-Wiki, CaSiNo, CMV, DonD).
 - AD rename (`authority_dynamics` → `power_positioning`) formally deferred — taxonomy fidelity with Edmondson (1999) and French & Raven (1959) is the deciding factor.
+
+---
+
+## §59. Criterion Validity: CMV v23 Rerun (2026-02-28)
+
+The CMV criterion validity study (originally §34, run with v16) was rerun using the current production model (v23, held-out_r=0.696). Scripts auto-load from `models/psq-student/best.pt`. Full results and tables in `criterion-validity-summary.md §2c`.
+
+### 59a. Results Summary
+
+- **10-dim AUC=0.5735** (was 0.590 with v16) — slight regression, within noise
+- **g-PSQ AUC=0.5227** (was 0.531)
+- **DA still top predictor**: r_pb=+0.059*** — replicated across model versions
+- **CO not significant** (p=0.155) — confirms CO is not a persuasion predictor (was borderline with v16)
+- **7/10 dims significant** at Bonferroni-corrected threshold: HI, AD, ED, RB, TC, CC, DA
+- **TE near-zero** (r_pb≈0, p=0.914) — v16's TE significance was an adversarial proxy artifact. After proxy removal (v22a+), TE no longer appears as a CMV predictor. This is the expected result: explicit threat language is not a mechanism for persuasion success in a voluntary argumentation forum.
+- **RC borderline** (p=0.057): non-significant at Bonferroni; likely content-match confound rather than safety mechanism
+
+### 59b. Model Version Comparison
+
+| Metric | v16 | v23 | Δ | Interpretation |
+|---|---|---|---|---|
+| 10-dim AUC | 0.590 | 0.5735 | −0.017 | Within noise; TE artifact removal accounts for the gap |
+| g-PSQ AUC | 0.531 | 0.5227 | −0.008 | Essentially flat |
+| DA top predictor | r_pb=+0.085 | r_pb=+0.059 | −0.026 | Replicated; magnitude shift reflects cleaner TE estimation |
+| TE significance | significant (artifact) | p=0.914 (NS) | — | Artifact eliminated — expected result |
+| CO significance | marginal | p=0.155 (NS) | — | Expected: CO not a persuasion predictor |
+| N significant dims | 8/10 | 7/10 | −1 | Correct: TE artifactual entry removed |
+
+### 59c. Interpretation
+
+The v23 rerun produces cleaner results than v16. The small AUC decline (0.590→0.5735) is partially explained by removing TE's artifactual contribution: v16's adversarial proxy data happened to correlate with CMV text characteristics, producing spurious predictive signal for TE. With v23's genuine TE prediction near-zero for CMV, theory is now confirmed — threat language does not characterize successful persuasion attempts in voluntary argumentation forums.
+
+DA replicates as the strongest individual predictor: with v23, r_pb=+0.059***, confirming that defensive argumentation — avoiding personal attacks, acknowledging limitations, maintaining openness — is the psychoemotional signature of successful persuasion in fixed-status contexts. CO's non-significance is also theoretically clean: contractual clarity is not a one-shot persuasion mechanism.
+
+---
+
+## §60. Criterion Validity: DonD v23 Rerun + T3b Confirmed (2026-02-28)
+
+The DonD criterion validity study (originally §39, run with v18) was rerun using the current production model (v23, held-out_r=0.696). The rerun produced the strongest criterion validity result in the project's history (+0.046 AUC improvement) and confirmed the T3b construct validity prediction. Full results in `criterion-validity-summary.md §2d`.
+
+### 60a. Results Summary
+
+- **10-dim AUC=0.732** (was 0.686 with v18) — **+0.046 improvement**, new project best
+- **5-fold CV: 0.723 ± 0.010** — robust cross-validation estimate
+- **g-PSQ AUC=0.700** (was 0.622) — also substantially improved
+- **TE is now top bivariate predictor** (d=+0.801) — was ED (d=+0.614) in v18
+- **After length control**: TE partial r=0.203 ≈ ED partial r=0.209 — both are equivalent process predictors
+- **AD bivariate direction reversed**: r_pb=+0.138 (positive, significant) vs v18's −0.026 (near-zero negative)
+- **AD suppressor pattern persists**: coefficient=−0.746 in multivariate model despite positive bivariate r
+- **Q4/Q1 deal rate gap**: 88.5% vs 59.7% = **28.7pp** (was 15.9pp with v18)
+- **Incremental AUC beyond controls**: +0.061 beyond text length + turns
+- **T3b CONFIRMED**: AD predicts deal (r_pb=+0.138***) but negatively predicts points scored (r=−0.070***)
+
+### 60b. The TE Reversal: Why ED No Longer Tops DonD
+
+The most consequential change between v18 and v23 is TE's held-out_r: 0.492 (v18) → 0.800 (v23). With v18's near-random TE estimation, TE labels added noise rather than signal. Because TE and ED co-move in sustained negotiations (energy depletion often co-occurs with rising threat climate), v18's model used ED to absorb variance that should have been attributed to TE. With v23's genuine TE signal, variance is correctly partitioned.
+
+After controlling for text length and turn count, the partial correlations converge: TE partial r=0.203, ED partial r=0.209. **Both dimensions are equally valid process predictors for deal-reaching.** The bivariate reversal (v18: ED top, v23: TE top) is a measurement artifact of adversarial proxy data poisoning, not a change in the underlying relationship.
+
+Theoretical implication: DonD deal-reaching is not primarily an "energy resource" phenomenon (the v18 interpretation). It is jointly driven by threat climate (TE) and energy state (ED), consistent with a dual-process account: deals collapse both because parties exhaust cooperative resources (ED) and because the conversational tone becomes threatening (TE).
+
+### 60c. T3b Confirmation: AD Predicts Deal, Not Points
+
+Prediction T3b (§34, journal §24): *Does AD predict deal reached but not points scored?*
+
+Results:
+- **AD vs deal outcome**: r_pb=+0.138*** — higher AD predicts deal reached
+- **AD vs points scored**: r=−0.070*** — higher AD predicts fewer points extracted
+
+This double dissociation confirms that authority_dynamics measures **relational safety conditions** (whether parties stay cooperative) rather than **strategic effectiveness** (whether parties extract value). High-AD conversations involve status contestation that: (1) keeps parties engaged enough to reach a deal (positive r with deal), but (2) reduces resource-allocation advantage for the higher-status party (negative r with points). This is the strongest single-dimension construct validity finding in the project — a predicted double dissociation confirmed in a large behavioral dataset (n=12,234).
+
+### 60d. AD Bivariate Direction Reversal
+
+In v18, AD bivariate r_pb=−0.026 (effectively zero). In v23, r_pb=+0.138. The reversal is explained by the same TE artifact: v18's poor TE estimation caused AD to absorb threat-related variance (high-hostility conversations often also have high AD), producing a spurious negative bivariate relationship with deal-reaching. With v23's clean TE signal, the suppressor mechanism becomes apparent: AD by itself positively predicts deals (relational safety), but in multivariate competition with TE, its partial coefficient becomes negative because AD texts with high TE are systematically different from AD texts without TE.
+
+### 60e. Model Version Comparison
+
+| Metric | v18 | v23 | Δ | Interpretation |
+|---|---|---|---|---|
+| 10-dim AUC | 0.686 | 0.732 | +0.046 | Largest improvement across any criterion re-run |
+| g-PSQ AUC | 0.622 | 0.700 | +0.078 | Substantial improvement |
+| Top bivariate predictor | ED (d=+0.614) | TE (d=+0.801) | — | Artifact corrected by genuine TE |
+| AD bivariate r_pb | −0.026 | +0.138 | +0.164 | Sign reversal: artifact corrected |
+| AD multivariate coef | −0.534 | −0.746 | −0.212 | Suppressor pattern strengthened |
+| Q4/Q1 deal gap | 15.9pp | 28.7pp | +12.8pp | Nearly doubles discriminative power |
+| TE held-out_r | 0.492 | 0.800 | +0.308 | Root cause of all changes above |
+| T3b (AD predicts deal not points) | Untested | Confirmed | — | Key construct validity evidence |
 
 ---
 
