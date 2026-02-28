@@ -75,7 +75,7 @@ Version-by-version record of every training run, with hyperparameters, data chan
 **Notes on v22c:** **Curriculum learning adds NO benefit over proxy removal alone (v22c 0.638 < v22a 0.682, Δ=−0.044). Curriculum REJECTED.** All 10 dims worse than v22a. Largest regressions: HI (−0.114), TE (−0.091), DA (−0.070), CC (−0.055). Worst test_r of the v22 series (0.431) due to proxy-clean test split from test-clean batch ingestion. The complete 2×2 ablation (v22a/v22b/v22c) confirms proxy removal alone is the sufficient and dominant intervention. v22a remains the production candidate.
 
 | **v23** | **2026-02-28** | **DistilBERT** | **0.387** | **2e-5** | **32** | **0.696** | **NEW BEST** | +5,500 separated-llm: ccda (200 texts), proxy-audit (200 texts), held-out-expand (150 texts) × 10 dims. DB: 22,186 texts, 90,361 scores. | `--drop-proxy-dims`. Same config as v22a. 8 epochs (early stop). |
-| v24 | 2026-02-28 | DistilBERT | 10 | 2e-5 | 16 (eff. 32) | — | 0.6702 | Same data as v23 (no new labels). Context length experiment: 256-token context. | `--drop-proxy-dims --max-length 256 --batch-size 16 --grad-accum 2`. |
+| v24 | 2026-02-28 | DistilBERT | 8 (early stop, best@5) | 2e-5 | 16 (eff. 32) | 0.3911 | 0.6702 | Same data as v23 (no new labels). Context length experiment: 256-token context. | `--drop-proxy-dims --max-length 256 --batch-size 16 --grad-accum 2`. |
 
 **Notes on v24:** Context length ablation. 256 tokens regresses vs v23 (128 tok): −0.026 average (0.696→0.670). Only 2/10 dims improved (CC +0.022, AD +0.014). Worst regressions: CO −0.078, TE −0.063, HI −0.043. **128-token context confirmed superior.** Not promoted.
 
