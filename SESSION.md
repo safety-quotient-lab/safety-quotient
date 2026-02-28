@@ -20,7 +20,7 @@ the critique and our response
         1. a novel construct — the Psychoemotional Safety Quotient (PSQ)
         2. a method — the multi-pass LLM-as-judge content evaluation pipeline
         3. an instrument — the 10-dimension PSQ Content Evaluator
-        4. a reference library — 170+ validated instruments mapped to every PJE term
+        4. a reference library — ~100 validated instruments mapped to every PJE term
         5. a validation framework — with specific psychometric targets
 
     what the research system confirmed:
@@ -51,7 +51,7 @@ documents produced (in order of creation)
        content: every operational definition → established field + key instruments + authors + dates
                 every operational method → established field + key frameworks + authors + dates
                 every vocabulary term → validated scales + authors + dates
-       count: ~170 instruments across 71 terms
+       count: ~100 instruments across 71 terms
        role: the empirical grounding — proof that PJE terms are not invented from nothing
               but sit on decades of validated research
 

@@ -4,7 +4,7 @@ final state — psychoemotional safety quotient content evaluator
 lineage
 
     initial-state.md — the raw vision (May 2022, 71 PJE terms)
-    intermediate-state.md — grounding in ~170 validated instruments
+    intermediate-state.md — grounding in ~100 validated instruments
     psq-definition.md — the PSQ as a rigorous construct (10 dimensions, PJE lens)
     psq-metrics-engine.md — the detector architecture and multi-pass pipeline
     final-state.md — this document: the operational specification
@@ -14,7 +14,7 @@ what changed from the guidance system's design
 
 The guidance system proposed a Psychological Safety Content Evaluator built on
 Edmondson's 7-item Team Psychological Safety Scale (1999). That instrument is
-one of ~170 in our reference library. It maps to a single PSQ dimension
+one of ~100 in our reference library. It maps to a single PSQ dimension
 (dimension 1: Threat Exposure, partially) and a single operational definition
 (Psycho Safety Engineering).
 
@@ -434,7 +434,7 @@ what this is and what it is not
         - psq-metrics-engine.md designed the methodology
         - this document specifies the instrument
         - the PSQ Content Evaluator is a novel construct, a method, and an instrument —
-          built on 170+ validated scales, operationalized through 10 dimensions,
+          built on ~100 validated scales, operationalized through 10 dimensions,
           and implementable as software
         - the contribution is not "a call for transdisciplinary integration" —
           the contribution is the integration itself, made operational

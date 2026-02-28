@@ -58,7 +58,7 @@ The response to this critique produced, in rapid succession:
 1. **A novel construct** — the Psychoemotional Safety Quotient (PSQ): a 10-dimension composite measure of the psychoemotional safety climate of textual content.
 2. **A measurement method** — a multi-pass LLM-as-judge content evaluation pipeline, subsequently distilled into a local neural network.
 3. **An instrument specification** — with explicit scoring rubrics, confidence thresholds, and aggregation rules.
-4. **A reference library** — 170+ validated instruments from clinical, organizational, and social psychology mapped to the PSQ's 10 dimensions.
+4. **A reference library** — ~100 validated instruments from clinical, organizational, and social psychology mapped to the PSQ's 10 dimensions.
 5. **A validation framework** — targeting the AERA/APA/NCME standards with specific psychometric benchmarks.
 
 The key theoretical insight that enabled this transition was that each of the 71 PJE terms corresponded to established psychological constructs with validated measurement instruments. The PSQ does not invent new psychological phenomena; it synthesizes existing constructs — drawn from Lazarus & Folkman's (1984) transactional stress model, Hobfoll's (1989) Conservation of Resources theory, Edmondson's (1999) psychological safety framework, and Bakker & Demerouti's (2007) Job Demands-Resources model, among others — into a multi-dimensional safety metric applicable at the content level.

@@ -2,7 +2,7 @@
 
 ## Core Concept
 
-Use the ~170+ validated instruments from intermediate-state.md as structured rubrics
+Use the ~100 validated instruments from intermediate-state.md as structured rubrics
 for an LLM to analyze text content and produce PSQ profiles. The instruments provide
 the operationalized constructs; the LLM provides the pattern recognition at scale.
 

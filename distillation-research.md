@@ -1488,7 +1488,7 @@ The v2d error analysis (§8t) identified clear failure modes for the 4 weakest d
 Full evaluation against psychometric best practices documented in `psychometric-evaluation.md`.
 
 **Key findings (updated 2026-02-26):**
-- Theoretical grounding: **Strong** (170+ validated instruments across 10 dimensions)
+- Theoretical grounding: **Strong** (~100 validated instruments across 10 dimensions)
 - Test-retest reliability: **Excellent** (ICC=0.935, all 10 dims > 0.90)
 - Discriminant validity: **Strong** (mean |r|=0.205 vs VADER sentiment; PSQ adds ΔR²=0.39-0.78 over sentiment)
 - Known-groups validity: **Mixed** (all 10 dims differentiate groups, but naive predictions only 38% confirmed)

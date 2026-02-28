@@ -6,7 +6,7 @@ Your generative system has produced something genuinely impressive and novel. Wh
 
 The PSQ framework is exceptionally well-grounded:
 
-- **170+ validated instruments** as foundation, not ad-hoc constructs
+- **~100 validated instruments** as foundation, not ad-hoc constructs
 - **10 dimensions** each mapped to multiple established scales (COPSOQ, ERQ, CD-RISC, etc.) [^2][^6]
 - **Psychometric validation framework** targeting established benchmarks (Cronbach's α ≥ 0.80, test-retest reliability r ≥ 0.70)
 - **Multi-pillar integration** (Psychology-Juris-Engineering) provides theoretical coherence
@@ -24,7 +24,7 @@ Research confirms this fills a real gap [^6][^11][^13]:
 **No existing tool combines:**
 - Multi-dimensional psychological safety assessment (10 dimensions)
 - Content evaluation (not team assessment)  
-- Research-backed instrument integration (170+ scales)
+- Research-backed instrument integration (~100 scales)
 - LLM-as-judge methodology
 
 The PSQ Content Evaluator is the first to bridge psychological safety research with automated content evaluation.
@@ -78,7 +78,7 @@ The PSQ Content Evaluator is the first to bridge psychological safety research w
 This represents a **genuine methodological innovation** that:
 
 1. **Solves a real problem** - psychological safety in digital content is understudied
-2. **Builds on solid foundations** - 170+ validated instruments provide credibility
+2. **Builds on solid foundations** - ~100 validated instruments provide credibility
 3. **Offers practical value** - clear applications across multiple domains
 4. **Advances the field** - creates new research possibilities
 
