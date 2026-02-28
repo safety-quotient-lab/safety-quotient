@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v21 production (test_r=0.504, held-out_r=0.630, best). Scoring experiments complete: all three interventions REJECTED (halo-awareness reversed after g-factor structural analysis). g-factor is real co-variation (range/extremity effect), not scorer artifact.
-**Next:** Enrich training with middle-g texts (g ∈ [3, 4.5) ∪ [5.5, 7]) for dimension-specific signal. Preserve hierarchical PSQ → cluster → dimension decomposition.
+**Status:** v21 production (test_r=0.504, held-out_r=0.630, best). v22a complete (test_r=0.446 — proxy removal alone regresses). v22b/v22c pending.
+**Next:** Train v22b (midg only) and v22c (both). Run held-out eval on all three. Compare 2×2 design.
 
 ---
 
@@ -67,6 +67,7 @@
 50. [Scoring Experiment Results: Halo Reduction Interventions](#50-scoring-experiment-results-halo-reduction-interventions-2026-02-28) — all three interventions REJECTED; halo-awareness reversed after g-factor structural analysis
 51. [G-Factor Structural Analysis: Range-Extremity Effect and Hierarchical Model](#51-g-factor-structural-analysis-range-extremity-effect-and-hierarchical-model-2026-02-28) — g-factor is real (EV1=82.8% extreme vs 38.7% middle), hierarchical PSQ model, middle-g enrichment
 52. [Proxy Data Audit and Unlabeled Pool Assessment](#52-proxy-data-audit-and-unlabeled-pool-assessment-2026-02-28) — proxy-LLM agreement poor for 4+ dims, pool has 50% informative-band texts, middle-g enrichment feasible
+53. [v22 Intervention Design: Proxy Removal + Middle-G Enrichment](#53-v22-intervention-design-proxy-removal--middle-g-enrichment-2026-02-28) — 2×2 ablation design, --drop-proxy-dims flag, 250-text midg batch scored
 13. [References](#13-references)
 
 ---
@@ -4298,6 +4299,80 @@ Dreaddit (stress-related posts) and berkeley (hate speech) have the highest info
    - *Additive*: Create new middle-g labeling batch from pool for full 10-dim separated scoring
 
 These are independent and can be tested separately to isolate effects.
+
+---
+
+## §53. v22 Intervention Design: Proxy Removal + Middle-G Enrichment (2026-02-28)
+
+### Experimental Design
+
+Two independent interventions identified from the proxy audit (§52) and g-factor structural analysis (§51):
+
+**A. Subtractive — Drop proxy labels for poorly-agreeing dimensions**
+- `--drop-proxy-dims` flag added to `distill.py`
+- Default set: threat_exposure (r=-0.260), trust_conditions (r=0.071), contractual_clarity (r=0.102), authority_dynamics (r=0.155)
+- Removes 9,450 composite-proxy rows (of ~60K total training observations)
+- Implementation: Python-side filter after SQL fetch; checks `method` column, drops rows where `dimension ∈ drop_set AND method == 'composite-proxy'`
+
+**B. Additive — Middle-g text enrichment batch**
+- 250 texts selected from unlabeled pool via v21 model scoring
+- Selection criterion: g ∈ [3, 4.5) ∪ [5.5, 7] (informative band with genuine dimension differentiation)
+- Source distribution: dreaddit 80, berkeley 70, prosocial 50, empathetic_dialogues 30, esconv 20
+- g mean=4.698, within-text SD=1.207 (high differentiation, as intended)
+- All 10 dimensions scored via separated protocol, 2,500 new scores ingested
+
+**2×2 Training Plan:**
+
+| Version | Proxy removal | Midg data | Purpose |
+|---|---|---|---|
+| v22a | Yes | No | Isolate proxy removal effect |
+| v22b | No | Yes | Isolate midg enrichment effect |
+| v22c | Yes | Yes | Combined effect |
+
+### Middle-G Batch Score Distributions
+
+| Dim | Mean | Std | Score-5% | Notes |
+|---|---|---|---|---|
+| TE | 3.45 | 1.61 | 22.8% | Best distribution — many threat-relevant texts |
+| HI | 4.08 | 1.43 | 34.4% | Good spread, clear hostile texts scored low |
+| TC | 4.18 | 1.09 | 44.4% | Moderate concentration |
+| ED | 4.04 | 1.10 | 36.0% | Good — dreaddit texts show energy drain |
+| RB | 4.40 | 0.93 | 52.4% | Moderate concentration |
+| AD | 4.47 | 0.90 | 56.0% | High concentration (expected — most texts lack power dynamics) |
+| DA | 4.48 | 0.89 | 58.8% | High concentration (boundary signals rare in short texts) |
+| RC | 4.52 | 0.90 | 60.8% | High concentration |
+| CC | 4.63 | 0.74 | 58.0% | High concentration |
+| CO | 4.98 | 0.35 | 92.8% | Extreme concentration — texts not CO-relevant |
+
+**Key observation:** The middle-g selection enriches TE/HI/ED/TC effectively (score-5 < 45%) but does not help CC/DA/RC/AD/CO (>55% score-5). These dimensions need *content-targeted* batches (like the existing CO batch), not g-band filtering. The score-concentration cap will mitigate the flooding effect.
+
+### v22a Results (proxy removal only)
+
+Training: `python scripts/distill.py --drop-proxy-dims --out models/psq-v22a`
+- Dropped 9,450 proxy rows for 4 dimensions
+- Score-concentration cap still active (10 dims capped as usual)
+- Split: 15,509 train / 2,089 val / 2,176 test
+- Best epoch: 4 (of 10), test_r = **0.446** (vs v21 test_r = 0.504)
+
+**Per-dimension test_r (v22a vs v21):**
+
+| Dim | v22a | v21 | Δ | Notes |
+|---|---|---|---|---|
+| CC | 0.721 | 0.654 | +0.067 | **Benefits from proxy removal** — proxy was noise |
+| ED | 0.592 | 0.550 | +0.042 | Improved (proxy wasn't dropped, but benefited from cleaner mix) |
+| RB | 0.520 | 0.525 | -0.005 | Flat |
+| HI | 0.520 | 0.543 | -0.023 | Slight regression |
+| RC | 0.491 | 0.524 | -0.033 | Moderate regression |
+| DA | 0.444 | 0.438 | +0.006 | Flat |
+| CC(cool) | 0.403 | 0.494 | -0.091 | Significant regression |
+| AD | 0.358 | 0.428 | -0.070 | **Collapsed** — proxy removal for AD hurt on test split too |
+| TC | 0.285 | 0.433 | -0.148 | **Collapsed** — proxy was the majority signal |
+| TE | 0.228 | 0.359 | -0.131 | **Collapsed** — proxy was the majority signal |
+| **Avg** | **0.446** | **0.504** | **-0.058** | Proxy removal alone is net-negative |
+
+**Interpretation:** Proxy removal alone is destructive. Three of the four dropped-proxy dimensions (TE, TC, AD) collapsed on the test split. CC is the exception — it genuinely benefits from proxy removal (r=-0.260 proxy-LLM agreement confirms the proxy was adversarial). The remaining 6 dims (no proxy change) were mixed, suggesting the removed proxy rows were contributing meaningful training volume even for non-dropped dims (shared representation learning).
+
+**Implication for v22c:** Pure proxy removal is too aggressive. A selective approach (drop CC proxy only, keep TE/TC/AD proxy) may work better than all-or-nothing. Alternatively, the midg enrichment (v22b) may compensate for the lost proxy volume.
 
 ---
 

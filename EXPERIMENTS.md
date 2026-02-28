@@ -62,6 +62,10 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v21:** NEW BEST held-out (0.630, +0.030 vs v19, +0.069 vs v16). RC=0.729 (new ceiling dim), CC=0.687, AD=0.674, TC=0.674. CO batch helped non-CO dims most: HI +0.087, CC +0.085, TC +0.038 vs v19. CO itself +0.042. TE flat (0.492), DA still weak (0.566). Val-held-out gap 0.126 (held-out quality > val split). **Promoted to production.** ONNX re-exported.
 
+| **v22a** | **2026-02-28** | **DistilBERT** | **4** | **2e-5** | **32** | **0.446** | **—** | Same data as v21 (82,861 scores). `--drop-proxy-dims` removes 9,450 composite-proxy rows for TE, TC, CC, AD. | Proxy removal ablation. `--out models/psq-v22a`. Early stop (10 epochs, best@4). |
+
+**Notes on v22a:** Proxy removal alone is net-negative (test_r 0.504→0.446). CC improved dramatically (0.654→0.721 — proxy was adversarial r=-0.260), but TE (0.228), TC (0.285), AD (0.358) collapsed without proxy volume. Non-dropped dims mixed. The proxy data is noisy but contributes volume for shared representation learning. Held-out eval pending. **Not promoted.**
+
 ## Key Hyperparameters (v21, current)
 
 ```
@@ -174,6 +178,19 @@ Re-scored with separated LLM calls (one dimension per call). 100 real-world text
 Score calibration via isotonic regression reduces MAE by 4–25% and decompresses score ranges. Confidence calibration fixes inverted confidence (raw r(conf,acc) was negative for 6/10 dims; post-calibration all positive).
 
 ## Artifacts
+
+v21 artifacts are in `models/psq-student/` (production slot):
+- `best.pt` — PyTorch checkpoint (epoch 6)
+- `model.onnx` — Full-precision ONNX (254 MB)
+- `model_quantized.onnx` — INT8 quantized (64 MB)
+- `tokenizer/` — Tokenizer files
+- `calibration.json` — Score + confidence calibration maps
+- `config.json` — Model config
+- `held_out_results.json` — Held-out evaluation metrics
+
+v22a artifacts are in `models/psq-v22a/`:
+- `best.pt` — PyTorch checkpoint (epoch 4)
+- `best_results.json` — Test metrics
 
 v19 artifacts are in `models/psq-v19/`:
 - `best.pt` — PyTorch checkpoint (epoch 4)

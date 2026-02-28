@@ -127,3 +127,13 @@
 {"timestamp": "2026-02-28T07:36:54.193185-06:00", "dimension": "cooling_capacity", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
 {"timestamp": "2026-02-28T07:36:54.239552-06:00", "dimension": "defensive_architecture", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
 {"timestamp": "2026-02-28T07:36:54.287693-06:00", "dimension": "contractual_clarity", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T09:21:08.417147-06:00", "dimension": "threat_exposure", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:22:18.320087-06:00", "dimension": "hostility_index", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:23:17.069799-06:00", "dimension": "cooling_capacity", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:24:15.215709-06:00", "dimension": "energy_dissipation", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:25:15.889830-06:00", "dimension": "resilience_baseline", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:26:14.788029-06:00", "dimension": "regulatory_capacity", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:27:12.718009-06:00", "dimension": "defensive_architecture", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:28:11.630949-06:00", "dimension": "authority_dynamics", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:29:07.548000-06:00", "dimension": "trust_conditions", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T09:30:17.576426-06:00", "dimension": "contractual_clarity", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}

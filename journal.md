@@ -42,7 +42,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 29. [The Resolution Fix: Percentage Scoring at Scale](#29-the-resolution-fix-percentage-scoring-at-scale-2026-02-28)
 30. [The Data Scaling Curve and the Experiment Pivot](#30-the-data-scaling-curve-and-the-experiment-pivot-2026-02-28)
 31. [The Scoring Experiments: Nothing Works, and That's the Point](#31-the-scoring-experiments-nothing-works-and-thats-the-point-2026-02-28)
-32. [References](#32-references)
+32. [The Proxy Removal Experiment: You Can't Just Subtract Noise](#32-the-proxy-removal-experiment-you-cant-just-subtract-noise-2026-02-28)
+33. [References](#33-references)
 
 ---
 
@@ -430,16 +431,16 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ## 14. Current State and Open Questions
 
-### 14a. Model Performance (v19, 2026-02-28)
+### 14a. Model Performance (v21, 2026-02-28)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 21,627 texts in DB (78,361 scores, 24,771 separated-llm) |
-| Test avg Pearson r | 0.509 (10/10 dimensions positive) |
-| Held-out avg Pearson r | 0.600 (best, +0.039 vs v16, +0.172 vs v13) |
-| Generalization gap | ~9% |
-| ONNX model size | 64 MB (INT8 quantized, v16) |
+| Training data | 21,877 texts in DB (82,861 scores, 29,271 separated-llm) |
+| Test avg Pearson r | 0.504 (10/10 dimensions positive) |
+| Held-out avg Pearson r | 0.630 (best, +0.030 vs v19, +0.069 vs v16) |
+| Generalization gap | ~13% |
+| ONNX model size | 64 MB (INT8 quantized) |
 | Inference latency | ~20ms / text (CPU) |
 
 ### 14b. Psychometric Properties
@@ -449,7 +450,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Test-retest reliability | Excellent | ICC = 0.935 (perturbation-based) | ICC > 0.75 (Cicchetti, 1994) |
 | Discriminant validity (vs. sentiment) | Strong | Mean |r| = 0.205 vs VADER | r < 0.30 (distinct construct) |
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
-| Held-out generalization | Good | r = 0.600, n = 100 (separated labels, v19) | Comparable to brief personality measures |
+| Held-out generalization | Good | r = 0.630, n = 100 (separated labels, v21) | Comparable to brief personality measures |
 | Construct validity (discriminant) | Confirmed | 5-factor EFA (n=2,359); AD/ED singletons | CFA needed (n ≥ 200) |
 | Criterion validity | **Strong** | **4 studies: CaSiNo, CGA-Wiki, CMV, DonD** (AUC 0.59–0.69) | Profile >> average; context-dependent primacy |
 | Inter-rater reliability | Not measured | — | Critical gap |
@@ -1028,7 +1029,25 @@ None of the three scoring interventions is adopted. The rubrics are fine. The sc
 
 ---
 
-## 32. References
+## 32. The Proxy Removal Experiment: You Can't Just Subtract Noise (2026-02-28)
+
+The scoring experiments concluded that the g-factor is real co-variation and the path forward is better training data. We pursued this on two fronts: removing low-quality proxy data and enriching the training set with texts from the "informative middle band" where dimensions genuinely differentiate.
+
+A proxy data audit revealed that four of ten dimensions had poor agreement between composite-proxy labels and separated-LLM labels: threat_exposure (r = -0.260), trust_conditions (r = 0.071), contractual_clarity (r = 0.102), and authority_dynamics (r = 0.155). For TE, the proxy was actively adversarial — teaching the model the wrong direction. The natural hypothesis was that removing these noisy proxy rows (9,450 of ~60,000 training observations) would free the model to learn from the higher-quality separated-LLM signal.
+
+We designed a 2×2 ablation: (A) proxy removal alone, (B) middle-g data enrichment alone, (C) both. The middle-g batch comprised 250 texts selected from the unlabeled pool by their predicted mean score (g ∈ [3, 4.5) ∪ [5.5, 7]), the band where our structural analysis had shown genuine dimension differentiation (EV1 = 38.7%) rather than pure valence (EV1 = 82.8%). All 250 were scored across 10 dimensions via the separated protocol and ingested into the training database.
+
+**v22a (proxy removal only) told an instructive story.** Average test r dropped from 0.504 to 0.446 — a significant regression. Three of the four dropped-proxy dimensions collapsed: TE (0.359 → 0.228), TC (0.433 → 0.285), AD (0.428 → 0.358). The exception was contractual_clarity (CC), which actually improved (0.494 → 0.721), confirming that its proxy was genuinely adversarial. But even dimensions whose proxies were *not* removed showed mixed effects, suggesting that the lost proxy rows were contributing meaningful training volume through shared representation learning.
+
+This result has a clear interpretation in the language of bias-variance tradeoff. The proxy data is biased (noisy, sometimes adversarial), but it contributes variance reduction through sheer volume. Removing 9,450 rows — roughly 16% of training observations — increases the signal-to-noise ratio *per observation* but reduces the total signal *in aggregate*. For dimensions like TE and TC, where proxy data constituted the majority of training examples, the variance increase from data loss overwhelmed the bias reduction from noise removal. For CC, where the proxy was adversarial (r = -0.260), even the volume loss was worth the bias correction.
+
+The lesson echoes §12 (Civil Comments poisoning): proxy pathology exists on a spectrum. At one extreme, anti-correlated proxies must be removed entirely — no amount of reweighting fixes negative signal. At the other, weakly-correlated proxies (r ≈ 0.07–0.15) may be net-positive if they constitute a large fraction of training volume, because even noisy gradient signal helps the shared representation layer (Ruder, 2017). The correct intervention is not wholesale removal but selective correction: drop only the adversarial proxies, keep the merely noisy ones, and enriching the high-quality signal to shift the balance.
+
+The v22b (enrichment only) and v22c (both) runs will test whether middle-g data alone can achieve what proxy removal could not — and whether the combination is synergistic or merely additive.
+
+---
+
+## 33. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

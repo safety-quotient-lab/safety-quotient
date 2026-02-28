@@ -104,21 +104,23 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | TE focus batch | `data/labeling-batch-te.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for te-relevant content (threat, violence, abuse, harm). TE score mean=3.17, good low-end variance. |
 | Broad spectrum | `data/labeling-batch-broad.jsonl` | 300 | 10/10 | 2026-02-28 | Complete. 150 random + 100 single-dim keyword + 50 multi-dim keyword. Best distributions: TE 18.3%, ED 25.7% score-5. |
 | Pct scale batch | `data/labeling-batch-pct-200.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. 0-100 percentage scale (÷10 on ingest). 86.2% non-integer, 4.8% exact-5, 35 unique values. Sources: empathetic_dialogues 73, berkeley 56, prosocial 50, dreaddit 16, esconv 5. |
+| CO #2 batch | `data/labeling-batch-co2.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. CO-keyword filtered texts from unlabeled pool. CO mean=4.36. Drove v21 (+0.030 held-out). |
+| Middle-g batch | `data/labeling-batch-midg.jsonl` | 250 | 10/10 | 2026-02-28 | Complete. g∈[3,4.5)∪[5.5,7] from unlabeled pool (model-scored selection). Sources: dreaddit 80, berkeley 70, prosocial 50, empathetic_dialogues 30, esconv 20. TE 22.8%, HI 34.4% score-5 (good variance). |
 
-**Total separated-llm training labels:** 26,771 scores (across 21,627 texts in DB).
+**Total separated-llm training labels:** 29,271 scores (across 21,877 texts in DB).
 
-## Composite Summary (v21, 2026-02-28)
+## Composite Summary (post-midg batch, 2026-02-28)
 
 | Metric | Value |
 |---|---|
-| Total texts in DB | 21,627 |
-| Total scores in DB | 80,361 |
+| Total texts in DB | 21,877 |
+| Total scores in DB | 82,861 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
 | Joint-LLM records | 12,257 |
-| Separated-LLM records | 26,771 |
+| Separated-LLM records | 29,271 |
 | Synthetic records | 846 |
 | Held-out test records | 100 (separate, not in training) |
-| Train / Val / Test | ~16,700 / ~2,000 / ~2,100 (hash-based text split) |
+| Train / Val / Test | 17,458 / 2,122 / 2,203 (hash-based text split) |
 | Source datasets | 11 active (2 removed, 1 partially removed) |
 | Dimensions covered | 10/10 |
 
