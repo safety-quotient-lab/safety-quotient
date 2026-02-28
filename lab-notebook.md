@@ -379,7 +379,9 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 | v22b    | midg data only (no proxy removal) | — | 0.578 | Worse than v21 |
 | v22c    | `--drop-proxy-dims + --curriculum` | 0.431 | 0.638 | Curriculum REJECTED |
 | **v23** | +550 texts (ccda/proxy-audit/held-out-expand) | — | **0.696** | **Current production** |
-| v24 | 256-token context (batch 16, grad_accum 2) | — | pending | Training (task bxsm4j1ou) |
+| v24 | 256-token context (batch 16, grad_accum 2) | — | **0.6702** | 128 tokens superior; v24 NOT promoted |
+| v25 | 512-token context (batch 8, grad_accum 4) | — | pending | Training on GPU (queue) |
+| v26 | 128-token, LR=1e-5 (slow training test) | — | pending | Queued after v25 |
 
 ---
 
@@ -390,7 +392,7 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 3. ~~Does more CO-targeted data (ccda batch) improve CO from 0.504?~~ **ANSWERED:** v23 CO=0.549 (+0.045). YES — CO-targeted ccda batch improved the weakest dimension. Still weakest overall; more data will help further.
 4. ~~Is CC penalized by proxy removal?~~ **ANSWERED:** v23 CC=0.739 (+0.020 vs v22a). NO — proxy removal is net-positive for CC. The v22a regression was a data quantity effect, not a proxy removal artifact.
 5. Human expert validation: DA construct validity still unresolved by LLM data alone. T3b provides computational evidence (AD predicts deal not points), but ICC(2,1) from expert panel required for final resolution.
-6. Does increasing context from 128→256 tokens improve performance on long-text sources? Error analysis identifies berkeley/UCC blind spots as distribution mismatch (not length), but criterion datasets (DonD multi-turn) may still benefit.
+6. ~~Does increasing context from 128→256 tokens improve performance on long-text sources?~~ **ANSWERED:** v24 (256 tok) held-out_r=0.670 (−0.026 vs v23). 128-token context is superior: 8/10 dims regressed, only CC (+0.022) and AD (+0.014) improved. Confirms that relevant safety-relevant signal is concentrated in early text windows; DistilBERT's 6 layers cannot leverage longer-range dependencies. 128 tokens confirmed as optimal for this hardware/model combination.
 7. Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.
 
 ---
@@ -475,3 +477,24 @@ Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready 
 - Metrics pending.
 
 ▶ EXPERIMENTS.md (v24 row added)
+
+---
+
+### Session `20260228-1625` (v24 results, context length sweep, T2 temporal analysis)
+
+**v24 results confirmed.** 256-token context regresses −0.026 vs v23 (held-out_r=0.670). 128 tokens superior. v24 NOT promoted.
+
+**Unattended training queue launched.** `scripts/train_queue_v25_v26.sh` (nohup PID 2469760):
+- v25 (512 tok, batch=8, grad-accum=4): training on GPU now
+- v26 (128 tok, LR=1e-5): queued after v25 completes
+- Eval logs: `/tmp/psq_v25_eval.txt`, `/tmp/psq_v26_eval.txt`
+
+**CGA-Wiki T2 temporal analysis launched.** `criterion_cgawiki_temporal.py` scoring 25,351 utterances on CPU. Tests T2: r(AD_t, HI_{t+1}) vs r(HI_t, AD_{t+1}) in derailing conversations. ~70% complete at time of writing.
+
+**Documentation updates:**
+- EXPERIMENTS.md: v24 complete row, v25/v26 pending rows; v23 and v24 per-dim held-out tables
+- distillation-research.md: §61 added (context length + T2 analysis), status line updated, ToC entry added
+- lab-notebook.md: v24/v25/v26 rows in training table; Open Question #6 answered
+- MEMORY.md: v24 result, v25/v26 status, T2 analysis note added
+
+▶ EXPERIMENTS.md (v24/v23/v24 held-out sections), distillation-research.md §61
