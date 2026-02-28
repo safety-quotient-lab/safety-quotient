@@ -67,3 +67,13 @@
 {"timestamp": "2026-02-28T03:18:26.042786-06:00", "dimension": "cooling_capacity", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
 {"timestamp": "2026-02-28T03:18:26.096383-06:00", "dimension": "defensive_architecture", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
 {"timestamp": "2026-02-28T03:18:26.141877-06:00", "dimension": "contractual_clarity", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:35:34.780133-06:00", "dimension": "threat_exposure", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:38:57.682713-06:00", "dimension": "hostility_index", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:41:26.943324-06:00", "dimension": "authority_dynamics", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:43:57.792518-06:00", "dimension": "energy_dissipation", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:46:19.588297-06:00", "dimension": "regulatory_capacity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:48:27.309111-06:00", "dimension": "resilience_baseline", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:50:44.462455-06:00", "dimension": "trust_conditions", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:52:56.693798-06:00", "dimension": "cooling_capacity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:55:25.922763-06:00", "dimension": "defensive_architecture", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}
+{"timestamp": "2026-02-28T03:57:41.943814-06:00", "dimension": "contractual_clarity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-pct-200.jsonl"}

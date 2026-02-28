@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28 (v19 cycle)
+**Current date:** 2026-02-28 (v19 cycle, pct batch + bifactor)
 
 ---
 
@@ -39,7 +39,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 26. [Publication Narrative](#26-publication-narrative-2026-02-28)
 27. [The Deal Test: When Energy Matters More Than Status](#27-the-deal-test-when-energy-matters-more-than-status-2026-02-28)
 28. [The g-Factor Deepens and the Integer Problem](#28-the-g-factor-deepens-and-the-integer-problem-2026-02-28)
-29. [References](#29-references)
+29. [The Resolution Fix: Percentage Scoring at Scale](#29-the-resolution-fix-percentage-scoring-at-scale-2026-02-28)
+30. [References](#30-references)
 
 ---
 
@@ -427,16 +428,16 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ## 14. Current State and Open Questions
 
-### 14a. Model Performance (v18, 2026-02-28)
+### 14a. Model Performance (v19, 2026-02-28)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 21,427 texts in DB (76,361 scores, 22,771 separated-llm) |
-| Test avg Pearson r | 0.525 (10/10 dimensions positive) |
-| Held-out avg Pearson r | 0.568 (new best, +0.007 vs v16, +0.140 vs v13) |
-| Generalization gap | ~8% |
-| ONNX model size | 64 MB (INT8 quantized, v18) |
+| Training data | 21,627 texts in DB (78,361 scores, 24,771 separated-llm) |
+| Test avg Pearson r | 0.509 (10/10 dimensions positive) |
+| Held-out avg Pearson r | 0.600 (best, +0.039 vs v16, +0.172 vs v13) |
+| Generalization gap | ~9% |
+| ONNX model size | 64 MB (INT8 quantized, v16) |
 | Inference latency | ~20ms / text (CPU) |
 
 ### 14b. Psychometric Properties
@@ -446,7 +447,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Test-retest reliability | Excellent | ICC = 0.935 (perturbation-based) | ICC > 0.75 (Cicchetti, 1994) |
 | Discriminant validity (vs. sentiment) | Strong | Mean |r| = 0.205 vs VADER | r < 0.30 (distinct construct) |
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
-| Held-out generalization | Moderate-Good | r = 0.568, n = 100 (separated labels, v18) | Comparable to brief personality measures |
+| Held-out generalization | Good | r = 0.600, n = 100 (separated labels, v19) | Comparable to brief personality measures |
 | Construct validity (discriminant) | Confirmed | 5-factor EFA (n=2,359); AD/ED singletons | CFA needed (n ≥ 200) |
 | Criterion validity | **Strong** | **4 studies: CaSiNo, CGA-Wiki, CMV, DonD** (AUC 0.59–0.69) | Profile >> average; context-dependent primacy |
 | Inter-rater reliability | Not measured | — | Critical gap |
@@ -955,7 +956,19 @@ This investigation has high priority because it affects the interpretation of ev
 
 ---
 
-## 29. References
+## 29. The Resolution Fix: Percentage Scoring at Scale (2026-02-28)
+
+The integer problem identified in §28 — where the LLM scorer almost never assigns non-integer values on the 0-10 scale, producing an effective 11-bin ordinal scale with most mass in the 4-5-6 band — demanded an engineering solution before further factor analysis or model training could meaningfully proceed. The pilot (50 texts, single session) demonstrated that a 0-100 percentage scale breaks the integer constraint, but the single-session design introduced massive halo (mean inter-dimension r=0.986), leaving the critical question unanswered: does the resolution improvement survive proper separated scoring?
+
+It does, and it improves further. A production batch of 200 texts scored with the separated protocol (one dimension per conversation context, ten separate scoring sessions) produced 86.2% non-integer scores versus 77.8% in the pilot — and more importantly, versus 2.1% with the standard 0-10 scale. Exact-5.0 concentration dropped to 4.8%, down from 7.2% in the pilot and 41.3% in the integer-scored database. The number of unique score values rose to 35, compared to ~11 with integer scoring.
+
+The magnitude of improvement is difficult to overstate. Under the integer regime, the measurement system was discarding roughly 90% of the scorer's discriminative capacity — the difference between a text that "feels like" a 4 and one that "feels like" a 5 on contractual clarity was simply erased. Under the percentage regime, a text scored at 42% and one at 48% are preserved as meaningfully different (4.2 vs 4.8 on the internal 0-10 scale). Whether the model can *learn* from this finer granularity is the subject of the next training experiment.
+
+The bifactor experiment (v19b) provided a useful negative result in parallel. Adding an 11th output head to predict g-PSQ (the general factor, operationalized as the mean of 10 dimension scores) produced a well-learned g-head (r=0.594) but degraded per-dimension prediction (test_r 0.509→0.502). The DistilBERT backbone (66.7M params, 384-dim projection) does not have sufficient representational capacity to serve 11 output heads without capacity competition. The practical implication is clear: if a general factor score is needed, compute it post-hoc from the 10 dimension scores rather than training a dedicated head. The bifactor architecture (Design A from §35) should be revisited only with a larger base model.
+
+---
+
+## 30. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

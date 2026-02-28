@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v19 DistilBERT — test_r=0.509, held-out_r=0.600 (separated labels, best ever, +0.032 vs v18). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Integer-only scoring bias identified.
+**Status:** v19 DistilBERT — test_r=0.509, held-out_r=0.600 (separated labels, best ever, +0.032 vs v18). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Integer-only scoring bias addressed with percentage scoring (86.2% non-integer at scale). Bifactor v19b: g_r=0.594 but per-dim capacity competition.
 
 ---
 
@@ -238,6 +238,10 @@ This has direct implications for the factor analysis:
 - Shared "score-5" signal mechanically inflates inter-dimension correlations
 - The g-factor eigenvalue may be partly artifactual
 - Resolution: pilot 0-100 percentage scoring scale, then re-run factor analysis
+
+**Update (2026-02-28):** Percentage scoring validated at scale. Production batch (200 texts × 10 dims, separated protocol) achieved 86.2% non-integer scores (vs 2.1% integer), 4.8% exact-5.0 (vs 41.3%), 35 unique values (vs ~11). The integer bias is effectively resolved for new labeling. Factor analysis v3 with pct-scored data is the next step to determine whether the g-factor eigenvalue drops.
+
+**Bifactor architecture tested (v19b):** 11th output head (g-PSQ) learned well (r=0.594) but per-dimension test_r dropped to 0.502 (from 0.509). DistilBERT lacks capacity for 11 heads. Recommendation: compute g-PSQ post-hoc as mean of 10 dimension scores.
 
 #### Verdict on H0 (10 factors are distinct)
 

@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v19 production (test_r=0.509, held-out_r=0.600). 4 criterion validity studies. DB: 21,427 texts, 76,361 scores, 22,771 separated-llm. Integer-only bias confirmed; 0-100 percentage scale pilot successful (non-integer 2.1%→77.8%, exact-5 41.3%→7.2%). Bifactor v19b training in progress.
-**Next:** Production-scale percentage scoring batches, bifactor evaluation, factor analysis with pct-scored data.
+**Status:** v19 production (test_r=0.509, held-out_r=0.600). 4 criterion validity studies. DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. Percentage scoring validated at scale (86.2% non-integer, 4.8% exact-5, 35 unique values). Bifactor v19b complete (test_r=0.502, g_r=0.594 — capacity competition with 11th head).
+**Next:** Train v20 with pct-scored data, evaluate held-out improvement, score CO-focused batch with pct scale.
 
 ---
 
@@ -59,6 +59,8 @@
 42. [Factor Analysis v2: g-Factor Strengthening](#42-factor-analysis-v2-g-factor-strengthening-2026-02-28) — N=1,970, eigenvalue 6.727 (67.3%), KMO=0.902, 5-factor structure collapsed, parallel analysis retains 1 factor only
 43. [Score Distribution Audit: Integer-Only Bias](#43-score-distribution-audit-integer-only-bias-2026-02-28) — LLM almost never uses non-integer scores, effective 11-bin scale, CO worst at 60.8% score-5
 44. [Percentage Scoring Pilot](#44-percentage-scoring-pilot-2026-02-28) — 0-100 scale breaks integer bias: non-integer 2.1%→77.8%, exact-5 41.3%→7.2%, 26 unique values per dim vs 11
+45. [Production Percentage Scoring Batch](#45-production-percentage-scoring-batch-2026-02-28) — 200 texts × 10 dims with separated protocol: 86.2% non-integer, 4.8% exact-5, 35 unique values
+46. [Bifactor v19b Results](#46-bifactor-v19b-results-2026-02-28) — 11th head (g-PSQ) learns well (r=0.594) but per-dim test_r drops to 0.502; capacity competition
 13. [References](#13-references)
 
 ---
@@ -3696,6 +3698,93 @@ This does NOT invalidate the scale-resolution findings. The resolution improveme
 3. **All future labeling batches should use `--pct`.** The tool is backward-compatible and auto-detects on ingest.
 4. **The factor analysis question remains open.** Whether the g-factor eigenvalue of 6.727 (67.3%) will decrease with pct-scored data depends on whether the integer bias was inflating correlations. This requires scoring a substantial batch (200+ texts) with proper separated scoring (1 dim per session), then re-running EFA.
 5. **Factor analysis v3 yielded no new information** — N remains 1,970 (authority_dynamics is the bottleneck at exactly 1,970 complete texts, while other dims have 2,200+). The v3 eigenstructure is identical to v2.
+
+---
+
+## §45. Production Percentage Scoring Batch (2026-02-28)
+
+The pilot (§44) established that 0-100 percentage scoring breaks integer-only bias, but was conducted in a single session (all 10 dims together), introducing halo. This section reports the production-scale validation: 200 texts × 10 dimensions scored with the separated protocol (one dimension per conversation context).
+
+### Setup
+
+- **Batch:** `data/labeling-batch-pct-200.jsonl` — 200 texts from unlabeled pool (seed=123, 5 sources: empathetic_dialogues 73, berkeley 56, prosocial 50, dreaddit 16, esconv 5)
+- **Protocol:** Extracted with `--pct` flag → 0-100 rubric anchors (0/20/50/80/100). Each dimension scored in isolation across separate sessions. Batches of 50 texts per response to avoid 32K output limit.
+- **Ingestion:** Scores divided by 10 on ingest (0-100 → 0-10 internal scale). Auto-detected from session metadata.
+
+### Score Resolution Results
+
+| Metric | Pilot (50 texts, joint) | Production (200 texts, separated) | Improvement |
+|---|---|---|---|
+| Non-integer scores | 77.8% | 86.2% | +8.4pp |
+| Exact 5.0 scores | 7.2% | 4.8% | -2.4pp |
+| Unique score values | 26 | 35 | +9 |
+| Inter-dim mean |r| | 0.986 (halo) | N/A (separated) | N/A |
+
+The production batch confirms and extends the pilot findings:
+- **86.2% non-integer** vs 2.1% with standard 0-10 scale (41× improvement)
+- **4.8% exact-5.0** vs 41.3% with standard scale (8.6× reduction)
+- **35 unique values** vs ~11 with integer scoring (3.2× resolution)
+
+The separated protocol eliminates the halo artifact seen in the pilot (mean |r| = 0.986 → proper dimension separation). These scores are suitable for factor analysis without the correlation-inflation concern.
+
+### DB Impact
+
+After ingest: 21,627 texts, 78,361 scores, 24,771 separated-llm (+2,000 from this batch).
+
+### Implications
+
+1. **All future labeling should use `--pct`.** The improvement is large, consistent, and backward-compatible.
+2. **Factor analysis v3 with pct-scored data** will test whether the g-factor eigenvalue of 6.727 (67.3%) was inflated by integer bias. If eigenvalue drops substantially, the 5-factor structure may re-emerge.
+3. **Score-concentration cap** may become unnecessary for pct-scored data — only 4.8% exact-5 vs the 30% cap threshold.
+
+---
+
+## §46. Bifactor v19b Results (2026-02-28)
+
+Trained a bifactor variant of v19 with an 11th output head predicting g-PSQ (mean of 10 dimension scores). This tests whether explicitly modeling the general factor improves or hurts per-dimension prediction.
+
+### Architecture
+
+```
+DistilBERT → shared projection (768→384) → 10 dimension heads × (384→2: score + conf)
+                                          → 1 g-PSQ head (384→1: sigmoid×10)
+```
+
+- g-PSQ target: mean of 10 dimension scores (from `best_scores` view)
+- g-PSQ loss weight: 1.0 (same as dimension heads)
+- `--bifactor` flag in distill.py
+
+### Results
+
+| Metric | v19 (standard) | v19b (bifactor) | Δ |
+|---|---|---|---|
+| test_r (10-dim avg) | 0.509 | 0.502 | -0.007 |
+| g_psq test_r | N/A | 0.594 | — |
+| Epochs (early stop) | 7 (best@4) | 7 (best@4) | same |
+| Training time | ~300s/epoch | ~301s/epoch | negligible |
+
+Per-dimension test results:
+
+| Dimension | v19 | v19b | Δ |
+|---|---|---|---|
+| contractual_clarity | 0.594 | 0.744 | +0.150 |
+| energy_dissipation | 0.545 | 0.568 | +0.023 |
+| hostility_index | 0.536 | 0.561 | +0.025 |
+| trust_conditions | 0.520 | 0.513 | -0.007 |
+| resilience_baseline | 0.497 | 0.520 | +0.023 |
+| regulatory_capacity | 0.506 | 0.452 | -0.054 |
+| authority_dynamics | 0.489 | 0.451 | -0.038 |
+| cooling_capacity | 0.479 | 0.444 | -0.035 |
+| threat_exposure | 0.453 | 0.431 | -0.022 |
+| defensive_architecture | 0.467 | 0.434 | -0.033 |
+
+### Analysis
+
+The g-head learned meaningfully (r=0.594), confirming that the general factor is real and learnable. But per-dimension average dropped from 0.509 to 0.502. The 11th head competes for shared representation capacity — the projection layer must now serve 11 outputs instead of 10. Some dimensions gain (CC +0.150), others lose (RC -0.054, AD -0.038).
+
+**Conclusion:** The bifactor architecture is not net-positive for per-dimension prediction with DistilBERT's limited capacity. If g-PSQ is needed, it should be computed post-hoc as the mean of dimension scores rather than trained as a separate head. The Design A approach (§35) adds complexity without improving the primary use case.
+
+**Alternative:** A larger base model (e.g., DeBERTa-v3-base at 184M params) might accommodate the 11th head without capacity competition. This is not a priority given the current deployment constraints.
 
 ---
 

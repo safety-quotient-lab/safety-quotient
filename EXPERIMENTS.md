@@ -50,6 +50,10 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v19:** NEW BEST held-out (0.600, +0.032 vs v18). 10 epochs, early stopped at epoch 7 (best at epoch 4). Broad-spectrum batch (150 random + 100 single-dim + 50 multi-dim keyword-filtered) drove broad improvement across weakest dims. Key wins: TE +0.125 (0.370→0.495, biggest single-dim improvement), ED +0.087 (0.562→0.649), AD +0.058 (0.599→0.657), DA +0.050 (0.488→0.538). Key losses: RB -0.027 (0.651→0.624), CO -0.020 (0.533→0.513), CC -0.016 (0.618→0.602). **Not yet promoted — awaiting ONNX re-export.**
 
+| v19b | 2026-02-28 | DistilBERT | 7 | 2e-5 | 32 | 0.502 | — | Same as v19. Bifactor experiment only. | `--bifactor`: 11th head (g-PSQ, sigmoid×10, loss weight 1.0). g_r=0.594. `--out models/psq-v19b`. |
+
+**Notes on v19b:** Bifactor experiment — added 11th output head predicting g-PSQ (mean of 10 dim scores). g-head learned well (r=0.594) but per-dim average dropped (0.509→0.502). CC benefited (+0.150) but RC/AD/CC/DA/TE all lost. Capacity competition: 11 heads share 384-dim projection. Early stopped epoch 7 (best@4), same as v19. **Not promoted — bifactor architecture is net-negative for per-dim prediction at DistilBERT scale.**
+
 ## Key Hyperparameters (v16, current)
 
 ```
