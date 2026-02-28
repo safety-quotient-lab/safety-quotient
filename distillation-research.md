@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v21 production (test_r=0.504, held-out_r=0.630, new best). CO batch (200 CO-relevant texts × 10 dims) ingested. 4 criterion validity studies. DB: 21,627 texts, 80,361 scores, 26,771 separated-llm. g-factor confirmed real (NOT integer artifact): pct eigenvalue 9.41 vs int 6.73. Scoring experiment protocols designed (3 experiments + test-retest baseline).
-**Next:** Execute scoring experiments (Phase 0 test-retest, then Exp 1-3 for halo mitigation).
+**Status:** v21 production (test_r=0.504, held-out_r=0.630, best). Scoring experiments complete: halo-awareness instruction ADOPTED (+26.4% within-text SD, AUC=0.971), dissimilar rubrics REJECTED, scale format RETAINED. Halo is a scorer-level phenomenon — only explicit instruction helps.
+**Next:** Adopt halo-aware instruction in production labeling. Continue labeling batches with adopted protocol. Consider CoT quote retrieval prompt.
 
 ---
 
@@ -64,6 +64,7 @@
 47. [Factor Analysis v3: Percentage Scoring Deepens the g-Factor](#47-factor-analysis-v3-percentage-scoring-deepens-the-g-factor-2026-02-28) — pct-scored data shows eigenvalue 9.41 (94.1%), mean |r|=0.934. Integer bias NOT the cause; cross-session halo suspected.
 48. [v20 Training: Pct Data Impact](#48-v20-training-pct-data-impact-2026-02-28) — held-out_r=0.600 (flat vs v19), pct data neither helps nor hurts at 200-text scale
 49. [v21 Training: CO Batch and Scoring Experiments](#49-v21-training-co-batch-and-scoring-experiments-2026-02-28) — held-out_r=0.630 (new best, +0.030 vs v19), RC=0.729, CC=0.687, scoring experiment protocols designed
+50. [Scoring Experiment Results: Halo Reduction Interventions](#50-scoring-experiment-results-halo-reduction-interventions-2026-02-28) — halo-awareness ADOPTED (+26.4% SD, AUC=0.971), rubrics REJECTED, scale RETAINED
 13. [References](#13-references)
 
 ---
@@ -4050,6 +4051,71 @@ With v21 training complete, attention shifted to the halo mitigation research pl
 Key design principles: (a) fresh controls scored in same experimental window (no stale gold labels), (b) non-overlapping text sets from unlabeled pool (no familiarity contamination), (c) scale-invariant metrics (entropy, eigenvalue ratio, rank-order), (d) criterion validity gate (CaSiNo AUC ≥ 0.58), (e) construct redefinition diagnostic for Exp 2 (check 7 unmodified dims).
 
 Supporting scripts created: `scripts/scoring_experiment_analysis.py` (analysis: retest, ab, crossscale modes), `scripts/select_experiment_texts.py` (deterministic hash-based text selection, stratified by source). Text sets prepared in `/tmp/psq_experiments/`.
+
+---
+
+## 50. Scoring Experiment Results: Halo Reduction Interventions (2026-02-28)
+
+Four experiments completed to systematically test interventions for reducing LLM scoring halo. Results are definitive — only one intervention is effective.
+
+### Phase 0: Test-Retest Baseline (N=20 held-out texts)
+
+Established noise floor: Δ_noise = 0.011 (within-text SD difference between gold and retest). 6/10 dims r ≥ 0.80, mean r = 0.737 (0.804 excluding AD). AD severely unstable (r=0.156) — pre-existing construct problem, not scoring prompt issue. **Qualified GO.**
+
+### Experiment 1: Halo-Awareness Instructions (N=30 fresh texts)
+
+Added explicit instruction: "Score ONLY [Dimension Name] — ignore your impression of other dimensions."
+
+| Metric | Control | Treatment | Change |
+|--------|---------|-----------|--------|
+| Within-text SD | 0.542 | 0.685 | +26.4% |
+| Mean inter-dim \|r\| | 0.751 | 0.631 | -0.120 |
+| Eigenvalue ratio | 78.4% | 68.6% | -9.8pp |
+| Control-treatment ρ | — | 0.892 mean | all ≥ 0.79 |
+
+**Decision: ADOPT.** All criteria exceeded (SD +26.4% >> 15% threshold, >> 2×Δ_noise).
+
+### Criterion Validity Gate (N=40 CaSiNo negotiations)
+
+Scored 40 stratified CaSiNo dialogues (15 high-sat, 15 low-sat, 10 mid) with halo-aware prompt. AUC = 0.971 (>> 0.58 gate threshold). **PASSED.** Note: absolute AUC likely inflated by same-scorer awareness and small N; directional finding is strong.
+
+### Experiment 2: Dissimilar Rubrics (N=30 fresh texts)
+
+Rewrote anchor vocabulary for CO, ED, AD to use dimension-specific behavioral features (e.g., CO: "no contractual content present" instead of "neutral"). All 10 dims scored under both conditions.
+
+| Metric | Control | Treatment | Change |
+|--------|---------|-----------|--------|
+| Within-text SD | 0.630 | 0.664 | +5.3% |
+| Mean inter-dim \|r\| | 0.810 | 0.793 | -0.017 |
+| Eigenvalue ratio | 83.3% | 82.1% | -1.2pp |
+
+**Diagnostic:** Only modified dims changed (CO exact-5: 77%→53%, AD: 60%→50%). 7 unmodified dims: ρ = 1.000 for 5/7 dims. No contagion effect — unmodified dims SD actually decreased 3.7%. This is construct redefinition, not halo reduction.
+
+**Decision: REJECT.** +5.3% SD well below 20% threshold. CO ρ = 0.626 (borderline) confirms the rewritten anchors measure a slightly different construct.
+
+### Experiment 3: Scale Format (N=20 fresh texts)
+
+Scored at 0-10 (control) and 1-7 scales. Pilot gate triggered (|r| difference 0.006 < 0.05), so 1-5 scale was skipped.
+
+| Metric | 0-10 | 1-7 | Difference |
+|--------|------|-----|-----------|
+| Mean inter-dim \|r\| | 0.666 | 0.660 | -0.006 |
+| Eigenvalue ratio | 75.4% | 74.7% | -0.7pp |
+| Mean entropy | 1.769 | 1.681 | -0.088 |
+
+Cross-scale ρ: mean 0.994 (range 0.968–1.000). Neutral rates identical across scales.
+
+**Decision: RETAIN 0-10.** Scale format has zero effect on halo. Scorer applies identical rank ordering regardless of scale granularity.
+
+### Conclusions
+
+1. **Halo-awareness instruction is the sole effective intervention.** It reduces g-factor eigenvalue from ~78%→69% and increases within-text SD by 26%, while preserving construct stability (all ρ ≥ 0.79) and criterion validity (AUC = 0.971).
+2. **Halo is a scorer-level phenomenon.** Structural interventions (rubric rewording, scale changes) cannot break it because the LLM forms a global text impression that is mapped across all dimensions.
+3. **Rubric changes risk construct redefinition** without reducing halo — a worse outcome than doing nothing.
+4. **The 0-10 integer scale is adequate.** No evidence that alternative scales reduce halo or improve differentiation.
+5. **Production recommendation:** Adopt halo-awareness instruction in all future separated scoring sessions. No rubric or scale changes needed.
+
+Full protocol and results: `scoring-experiments.md`.
 
 ---
 

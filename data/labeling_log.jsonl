@@ -87,3 +87,43 @@
 {"timestamp": "2026-02-28T05:18:03.118149-06:00", "dimension": "trust_conditions", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-co.jsonl", "started_at": "2026-02-28T11:12:51+00:00", "duration_minutes": 5.2, "texts_per_hour": 2306.8}
 {"timestamp": "2026-02-28T05:18:27.974901-06:00", "dimension": "cooling_capacity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-co.jsonl", "started_at": "2026-02-28T11:12:51+00:00", "duration_minutes": 5.6, "texts_per_hour": 2136.7}
 {"timestamp": "2026-02-28T05:18:55.567298-06:00", "dimension": "defensive_architecture", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-co.jsonl", "started_at": "2026-02-28T11:12:51+00:00", "duration_minutes": 6.1, "texts_per_hour": 1974.9}
+{"timestamp": "2026-02-28T07:23:55.723537-06:00", "dimension": "threat_exposure", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:55.772821-06:00", "dimension": "hostility_index", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:55.816195-06:00", "dimension": "authority_dynamics", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:55.860836-06:00", "dimension": "energy_dissipation", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:55.904962-06:00", "dimension": "regulatory_capacity", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:55.947561-06:00", "dimension": "resilience_baseline", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:55.992117-06:00", "dimension": "trust_conditions", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:56.036680-06:00", "dimension": "cooling_capacity", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:56.080245-06:00", "dimension": "defensive_architecture", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:23:56.125354-06:00", "dimension": "contractual_clarity", "n_scored": 20, "n_total": 20, "batch": "/tmp/psq_retest_phase0.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.013144-06:00", "dimension": "threat_exposure", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.060923-06:00", "dimension": "hostility_index", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.105046-06:00", "dimension": "authority_dynamics", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.149152-06:00", "dimension": "energy_dissipation", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.192009-06:00", "dimension": "regulatory_capacity", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.236143-06:00", "dimension": "resilience_baseline", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.286024-06:00", "dimension": "trust_conditions", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.331650-06:00", "dimension": "cooling_capacity", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.375654-06:00", "dimension": "defensive_architecture", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:27:13.423024-06:00", "dimension": "contractual_clarity", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.425945-06:00", "dimension": "threat_exposure", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.477007-06:00", "dimension": "hostility_index", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.522951-06:00", "dimension": "authority_dynamics", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.566126-06:00", "dimension": "energy_dissipation", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.610806-06:00", "dimension": "regulatory_capacity", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.655489-06:00", "dimension": "resilience_baseline", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.698911-06:00", "dimension": "trust_conditions", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.743802-06:00", "dimension": "cooling_capacity", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.791705-06:00", "dimension": "defensive_architecture", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:29:25.836129-06:00", "dimension": "contractual_clarity", "n_scored": 30, "n_total": 30, "batch": "/tmp/psq_experiments/exp1_texts.jsonl"}
+{"timestamp": "2026-02-28T07:36:53.851500-06:00", "dimension": "threat_exposure", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:53.903433-06:00", "dimension": "hostility_index", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:53.950708-06:00", "dimension": "authority_dynamics", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:53.997311-06:00", "dimension": "energy_dissipation", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:54.045238-06:00", "dimension": "regulatory_capacity", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:54.094072-06:00", "dimension": "resilience_baseline", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:54.144009-06:00", "dimension": "trust_conditions", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:54.193185-06:00", "dimension": "cooling_capacity", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:54.239552-06:00", "dimension": "defensive_architecture", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}
+{"timestamp": "2026-02-28T07:36:54.287693-06:00", "dimension": "contractual_clarity", "n_scored": 40, "n_total": 40, "batch": "/tmp/psq_casino_gate.jsonl"}

@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28 (v21 cycle, CO batch + scoring experiments)
+**Current date:** 2026-02-28 (scoring experiments complete: halo-awareness ADOPTED, rubrics REJECTED, scale RETAINED)
 
 ---
 
@@ -41,7 +41,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 28. [The g-Factor Deepens and the Integer Problem](#28-the-g-factor-deepens-and-the-integer-problem-2026-02-28)
 29. [The Resolution Fix: Percentage Scoring at Scale](#29-the-resolution-fix-percentage-scoring-at-scale-2026-02-28)
 30. [The Data Scaling Curve and the Experiment Pivot](#30-the-data-scaling-curve-and-the-experiment-pivot-2026-02-28)
-31. [References](#31-references)
+31. [The Scoring Experiments: Only Instruction Helps](#31-the-scoring-experiments-only-instruction-helps-2026-02-28)
+32. [References](#32-references)
 
 ---
 
@@ -1003,7 +1004,23 @@ The project now faces a pivotal question: can the halo problem be mitigated thro
 
 ---
 
-## 31. References
+## 31. The Scoring Experiments: Only Instruction Helps (2026-02-28)
+
+The answer to §30's pivotal question arrived in a single session. We ran all four planned scoring experiments and the results were unambiguous: of three interventions tested — halo-awareness instructions, structurally dissimilar rubrics, and alternative scale formats — only explicit instruction to the LLM scorer produced meaningful halo reduction. The other two were null.
+
+The halo-awareness instruction — a single sentence appended to each dimension's scoring prompt ("Score ONLY [Dimension Name] — ignore your impression of other dimensions") — increased within-text standard deviation by 26.4% (0.542 → 0.685), reduced the g-factor eigenvalue ratio from 78.4% to 68.6%, and decreased mean inter-dimension correlation from 0.751 to 0.631. Critically, all control-treatment Spearman correlations exceeded 0.79, confirming that the intervention reduced shared variance without altering construct definitions. A criterion validity gate using 40 stratified CaSiNo negotiation dialogues showed AUC = 0.971 for predicting satisfaction outcomes — well above the 0.58 threshold.
+
+The dissimilar rubrics experiment (Experiment 2) was designed to test whether the isomorphic structure of our rubric anchors — where all dimensions follow the same bad↔good valence axis — contributed to halo. We rewrote the anchor vocabulary for three dimensions (CO, ED, AD) to use dimension-specific behavioral features rather than generic quality words. The result was instructive: the rewritten rubrics changed scores only for the modified dimensions, with no contagion effect on the seven unmodified dimensions (five of which had ρ = 1.000 between conditions). This was the "construct redefinition" scenario predicted in the protocol design — the rubric changes altered what was being measured rather than how it was measured. The overall within-text SD increase was a modest 5.3%, far below the 20% adoption threshold.
+
+The scale format experiment (Experiment 3) tested whether a coarser 1-7 scale would force more categorical thinking, reducing the fine-grained adjustments that enable halo. The answer was unequivocal: the LLM applied identical rank orderings at both scale granularities. Cross-scale Spearman correlations averaged 0.994. Neutral-anchoring rates were identical (45.5% at 0-10, 45.0% at 1-7). The pilot gate triggered (mean |r| difference = 0.006 < 0.05), and the 1-5 condition was skipped as unnecessary.
+
+The theoretical implication is clear: LLM halo is primarily a scorer-level phenomenon. The model forms a global impression of text quality and maps it across all dimensions, regardless of how the rubric is worded or how many scale points are available. Only explicit instruction to score independently breaks this pattern — consistent with Sulsky and Day's (1994) finding that frame-of-reference training reduces halo in human raters, and contrary to Westbury and King's (2024) prediction that LLM halo is irreducible because it arises from distributional co-occurrence in training data.
+
+For the project, this resolves the measurement design question decisively: the halo-awareness instruction will be adopted for all future separated scoring. No rubric rewrites, no scale changes. The remaining halo (eigenvalue ratio still 68.6%) likely reflects genuine co-variation rather than measurement artifact — consistent with our factor analysis showing a real general factor with theoretical justification (Caspi et al., 2014; McGrew, 2009).
+
+---
+
+## 32. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

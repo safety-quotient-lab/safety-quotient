@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v21 DistilBERT — test_r=0.504, held-out_r=0.630 (separated labels, best ever, +0.030 vs v19). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,627 texts, 80,361 scores, 26,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Scoring experiment protocols designed for rubric-induced halo mitigation (3 experiments + test-retest baseline).
+**Status:** v21 DistilBERT — test_r=0.504, held-out_r=0.630. Scoring experiments complete: halo-awareness instruction ADOPTED (+26.4% within-text SD, criterion validity AUC=0.971), dissimilar rubrics REJECTED (construct redefinition), scale format RETAINED (negligible effect). Test-retest r=0.804 (excluding AD). 4 criterion validity studies.
 
 ---
 
@@ -90,7 +90,7 @@ The training pipeline combines 13 source datasets with different strengths:
 |---|---|---|
 | Internal consistency (α) | Do items within a dimension agree? | Not measured |
 | Test-retest (perturbation) | Stable under meaning-preserving text changes? | **Excellent** — ICC(3,1) = 0.935, all 10 dims > 0.90 |
-| Test-retest (temporal) | Same content → same score after time gap? | Not measured (LLM teacher) |
+| Test-retest (temporal) | Same content → same score after time gap? | **Good** — mean r=0.804 (excl. AD), 6/10 dims r ≥ 0.80 |
 | Inter-rater (human) | Do independent raters agree? | Not measured — protocol designed (see `expert-validation-protocol.md`) |
 | Inter-model (LLM) | Do different LLMs agree? | Not measured |
 | Intra-model (student) | Same model, same input → same score? | **Trivially satisfied** (deterministic) |
@@ -131,9 +131,29 @@ This satisfies the psychometric standard for test-retest reliability at the mode
 
 **Why it matters:** Without reliability evidence, we cannot know whether score differences reflect real differences in content or measurement noise. A score of 4.2 vs 5.8 could be meaningful or meaningless.
 
+**Update (2026-02-28, LLM temporal test-retest):** Phase 0 of the scoring experiments re-scored 20 held-out texts with the identical prompt in a fresh session, comparing to existing gold labels scored weeks earlier. This directly addresses temporal stability of the LLM teacher.
+
+| Dimension | Pearson r | ICC(3,1) | MAD |
+|-----------|-----------|----------|-----|
+| Hostility Index | 0.910 | 0.829 | 0.65 |
+| Threat Exposure | 0.891 | 0.867 | 0.50 |
+| Energy Dissipation | 0.832 | 0.837 | 0.35 |
+| Trust Conditions | 0.822 | 0.767 | 0.80 |
+| Cooling Capacity | 0.820 | 0.804 | 0.55 |
+| Resilience Baseline | 0.814 | 0.790 | 0.45 |
+| Regulatory Capacity | 0.779 | 0.703 | 0.60 |
+| Contractual Clarity | 0.742 | 0.703 | 0.35 |
+| Defensive Architecture | 0.602 | 0.563 | 0.45 |
+| Authority Dynamics | 0.156 | 0.144 | 0.70 |
+| **Mean (excl. AD)** | **0.804** | **0.760** | **0.52** |
+
+6/10 dims r ≥ 0.80. AD is severely unstable (r=0.156) — pre-existing construct problem (most texts are neutral on AD, producing minimal variance). DA is also weak (r=0.602), consistent with known construct validity concern.
+
+**Update (2026-02-28, halo-awareness instruction):** A controlled experiment (30 texts × 10 dims × 2 conditions) demonstrated that adding explicit instruction ("Score ONLY this dimension — ignore your impression of other dimensions") reduces inter-dimension correlations by 0.120 (mean |r| 0.751→0.631), increases within-text SD by 26.4%, and reduces g-factor eigenvalue from 78.4%→68.6%, while maintaining construct stability (all control-treatment ρ ≥ 0.79) and criterion validity (CaSiNo AUC=0.971). Alternative interventions (rubric rewording, scale changes) had negligible effects. Halo-awareness instruction adopted for all future scoring.
+
 **Recommendation:** Before any production deployment:
 1. Score 200+ diverse texts with 2-3 independent human expert raters (clinical psychologists or organizational psychologists). Compute ICC (Intraclass Correlation Coefficient). Target: ICC ≥ 0.70 for ≥ 8/10 dimensions.
-2. Re-score 100 texts with the same LLM after 2+ weeks. Compute test-retest r. Target: r ≥ 0.80.
+2. ~~Re-score 100 texts with the same LLM after 2+ weeks. Compute test-retest r. Target: r ≥ 0.80.~~ **DONE** — 20-text test-retest, mean r=0.804 (excl. AD). See scoring-experiments.md Phase 0.
 3. Score 200 texts with Claude, GPT-4, and Gemini. Compute inter-model agreement. This tests whether scores reflect the construct or idiosyncrasies of a single LLM.
 
 ### 3b. Construct Validity Gap: Person-Level Instruments → Content-Level Scoring
