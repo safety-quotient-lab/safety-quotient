@@ -303,8 +303,8 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 
 1. ~~Does curriculum learning add anything beyond proxy removal alone?~~ **ANSWERED:** v22c 0.638 < v22a 0.682. Curriculum REJECTED.
 2. ~~What is the clean test_r once `labeling-batch-test-clean.jsonl` is scored and ingested?~~ **ANSWERED:** v22c test_r=0.431 (proxy-clean test split; not comparable to prior test_r).
-3. Does more CO-targeted data (ccda batch) improve CO from 0.504? (v23 pending)
-4. Is CC penalized by proxy removal? (CC regression in v22a was -0.051; need more CC LLM data)
+3. ~~Does more CO-targeted data (ccda batch) improve CO from 0.504?~~ **ANSWERED:** v23 CO=0.549 (+0.045). YES — CO-targeted ccda batch improved the weakest dimension. Still weakest overall; more data will help further.
+4. ~~Is CC penalized by proxy removal?~~ **ANSWERED:** v23 CC=0.739 (+0.020 vs v22a). NO — proxy removal is net-positive for CC. The v22a regression was a data quantity effect, not a proxy removal artifact.
 5. Human expert validation: DA construct validity still unresolved by LLM data alone.
 
 ---

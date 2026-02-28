@@ -20,7 +20,7 @@ PSQ scores text across 10 psychologically-grounded dimensions, each anchored to 
 | CC | Cooling Capacity | De-escalation, reappraisal, and recovery signals |
 | AD | Authority Dynamics | Power asymmetry, dominance, and status negotiation |
 | DA | Defensive Architecture | Psychological boundary maintenance and self-protection |
-| CO | Contractual Obligations | Implied relational agreements and norm adherence |
+| CO | Contractual Clarity | Implied relational agreements and norm adherence |
 | ED | Energy Dissipation | Sustained engagement capacity and motivational resources |
 
 Each dimension is scored 0–10. The g-PSQ (unweighted average) provides a single overall safety index.

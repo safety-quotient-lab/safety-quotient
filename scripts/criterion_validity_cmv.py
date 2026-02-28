@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Criterion validity study: PSQ v16 student model vs Change My View (CMV) dataset.
+Criterion validity study: PSQ student model (psq-student/best.pt) vs Change My View (CMV) dataset.
 
 Dataset: Tan et al. (2016) "Winning Arguments" — Reddit ChangeMyView
 Outcome: Delta awarded (persuasion success) vs no delta
@@ -189,7 +189,7 @@ def paired_cohens_d(x, y):
 
 def run_analysis(pairs, model, tokenizer):
     print(f"\n{'='*80}")
-    print("CRITERION VALIDITY STUDY: PSQ v16 × Change My View (CMV)")
+    print("CRITERION VALIDITY STUDY: PSQ student × Change My View (CMV)")
     print(f"{'='*80}")
 
     # ── Dataset description ──────────────────────────────────────────────
@@ -216,7 +216,7 @@ def run_analysis(pairs, model, tokenizer):
     print(f"    Paired t-test: t={t_len:.3f}, p={p_len:.2e}, d={d_len:.3f}")
 
     # ── Score texts ──────────────────────────────────────────────────────
-    print(f"\n## Scoring with PSQ v16 student model...")
+    print(f"\n## Scoring with PSQ student model (psq-student/best.pt)...")
     print(f"  Scoring delta texts ({len(delta_texts)})...")
     delta_scores = score_texts(delta_texts, model, tokenizer)
     print(f"  Scoring no-delta texts ({len(no_delta_texts)})...")
@@ -485,7 +485,7 @@ if __name__ == "__main__":
     pairs = load_cmv_pairs()
     print(f"  Loaded {len(pairs)} matched pairs")
 
-    print("Loading PSQ v16 student model...")
+    print("Loading PSQ student model (psq-student/best.pt)...")
     model, tokenizer = load_model()
     print("  Model loaded successfully")
 

@@ -233,7 +233,7 @@ def main():
         scores_first = cached['scores_first']
         assert len(scores_all) == len(records), f"Cache mismatch: {len(scores_all)} vs {len(records)}"
     else:
-        print("\nLoading PSQ v16 model...")
+        print("\nLoading PSQ student model (psq-student/best.pt)....")
         model, tokenizer = load_model()
 
         texts = [r['text'] for r in records]

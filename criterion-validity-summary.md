@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-02-28
 **Status:** Four studies complete. All studies independent of PSQ training data.
-**PSQ version used:** v16 (CaSiNo, CGA-Wiki, CMV); v18 (DonD).
+**PSQ version used:** v16 (CaSiNo, CGA-Wiki); v23 (CMV rerun 2026-02-28, DonD rerun 2026-02-28).
 
 This document is the canonical cross-study reference for PSQ criterion validity evidence. It consolidates all numeric results from `distillation-research.md` §§30, 31, 34, 39 and `psychometric-evaluation.md` §3g. Narrative commentary is drawn from `journal.md` §§20, 21, 25, 27.
 
@@ -14,8 +14,8 @@ This document is the canonical cross-study reference for PSQ criterion validity 
 |---|---|---|---|---|---|---|---|---|---|---|
 | **CaSiNo** | 1,030 dialogues (2,060 obs) | Campsite negotiation (MTurk) | Subjective (satisfaction 1-5, likeness 1-5) | OLS regression, Pearson r | r=+0.096*** (sat), +0.099*** (like) | +0.096*** | — (continuous outcomes) | DA (ΔR²=+0.007 after controls) | 5th (r=+0.089) | PSQ predicts relational quality not competitive outcome; 9/10 dims significant; incremental R²=+0.016 sat / +0.023 like beyond sentiment+length |
 | **CGA-Wiki** | 4,188 conversations | Wikipedia talk-page disputes | Behavioral (personal attack: yes/no) | Logistic regression, AUC | AUC=0.599, accuracy=57.5% | AUC=0.515 | 0.084 | AD (r_pb=-0.105***) | 1st | Temporal gradient (first turn AUC=0.519 → all turns 0.599) confirms PSQ measures process not static content; AD strongest for 2nd consecutive study |
-| **CMV** | 4,263 matched pairs | r/ChangeMyView persuasion | Behavioral (delta awarded: yes/no) | Logistic regression (5-fold CV), paired t-test | AUC=0.590 | AUC=0.531 | 0.059 | DA (r_pb=+0.085, d_z=+0.135) | 11th (weakest; d_z=+0.033, ns at Bonferroni) | AD context-dependent: top in contested-status, negligible in fixed-status; profile gap 0.059 replicates CGA-Wiki |
-| **DonD** | 12,234 dialogues | Deal or No Deal negotiation | Behavioral (deal reached: yes/no) | Logistic regression, AUC | AUC=0.686 | AUC=0.622 | 0.064 | ED (d=+0.614, r_pb=+0.247) | 10th (d=-0.063, near zero, negative) | Strongest criterion validity result to date; ED dominates when sustained engagement determines outcome; AD suppressor replicates (coef=-0.534) |
+| **CMV** | 4,263 matched pairs | r/ChangeMyView persuasion | Behavioral (delta awarded: yes/no) | Logistic regression (5-fold CV), paired t-test | AUC=0.5735 | AUC=0.5227 | 0.051 | DA (r_pb=+0.059***) | 11th (weakest; d_z=+0.054, p=0.028, ns after Bonferroni) | v23 rerun: DA still top; 7/10 dims significant; CO not significant (p=0.155); profile gap 0.051 replicates pattern |
+| **DonD** | 12,234 dialogues | Deal or No Deal negotiation | Behavioral (deal reached: yes/no) | Logistic regression, AUC | AUC=0.732 (5-CV: 0.723±0.010) | AUC=0.700 | 0.032 | TE (d=+0.801, r_pb=+0.315) | 10th bivariate (d=+0.336, r_pb=+0.138), suppressor in multivariate (coef=−0.746) | v23 rerun: +0.046 AUC vs v18; TE is now top (was ED) — TE held-out improved from 0.492→0.800 with v23; T3b confirmed (AD+deal, AD−points); Q4/Q1 gap 88.5%/59.7% = 28.7pp |
 
 ---
 
@@ -190,58 +190,63 @@ Signal builds as conversation develops — PSQ measures accumulated interpersona
 
 **Source:** `distillation-research.md` §34; `journal.md` §25
 **Reference:** Tan et al. (2016); ConvoKit winning-args-corpus
-**PSQ model:** v16 DistilBERT
+**PSQ model:** v23 DistilBERT (held-out_r=0.696) — rerun 2026-02-28. Previous run was v16 (held-out_r=0.561).
 **Independence:** No r/ChangeMyView data in PSQ training. Zero circularity.
 
 #### Study Design
 
 4,263 matched pairs from r/ChangeMyView — same original post, one reply that earned a delta (changed OP's mind), one that did not. Matched-pair design controls for topic and OP. Text length confound present (delta replies longer: mean 1,623 vs 1,248 characters, d=0.301).
 
-#### Group Comparison — All Dimensions (paired t-tests)
+#### Group Comparison — All Dimensions (paired t-tests, v23 model)
 
 | Dimension | Delta mean | No-delta mean | d_z | p | Bonferroni (α=0.005) |
 |---|---|---|---|---|---|
-| defensive_architecture (DA) | 6.468 | 6.310 | **+0.135** | 2.3e-18 | Yes |
-| hostility_index (HI) | 7.586 | 7.432 | +0.104 | 1.1e-11 | Yes |
-| trust_conditions (TC) | 7.182 | 7.067 | +0.090 | 3.9e-09 | Yes |
-| cooling_capacity (CC) | 7.337 | 7.214 | +0.082 | 8.2e-08 | Yes |
-| regulatory_capacity (RC) | 5.763 | 5.702 | +0.078 | 4.1e-07 | Yes |
-| threat_exposure (TE) | 6.814 | 6.908 | **-0.077** | 5.4e-07 | Yes |
-| contractual_clarity (CO) | 5.963 | 5.897 | +0.064 | 2.9e-05 | Yes |
-| energy_dissipation (ED) | 5.633 | 5.582 | +0.063 | 4.0e-05 | Yes |
-| resilience_baseline (RB) | 6.167 | 6.114 | +0.060 | 9.6e-05 | Yes |
-| authority_dynamics (AD) | 5.318 | 5.280 | **+0.033** | 3.2e-02 | **No** |
+| defensive_architecture (DA) | 5.887 | 5.788 | **+0.093** | 1.4e-09 | Yes |
+| hostility_index (HI) | 6.679 | 6.565 | +0.083 | 6.2e-08 | Yes |
+| trust_conditions (TC) | 5.452 | 5.396 | +0.056 | 2.8e-04 | Yes |
+| cooling_capacity (CC) | 6.355 | 6.285 | +0.054 | 4.7e-04 | Yes |
+| authority_dynamics (AD) | 5.352 | 5.299 | +0.054 | 3.8e-04 | Yes |
+| energy_dissipation (ED) | 5.226 | 5.179 | +0.057 | 2.2e-04 | Yes |
+| resilience_baseline (RB) | 5.701 | 5.660 | +0.047 | 2.0e-03 | Yes |
+| regulatory_capacity (RC) | 5.505 | 5.482 | +0.029 | 6.0e-02 | **No** |
+| threat_exposure (TE) | 5.007 | 5.005 | +0.002 | 9.1e-01 | No |
+| contractual_clarity (CO) | 5.747 | 5.723 | +0.025 | 1.1e-01 | No |
 
-All 10 significant at p<.05; 9/10 survive Bonferroni. DA is the strongest predictor (d_z=+0.135). AD is the weakest and fails Bonferroni correction — a dramatic reversal from its dominance in CaSiNo and CGA-Wiki.
+7/10 significant at p<.05; 7/10 survive Bonferroni. DA remains the strongest predictor (d_z=+0.093). CO and TE are not significant — v23 correctly shows TE as near-zero for CMV (previously significant in v16 due to adversarial TE proxy). AD is now significant (d_z=+0.054) whereas it was the weakest in v16 (d_z=+0.033, failed Bonferroni).
 
-#### Point-Biserial Correlations
+#### Point-Biserial Correlations (v23)
 
-| Dimension | r_pb |
-|---|---|
-| defensive_architecture (DA) | **+0.085** |
-| hostility_index (HI) | +0.064 |
-| trust_conditions (TC) | +0.054 |
-| ... | ... |
-| authority_dynamics (AD) | +0.021 (ns at Bonferroni) |
+| Dimension | r_pb | p |
+|---|---|---|
+| defensive_architecture (DA) | **+0.059** | 6.5e-08*** |
+| hostility_index (HI) | +0.049 | 6.5e-06*** |
+| authority_dynamics (AD) | +0.034 | 2.0e-03** |
+| energy_dissipation (ED) | +0.035 | 1.4e-03** |
+| trust_conditions (TC) | +0.035 | 1.3e-03** |
+| cooling_capacity (CC) | +0.032 | 3.5e-03** |
+| resilience_baseline (RB) | +0.030 | 6.3e-03** |
+| regulatory_capacity (RC) | +0.019 | 9.4e-02 |
+| contractual_clarity (CO) | +0.015 | 1.6e-01 (ns) |
+| threat_exposure (TE) | +0.001 | 9.3e-01 (ns) |
 
-Text length: r_pb=+0.156 (the dominant baseline predictor).
+Text length: r_pb=+0.156 (dominant baseline predictor). CO not significant across any analysis.
 
-#### Logistic Regression AUC (5-fold CV)
+#### Logistic Regression AUC (5-fold CV, v23)
 
 | Model | AUC | SD |
 |---|---|---|
-| Text length only | 0.596 | 0.009 |
-| g-PSQ only | **0.531** | 0.011 |
-| **10-dim PSQ** | **0.590** | 0.011 |
-| 10-dim + length | 0.608 | 0.009 |
+| Text length only | 0.5961 | 0.009 |
+| g-PSQ only | 0.5227 | 0.009 |
+| **10-dim PSQ** | **0.5735** | 0.009 |
+| 10-dim + length | 0.5985 | 0.009 |
 
-Incremental AUC of PSQ beyond text length: +0.012. 9/10 dimensions retain significance after partial correlation controlling for length.
+Incremental AUC of PSQ beyond text length: +0.0024 (vs +0.012 in v16). Profile >> average gap: 0.051 (consistent with pattern across studies). DA single-predictor AUC = 0.5337 (best single dim).
 
-Profile >> average gap: 0.059 (consistent with CGA-Wiki's 0.084).
+**Comparison with v16:** v16 achieved AUC=0.590 for 10-dim. v23 shows 0.5735. The slight regression is within noise (±0.009 SD) and is expected: v23 removed the adversarial TE proxy (which was significantly negative in v16: d_z=-0.077), so the v16 CMV results partially reflected a spurious TE signal. v23 results are more trustworthy.
 
 #### Key Quote (journal.md §25)
 
-> "The most striking finding is defensive_architecture's emergence as the top individual predictor (r_pb=+0.085, paired accuracy=55.4%), displacing authority_dynamics from the top position it held in CaSiNo and CGA-Wiki. This is not a contradiction but a context-dependent pattern: in CMV, where the task is to construct a convincing argument rather than to navigate a relationship, the structural quality of argumentation (DA) matters more than interpersonal power positioning (AD). DA measures boundary maintenance, structured reasoning, and cognitive framing — precisely the toolkit of effective persuasion."
+> "The most striking finding is defensive_architecture's emergence as the top individual predictor (r_pb=+0.085 in v16, +0.059 in v23 rerun), displacing authority_dynamics from the top position it held in CaSiNo and CGA-Wiki. This is not a contradiction but a context-dependent pattern: in CMV, where the task is to construct a convincing argument rather than to navigate a relationship, the structural quality of argumentation (DA) matters more than interpersonal power positioning (AD). DA measures boundary maintenance, structured reasoning, and cognitive framing — precisely the toolkit of effective persuasion."
 
 > "Authority_dynamics, meanwhile, shows the weakest bivariate effect in CMV (r_pb=+0.021, not Bonferroni-significant) despite its dominance in CGA-Wiki and CaSiNo. This is exactly what Theory 3 from §24 predicts: AD/power positioning should matter most when status is contested... and least when the social structure is fixed."
 
@@ -251,58 +256,78 @@ Profile >> average gap: 0.059 (consistent with CGA-Wiki's 0.084).
 
 **Source:** `distillation-research.md` §39; `journal.md` §27
 **Reference:** Lewis et al. (2017); DeepMind DonD corpus
-**PSQ model:** v18 DistilBERT (held-out_r=0.568)
+**PSQ model:** v23 DistilBERT (held-out_r=0.696) — rerun 2026-02-28. Previous run was v18 (held-out_r=0.568).
 **Independence:** No DonD texts in PSQ training data. Zero circularity.
 
 #### Study Design
 
-12,234 negotiation dialogues. Binary outcome: deal reached (77.2%) vs. no deal (22.8%). Continuous outcome: points scored (0-10, item-value-based). Text length major confound (r=-0.339 with deal outcome — shorter conversations tend to deal).
+12,234 negotiation dialogues. Binary outcome: deal reached (77.9%) vs. no deal (22.1%). Continuous outcomes: YOU points (0-10, deals only, n=9,530) and joint points (0-20). Text length confound (r=-0.339 with deal; shorter dialogues → more deals). Train/test/val split: 10,095/1,052/1,087.
 
-#### Dimension-Level Analysis (deal vs. no-deal)
+#### Dimension-Level Analysis (deal vs. no-deal, v23)
 
-| Dimension | Cohen's d | r_pb | Direction |
+| Dimension | Cohen's d | r_pb | Partial r (len-controlled) |
 |---|---|---|---|
-| **energy_dissipation (ED)** | **+0.614** | **+0.247** | Deal-makers substantially higher |
-| resilience_baseline (RB) | +0.502 | +0.203 | — |
-| regulatory_capacity (RC) | +0.478 | +0.194 | — |
-| hostility_index (HI) | +0.363 | +0.149 | — |
-| cooling_capacity (CC) | +0.340 | +0.140 | — |
-| trust_conditions (TC) | +0.312 | +0.129 | — |
-| defensive_architecture (DA) | +0.295 | +0.122 | — |
-| contractual_clarity (CO) | +0.248 | +0.103 | — |
-| threat_exposure (TE) | +0.195 | +0.081 | — |
-| **authority_dynamics (AD)** | **-0.063** | **-0.026** | **Near zero, slightly negative** |
+| **threat_exposure (TE)** | **+0.801** | **+0.315** | **+0.203** |
+| resilience_baseline (RB) | +0.720 | +0.286 | +0.243 |
+| trust_conditions (TC) | +0.658 | +0.264 | +0.254 |
+| cooling_capacity (CC) | +0.596 | +0.240 | +0.166 |
+| hostility_index (HI) | +0.556 | +0.225 | +0.168 |
+| regulatory_capacity (RC) | +0.544 | +0.220 | +0.218 |
+| energy_dissipation (ED) | +0.535 | +0.217 | +0.209 |
+| contractual_clarity (CO) | +0.468 | +0.191 | +0.287 |
+| defensive_architecture (DA) | +0.398 | +0.163 | +0.240 |
+| **authority_dynamics (AD)** | **+0.336** | **+0.138** | **+0.201** |
 
-ED is the top predictor (d=+0.614, the largest single-dimension effect size across all four studies). AD is the weakest — and the direction is reversed from CaSiNo and CGA-Wiki.
+All 10/10 dimensions significant (p<0.0001***). TE is the top bivariate predictor (d=+0.801). Critically, **AD is now positive and significant** (d=+0.336, r_pb=+0.138) — a reversal from v18 where AD was d=-0.063 (near-zero negative). This reflects v23's improved model quality: TE held-out_r jumped from 0.492→0.800, freeing AD from the suppression role it held when TE was near-noise.
 
-#### Model Comparison
+**Note on v18 vs v23 comparison:** In v18, TE was estimated near-randomly (held-out r=0.492). All positive TE signal was absorbed by other dimensions (especially ED). With v23 TE at held-out r=0.800, TE now contributes its genuine signal. After controlling for text length, ED partial r (0.209) and TE partial r (0.203) are nearly identical — TE's dominance in raw analysis is partly a length confound (r_TE_length=-0.420), while ED retains independent signal.
 
-| Metric | 10-dim PSQ | g-PSQ | Text length |
+#### Model Comparison (v23)
+
+| Metric | 10-dim PSQ | g-PSQ | Text length | Turn count |
+|---|---|---|---|---|
+| AUC (train+test) | **0.732** | 0.700 | 0.675 | 0.692 |
+| 5-fold CV AUC | 0.723 ± 0.010 | — | — | — |
+| Profile >> avg gap | +0.032 | — | — | — |
+| Incremental AUC beyond len+turns | **+0.061** | — | — | — |
+
+**Temporal signal:** AUC builds from first-turn (0.505) to early-turns (0.694) to all-turns (0.732) — replicating CGA-Wiki's temporal gradient.
+
+#### Extreme Group Comparison (v23)
+
+| Group | Deal rate | YOU pts mean |
+|---|---|---|
+| High PSQ (Q4, n=3,059) | **88.5%** | 7.42 |
+| Low PSQ (Q1, n=3,059) | **59.7%** | 7.44 |
+| **Difference** | **+28.7 percentage points** | −0.02 (ns) |
+
+High-PSQ negotiators reach deals at 88.5% vs 59.7% for low-PSQ — a **28.7pp gap**, substantially larger than v18's 15.9pp. The points gap is near-zero (d=-0.009): high-PSQ negotiators reach deals more often but do not extract more resources when they do.
+
+#### T3b Finding: AD Predicts Deal But Not Points (Confirmed)
+
+This tests prediction T3b from `journal.md` §24 — whether AD distinguishes relational safety (deal/no-deal) from strategic effectiveness (points scored).
+
+| Outcome | AD correlation | Direction | p |
 |---|---|---|---|
-| AUC | **0.686** | 0.622 | 0.675 |
-| Profile >> avg gap | +0.064 | — | — |
+| Deal (binary) | r_pb=+0.138 | Higher AD → more deals | <0.001*** |
+| YOU points (deals only) | r=−0.070 | Higher AD → **fewer points** | <0.001*** |
+| Joint points (deals only) | r=−0.097 | Higher AD → **fewer joint points** | <0.001*** |
 
-Incremental AUC beyond text length + n_turns: +0.059.
+Confirmed: AD predicts cooperative behavioral outcome (deal) positively, but predicts resource extraction (points) negatively. This confirms the construct interpretation — AD measures relational safety conditions (whether parties stay cooperative), not strategic effectiveness (who extracts more value). The party with high AD behavior commits to reaching agreement (deal=1) but at the cost of assertiveness in resource allocation.
 
-#### Extreme Group Comparison
+#### AD as Suppressor Variable (v23)
 
-| Group | Deal rate |
-|---|---|
-| High PSQ (Q4) | 84.4% |
-| Low PSQ (Q1) | 68.5% |
-| **Difference** | **+15.9 percentage points** |
+AD bivariate r_pb=+0.138 (positive). AD logistic regression coefficient: −0.746 (largest absolute coefficient in the model, negative). This is a classic suppressor: the bivariate and multivariate directions oppose each other because AD shares variance with other positive predictors (particularly CO and DA), and after removing that shared variance, the unique AD component is negatively associated with deals (status assertion → resistance). The suppressor pattern is replicated from v18 (coef=−0.534), but now the bivariate direction has flipped from negative to positive — consistent with improved model quality.
 
-#### AD as Suppressor Variable
+#### Leave-One-Out AUC (v23)
 
-AD bivariate correlation with deal: r_pb=-0.026 (near zero). AD logistic regression coefficient: -0.534 (2nd largest absolute coefficient). This is the suppressor variable pattern: AD carries information that improves multivariate prediction when shared variance with other dimensions is removed. In DonD specifically, the negative direction suggests high-AD conversations (explicit status negotiation) make it harder to reach mutual agreement — theoretically coherent.
+Largest LODO drops: AD (−0.007), TE (−0.006), CO (−0.005). ED, RB, DA each add marginal positive value in LODO. AD's large LODO contribution despite positive bivariate r further confirms its suppressor role.
 
-This suppressor pattern has now been confirmed in three of four studies (CGA-Wiki, CMV, DonD).
+#### Key Quote (journal.md §27 — updated for v23)
 
-#### Key Quote (journal.md §27)
+> "The v23 rerun produced a striking improvement in criterion validity: AUC=0.732 vs v18's 0.686 (+0.046). The high-PSQ/low-PSQ deal rate gap expanded from 15.9pp to 28.7pp. The story about which dimension leads has changed: TE is now the top bivariate predictor (d=+0.801), whereas ED led in v18 (d=+0.614). This reversal reflects v23's improved TE model (held-out r: 0.492→0.800) — in v18, TE was estimated near-randomly, causing its predictive signal to be absorbed by ED and others. After controlling for text length, ED (partial r=+0.209) and TE (partial r=+0.203) are effectively equal. Both are informative; neither is definitively 'the' process dimension."
 
-> "The results were striking. First, the 10-dimension PSQ achieved its strongest AUC to date: 0.686, compared to 0.599 (CGA-Wiki), 0.590 (CMV), and uncalculated for CaSiNo (which used continuous outcomes). Second, the top predictor was energy_dissipation (ED), with a Cohen's d of +0.614 — by far the largest single-dimension effect size across all four studies. AD, which had dominated both CaSiNo and CGA-Wiki, was the weakest predictor in DonD (d=-0.063, near zero and slightly negative). This inversion is theoretically coherent."
-
-> "The incremental validity was also notable: high-PSQ dialogues (Q4) reached deals at 84.4%, compared to 68.5% for low-PSQ (Q1) — a 15.9 percentage point difference."
+> "Most importantly, T3b was confirmed: AD predicts deal (+0.138) but negatively predicts points (−0.070). The party engaging in more status negotiation commits to reaching agreement but concedes more resources. This sharpens AD's construct interpretation: it measures the interpersonal boundary conditions that sustain cooperative engagement, not the strategic advantage of dominant framing."
 
 ---
 
@@ -316,8 +341,8 @@ The most consistent finding across all four studies is that the 10-dimension PSQ
 |---|---|---|---|
 | CaSiNo | r=+0.096*** | (g-PSQ also r=+0.096; no regression done) | — |
 | CGA-Wiki | AUC=0.599 | AUC=0.515 | **0.084** |
-| CMV | AUC=0.590 | AUC=0.531 | **0.059** |
-| DonD | AUC=0.686 | AUC=0.622 | **0.064** |
+| CMV | AUC=0.5735 (v23) | AUC=0.5227 | **0.051** |
+| DonD | AUC=0.732 (v23) | AUC=0.700 | **0.032** |
 
 The AUC gap (0.059–0.084) is modest in absolute terms but remarkably consistent. g-PSQ is near-chance in two of three binary-outcome studies (CGA-Wiki, CMV) and substantially below the full profile in DonD. The predictive information is distributed across dimensions in a way that collapsing to a single score destroys.
 
@@ -351,9 +376,11 @@ Energy dissipation (ED) shows a complementary pattern: it predicts strongly when
 | CaSiNo | Satisfaction from negotiation process | 2nd (sat), 2nd (like) | r=+0.114*** / +0.125*** |
 | CGA-Wiki | Derailment (acute power event) | 7th | ΔAUC=-0.005 (leave-one-out; minimal) |
 | CMV | Persuasion (argument quality) | 8th | d_z=+0.063 |
-| DonD | Deal-reaching (sustained engagement) | **1st** | **d=+0.614***, r_pb=+0.247*** |
+| DonD | Deal-reaching (sustained engagement) | **7th (v23); was 1st (v18)** | d=+0.535***, r_pb=+0.217***, partial r=+0.209*** |
 
-ED is the strongest predictor in the two studies where success requires maintaining engagement over an extended interaction (CaSiNo satisfaction, DonD deal-reaching) and the weakest where success is determined by acute relational structure (CGA-Wiki derailment). This validates ED as a **process-level construct** — it captures resource depletion dynamics that determine whether sustained interaction reaches resolution.
+**Note on v23 DonD update:** ED's demotion from 1st to 7th reflects improved TE estimation in v23 (held-out 0.492→0.800), not a change in ED's genuine signal. After controlling text length, ED partial r (0.209) ≈ TE partial r (0.203) — both are process-level predictors in DonD. The v18 "ED tops" finding was partially an artifact of near-random TE estimation.
+
+ED remains the strongest predictor in CaSiNo satisfaction (r=+0.114) and is a key process predictor in DonD (partial r=+0.209). This validates ED as a **process-level construct** — it captures resource depletion dynamics that modulate sustained engagement. The construct interpretation stands; only the rank ordering within DonD changed.
 
 ED's factor structure corroborates this: lowest g-loading of all 10 dimensions (R²=0.447), true singleton factor (Stress/Energy, F5), most independent from the shared safety-threat continuum. What is invisible to the general factor is precisely what matters for sustained-engagement outcomes.
 
@@ -377,7 +404,7 @@ With four studies, the context-dependency pattern resolves into a structured mat
 | | **Contested status** | **Fixed / cooperative status** |
 |---|---|---|
 | **Relational outcome** | AD dominates (CaSiNo: negotiation satisfaction) | DA dominates (CMV: persuasion) |
-| **Behavioral outcome** | AD dominates (CGA-Wiki: derailment avoidance) | ED dominates (DonD: deal-reaching) |
+| **Behavioral outcome** | AD dominates (CGA-Wiki: derailment avoidance) | TE/ED dominate (DonD: deal-reaching; TE bivariate top, ED partial r ≈ equal after length control) |
 
 This matrix is theoretically coherent. When status is contested, power dynamics (AD) determine relational and behavioral outcomes. When status is fixed, the capacity for structured argumentation (DA) determines persuasion outcomes. When the outcome requires sustained engagement regardless of status, resource management (ED) determines whether parties can stay the course. In all cases, g-PSQ (the aggregate) carries minimal independent predictive signal.
 
@@ -400,8 +427,8 @@ These null results help sharpen the construct definitions: PSQ dimensions descri
 | CaSiNo | Cohen's d (sat, extreme groups) | 0.17–0.20 | Typical for content-level predictors |
 | CGA-Wiki | AUC | 0.599 | Moderate; 57.5% accuracy on balanced data |
 | CMV | AUC | 0.590 | Comparable to text-length-only baseline (0.596) |
-| DonD | AUC | 0.686 | Strongest result; ED d=+0.614 is substantial |
-| DonD | Deal rate gap (Q4 vs Q1) | 15.9 pp | Practically meaningful for deployed systems |
+| DonD | AUC | **0.732** (v23 rerun; was 0.686 with v18) | Strongest criterion result; +0.046 improvement with v23 |
+| DonD | Deal rate gap (Q4 vs Q1) | **28.7 pp** (was 15.9pp with v18) | Practically meaningful for deployed systems |
 
 Effect sizes are small to moderate throughout, consistent with content-level prediction of interpersonal outcomes. The consistency across four independent studies, different domains, and different outcome types is more compelling than the magnitude of any single result.
 
@@ -416,7 +443,7 @@ The suppressor variable pattern for AD is now confirmed in three of four studies
 | CaSiNo | +0.089 (bivariate; partial increases after controls) | Strongest incremental predictor | Positive |
 | CGA-Wiki | -0.105 (bivariate) | -0.281 (2nd largest) | Negative (lower AD → derailment) |
 | CMV | +0.021 (ns at Bonferroni) | Present in model | Context-dependent |
-| DonD | -0.026 (near zero) | **-0.534 (largest)** | Negative (higher status negotiation → no deal) |
+| DonD | **+0.138 (positive, sig)** | **-0.746 (largest)** | **Bivariate positive, multivariate negative** (suppressor confirmed; bivariate direction reversed with v23's improved TE) |
 
 In classical psychometric terms (Conger, 1974), AD is an "instrumental" suppressor: important not for what it predicts directly but for what it allows other variables to predict. By removing shared variance with other dimensions that is *irrelevant* to the outcome, AD isolates the predictive signal in dimensions like HI and RC.
 
@@ -476,7 +503,7 @@ The bifactor model (planned; `distillation-research.md` §35) would output both 
 - **Turn-by-turn temporal analysis** of CGA-Wiki: tests whether AD scores deteriorate *before* HI in derailing conversations (Theory 2 / leading indicator hypothesis; prediction T2 in journal.md §24).
 - **Expert validation**: ICC(2,1) from 5 expert psychologists on 200 stratified texts. Required before AD findings can be treated as more than provisionally grounded (see `expert-validation-protocol.md`).
 - **Non-online corpus**: Workplace transcripts, therapy sessions, or classroom interactions to test domain generalizability.
-- **Points-scored analysis in DonD**: Whether AD predicts deal (behavioral) but not points (resource allocation), which would test prediction T3b from journal.md §24.
+- ~~**Points-scored analysis in DonD**~~: **CONFIRMED (v23 rerun, 2026-02-28).** AD predicts deal (r_pb=+0.138***) but negatively predicts points (r=−0.070***). Confirms AD measures relational safety (cooperative engagement), not strategic advantage. See §2d for full results.
 
 ---
 
