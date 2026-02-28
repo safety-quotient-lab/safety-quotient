@@ -34,6 +34,8 @@ Version-by-version record of every training run, with hyperparameters, data chan
 | **v14** | **2026-02-27** | **DistilBERT** | **8** | **2e-5** | **32** | **0.544** | **0.482** | +2,000 separated-llm labels (all 10 dims, 200 texts × 10 dims). DB mode. | Same hyperparams as v13. `--out models/psq-v14`. |
 | **v15** | **2026-02-27** | **DistilBERT** | **7** | **2e-5** | **32** | **0.536** | **0.495** | +4,500 separated-llm (300 AD + 150 RC batches × 10 dims). DB: 63,361 scores. | Same hyperparams. `--out models/psq-v15`. |
 
+**Pending: v16** — score-concentration cap added to `distill.py` (down-weights score-5 flooding from 5.0→1.5 when >30% of a dimension's samples share one rounded score). CO labeling batch (200 texts) in progress. Full training deferred until CO batch fully scored.
+
 ## Key Hyperparameters (v15, current)
 
 ```

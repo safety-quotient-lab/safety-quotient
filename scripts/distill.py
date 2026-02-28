@@ -343,7 +343,7 @@ def evaluate(model, dataloader, device):
     return results
 
 
-def _load_splits_from_db(db_path):
+def _load_splits_from_db(db_path, no_cap=False):
     """Load train/val/test records from psq.db using persisted split assignments.
 
     Returns (train_recs, val_recs, test_recs) where each record has:
@@ -359,6 +359,9 @@ def _load_splits_from_db(db_path):
         "SELECT text_id, text, dimension, score, confidence, sample_weight "
         "FROM training_data"
     ).fetchall()
+
+    if not no_cap:
+        train_rows = _cap_score_concentration(train_rows)
 
     # val and test: query best_scores joined to splits
     val_rows = con.execute(
@@ -400,6 +403,53 @@ def _rows_to_records(rows):
         texts[text_id]["dimensions"][dim] = {"score": score, "confidence": conf}
         texts[text_id]["dim_weights"][dim] = weight
     return list(texts.values())
+
+
+def _cap_score_concentration(rows, cap=0.30, reduced_weight=1.5):
+    """Reduce weight of over-concentrated score values per dimension.
+
+    If >cap fraction of a dimension's rows share the same rounded score,
+    randomly select excess rows and reduce their sample_weight to reduced_weight.
+    """
+    from collections import defaultdict
+    import random as _rng
+
+    # Group row indices by dimension
+    by_dim = defaultdict(list)
+    for i, (text_id, text, dim, score, conf, weight) in enumerate(rows):
+        by_dim[dim].append(i)
+
+    # Convert to mutable lists
+    rows = [list(r) for r in rows]
+
+    capped_dims = []
+    for dim, indices in by_dim.items():
+        total = len(indices)
+        score_groups = defaultdict(list)
+        for i in indices:
+            rounded = round(rows[i][3])  # score is index 3
+            score_groups[rounded].append(i)
+
+        for score_val, group_indices in score_groups.items():
+            frac = len(group_indices) / total
+            if frac > cap:
+                max_keep = int(total * cap)
+                excess = len(group_indices) - max_keep
+                _rng.seed(42)
+                _rng.shuffle(group_indices)
+                for i in group_indices[max_keep:]:
+                    rows[i][5] = reduced_weight  # weight is index 5
+                capped_dims.append(
+                    f"{dim} score={score_val} ({len(group_indices)}/{total}"
+                    f"={frac:.0%}, {excess} down-weighted)"
+                )
+
+    if capped_dims:
+        print(f"  Score concentration cap ({cap:.0%}):")
+        for msg in capped_dims:
+            print(f"    {msg}")
+
+    return [tuple(r) for r in rows]
 
 
 def _load_splits_from_jsonl(data_dir):
@@ -467,7 +517,7 @@ def train(args):
     db_path = ROOT / args.db
 
     if not args.no_db and db_path.exists():
-        train_recs, val_recs, test_recs = _load_splits_from_db(db_path)
+        train_recs, val_recs, test_recs = _load_splits_from_db(db_path, no_cap=args.no_cap)
         print(f"  DB: {db_path.name}")
         print(f"  Split: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test")
     else:
@@ -697,6 +747,8 @@ def main():
                        help="Force JSONL loading even if psq.db exists (legacy mode)")
     parser.add_argument("--out", default="models/psq-student",
                        help="Output directory for checkpoints and config (default: models/psq-student)")
+    parser.add_argument("--no-cap", action="store_true",
+                       help="Disable score-concentration cap (default: cap enabled)")
     parser.add_argument("--no-save", action="store_true",
                        help="Discard checkpoints after training (smoke-test mode)")
     parser.add_argument("--eval-only", action="store_true")

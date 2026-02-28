@@ -98,6 +98,7 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | All dims expansion | `data/labeling-batch-weak-dims.jsonl` | 200 | all 10 | 2026-02-27 | Extended to all 10 dims (same 200 texts) |
 | RC focus batch | `data/labeling-batch-rc.jsonl` | 150 | all 10 | 2026-02-27 | Targeting rc regression; diverse sources |
 | AD focus batch | `data/labeling-batch-ad.jsonl` | 300 | all 10 | 2026-02-27 | All dims scored and ingested |
+| CO focus batch | `data/labeling-batch-co.jsonl` | 200 | 1/10 | 2026-02-28 | co scored; 9 dims remaining. Keyword-filtered for co-relevant content. |
 
 **Total separated-llm training labels:** 9,771 scores (across 20,127 texts in DB).
 

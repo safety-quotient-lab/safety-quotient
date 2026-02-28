@@ -1,8 +1,8 @@
 # Psychometric Evaluation: SafetyQuotient (PSQ)
 
-**Date:** 2026-02-27
+**Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v15 DistilBERT — test_r=0.536, held-out_r=0.495 (separated labels). AD batch drove authority_dynamics +0.166; generalization gap down to 7.6%. Contractual clarity regressed (0.498→0.388).
+**Status:** v15 DistilBERT — test_r=0.536, held-out_r=0.495 (separated labels). Score-concentration cap added to distill.py to fix co regression (score-5 flooding). CO labeling batch in progress (200 texts, 1/10 dims scored).
 
 ---
 

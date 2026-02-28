@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
-**Date:** 2026-02-27
-**Status:** v15 complete (test_r=0.536, held-out_r=0.495). AD batch (+0.166 on authority_dynamics held-out), rc partially recovered (+0.041). Generalization gap down to 7.6%. 9,771 separated-llm scores in DB.
-**Next:** Investigate co regression (-0.110 held-out), promote v15 to production, plan v16 labeling priorities.
+**Date:** 2026-02-28
+**Status:** v15 complete (test_r=0.536, held-out_r=0.495). Score-concentration cap added to distill.py (systemic fix for co regression). CO labeling batch (200 texts) extracted and co dim scored (1/10). Labeling timing infrastructure added.
+**Next:** Score remaining 9 dims of CO batch, train v16, evaluate co recovery.
 
 ---
 
@@ -41,6 +41,7 @@
 21. [V14 Held-Out Results & Regression Analysis](#21-v14-held-out-results--regression-analysis-2026-02-27) — held-out_r=0.482 (+0.080 vs v13), rc regression, test/held-out inversion
 22. [RC Labeling Batch & Context Limit Lesson](#22-rc-labeling-batch--context-limit-lesson-2026-02-27) — 150 texts × 10 dims, session context exhaustion, recovery workflow
 23. [V15 Training: AD+RC Batch Impact](#23-v15-training-adrc-batch-impact-2026-02-27) — held-out_r=0.495 (+0.013), ad +0.166, rc +0.041, co regressed
+24. [Score-Concentration Cap & CO Batch](#24-score-concentration-cap--co-batch-2026-02-28) — systemic weight cap for score flooding, CO-focused labeling batch
 13. [References](#13-references)
 
 ---
@@ -2199,6 +2200,51 @@ The confidence head outputs near-constant values for rc and cc, making confidenc
 - `models/psq-v15/tokenizer/` — Tokenizer files
 - `models/psq-v15/config.json`, `best_results.json`, `test_results.json`
 - Promoted to `models/psq-student/` production slot
+
+---
+
+## 24. Score-Concentration Cap & CO Batch (2026-02-28)
+
+### 24a. Root Cause: Score-5 Flooding
+
+The v15 contractual_clarity regression (held-out 0.498→0.388) was traced to score concentration: 58% of separated-llm co training scores are exact 5.0. The AD batch (300 texts selected for authority_dynamics relevance) is genuinely neutral on contractual_clarity — co=5 is correct — but with separated-llm priority and 5× sample weight, these labels flood the co head with "predict 5" gradient. This is a general problem: any dimension-focused batch will produce neutral scores on non-target dimensions, concentrating those dimensions around 5.
+
+### 24b. Systemic Fix: `_cap_score_concentration()`
+
+Rather than removing correct labels, a weight-reduction approach was implemented in `distill.py`. After loading training rows from the DB, `_cap_score_concentration()` identifies any (dimension, rounded_score) pair where that score exceeds 30% of the dimension's total observations. Excess rows are randomly selected (seed=42) and their sample_weight is reduced from 5.0 (LLM weight) to 1.5 (composite weight) — a 3.3× reduction in influence. This preserves all labels but prevents any single score value from dominating gradient.
+
+A 1-epoch smoke test confirmed the cap fires on 9/10 dimensions:
+
+| Dimension | Score=5 concentration | Excess down-weighted |
+|---|---|---|
+| resilience_baseline | 58% | 1,246 |
+| cooling_capacity | 52% | 1,012 |
+| energy_dissipation | 52% | 1,010 |
+| threat_exposure | 50% | 952 |
+| regulatory_capacity | 46% | 853 |
+| hostility_index | 37% | 569 |
+| trust_conditions | 38% | 356 |
+| contractual_clarity | 36% | 126 |
+| defensive_architecture | 35% | 194 |
+
+Authority_dynamics is the only uncapped dimension — its score-5 fraction is already below 30%, likely because the AD batch provided varied ad scores.
+
+The cap is enabled by default; `--no-cap` disables it for comparison.
+
+### 24c. CO-Focused Labeling Batch
+
+To provide varied co training signal, 200 texts were extracted from `data/unlabeled-pool.jsonl` using keyword filtering for co-relevant content (agree, rule, policy, expect, promise, contract, boundary, terms, law, obligation, require, consent, permission, violat, etc.). 1,390 candidates matched after excluding texts already in the DB; 200 were randomly selected (seed=42).
+
+The co dimension was scored first: 52% of scores are non-5 (vs 58% exact-5 in prior training data), with scores ranging 1–9 and mean 5.20. This distribution should provide the variance the co head needs.
+
+### 24d. Labeling Timing Infrastructure
+
+A timing log was added to track labeling throughput:
+- `label_separated.py ingest --started-at <ISO timestamp>` records duration and texts/hr
+- Entries are appended to `data/labeling_log.jsonl`
+- `label_separated.py timing` shows per-dimension and aggregate statistics
+
+First measurement: 200 texts × 1 dim (co) in 3.2 min = 3,750 texts/hr.
 
 ---
 

@@ -33,6 +33,7 @@ import argparse
 import hashlib
 import json
 import sys
+from datetime import datetime, timezone
 from itertools import combinations
 from pathlib import Path
 
@@ -187,6 +188,15 @@ def cmd_extract(args):
     print(f"\nNext: Score each dimension in Claude Code, then run 'ingest' for each.")
 
 
+LABELING_LOG = ROOT / "data" / "labeling_log.jsonl"
+
+
+def _log_timing(entry):
+    """Append a timing entry to data/labeling_log.jsonl."""
+    with open(LABELING_LOG, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
 def cmd_ingest(args):
     """Ingest a scored dimension batch.
 
@@ -253,6 +263,39 @@ def cmd_ingest(args):
         json.dump(existing, f, indent=1)
 
     print(f"Ingested {len(normalized)} scores for {dim_id} → {out_path} ({len(existing)} total)")
+
+    # Log timing if --started-at was provided
+    now = datetime.now(timezone.utc)
+    batch_name = None
+    meta_path = WORK_DIR / "session_meta.json"
+    if meta_path.exists():
+        with open(meta_path) as f:
+            meta = json.load(f)
+        batch_name = meta.get("input_file")
+
+    entry = {
+        "timestamp": now.isoformat(),
+        "dimension": dim_id,
+        "n_scored": len(normalized),
+        "n_total": len(existing),
+        "batch": batch_name,
+    }
+
+    if args.started_at:
+        try:
+            started = datetime.fromisoformat(args.started_at)
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            duration_min = (now - started).total_seconds() / 60
+            entry["started_at"] = started.isoformat()
+            entry["duration_minutes"] = round(duration_min, 1)
+            entry["texts_per_hour"] = round(len(normalized) / (duration_min / 60), 1) if duration_min > 0 else None
+            print(f"  Timing: {duration_min:.1f} min, {entry['texts_per_hour']:.0f} texts/hr")
+        except ValueError:
+            print(f"  WARNING: Could not parse --started-at '{args.started_at}', skipping timing")
+
+    _log_timing(entry)
+    print(f"  Logged to {LABELING_LOG.name}")
 
 
 def cmd_assemble(args):
@@ -394,6 +437,48 @@ def cmd_status(args):
     print(f"\nProgress: {done}/10 dimensions scored")
     if done == 10:
         print("\nAll dimensions scored! Run 'assemble' to create final output.")
+
+
+def cmd_timing(args):
+    """Show labeling timing statistics from data/labeling_log.jsonl."""
+    if not LABELING_LOG.exists():
+        print("No timing data yet. Timing is recorded on ingest with --started-at.")
+        return
+
+    with open(LABELING_LOG) as f:
+        entries = [json.loads(l) for l in f if l.strip()]
+
+    timed = [e for e in entries if "duration_minutes" in e]
+    if not timed:
+        print(f"{len(entries)} ingest(s) logged, but none with timing data.")
+        print("Pass --started-at to ingest to record timing.")
+        return
+
+    # Per-dimension stats
+    from collections import defaultdict
+    dim_stats = defaultdict(list)
+    for e in timed:
+        dim_stats[e["dimension"]].append(e)
+
+    total_texts = sum(e["n_scored"] for e in timed)
+    total_min = sum(e["duration_minutes"] for e in timed)
+
+    print(f"Labeling timing ({len(timed)} timed sessions, {len(entries)} total ingests)")
+    print(f"{'Dimension':<25} {'Sessions':>8} {'Texts':>7} {'Minutes':>8} {'Texts/hr':>9}")
+    print("-" * 60)
+
+    for dim_id in DIMS:
+        sessions = dim_stats.get(dim_id, [])
+        if not sessions:
+            continue
+        n = sum(e["n_scored"] for e in sessions)
+        mins = sum(e["duration_minutes"] for e in sessions)
+        rate = n / (mins / 60) if mins > 0 else 0
+        print(f"  {dim_id:<23} {len(sessions):>8} {n:>7} {mins:>8.1f} {rate:>9.0f}")
+
+    overall_rate = total_texts / (total_min / 60) if total_min > 0 else 0
+    print("-" * 60)
+    print(f"  {'TOTAL':<23} {len(timed):>8} {total_texts:>7} {total_min:>8.1f} {overall_rate:>9.0f}")
 
 
 def _load_score_vectors(path):
@@ -665,6 +750,8 @@ def main():
     p_ing = sub.add_parser("ingest", help="Import scored dimension results")
     p_ing.add_argument("--dim", required=True, help="Dimension name or abbreviation")
     p_ing.add_argument("--scores", default=None, help="Path to scores JSON (or stdin)")
+    p_ing.add_argument("--started-at", default=None,
+                       help="ISO timestamp when scoring started (for timing log)")
 
     p_asm = sub.add_parser("assemble", help="Merge all dimensions into final JSONL")
     p_asm.add_argument("--input", required=True, help="Original input JSONL")
@@ -673,6 +760,7 @@ def main():
     p_asm.add_argument("--partial", action="store_true", help="Allow assembly with missing dims")
 
     sub.add_parser("status", help="Show scoring progress")
+    sub.add_parser("timing", help="Show labeling timing statistics")
 
     p_val = sub.add_parser("validate", help="Compare joint vs separated inter-dim correlations")
     p_val.add_argument("--joint", required=True, help="Joint-scored JSONL (original)")
@@ -688,6 +776,8 @@ def main():
         cmd_assemble(args)
     elif args.cmd == "status":
         cmd_status(args)
+    elif args.cmd == "timing":
+        cmd_timing(args)
     elif args.cmd == "validate":
         cmd_validate(args)
     else:
