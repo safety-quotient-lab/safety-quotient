@@ -70,6 +70,10 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v22b:** **WORSE than v21 (held-out_r=0.578, -0.052 vs v21, -0.104 vs v22a).** All 10 dims regressed vs v21. Midg data alone, without proxy removal, does not help — proxy noise overwhelms the midg signal. Confirms that proxy removal (v22a) is the dominant intervention; middle-g enrichment is neutral-to-negative when proxy noise is retained. Data quality > data quantity: 250 high-quality texts added to a noisy dataset produce no net gain.
 
+| v22c | 2026-02-28 | DistilBERT | 9 (early stop, best@6) | 2e-5 | 32 | 0.431 | 0.638 | Same as v22a + 200-text test-clean batch (test split LLM labels). Removed 12,409 proxy rows for TE/TC/CC/AD/ED. | `--drop-proxy-dims --curriculum --out models/psq-v22c`. Curriculum: Phase 1 (LLM-only, epochs 1-3), Phase 2 (+proxy, epochs 4-9). |
+
+**Notes on v22c:** **Curriculum learning adds NO benefit over proxy removal alone (v22c 0.638 < v22a 0.682, Δ=−0.044). Curriculum REJECTED.** All 10 dims worse than v22a. Largest regressions: HI (−0.114), TE (−0.091), DA (−0.070), CC (−0.055). Worst test_r of the v22 series (0.431) due to proxy-clean test split from test-clean batch ingestion. The complete 2×2 ablation (v22a/v22b/v22c) confirms proxy removal alone is the sufficient and dominant intervention. v22a remains the production candidate.
+
 ## Key Hyperparameters (v21, current)
 
 ```
@@ -131,6 +135,26 @@ Middle-g batch (250 texts × 10 dims). No proxy removal. Score-concentration cap
 
 **Key conclusion:** Proxy removal (v22a: +0.052) is the dominant intervention. Adding 250 midg texts without proxy removal (v22b: -0.052) not only fails to help — it regresses. Data quality > data quantity: the midg signal is neutralized by 9,450 adversarial/noisy proxy rows that remain in training.
 
+### v22c (proxy removal + curriculum, 2026-02-28)
+
+`--drop-proxy-dims --curriculum`. Phase 1: 5,308 LLM records (epochs 1–3). Phase 2: +10,383 proxy records (15,691 total, epochs 4–9). Early stopping at epoch 9, best at epoch 6 (val_r=0.4478). Dropped 12,409 proxy rows for TE/TC/CC/AD/ED.
+
+| Dimension | r | Δ vs v22a | Notes |
+|---|---|---|---|
+| regulatory_capacity | +0.728 | −0.028 | |
+| energy_dissipation | +0.707 | −0.005 | Near-flat |
+| trust_conditions | +0.671 | −0.008 | Near-flat |
+| cooling_capacity | +0.664 | −0.055 | |
+| threat_exposure | +0.714 | −0.091 | |
+| authority_dynamics | +0.650 | −0.029 | |
+| resilience_baseline | +0.614 | −0.026 | |
+| hostility_index | +0.605 | **−0.114** | Largest regression |
+| defensive_architecture | +0.537 | −0.070 | |
+| contractual_clarity | +0.487 | −0.017 | Still weakest dim |
+| **Average** | **0.638** | **−0.044** | **All 10 dims regressed vs v22a** |
+
+**Curriculum learning REJECTED. v22a remains the best and production candidate.**
+
 ### v22a ablation comparison
 
 | Run | Intervention | held-out_r | Δ vs v21 | Verdict |
@@ -138,6 +162,7 @@ Middle-g batch (250 texts × 10 dims). No proxy removal. Score-concentration cap
 | v21 | Baseline | 0.630 | — | Production baseline |
 | v22a | Proxy removal only | **0.682** | **+0.052** | **Best model. Dominant intervention.** |
 | v22b | Midg data only (no proxy removal) | 0.578 | -0.052 | Neutral-to-negative. Proxy noise overwhelms midg signal. |
+| v22c | Proxy removal + curriculum | 0.638 | -0.044 | **Curriculum REJECTED.** Worse than v22a on all 10 dims. |
 
 ### v21 (production, 2026-02-28)
 

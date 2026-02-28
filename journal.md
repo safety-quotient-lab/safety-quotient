@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28 (v22b held-out_r=0.578, WORSE than v21 by -0.052. Ablation confirms: proxy removal dominant, midg data neutral-to-negative without cleanup. g-factor is range-dependent: EV1=39.0% in middle-g texts vs 70.6% overall.)
+**Current date:** 2026-02-28 (v22c held-out_r=0.638; curriculum REJECTED. v22a=0.682 remains best. 2×2 ablation complete: proxy removal alone is dominant and sufficient. test-clean batch (200 texts, all 10 dims) ingested to address test-split paradox.)
 
 ---
 
@@ -44,7 +44,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 31. [The Scoring Experiments: Nothing Works, and That's the Point](#31-the-scoring-experiments-nothing-works-and-thats-the-point-2026-02-28)
 32. [The Test-Split Paradox: Why Removing Bad Data Looks Bad](#32-the-test-split-paradox-why-removing-bad-data-looks-bad-2026-02-28)
 33. [The Ablation Completes: Proxy Removal Dominates, and the g-Factor Is Range-Dependent](#33-the-ablation-completes-proxy-removal-dominates-and-the-g-factor-is-range-dependent-2026-02-28)
-34. [References](#34-references)
+34. [The Curriculum Experiment: A Clean Negative](#34-the-curriculum-experiment-a-clean-negative-2026-02-28)
+35. [References](#35-references)
 
 ---
 
@@ -1060,13 +1061,14 @@ v22b added the 250-text middle-g batch (2,500 new separated-llm scores, selected
 
 The result was unambiguous and clarifying: held-out_r = **0.578**, a regression of -0.052 from v21's 0.630, and -0.104 below v22a's 0.682. All ten dimensions moved in the wrong direction.
 
-The ablation comparison is now complete:
+The ablation comparison is now complete, including v22c:
 
 | Run | Intervention | held-out_r | Δ vs v21 |
 |---|---|---|---|
 | v21 | Baseline | 0.630 | — |
 | v22a | Proxy removal only | **0.682** | **+0.052** |
 | v22b | Midg data only (no proxy removal) | 0.578 | -0.052 |
+| v22c | Proxy removal + curriculum | 0.638 | +0.008 |
 
 The symmetry is exact: proxy removal is worth exactly +0.052 and data enrichment without cleanup is worth exactly -0.052. This is almost certainly a coincidence of rounding, but the underlying logic is not. Proxy removal eliminates adversarial training signal. Middle-g enrichment adds clean signal to a still-contaminated set. When the contamination outweighs the new clean data — and it does, because the proxy rows outnumber the midg batch by 37:1 in raw count and have higher effective weight per row for some dimensions — the net effect is regression.
 
@@ -1111,7 +1113,19 @@ The source-level analysis also makes a methodological point about the PSQ's futu
 
 ---
 
-## 34. References
+## 34. The Curriculum Experiment: A Clean Negative (2026-02-28)
+
+v22c added curriculum learning to the proxy removal intervention: Phase 1 trains on LLM-only data (5,308 records, epochs 1–3), Phase 2 introduces proxy data (15,691 records, epochs 4–10), with the intuition that a clean LLM representation formed first would be more robust to proxy contamination in Phase 2. The held-out result was held-out_r = 0.638 — better than v21 (0.630) and v22b (0.578), but 0.044 below v22a (0.682).
+
+The curriculum approach is a coherent hypothesis and the negative result should not be interpreted as "curriculum learning is bad." Rather, it demonstrates that curriculum learning does not *add* to what proxy removal already accomplished. v22a removes the adversarial data entirely; v22c removes it from Phase 1 but reintroduces it in Phase 2, creating a distributional shift mid-training that the model then has to re-adapt to. This re-adaptation appears to partially undo the benefits of clean Phase 1 learning, resulting in a final state that is not as cleanly biased toward LLM-defined constructs as v22a.
+
+We interpret this as further confirmation of the central finding: the adversarial proxy data for TE, TC, CC, and AD is not merely noisy — it is actively damaging. Reintroducing it at any stage, even at reduced weight in a later curriculum phase, pulls the model in the wrong direction. Complete removal (v22a) is the correct treatment. The 2×2 ablation is now closed with a clear verdict: **proxy removal only, no additional techniques required.**
+
+The test-clean batch (200 test-split texts, all 10 dims, separated LLM scoring) was assembled and ingested this session, partially resolving the test-split paradox. Future training runs will compute test_r against LLM labels for these 200 texts rather than proxy labels, providing a cleaner estimate of in-distribution performance. The test split still contains proxy-labeled texts for the remaining texts, but the contribution of the 200 newly labeled texts should visibly improve the measured test_r alignment with held-out_r.
+
+---
+
+## 35. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

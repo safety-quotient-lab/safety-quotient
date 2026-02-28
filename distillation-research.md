@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v22a held-out_r=**0.682** (best, +0.052 vs v21). v22b=0.578 (WORSE than v21 by -0.052): proxy removal is the dominant intervention; midg data alone is neutral-to-negative. g-factor is range-dependent: middle-g texts (N=1,602, g∈[4,6]) EV1=39.0% vs all-text EV1=70.6%. Source-level profiles validated (TE η²=0.627).
-**Next:** Promote v22a to production. Score CC-targeted batch (200 texts) to recover CO regression. Begin expert validation recruitment.
+**Status:** v22a held-out_r=**0.682** (best). v22c (proxy removal + curriculum) held-out_r=0.638 (WORSE than v22a by -0.044): curriculum learning does not improve beyond proxy removal alone. test-clean batch (200 texts, all 10 dims) scored and ingested — test split now has LLM labels for 72.8% previously proxy-only texts.
+**Next:** Promote v22a to production. Score CC-targeted batch to recover CO regression (v22a CO=0.504, weakest dim). Begin expert validation recruitment.
 
 ---
 
@@ -70,6 +70,8 @@
 53. [v22 Intervention Design: Proxy Removal + Middle-G Enrichment](#53-v22-intervention-design-proxy-removal--middle-g-enrichment-2026-02-28) — 2×2 ablation design, --drop-proxy-dims flag, 250-text midg batch scored
 54. [v22a Held-Out Results: The Test-Split Paradox](#54-v22a-held-out-results-the-test-split-paradox-2026-02-28) — held-out_r=0.682 (+0.052 vs v21), test_r=0.446 (regression). Proxy data poisons test split.
 55. [v22b Results, Range-Dependent g-Factor, and Source-Level Profiles](#55-v22b-results-range-dependent-g-factor-and-source-level-profiles-2026-02-28) — v22b=0.578 (worse than v21); proxy removal dominant; g-factor collapses in middle-g texts (EV1=39.0%); source profiles validate construct; text-length analysis; infrastructure changes.
+57. [v22c Results and Test-Clean Batch Ingestion](#57-v22c-results-and-test-clean-batch-ingestion-2026-02-28) — v22c held-out_r=0.638 (proxy removal + curriculum < proxy removal alone); curriculum learning rejected; 200-text test-clean batch scored all 10 dims and ingested.
+56. [Publication Narrative — Paper Draft Sections](#56-publication-narrative--paper-draft-sections-2026-02-28) — Abstract, Introduction, Methods (Construct + Training), Results (Model Performance + Criterion Validity). Full draft ready for paper writing.
 13. [References](#13-references)
 
 ---
@@ -4579,6 +4581,175 @@ Implemented a 2-phase curriculum learning option: Phase 1 (first 60% of epochs) 
 | proxy-audit | `labeling-batch-proxy-audit.jsonl` | 200 | Overlap with proxy data for agreement measurement |
 | held-out-expand | `labeling-batch-held-out-expand.jsonl` | 150 | Expand held-out set from 100 to 250 texts |
 | CC-targeted | `labeling-batch-ccda.jsonl` | 200 | CC-keyword filtered to address CO regression in v22a |
+
+---
+
+## §57. v22c Results and Test-Clean Batch Ingestion (2026-02-28)
+
+### v22c: Proxy Removal + Curriculum Learning
+
+v22c was trained with both interventions from the v22 2×2 design: proxy removal (`--drop-proxy-dims` for TE/TC/CC/AD/ED, removing 12,409 proxy rows) plus curriculum learning (`--curriculum`). The curriculum protocol runs Phase 1 on LLM-only data (5,308 records, epochs 1–3), then Phase 2 adds proxy records (15,691 total, epochs 4–10). Best model at epoch 6 (val_r=0.4478), early stopping at epoch 9.
+
+**Held-out evaluation result: held-out_r = 0.638** — WORSE than v22a (0.682) by −0.044.
+
+#### Full v22 Ablation: All Four Cells
+
+| Version | Proxy removal | Curriculum | test_r | held-out_r | Δ vs v22a | Verdict |
+|---|---|---|---|---|---|---|
+| v21 | No | No | 0.504 | 0.630 | −0.052 | Production baseline |
+| v22a | **Yes** | No | 0.457 | **0.682** | — | **Best model. Dominant intervention.** |
+| v22b | No | — | — | 0.578 | −0.104 | Worse than v21. Data quality > quantity. |
+| v22c | **Yes** | **Yes** | 0.431 | 0.638 | **−0.044** | Curriculum adds no benefit. |
+
+#### Per-Dimension Comparison: v22a vs v22c
+
+| Dimension | v22a | v22c | Δ |
+|---|---|---|---|
+| Threat Exposure | 0.805 | 0.714 | −0.091 |
+| Regulatory Capacity | 0.756 | 0.728 | −0.028 |
+| Cooling Capacity | 0.719 | 0.664 | −0.055 |
+| Hostility Index | 0.719 | 0.605 | **−0.114** |
+| Energy Dissipation | 0.712 | 0.707 | −0.005 |
+| Trust Conditions | 0.679 | 0.671 | −0.008 |
+| Authority Dynamics | 0.679 | 0.650 | −0.029 |
+| Resilience Baseline | 0.640 | 0.614 | −0.026 |
+| Defensive Architecture | 0.607 | 0.537 | −0.070 |
+| Contractual Clarity | 0.504 | 0.487 | −0.017 |
+| **Average** | **0.682** | **0.638** | **−0.044** |
+
+v22c is worse than v22a on all 10 dimensions. The largest regressions are HI (−0.114), DA (−0.070), TE (−0.091), and CC (−0.055).
+
+#### Interpretation
+
+Curriculum learning was hypothesized to help by letting the model form clean LLM-based representations before exposing it to proxy noise. The result refutes this hypothesis. Several mechanisms could explain the failure:
+
+1. **Curriculum gradient interference:** Phase 1 (LLM-only) and Phase 2 (LLM + proxy) create a distributional shift mid-training. The model adapts to LLM-score statistics in Phase 1, then must partially re-adapt to proxy-score statistics in Phase 2. This re-adaptation may introduce noise that wasn't present when v22a trained on the mixed (but proxy-dropped) dataset from epoch 1.
+
+2. **Early stopping timing:** v22c's best epoch (6) is earlier than v22a's would be, because Phase 2 introduces more data complexity mid-training and may cause the validation metric to plateau or drop before the model fully exploits the curriculum structure.
+
+3. **Proxy noise after removal:** v22c still retains proxy data for HI, RB, RC, DA — the four dimensions where proxy-LLM agreement is usable (r=0.45–0.54). However, even "usable" proxy data may interact poorly with curriculum ordering.
+
+**Conclusion:** Curriculum learning is REJECTED as a v22 improvement strategy. The v22 ablation is complete: proxy removal alone (v22a) is the dominant and sufficient intervention. Adding curriculum learning degrades rather than improves upon v22a. The performance ordering is: v22a > v22c > v21 > v22b.
+
+### v22a Confirmed as Production Candidate
+
+The completed 2×2 ablation confirms that v22a (proxy removal only, held-out_r=0.682) should be promoted to production, replacing v21 (held-out_r=0.630). The test-split paradox (v22a test_r=0.457 < v21 test_r=0.504) was a known artifact; held-out_r on the genuinely independent evaluation set is the valid metric.
+
+---
+
+### Test-Clean Batch Scoring and Ingestion
+
+To address the test-split paradox (72.8% of test texts have only proxy labels as ground truth), the `labeling-batch-test-clean.jsonl` batch of 200 test-split texts was scored across all 10 PSQ dimensions using the standard separated-scoring protocol (one dimension per session, separated LLM scoring, `scorer=claude-sonnet-4-6, provider=anthropic, interface=claude-code`).
+
+**Scoring sessions:** Multiple sessions (CC completed in prior session; DA and CO completed in this session). All 10 dimensions scored and ingested before assembly.
+
+**Assembly and ingestion:**
+- Assembled: `data/labeling-batch-test-clean-labeled.jsonl` (200 records, 10 dimensions each)
+- Ingested: `python scripts/migrate.py --db data/psq.db --ingest data/labeling-batch-test-clean-labeled.jsonl`
+- Records added: 200 texts, 2,000 score observations
+- Provenance: `scorer=claude-sonnet-4-6`, `provider=anthropic`, `interface=claude-code`
+
+After ingestion, 200 formerly proxy-only test-split texts now have LLM-quality `separated-llm` labels. When the next training run is conducted, the test_r will be computed against these LLM labels rather than proxy labels for these texts, providing a cleaner estimate of model performance on the test split.
+
+**Expected effect on next test_r:** The test split (~2,203 texts) will now have LLM labels for 200 texts that were previously proxy-labeled. This should increase the measured test_r for future models, partially resolving the test-split paradox. Full resolution would require scoring all remaining proxy-only test texts, but the 200-text batch addresses the most critical gap.
+
+---
+
+## §56. Publication Narrative — Paper Draft Sections (2026-02-28)
+
+The following sections constitute a full draft of the primary paper reporting the PSQ research program. They are written in polished academic prose, suitable for submission to a venue at the intersection of computational linguistics, NLP, and psychology (e.g., EMNLP, ACL Findings, *Behavior Research Methods*, or *Journal of Personality Assessment*). Numbers and findings are drawn directly from the project's empirical record.
+
+---
+
+### Abstract
+
+We introduce the Psychoemotional Safety Quotient (PSQ), a 10-dimension computational instrument for assessing the psychoemotional safety properties of textual content. The PSQ operationalizes constructs from occupational health, clinical emotion regulation, psychodynamic defense theory, organizational power research, and psychological contract theory into a unified content-level scoring framework, with each dimension anchored to 3–5 validated psychometric instruments. We address the central scalability challenge of multi-dimensional LLM-based assessment through knowledge distillation: a DistilBERT-base-uncased student model (66.7 M parameters) is trained on scores produced by a large language model teacher using a separated-scoring protocol that eliminates within-call halo contamination. Proxy removal of adversarially misaligned training sources further improves generalization; on an independently scored held-out set, the v22a model achieves a mean Pearson r of 0.682 across all 10 dimensions (range 0.504–0.805), with threat_exposure improving from r = 0.492 to r = 0.805 upon removing anti-correlated proxy training data. We validate the instrument's criterion validity across four independent studies using real-world discourse corpora spanning negotiation (CaSiNo, n = 1,030; Deal or No Deal, n = 12,234), conversation derailment (CGA-Wiki, n = 4,188), and persuasion (Change My View, n = 4,263 pairs), with 10-dimension profiles achieving AUC = 0.59–0.69. A consistent finding across all four studies is that the multi-dimensional profile substantially outpredicts the single-factor average (g-PSQ AUC = 0.51–0.62), and that predictive primacy is context-dependent: authority dynamics dominates in contested-status interactions, energy dissipation in sustained behavioral negotiations, and defensive architecture in fixed-status persuasion contexts. These results argue against collapsing multi-dimensional safety instruments to single scores and demonstrate that knowledge distillation can serve not only as model compression but as a vehicle for empirically grounded construct refinement.
+
+---
+
+### 1. Introduction
+
+Automated assessment of online communication safety has concentrated almost exclusively on toxicity detection: the identification of harmful, offensive, or hateful content through binary or ordinal threat scores (Borkan et al., 2019; Kennedy et al., 2020). This framing is appropriate for content moderation, but it captures only a fraction of what makes communication psychologically safe or unsafe. A conversation can be entirely free of explicit threat while steadily eroding participants' sense of relational security through subtle power maneuvers, collapsed trust conditions, or chronic resource depletion. Conversely, a discussion of explicitly difficult topics can be conducted in a manner that actively supports regulatory capacity and maintains psychological safety. Toxicity scores, by design, cannot distinguish these cases.
+
+The theoretical literature is substantially richer than its computational instantiation suggests. Edmondson (1999) established psychological safety as a team-level process construct — not a property of content but of the interactional dynamics that allow or inhibit authentic participation. The Job Demands-Resources model (Bakker & Demerouti, 2007) distinguishes demands that deplete psychological resources from resources that replenish them. Conservation of Resources theory (Hobfoll, 1989) frames stress as resource loss and recovery as resource restoration. Clinical psychology contributes emotion regulation frameworks (Gross, 1998), defense mechanism hierarchies (Vaillant, 1977), and resilience research (Connor & Davidson, 2003). Together, these traditions describe a multi-dimensional landscape of psychoemotional safety that no existing computational instrument captures.
+
+We introduce the Psychoemotional Safety Quotient (PSQ) as a first step toward closing this gap. The PSQ operationalizes ten theoretically grounded dimensions — threat exposure, regulatory capacity, resilience baseline, trust conditions, hostility index, cooling capacity, energy dissipation, defensive architecture, authority dynamics, and contractual clarity — into a unified content-level scoring system. Each dimension is anchored to established, published psychometric instruments with documented reliability and validity. The system is trained via knowledge distillation from a large language model teacher into a compact DistilBERT student, enabling 20 ms inference at zero marginal cost.
+
+The primary scientific contribution of this paper is not the instrument architecture but what emerges when we test it against the world. Four independent criterion validity studies — across negotiation, Wikipedia editorial disputes, Reddit persuasion, and multi-round deal-making — reveal a consistent and theoretically meaningful pattern: (1) multi-dimensional profiles systematically outperform single-factor averages; (2) the dimension that best predicts outcomes is not stable across contexts but depends on the social structure of the interaction; and (3) the dimension with the weakest internal factor loading (authority dynamics) has the strongest external validity across three of four studies, suggesting that psychometric structure and criterion validity are dissociable. We argue that this emergent pattern represents genuine evidence about the structure of psychoemotional safety as a relational phenomenon — evidence that neither toxicity scoring nor single-construct psychological safety measures could have produced.
+
+The paper proceeds as follows. Section 2 describes the PSQ construct, its theoretical grounding, and the scoring procedure. Section 3 describes the training pipeline, with emphasis on the separated-scoring protocol and proxy removal intervention. Section 4 presents model performance results. Section 5 reports criterion validity evidence across four studies. Section 6 discusses the context-dependent predictive primacy finding and its implications for instrument design, deployment, and theory.
+
+---
+
+### 2. Methods — Construct
+
+The PSQ defines psychoemotional safety as the degree to which textual content protects, threatens, or modulates the psychoemotional functioning of persons exposed to it. This content-level framing is analogous to sentiment analysis's application of emotion constructs — originally defined for persons — to text: PSQ scores represent the psychoemotional *affordances* of the content, not the reader's actual psychological state. Each text receives scores on 10 dimensions, rated on a 0–10 scale where 10 represents maximally safe content. The composite PSQ is a weighted ratio of protective to threat factors, normalized to 0–100.
+
+Six dimensions index *protective* properties: regulatory capacity (the degree to which content supports emotion regulation, anchored to the Emotion Regulation Questionnaire and the Difficulties in Emotion Regulation Scale), resilience baseline (connection to trait resilience constructs; CD-RISC, BRS), trust conditions (interpersonal trustworthiness of the discourse environment; Rotter ITS, OTI), cooling capacity (availability of de-escalation and reappraisal pathways; Gross reappraisal subscale, REQ), defensive architecture (maturity of evident coping and defense patterns; DSQ-40, DMRS, Vaillant hierarchy), and contractual clarity (explicitness of interpersonal expectations; PCI, Morrison & Robinson 1997). Four dimensions index *threat* properties: threat exposure (degree to which content subjects readers to workplace-aggression-type threats; COPSOQ, NAQ, Abusive Supervision Scale), hostility index (aggressive, anger-laden, or hostile content; Cook-Medley HO, BPAQ, STAXI-2), energy dissipation (resource depletion and sustained engagement cost; Effort-Recovery Model, COR theory, Flow Short Scale), and authority dynamics (quality of power positioning and authority exercise; French & Raven power bases, MLQ, Tepper ABS).
+
+Scoring is performed by a large language model (Claude Sonnet 4.6) using a *separated* protocol: each dimension is scored independently in its own conversation context, with no other dimension definitions visible to the scorer. This eliminates the within-call halo contamination that inflates inter-dimension correlations when all 10 dimensions are scored jointly. The scoring prompt provides the dimension's theoretical grounding (its anchoring instruments), behavioral anchors at 1–3, 4–6, and 7–9 with concrete exemplars, and the instruction to assign an integer score from 0–10 together with a confidence estimate from 0–1. Scores below confidence 0.60 are excluded from aggregation.
+
+---
+
+### 3. Methods — Training
+
+The training pipeline operationalizes knowledge distillation from the LLM teacher (Claude Sonnet 4.6) to a DistilBERT-base-uncased student (Sanh et al., 2019; 66.7 M parameters). The student architecture appends a shared projection layer (768 → 384 dimensions, GELU activation, 0.1 dropout) followed by 10 per-dimension regression heads (384 → 2 outputs each), yielding score and confidence predictions per dimension. Inference requires approximately 20 ms per text on CPU.
+
+Training data is assembled from three tiers, weighted according to construct proximity. Composite-proxy data (~60,000 observations) maps existing labeled corpora to PSQ dimensions via hand-crafted formulas: Berkeley Measuring Hate Speech (Kennedy et al., 2020) → hostility index and threat exposure; GoEmotions (Demszky et al., 2020) → seven dimensions via emotion-to-construct formulas; UCC Unhealthy Conversations (Price et al., 2020) → five dimensions; Dreaddit (Turney et al., 2019) → energy dissipation; and four additional corpora. These proxy mappings introduce construct mismatch at varying severity, modeled through a per-observation confidence parameter (0.15–0.70) that enters a confidence-weighted MSE loss:
+
+$$\mathcal{L} = \mathrm{conf}^{2} \cdot w_{\mathrm{source}} \cdot \mathrm{MSE}(\hat{y}, y)$$
+
+LLM gold-standard labels (~29,000 observations from separated scoring across all 10 dimensions, ingested to a SQLite database of 21,877 texts) receive a 5× source weight over proxy data, ensuring teacher labels dominate gradient updates. A score-concentration cap downweights texts where more than 30% of scores cluster at a single value — a property of many proxy sources — by reducing their effective weight to 1.5× rather than 5×. Targeted synthetic examples generated by the LLM teacher fill distributional gaps in underrepresented score ranges.
+
+A systematic proxy audit revealed that four dimensions had near-zero or negative agreement between their proxy labels and LLM gold-standard scores: threat exposure (r = −0.260), trust conditions (r = 0.071), contractual clarity (r = 0.102), and authority dynamics (r = 0.155). These anti-correlated proxy rows represent active misguidance: training on them teaches the model to predict the wrong direction. The v22a model removes these 9,450 composite-proxy rows for the four affected dimensions via the `--drop-proxy-dims` flag, a form of curriculum design where only credible teaching signals are retained. The resulting held-out improvement (+0.052 mean Pearson r, with threat_exposure alone improving +0.313) confirms that data quality dominates data quantity in this regime: 250 additional high-quality separated-LLM observations cannot compensate for 9,450 adversarial proxy rows, but removing those rows dramatically improves generalization.
+
+Factor analysis on 1,970 texts with complete separated-LLM coverage reveals a dominant general factor (eigenvalue 6.727, KMO = 0.902, 67.3% of variance), with parallel analysis retaining only one factor overall. Structural decomposition shows this g-factor is a range-dependent phenomenon: extreme texts (g < 3 or g > 7) produce near-uniform loadings (EV1 = 82.8%), reflecting pure safety-valence variation, while middle-range texts (g ∈ [4, 6]) produce structured loadings (EV1 = 38.7%), revealing genuine dimension differentiation. The PSQ is thus modeled hierarchically — g-PSQ (global safety valence) → five oblique clusters → 10 dimensions — with dimension-specific signals emerging most clearly in the middle of the safety range.
+
+---
+
+### 4. Results — Model Performance
+
+The v22a model achieves a mean held-out Pearson r of **0.682** across all 10 dimensions (n = 100 independently collected texts scored by separated LLM calls, constituting a truly independent evaluation set with no overlap with training data or proxy sources). This represents a gain of +0.052 over the prior production model (v21, held-out r = 0.630) and +0.280 over the first trained version (v13, held-out r = 0.402).
+
+Per-dimension held-out results for v22a are as follows:
+
+| Dimension | v22a r | v21 r | Change |
+|---|---|---|---|
+| Threat Exposure | 0.805 | 0.492 | +0.313 |
+| Regulatory Capacity | 0.756 | 0.729 | +0.027 |
+| Cooling Capacity | 0.719 | 0.687 | +0.032 |
+| Hostility Index | 0.719 | 0.658 | +0.061 |
+| Energy Dissipation | 0.712 | 0.636 | +0.076 |
+| Trust Conditions | 0.679 | 0.674 | +0.005 |
+| Authority Dynamics | 0.679 | 0.674 | +0.005 |
+| Resilience Baseline | 0.640 | 0.600 | +0.040 |
+| Defensive Architecture | 0.607 | 0.566 | +0.041 |
+| Contractual Clarity | 0.504 | 0.555 | −0.051 |
+| **Average** | **0.682** | **0.630** | **+0.052** |
+
+The threat_exposure transformation (+0.313) is the single largest per-dimension improvement in the project's history, driven entirely by proxy removal: the Berkeley/Civil Comments proxy had a correlation of r = −0.260 with LLM gold-standard threat_exposure labels, actively teaching the model the wrong direction for that construct. All other affected dimensions improved or held flat. The sole regression, contractual_clarity (−0.051), is attributable to data sparsity rather than proxy quality, and a targeted labeling batch has been prepared to address it.
+
+Test-split correlation (r = 0.446 for v22a vs. 0.504 for v21) diverges from held-out performance in the opposite direction — a test-split paradox explained by the fact that the internal test split contains composite-proxy labels as ground truth: removing proxy training data simultaneously improves held-out generalization and diverges from proxy-contaminated test labels. This dissociation underscores the importance of using a genuinely independent, separately labeled held-out set as the primary evaluation metric.
+
+---
+
+### 5. Results — Criterion Validity
+
+We conducted four independent criterion validity studies using discourse corpora not included in PSQ training. Each study tests whether PSQ scores predict real-world outcomes — negotiation satisfaction, relational liking, deal-reaching, conversation derailment, and persuasion success — that were never used as training signals. Across all four studies, the 10-dimension PSQ profile consistently outpredicts the single general factor (g-PSQ), and the dimension that best predicts outcomes varies systematically with the social structure of the interaction.
+
+**CaSiNo (campsite negotiation; Chawla et al., 2021; n = 1,030 dialogues).** Post-negotiation self-reports of satisfaction (1–5) and opponent likeness (1–5) were collected independently of PSQ scoring. Nine of ten PSQ dimensions significantly predict satisfaction (p < 0.05); the effect is consistent in direction (higher PSQ → more satisfied) across all significant dimensions. Energy dissipation and defensive architecture are the strongest individual predictors (r = +0.114 and +0.108 respectively). After controlling for text length — a strong confound (r = −0.19 with satisfaction) — PSQ adds incremental R² of +0.016 for satisfaction and +0.023 for opponent likeness beyond sentiment and length combined, confirming that the instrument captures psychoemotional dynamics beyond simple positivity. High-PSQ dialogues (Q4) produce 0.18 more satisfaction and 0.23 more liking than low-PSQ dialogues (Q1; Cohen's d ≈ 0.17–0.20). PSQ scores near-zero on points scored (max |r| = 0.054) — the objective competitive outcome — consistent with theory: psychological safety predicts relational quality, not competitive advantage.
+
+**CGA-Wiki (Wikipedia editorial derailment; Zhang et al., 2018; n = 4,188, balanced 50/50 derailing/safe).** This domain is entirely absent from PSQ training data, providing a zero-circularity test of generalizability. Logistic regression on all 10 PSQ dimensions achieves AUC = 0.599 on the held-out test split (5-fold CV: 0.579 ± 0.016). The g-PSQ general factor alone reaches AUC = 0.515, near chance. Authority dynamics is the single strongest predictor (r_pb = −0.105, Cohen's d = −0.212, p < 0.001), replicating the CaSiNo finding in a completely different domain and outcome type. A temporal analysis decomposes the predictive signal across conversation turns: first-turn prediction yields AUC = 0.519; early-turn prediction yields AUC = 0.570; full-conversation prediction yields AUC = 0.599. This gradient is the signature of a process-level construct: PSQ detects the *accumulation* of unsafe conditions across turns, not the presence of static lexical features. This pattern directly rules out the alternative hypothesis that PSQ is a toxicity detector in disguise — a toxicity classifier would perform better on final turns containing the attack, not on early turns that precede it.
+
+**CMV (r/ChangeMyView persuasion; Tan et al., 2016; n = 4,263 matched pairs).** The matched-pair design — same original post, one delta-awarded reply and one not — controls for topic and author characteristics. All 10 dimensions discriminate successful from unsuccessful replies (nine survive Bonferroni correction at p < .005). The 10-dimension AUC = 0.590 (5-fold CV) substantially exceeds g-PSQ = 0.531. Critically, the top predictor is defensive architecture (d_z = +0.135, r_pb = +0.085) — not authority dynamics, which ranks last and falls short of Bonferroni significance (d_z = +0.033, p = 0.032). This inversion is theoretically coherent: in CMV, the power relationship is *fixed* — the original poster holds delta-granting authority — so there is no status to contest. Persuasion in a fixed-status context depends on the structural quality of the argument (defensive architecture, the maturity of boundary and framing behavior), not on power positioning. PSQ adds +0.012 incremental AUC beyond text length controls.
+
+**DonD (Deal or No Deal; Lewis et al., 2017; n = 12,234 negotiation dialogues).** The largest criterion validity study tests PSQ against a *behavioral* outcome: whether negotiations reached a deal. Ten-dimension AUC = 0.686, the strongest result across all four studies and 2.8 standard errors above the previous best. The g-PSQ reaches AUC = 0.622. Energy dissipation is the strongest predictor by a wide margin (Cohen's d = +0.614, r_pb = +0.247), the largest single-dimension effect size across all four studies. Authority dynamics is the weakest predictor and slightly negative (d = −0.063), a sharp reversal from its dominance in CaSiNo and CGA-Wiki. PSQ adds +0.059 incremental AUC beyond text length and turn count. High-PSQ dialogues (Q4) reach deals at 84.4% versus 68.5% for low-PSQ (Q1) — a 15.9-percentage-point difference.
+
+**Cross-study synthesis.** The profile-over-average finding is consistent across all four studies, with g-PSQ falling 0.06–0.08 AUC points below the 10-dimension profile in the three studies where AUC was computed. This gap is modest in absolute terms but remarkably stable, and it survives length controls in two of three studies where length is a confound. The practical implication is direct: single-factor summaries of multi-dimensional safety instruments — analogous to the single toxicity score in Perspective API or Detoxify — discard the predictive information that lives in the dimension profile. Any deployed PSQ system should output all 10 dimensions.
+
+More theoretically consequential is the context-dependent primacy of individual dimensions. The dimension that best predicts outcomes is not the same across studies: authority dynamics leads in contested-status interactions (CaSiNo negotiation satisfaction, CGA-Wiki derailment, where peer status is actively negotiated); energy dissipation leads in behavioral outcomes depending on sustained engagement (DonD deal-reaching, where the question is whether parties stay at the table long enough to agree); defensive architecture leads in fixed-status persuasion (CMV, where one party seeks to change another's position within a well-defined relational frame). This pattern is not noise — it holds across study designs, outcome types (subjective satisfaction, behavioral derailment, matched-pair persuasion, binary deal), and discourse domains (campsite negotiation, Wikipedia editorial talk, Reddit commentary, scripted negotiation). We interpret this as direct empirical evidence that the PSQ dimensions measure genuinely distinct psychological mechanisms that interact differently with different social structures.
+
+A final cross-study regularity is the authority dynamics suppressor pattern: despite near-zero or negative bivariate correlations with the outcome in CMV and DonD, AD receives a large negative coefficient in multivariate logistic regression (−0.534 in DonD). This classical suppressor behavior — significant multivariate contribution despite weak bivariate correlation — has now been replicated in three of four studies. It indicates that AD captures variance in other PSQ dimensions (particularly hostility index and defensive architecture) that is irrelevant to the outcome in question, and that partialing out this variance improves the other dimensions' predictions. This is a psychometrically unusual but coherent pattern consistent with Watzlawick et al.'s (1967) distinction between report-level content (which most dimensions measure) and command-level relational positioning (which AD uniquely captures).
 
 ---
 

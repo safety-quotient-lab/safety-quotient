@@ -504,6 +504,8 @@ Results:
 
 **Context-dependent primacy finding refined**: AD dominates when status is contested (CaSiNo, CGA-Wiki). ED dominates when behavioral outcome depends on sustained engagement (DonD). DA dominates when status is structurally fixed (CMV). This pattern is theoretically coherent and constitutes the strongest evidence against the PSQ being a single-factor construct.
 
+**Criterion Validity Summary — canonical reference document:** All numeric results from all four studies (full coefficient tables, model comparisons, temporal decay tables, suppressor variable analysis, and cross-study synthesis) are consolidated in `criterion-validity-summary.md`. The summary document also contains per-study key quotes from the narrative in `journal.md` §§20-21, §25, §27, and a "Cross-Study Patterns" section covering: profile-over-average replication, the AD status-negotiation finding, ED as process predictor, DA in fixed-status contexts, and the 2×2 context-dependent primacy matrix. See that file for the full criterion validity evidence base.
+
 ### 3h. Formula Inconsistency — RESOLVED
 
 The formal specification (final-state.md) originally defined PSQ as a **ratio** (protective / threat factors) with 0-2 per-dimension scoring. The implementation (detector.js) uses a **linear difference** ((protective - threat + MAX) / (2 * MAX) * 100) with 0-10 per-dimension scoring. These were mathematically different formulas.

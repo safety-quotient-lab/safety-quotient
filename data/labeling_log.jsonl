@@ -137,3 +137,13 @@
 {"timestamp": "2026-02-28T09:28:11.630949-06:00", "dimension": "authority_dynamics", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
 {"timestamp": "2026-02-28T09:29:07.548000-06:00", "dimension": "trust_conditions", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
 {"timestamp": "2026-02-28T09:30:17.576426-06:00", "dimension": "contractual_clarity", "n_scored": 250, "n_total": 250, "batch": "data/labeling-batch-midg.jsonl"}
+{"timestamp": "2026-02-28T12:07:18.625635-06:00", "dimension": "threat_exposure", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl", "started_at": "2026-02-28T16:07:18+00:00", "duration_minutes": 120.0, "texts_per_hour": 100.0}
+{"timestamp": "2026-02-28T12:12:52.416600-06:00", "dimension": "cooling_capacity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:16:29.919035-06:00", "dimension": "hostility_index", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:21:01.349807-06:00", "dimension": "authority_dynamics", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:24:30.328141-06:00", "dimension": "energy_dissipation", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:27:53.383808-06:00", "dimension": "trust_conditions", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:31:14.349251-06:00", "dimension": "regulatory_capacity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:32:12.109780-06:00", "dimension": "resilience_baseline", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:38:06.963859-06:00", "dimension": "defensive_architecture", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}
+{"timestamp": "2026-02-28T12:42:24.535669-06:00", "dimension": "contractual_clarity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-test-clean.jsonl"}

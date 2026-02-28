@@ -242,24 +242,41 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 
 ---
 
-### Session `20260228-current` (this session)
+### Session `20260228-current` (this session — continued across context limit)
 
-**v22c training. GitHub cleanup.**
+**v22c training completed. test-clean batch scored (all 10 dims). Curriculum REJECTED.**
 
-**v22c launched:** `--drop-proxy-dims --curriculum --out models/psq-v22c`
-- Phase 1: LLM base (5,308 records, epochs 1–3).
-- Phase 2: +13,787 proxy records (19,095 total, epochs 4–10).
-- Hypothesis: proxy removal + curriculum learning > either alone.
+**v22c trained:** `--drop-proxy-dims --curriculum --out models/psq-v22c`
+- Phase 1: LLM base (5,308 records, epochs 1–3). Phase 2: +10,383 proxy (15,691 total, epochs 4–9).
+- Best at epoch 6 (val_r=0.4478). Early stopping at epoch 9.
+- held-out_r = **0.638** — WORSE than v22a (0.682) by -0.044. All 10 dims regressed vs v22a.
+- Curriculum learning REJECTED. v22a (proxy removal only) remains the production candidate.
+
+**2×2 ablation complete:**
+
+| Version | Proxy removal | Curriculum | held-out_r | Δ vs v21 |
+|---------|--------------|------------|------------|----------|
+| v21 | No | No | 0.630 | — |
+| v22a | Yes | No | **0.682** | **+0.052** |
+| v22b | No | — | 0.578 | -0.052 |
+| v22c | Yes | Yes | 0.638 | +0.008 |
+
+→ Proxy removal alone is the dominant and sufficient intervention.
+
+**test-clean batch scored:** `data/labeling-batch-test-clean.jsonl` (200 texts from test split)
+- All 10 dimensions scored using separated LLM protocol across multiple sessions.
+- Assembled: `data/labeling-batch-test-clean-labeled.jsonl`
+- Ingested: 200 texts, 2,000 score observations. Partially resolves test-split paradox.
 
 **Old repo deleted:** `kashfshah/safety-quotient` removed.
 **Topics applied** to `safety-quotient-lab/safety-quotient`.
 **Lab-notebook.md created** (this file).
 
 **Pending:**
-- v22c held-out results (ETA ~52 min from launch)
-- Score 4 labeling batches: test-clean, proxy-audit, held-out-expand, ccda
-- Promote v22c if held-out_r > 0.682 (v22a benchmark)
-- lab-notebook.md retrospective fill-in from older session transcripts
+- Promote v22a to production slot.
+- Score CC-targeted batch (labeling-batch-ccda.jsonl) to improve CO (worst dim: 0.504).
+- Score remaining batches: proxy-audit (200 texts), held-out-expand (150 texts).
+- Begin expert validation recruitment.
 
 ---
 
@@ -267,6 +284,12 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 
 | Version | Key change | test_r | held-out_r | Notes |
 |---------|-----------|--------|------------|-------|
+| v1–v8   | Architecture sweep | — | — | DeBERTa→DistilBERT |
+| v14     | Separated scoring, concentration cap | ~0.42 | ~0.58 | Baseline |
+| v21     | Expanded LLM data (8 batches) | 0.504 | 0.630 | **Production** |
+| v22a    | `--drop-proxy-dims` (TE/TC/CC/AD/ED) | 0.457 | **0.682** | **New best, promotion candidate** |
+| v22b    | midg data only (no proxy removal) | — | 0.578 | Worse than v21 |
+| v22c    | `--drop-proxy-dims + --curriculum` | 0.431 | 0.638 | Worse than v22a. Curriculum REJECTED. |
 | v1–v8   | Architecture sweep | — | — | DeBERTa→DistilBERT |
 | v14     | Separated scoring, concentration cap | ~0.42 | ~0.58 | Baseline |
 | v21     | Expanded LLM data (8 batches) | 0.504 | 0.630 | **Production** |
