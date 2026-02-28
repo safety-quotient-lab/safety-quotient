@@ -44,9 +44,9 @@ Last updated: 2026-02-28
 - [ ] Should context be user-specified ("I'm building a moderation tool") or auto-detected from text features?
 - [ ] Does this belong in the ONNX model (custom post-processing) or in the application layer?
 
-### Deal or No Deal criterion study [COMPLETE]
+### Deal or No Deal criterion study [COMPLETE — v23 RERUN DONE]
 
-**Status:** Complete (§39). AUC=0.686 (strongest of 4 studies). ED top predictor (d=+0.614), AD suppressor replicated. Context-dependent primacy confirmed across 4 studies.
+**Status:** Complete (§39, original v18). v23 rerun complete (§60, 2026-02-28). AUC=0.732 (was 0.686 — strongest of 4 studies). TE top bivariate predictor (d=+0.801, was ED). T3b confirmed: AD predicts deal (+0.138) but not points (−0.070). Context-dependent primacy confirmed across 4 studies.
 
 ## Priority 2: Important
 
@@ -86,14 +86,14 @@ Status: Protocol designed (§19), recruitment not started. 5 expert psychologist
 
 ### Additional criterion validity studies
 
-- **Deal or No Deal** — COMPLETE (§39)
+- **Deal or No Deal** — COMPLETE (§39, §60 v23 rerun — AUC=0.732)
 - **Workplace communication** — predict manager ratings, 360 feedback, or exit interview sentiment
 - **Therapeutic alliance** — predict WAI scores from therapy transcripts
 - **Educational discourse** — predict student engagement or learning outcomes from classroom discussion
 
-### Middle-g text enrichment (Option B)
+### Middle-g text enrichment (Option B) [COMPLETE]
 
-**Status:** Analysis in progress. See `distillation-research.md` §51 and `/tmp/psq_option_b_analysis.md`.
+**Status:** Complete. midg batch (250 texts × 10 dims) scored and ingested. v22a ablation confirmed proxy removal is the dominant intervention; midg enrichment alone (v22b) regressed. Middle-g batch data contributed to v22c and v23 training sets.
 
 **Why:** Structural analysis shows the g-factor is a range/extremity effect. Extreme texts (g<3 or g>7) contribute pure valence signal (EV1=82.8%, uniform loadings). Middle texts (g 4-6) show genuine dimension differentiation (EV1=38.7%, structured loadings). Enriching training with middle-g texts will improve dimension-specific prediction without modifying the scoring instrument.
 
@@ -118,15 +118,9 @@ Status: Protocol designed (§19), recruitment not started. 5 expert psychologist
 - [ ] Update anchors where the model's learned construct diverges from the original definition
 - [ ] Prioritize AD (known discrepancy), ED (singleton, unclear construct), DA (weak factor loading)
 
-### Criterion validity summary table
+### Criterion validity summary table [COMPLETE]
 
-**Why:** Cross-study comparison data is scattered across journal.md §25, distillation-research.md §34, and psychometric-evaluation.md §3g. Need a single canonical table that lives somewhere accessible for quick reference during writing and presentations.
-
-**Approach:**
-- [ ] Create a comprehensive cross-study table with: study, dataset, domain, N, outcome, top predictor, AD rank, 10-dim metric, g-PSQ metric, key finding
-- [ ] Include all completed studies (CaSiNo, CGA-Wiki, CMV) plus DonD when complete
-- [ ] Place in `psq-definition.md` (Section: Criterion Validity Evidence) or as a standalone `criterion-validity-summary.md`
-- [ ] Reference from journal.md, distillation-research.md, and psychometric-evaluation.md
+**Status:** Complete. `criterion-validity-summary.md` created and maintained as the canonical reference. Updated to v23 numbers (2026-02-28): CMV AUC=0.5735, DonD AUC=0.732. Cross-referenced from distillation-research.md §59/§60, psychometric-evaluation.md §3g.
 
 ### Turn-by-turn temporal analysis
 
