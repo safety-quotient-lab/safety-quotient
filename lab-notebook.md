@@ -286,16 +286,11 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 |---------|-----------|--------|------------|-------|
 | v1–v8   | Architecture sweep | — | — | DeBERTa→DistilBERT |
 | v14     | Separated scoring, concentration cap | ~0.42 | ~0.58 | Baseline |
-| v21     | Expanded LLM data (8 batches) | 0.504 | 0.630 | **Production** |
-| v22a    | `--drop-proxy-dims` (TE/TC/CC/AD/ED) | 0.457 | **0.682** | **New best, promotion candidate** |
+| v21     | Expanded LLM data (8 batches) | 0.504 | 0.630 | Production (superseded) |
+| v22a    | `--drop-proxy-dims` (TE/TC/CC/AD) | 0.457 | 0.682 | New best at time |
 | v22b    | midg data only (no proxy removal) | — | 0.578 | Worse than v21 |
-| v22c    | `--drop-proxy-dims + --curriculum` | 0.431 | 0.638 | Worse than v22a. Curriculum REJECTED. |
-| v1–v8   | Architecture sweep | — | — | DeBERTa→DistilBERT |
-| v14     | Separated scoring, concentration cap | ~0.42 | ~0.58 | Baseline |
-| v21     | Expanded LLM data (8 batches) | 0.504 | 0.630 | **Production** |
-| v22a    | `--drop-proxy-dims` (TE/TC/CC/AD) | 0.457 | **0.682** | New best |
-| v22b    | midg data only | — | 0.578 | Worse than v21 |
-| v22c    | `--drop-proxy-dims + --curriculum` | — | pending | Training |
+| v22c    | `--drop-proxy-dims + --curriculum` | 0.431 | 0.638 | Curriculum REJECTED |
+| **v23** | +550 texts (ccda/proxy-audit/held-out-expand) | — | **0.696** | **Current production** |
 
 ---
 
@@ -305,7 +300,9 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 2. ~~What is the clean test_r once `labeling-batch-test-clean.jsonl` is scored and ingested?~~ **ANSWERED:** v22c test_r=0.431 (proxy-clean test split; not comparable to prior test_r).
 3. ~~Does more CO-targeted data (ccda batch) improve CO from 0.504?~~ **ANSWERED:** v23 CO=0.549 (+0.045). YES — CO-targeted ccda batch improved the weakest dimension. Still weakest overall; more data will help further.
 4. ~~Is CC penalized by proxy removal?~~ **ANSWERED:** v23 CC=0.739 (+0.020 vs v22a). NO — proxy removal is net-positive for CC. The v22a regression was a data quantity effect, not a proxy removal artifact.
-5. Human expert validation: DA construct validity still unresolved by LLM data alone.
+5. Human expert validation: DA construct validity still unresolved by LLM data alone. T3b provides computational evidence (AD predicts deal not points), but ICC(2,1) from expert panel required for final resolution.
+6. Does increasing context from 128→256 tokens improve performance on long-text sources? Error analysis identifies berkeley/UCC blind spots as distribution mismatch (not length), but criterion datasets (DonD multi-turn) may still benefit.
+7. Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.
 
 ---
 
@@ -339,6 +336,39 @@ Source-specific proxy-LLM correlations for goemotions/ucc/casino/berkeley texts:
 **v23 training launched:** `python scripts/distill.py --db data/psq.db --drop-proxy-dims --out models/psq-v23`
 - +5,500 new separated-llm scores (550 texts × 10 dims) vs v22a
 - DB state: 22,186 texts, 90,361 scores (34,850 separated-llm)
-- Metrics pending.
+- **Results:** held-out_r=**0.696** (new best, +0.014 vs v22a). 7/10 dims improved. ED +0.056, CO +0.045, AD +0.030. v23 promoted to production.
 
 ▶ EXPERIMENTS.md (v23 row added), DATA-PROVENANCE.md (Tier 5 table updated)
+
+---
+
+### Session `20260228-1423` (novelty hunt + criterion reruns + error analysis)
+
+**Error analysis (v23), criterion reruns (CMV + DonD), three new labeling batches extracted.**
+
+**Error analysis results** (`scripts/error_analysis.py --checkpoint models/psq-v23/best.pt --split all`):
+
+| Source | MAE | Bias | Notes |
+|---|---|---|---|
+| berkeley | 2.549 | −2.259 | Worst. Short hate-speech — model predicts safe when text is threatening. |
+| ucc | 2.296 | −1.463 | Short hostile political comments. Systematic under-prediction. |
+| civil_comments | 1.681 | −0.968 | Still problematic after TE proxy removal. |
+| dreaddit | 1.545 | +0.163 | Slight over-prediction. |
+| synthetic | 1.088 | −0.037 | Well-calibrated. |
+| esconv / claude_code | ~0.83 | ~0.10 | Near-perfect. |
+| politeness_stack-exchange | 0.615 | +0.314 | Best source. |
+
+Root cause: **distribution mismatch**, not token length. Berkeley/UCC are short cryptic texts; model trained on emotionally explicit longer texts (dreaddit, esconv). AD is most compressed (output std=1.54 vs actual 2.46).
+
+**CMV v23 rerun:** AUC=0.5735 (was 0.590 v16). DA still top (r_pb=+0.059***). TE p=0.914 — proxy artifact confirmed eliminated. CO p=0.155 (NS). 7/10 dims significant.
+
+**DonD v23 rerun:** AUC=0.732 (was 0.686 v18) — new project best criterion validity result. 5-fold CV: 0.723±0.010. TE displaces ED as top bivariate predictor (d=+0.801) — v18's ED dominance was a TE measurement artifact. After length control: TE partial r=0.203 ≈ ED partial r=0.209. AD bivariate reversed to +0.138 (was −0.026). Q4/Q1 deal gap: 88.7pp (was 15.9pp). T3b CONFIRMED: AD predicts deal (+0.138) but not points (−0.070***).
+
+**Three labeling batches extracted** (not yet scored):
+- `data/labeling-batch-ucc.jsonl` — 150 texts from UCC (3% sep-llm coverage; highest priority blind spot)
+- `data/labeling-batch-civil.jsonl` — 100 texts from civil_comments
+- `data/labeling-batch-extreme-adco.jsonl` — 118 texts keyword-filtered for extreme AD/CO (CO keywords sparse in pool; only 19 extreme CO texts found)
+
+Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready to score.
+
+▶ distillation-research.md §59/§60, journal.md §36, psychometric-evaluation.md, criterion-validity-summary.md, novelty-hunt-20260228-1423.md
