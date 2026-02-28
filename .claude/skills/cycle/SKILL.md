@@ -20,6 +20,7 @@ This cycle ensures that every code, data, or training change in the PSQ project 
 | `data/DATA-PROVENANCE.md` | Data auditors, licensing | Dataset-level provenance — sources, licenses, record counts, audit findings. | Dataset-focused |
 | `psychometric-evaluation.md` | Psychometricians | Validation evidence against AERA/APA/NCME (2014) standards. | Standards-focused |
 | `psq-definition.md` | Theoreticians | Construct definition — what the PSQ is, its 10 dimensions, theoretical grounding. | Conceptual |
+| `lab-notebook.md` | Future self, collaborators | Session log — what happened each session, v-Series Summary Table, Open Questions tracker. | Chronological — records the timeline |
 | `MEMORY.md` | Claude across sessions | Orientation state — current version, key metrics, file locations, patterns. | Cross-session context |
 
 When something changes, the relevant documents must be updated *at the appropriate level of abstraction*. A new training version needs a row in EXPERIMENTS.md (facts), a subsection in distillation-research.md (analysis), and possibly a narrative paragraph in journal.md (if the results reveal something scientifically interesting). A routine parameter tweak might only need EXPERIMENTS.md.
@@ -109,6 +110,30 @@ The validation evidence document, organized against the AERA/APA/NCME (2014) psy
 - New construct validity evidence (e.g., halo test, factor analysis) → update construct validity section
 - Update the status line at the top with current model version and key metrics
 - Skip if no new psychometric evidence was generated
+
+### 5d. Update lab-notebook.md
+
+The session log. This is a chronological record of what happened in each session — the "when and what" that fills in the gaps between the analytical documents. Every session with meaningful work gets an entry.
+
+**When to update:** Every session. If something happened (training run, labeling batch, analysis, criterion study, script fix), it gets a log entry.
+
+**What to add/update:**
+
+- **New session entry** (append at bottom, before the References/Summary sections if those exist):
+  - Header: `### Session \`YYYYMMDD-HHMM\` (1-line summary)`
+  - Bullet points: what was done, with key numbers (model version, held-out_r, batch sizes, AUC results)
+  - Cross-references: `▶ distillation-research.md §N, journal.md §N` for the detailed write-ups
+  - Pending items: list what was started but not completed (labeling batches extracted but not scored, training launched but results pending)
+
+- **v-Series Summary Table** (middle of file): Add a row for any new training version. Fix stale rows (e.g., "pending" that has now resolved). The table should always match EXPERIMENTS.md.
+
+- **Open Questions** (end of file):
+  - Strike through answered questions with `~~Q: text~~` and add `**ANSWERED:** ...`
+  - Add new open questions that emerged from the session's findings
+
+**Tone:** Concise and factual. Lab-notebook entries are not narrative — they are log entries. One bullet per finding. Numbers not prose. The journal.md has the narrative; this has the timeline.
+
+**Don't duplicate:** Do not re-write what's already in distillation-research.md. The lab-notebook entry should point to the detailed section (`▶ distillation-research.md §59`) rather than repeating the analysis.
 
 ### 6. Update project memory
 
