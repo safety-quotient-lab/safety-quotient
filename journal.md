@@ -601,7 +601,31 @@ To complement the systemic fix, we extracted a CO-focused labeling batch: 200 te
 
 A practical addition: labeling sessions now record timing data. The ingest command accepts `--started-at` and logs duration and throughput to `data/labeling_log.jsonl`. The full CO batch (200 texts × 10 dimensions) completed in 25.3 minutes — an average throughput of 4,743 texts/hr. Scoring speed varied significantly by context: first-encounter dimensions required careful reading (~3,500 texts/hr), while dimensions scored after the texts were already in working memory reached 23,000–24,000 texts/hr. This data will inform batch size planning for future labeling campaigns.
 
-v16 training was launched with both fixes active. Epoch 1 showed co test r=0.71, a dramatic recovery from v15's 0.388 held-out, though early-epoch numbers warrant caution. Full results are pending.
+v16 training was launched with both fixes active. Epoch 1 showed co test r=0.71, a dramatic recovery from v15's 0.388 held-out, though early-epoch numbers warrant caution.
+
+### 17a. v16 Results: Best Held-Out Ever (0.561)
+
+v16 training completed with both the concentration cap and three targeted batches (CO, RB, CC — 600 texts × 10 dims = 6,000 new separated-llm scores). The held-out evaluation produced the best result to date: **r=0.561** (+0.066 vs v15, +0.133 vs v13). Eight of ten dimensions improved, with two dramatic recoveries:
+
+- **Regulatory capacity** jumped from 0.285 to 0.563 (+0.278), the single largest per-dimension gain in the project's history, surpassing the AD batch's authority_dynamics +0.166 in v15. The combination of concentration cap (which reduced the overwhelming weight of score-5 samples from 45% of rc's distribution) and the RB/CC batches providing additional varied training signal appears to have unblocked the rc head.
+
+- **Contractual clarity** recovered from 0.388 to 0.534 (+0.146), confirming that the score-5 flooding diagnosis was correct. The CO batch's targeted keywords produced 52% non-5 co scores, and the concentration cap ensured the remaining score-5 samples did not dominate training.
+
+One concerning regression: **threat_exposure** dropped from 0.476 to 0.347 (-0.129). This dimension has been volatile across versions — 0.367 in v13, 0.476 in v14, 0.410 in v15, now 0.347. The test split shows te at 0.522, suggesting the model has learned te patterns that don't generalize to the held-out distribution. Investigation is needed: the held-out te labels may need re-examination, or te may be particularly sensitive to the concentration cap's down-weighting (49% of te scores were 5, with 945 down-weighted).
+
+Notably, the generalization gap inverted: test_r=0.529 vs held-out_r=0.561, meaning the model performs *better* on unseen real-world texts than on the seen-distribution test set. This is unusual but not unprecedented — it likely reflects that separated-llm labels (which dominate the held-out set) are more consistent than the mixed composite/joint-llm labels in the test split.
+
+### 17b. Current State (v16)
+
+| Metric | Value |
+|---|---|
+| Architecture | DistilBERT-base-uncased (66.7M params) |
+| Training data | 20,727 texts (DB), 16,216 train split |
+| Separated-llm labels | 15,771 (all 10 dims) |
+| Test avg Pearson r | 0.529 |
+| Held-out avg Pearson r | 0.561 (+0.066 vs v15, +0.133 vs v13) |
+| Generalization gap | -6.0% (held-out exceeds test) |
+| Checkpoint | `models/psq-v16/best.pt` |
 
 ---
 

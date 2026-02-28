@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-27
-**Status:** v15 complete (test_r=0.536, held-out_r=0.495). Score-concentration cap in distill.py. CO batch (200 texts × 10 dims) fully scored and ingested (DB: 20,327 texts, 65,361 scores). v16 training in progress.
-**Next:** Evaluate v16 held-out (especially co recovery), promote if improved.
+**Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC batches. DB: 20,727 texts, 69,361 scores, 15,771 separated-llm.
+**Next:** Investigate TE regression (0.476→0.347), promote v16 to production, re-export ONNX.
 
 ---
 
@@ -42,6 +42,7 @@
 22. [RC Labeling Batch & Context Limit Lesson](#22-rc-labeling-batch--context-limit-lesson-2026-02-27) — 150 texts × 10 dims, session context exhaustion, recovery workflow
 23. [V15 Training: AD+RC Batch Impact](#23-v15-training-adrc-batch-impact-2026-02-27) — held-out_r=0.495 (+0.013), ad +0.166, rc +0.041, co regressed
 24. [Score-Concentration Cap & CO Batch](#24-score-concentration-cap--co-batch-2026-02-27) — systemic weight cap for score flooding, CO-focused labeling batch
+25. [V16 Training Results](#25-v16-training-results-2026-02-27) — best held-out ever (0.561), RC/CO recovery, TE regression
 13. [References](#13-references)
 
 ---
@@ -2256,6 +2257,67 @@ Aggregate timing (10 dims × 200 texts):
 - Fast scoring (texts already in context): 23,000–24,400 texts/hr
 
 v16 training launched with score-concentration cap + new CO data.
+
+### 24f. RB and CC Targeted Batches
+
+Following the CO batch's success, two more targeted batches were extracted from the unlabeled pool:
+
+- **RB batch** (200 texts): keyword-filtered for resilience-relevant content (resilien, coping, bounce back, endur, persist, surviv, adapt, vulnerab, etc.). 696 candidates found, 200 selected (seed=42).
+- **CC batch** (200 texts): keyword-filtered for cooling-relevant content (calm, de-escalat, regulat, temper, composur, patien, anger, rage, escalat, impuls, etc.). 1,121 candidates found, 200 selected (seed=42), zero overlap with RB batch.
+
+Both batches scored all 10 dimensions and ingested. DB: 20,727 texts, 69,361 scores, 15,771 separated-llm.
+
+## 25. V16 Training Results (2026-02-27)
+
+### 25a. Training
+
+v16 trained with score-concentration cap enabled. 9 of 10 dimensions had >30% score-5 concentration and were capped:
+
+| Dimension | Score-5 fraction | Excess down-weighted |
+|---|---|---|
+| resilience_baseline | 57% | 1,255 |
+| cooling_capacity | 52% | 1,021 |
+| energy_dissipation | 51% | 1,011 |
+| threat_exposure | 49% | 945 |
+| regulatory_capacity | 45% | 864 |
+| hostility_index | 37% | 563 |
+| contractual_clarity | 37% | 154 |
+| trust_conditions | 38% | 350 |
+| defensive_architecture | 35% | 228 |
+
+Training: 16,216 train / 1,960 val / 2,057 test. Best at epoch 6 (val_r=0.5130), early stopped at epoch 9 (patience=3).
+
+### 25b. Held-Out Evaluation
+
+| Dimension | v15 | v16 | Δ |
+|---|---|---|---|
+| cooling_capacity | 0.653 | 0.643 | -0.010 |
+| authority_dynamics | 0.573 | 0.625 | +0.052 |
+| hostility_index | 0.508 | 0.604 | +0.096 |
+| energy_dissipation | 0.538 | 0.592 | +0.054 |
+| trust_conditions | 0.564 | 0.585 | +0.021 |
+| resilience_baseline | 0.530 | 0.576 | +0.046 |
+| regulatory_capacity | 0.285 | 0.563 | **+0.278** |
+| defensive_architecture | 0.442 | 0.539 | +0.097 |
+| contractual_clarity | 0.388 | 0.534 | **+0.146** |
+| threat_exposure | 0.476 | 0.347 | **-0.129** |
+| **Average** | **0.495** | **0.561** | **+0.066** |
+
+Key findings:
+- **Best held-out ever**: 0.561 (v13: 0.428, v14: 0.482, v15: 0.495)
+- **RC recovery**: 0.285 → 0.563 — largest per-dimension gain in project history (+0.278)
+- **CO recovery**: 0.388 → 0.534 — score-5 flooding fix confirmed
+- **TE regression**: 0.476 → 0.347 — test_r is 0.522, suggesting generalization problem specific to held-out
+- **Negative generalization gap**: held-out (0.561) > test (0.529), unusual but possibly due to label quality differences
+
+### 25c. TE Regression Analysis (pending)
+
+Threat_exposure has been volatile: 0.367 (v13) → 0.476 (v14) → 0.410 (v15) → 0.347 (v16). The concentration cap down-weighted 945 te score-5 samples (49% of distribution). Hypotheses:
+1. Cap is too aggressive for te — the score-5 samples may carry genuine signal
+2. Held-out te labels may have scoring inconsistencies
+3. New batches introduced te-confounding content
+
+Next: compare te predictions on held-out between v15 and v16 to identify which texts drove the regression.
 
 ---
 

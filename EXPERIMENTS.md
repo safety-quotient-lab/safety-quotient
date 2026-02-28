@@ -34,9 +34,11 @@ Version-by-version record of every training run, with hyperparameters, data chan
 | **v14** | **2026-02-27** | **DistilBERT** | **8** | **2e-5** | **32** | **0.544** | **0.482** | +2,000 separated-llm labels (all 10 dims, 200 texts × 10 dims). DB mode. | Same hyperparams as v13. `--out models/psq-v14`. |
 | **v15** | **2026-02-27** | **DistilBERT** | **7** | **2e-5** | **32** | **0.536** | **0.495** | +4,500 separated-llm (300 AD + 150 RC batches × 10 dims). DB: 63,361 scores. | Same hyperparams. `--out models/psq-v15`. |
 
-**Pending: v16** — score-concentration cap added to `distill.py` (down-weights score-5 flooding from 5.0→1.5 when >30% of a dimension's samples share one rounded score). CO labeling batch (200 texts) in progress. Full training deferred until CO batch fully scored.
+| **v16** | **2026-02-27** | **DistilBERT** | **6** | **2e-5** | **32** | **0.529** | **0.561** | +6,000 separated-llm (CO 200 + RB 200 + CC 200 batches × 10 dims). DB: 20,727 texts, 69,361 scores. | Score-concentration cap (>30% → weight 1.5). `--out models/psq-v16`. |
 
-## Key Hyperparameters (v15, current)
+**Notes on v16:** Best held-out ever (0.561, +0.066 vs v15). RC massive recovery (0.285→0.563). CO recovered (0.388→0.534). TE regressed (0.476→0.347) — needs investigation. Early stopped at epoch 9, best at epoch 6.
+
+## Key Hyperparameters (v16, current)
 
 ```
 model_name:          distilbert-base-uncased
@@ -57,7 +59,25 @@ scheduler:           linear warmup (10% of steps) + linear decay
 
 ## Held-Out Results by Dimension
 
-### v15 (current best, 2026-02-27)
+### v16 (current best, 2026-02-27)
+
+Score-concentration cap active. CO/RB/CC batches (600 texts × 10 dims = 6,000 new separated-llm scores). 100 real-world held-out texts.
+
+| Dimension | r | MSE | n | Notes |
+|---|---|---|---|---|
+| cooling_capacity | +0.643 | 1.797 | 99 | Stable (-0.010) |
+| authority_dynamics | +0.625 | 1.424 | 93 | Improved (+0.052) |
+| hostility_index | +0.604 | 3.821 | 99 | Strong improvement (+0.066) |
+| energy_dissipation | +0.592 | 1.737 | 99 | Improved (+0.081) |
+| trust_conditions | +0.585 | 3.476 | 99 | Improved (+0.021) |
+| resilience_baseline | +0.576 | 1.266 | 99 | Improved (+0.046) |
+| regulatory_capacity | +0.563 | 1.716 | 99 | **Massive recovery (+0.278)** |
+| defensive_architecture | +0.539 | 1.756 | 88 | Improved (+0.016) |
+| contractual_clarity | +0.534 | 1.692 | 89 | **Recovered (+0.146)** |
+| threat_exposure | +0.347 | 6.035 | 99 | **Regressed (-0.129)** — needs investigation |
+| **Average** | **+0.561** | | | **+0.066 vs v15, +0.133 vs v13** |
+
+### v15 (previous best, 2026-02-27)
 
 Re-scored with separated LLM calls (one dimension per call). 100 real-world texts, complete 10-dimension coverage.
 

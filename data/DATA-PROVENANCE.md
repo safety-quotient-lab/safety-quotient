@@ -99,21 +99,23 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | RC focus batch | `data/labeling-batch-rc.jsonl` | 150 | all 10 | 2026-02-27 | Targeting rc regression; diverse sources |
 | AD focus batch | `data/labeling-batch-ad.jsonl` | 300 | all 10 | 2026-02-27 | All dims scored and ingested |
 | CO focus batch | `data/labeling-batch-co.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for co-relevant content. Assembled → `labeling-batch-co-scored.jsonl`, ingested. |
+| RB focus batch | `data/labeling-batch-rb.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for rb-relevant content (resilience, coping, recovery). |
+| CC focus batch | `data/labeling-batch-cc.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for cc-relevant content (calm, de-escalation, anger, composure). |
 
-**Total separated-llm training labels:** 11,771 scores (across 20,327 texts in DB).
+**Total separated-llm training labels:** 15,771 scores (across 20,727 texts in DB).
 
-## Composite Summary (v14+ad, 2026-02-27)
+## Composite Summary (v16, 2026-02-27)
 
 | Metric | Value |
 |---|---|
-| Total texts in DB | 20,327 |
-| Total scores in DB | 65,361 |
+| Total texts in DB | 20,727 |
+| Total scores in DB | 69,361 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
 | Joint-LLM records | 12,257 |
-| Separated-LLM records | 9,771 |
+| Separated-LLM records | 15,771 |
 | Synthetic records | 846 |
 | Held-out test records | 100 (separate, not in training) |
-| Train / Val / Test | 15,859 / 1,913 / 2,015 (hash-based text split) |
+| Train / Val / Test | 16,216 / 1,960 / 2,057 (hash-based text split) |
 | Source datasets | 11 active (2 removed, 1 partially removed) |
 | Dimensions covered | 10/10 |
 
