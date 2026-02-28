@@ -31,9 +31,9 @@ Version-by-version record of every training run, with hyperparameters, data chan
 | v11 | 2026-02-27 | DistilBERT | — | 2e-5 | 16 | — | — | +synthetic te_2, ed_2, da_2 (541 texts) | Killed early — ad_8 not ready |
 | v12 | 2026-02-27 | DistilBERT | — | 2e-5 | 16 | — | — | +synthetic ad_8 (305 auth) | Killed — trained on old composite (CC threat still in) |
 | **v13** | **2026-02-27** | **DistilBERT** | **8** | **2e-5** | **16** | **0.553** | **0.428** | CC threat_exposure REMOVED from composite, all synthetic + relabeled | Fixed composite (17,643 records), 4,199 LLM |
-| v14 | 2026-02-27 | DistilBERT | — | 2e-5 | 32 | — | — | +2,000 separated-llm labels (all 10 dims, 200 texts). DB mode. | Same hyperparams as v13. `--out models/psq-v14`. Training in progress. |
+| **v14** | **2026-02-27** | **DistilBERT** | **8** | **2e-5** | **32** | **0.544** | **0.482** | +2,000 separated-llm labels (all 10 dims, 200 texts × 10 dims). DB mode. | Same hyperparams as v13. `--out models/psq-v14`. |
 
-## Key Hyperparameters (v13, current)
+## Key Hyperparameters (v14, current)
 
 ```
 model_name:          distilbert-base-uncased
@@ -52,23 +52,41 @@ optimizer:           AdamW (weight_decay=0.01)
 scheduler:           linear warmup (10% of steps) + linear decay
 ```
 
-## Held-Out Results by Dimension (v13, separated labels)
+## Held-Out Results by Dimension
 
-Re-scored with separated LLM calls (one dimension per call) to eliminate halo effect. All 100 texts now have complete 10-dimension coverage.
+### v14 (current best, 2026-02-27)
+
+Re-scored with separated LLM calls (one dimension per call). 100 real-world texts, complete 10-dimension coverage.
 
 | Dimension | r | MSE | n | Notes |
 |---|---|---|---|---|
-| threat_exposure | +0.16 | 13.62 | 99 | Still weakest — CC poisoning effect persists in model |
-| hostility_index | +0.48 | 5.63 | 99 | Strong — best proxy coverage |
-| authority_dynamics | +0.46 | 1.69 | 93 | Improved — ad_8 synthetic helped |
-| energy_dissipation | +0.39 | 1.99 | 99 | Moderate — range compression from composite |
-| regulatory_capacity | +0.32 | 1.56 | 99 | Moderate — relabeling helped |
-| resilience_baseline | +0.50 | 1.30 | 99 | Strong — GoEmotions + Empathetic Dialogues |
-| trust_conditions | +0.50 | 4.30 | 99 | Strong — reliable since v3 |
-| cooling_capacity | +0.57 | 2.76 | 99 | Strong — GoEmotions proxy works |
-| defensive_architecture | +0.37 | 1.95 | 88 | Moderate — redefined construct |
+| cooling_capacity | +0.653 | 2.375 | 99 | Best — proxy signal strong + new labels |
+| trust_conditions | +0.572 | 3.865 | 99 | Good — consistent since v3 |
+| energy_dissipation | +0.531 | 1.611 | 99 | Good — large jump from v13 |
+| hostility_index | +0.523 | 4.647 | 99 | Good |
+| authority_dynamics | +0.503 | 1.839 | 93 | Moderate — improved |
+| resilience_baseline | +0.473 | 1.380 | 99 | Moderate — slight regression |
+| defensive_architecture | +0.474 | 1.992 | 88 | Moderate — improved |
+| contractual_clarity | +0.432 | 1.463 | 89 | Moderate — large jump from v13 |
+| threat_exposure | +0.414 | 8.228 | 99 | Moderate — dramatic jump from 0.16 |
+| regulatory_capacity | +0.244 | 2.928 | 99 | Weak — regressed from v13 (0.325) |
+| **Average** | **+0.482** | | | **+0.080 vs v13** |
+
+### v13 (previous best, for comparison)
+
+| Dimension | r | MSE | n | Notes |
+|---|---|---|---|---|
+| threat_exposure | +0.16 | 13.62 | 99 | Weakest — CC poisoning effect |
 | contractual_clarity | +0.27 | 2.16 | 89 | Moderate — small dataset |
-| **Average** | **+0.402** | | | **Down from 0.428 (joint) — harder benchmark** |
+| regulatory_capacity | +0.32 | 1.56 | 99 | Moderate — relabeling helped |
+| defensive_architecture | +0.37 | 1.95 | 88 | Moderate — redefined construct |
+| energy_dissipation | +0.39 | 1.99 | 99 | Moderate — range compression |
+| authority_dynamics | +0.46 | 1.69 | 93 | Moderate — ad_8 synthetic helped |
+| hostility_index | +0.48 | 5.63 | 99 | Good |
+| resilience_baseline | +0.50 | 1.30 | 99 | Good |
+| trust_conditions | +0.50 | 4.30 | 99 | Good |
+| cooling_capacity | +0.57 | 2.76 | 99 | Good |
+| **Average** | **+0.402** | | | Baseline after separated labeling |
 
 ## Calibration Summary (v13)
 
@@ -76,7 +94,14 @@ Score calibration via isotonic regression reduces MAE by 4–25% and decompresse
 
 ## Artifacts
 
-All artifacts are in `models/psq-student/`:
+v14 artifacts are in `models/psq-v14/`:
+- `best.pt` — PyTorch checkpoint (epoch 8)
+- `held_out_results.json` — Held-out evaluation metrics
+- `tokenizer/` — Tokenizer files
+- `config.json`, `best_results.json`, `test_results.json`
+
+v13 artifacts are in `models/psq-student/` (production slot):
+- `best.pt` — PyTorch checkpoint
 - `best.pt` — PyTorch checkpoint
 - `model.onnx` — Full-precision ONNX (254 MB)
 - `model_quantized.onnx` — INT8 quantized (64 MB)

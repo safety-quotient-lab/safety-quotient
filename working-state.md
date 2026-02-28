@@ -6,38 +6,32 @@ It is updated at the end of each working session. Snapshots are saved as
 
 ---
 
-## Current Model: psq-v14 (training in progress)
-
-v14 training started 2026-02-27. Results pending. v13 is the last complete model.
-
----
-
-## Last Complete Model: psq-v13
+## Current Model: psq-v14 (complete)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT → 10-dim regression (knowledge distillation) |
-| Test r (avg 10 dims) | 0.564 |
-| Val r (best epoch) | 0.543 |
-| Held-out r (avg 10 dims) | 0.402 |
-| Checkpoint | `models/psq-student/best.pt` |
-| Config | `models/psq-student/config.json` |
-| Calibration | `models/psq-student/calibration.json` (isotonic) |
+| Test r (avg 10 dims) | 0.544 |
+| Val r (best epoch) | 0.528 (epoch 8 of 10) |
+| Held-out r (avg 10 dims) | 0.482 (+0.080 vs v13) |
+| Generalization gap | 11.4% (down from 27.3% in v13) |
+| Checkpoint | `models/psq-v14/best.pt` |
+| Config | `models/psq-v14/config.json` |
 
-### Per-dimension held-out r (v13)
+### Per-dimension held-out r (v14)
 
 | Dimension | Held-out r | Status |
 |---|---|---|
-| threat_exposure | 0.160 | weak — more labels needed |
-| contractual_clarity | 0.271 | weak — more labels needed |
-| regulatory_capacity | 0.325 | weak — more labels needed |
-| defensive_architecture | 0.368 | moderate |
-| energy_dissipation | 0.393 | moderate |
-| authority_dynamics | 0.457 | moderate |
-| hostility_index | 0.480 | moderate |
-| resilience_baseline | 0.496 | moderate |
-| trust_conditions | 0.498 | moderate |
-| cooling_capacity | 0.574 | good |
+| regulatory_capacity | 0.244 | weak — regressed from v13 (0.325), investigate |
+| threat_exposure | 0.414 | moderate — dramatic improvement from 0.160 |
+| contractual_clarity | 0.432 | moderate — improvement from 0.271 |
+| resilience_baseline | 0.473 | moderate — slight regression from 0.496 |
+| defensive_architecture | 0.474 | moderate — improvement from 0.368 |
+| authority_dynamics | 0.503 | moderate — improvement from 0.457 |
+| hostility_index | 0.523 | good |
+| energy_dissipation | 0.531 | good — improvement from 0.393 |
+| trust_conditions | 0.572 | good |
+| cooling_capacity | 0.653 | good |
 
 ---
 
@@ -68,13 +62,13 @@ v14 training started 2026-02-27. Results pending. v13 is the last complete model
 | regulatory_capacity | 550 |
 | threat_exposure | 529 |
 | defensive_architecture | 350 |
-| energy_dissipation | 312+200=512 |
+| energy_dissipation | 512 |
 | contractual_clarity | 300 |
-| authority_dynamics | 100+200=300 |
-| cooling_capacity | 100+200=300 |
-| hostility_index | 100+200=300 |
-| resilience_baseline | 100+200=300 |
-| trust_conditions | 100+200=300 |
+| authority_dynamics | 300 |
+| cooling_capacity | 300 |
+| hostility_index | 300 |
+| resilience_baseline | 300 |
+| trust_conditions | 300 |
 
 ---
 
@@ -88,24 +82,18 @@ v14 training started 2026-02-27. Results pending. v13 is the last complete model
 | weak dims batch | `data/labeling-batch-weak-dims.jsonl` | te, rc, co | 200 | 2026-02-27 |
 | all dims batch | `data/labeling-batch-weak-dims.jsonl` | all 10 | 200 | 2026-02-27 |
 
+### In-progress / untracked batches
+
+| Batch | File | Dims scored | n texts | Status |
+|---|---|---|---|---|
+| ad focus batch | `data/labeling-batch-ad.jsonl` | ad only (done) | 300 | 9/10 dims pending |
+
 ### Provenance fields (since 2026-02-27)
 
 All new separated-llm labels carry:
 - `scorer: claude-sonnet-4-6`
 - `provider: anthropic`
 - `interface: claude-code`
-
----
-
-## Key Scripts
-
-| Script | Purpose |
-|---|---|
-| `scripts/distill.py` | Train DistilBERT student model |
-| `scripts/label_separated.py` | Extract/ingest/assemble separated-scoring batches |
-| `scripts/migrate.py` | Bootstrap and incrementally ingest into `data/psq.db` |
-| `scripts/evaluate.py` | Evaluate model against test/held-out splits |
-| `scripts/build_composite_ground_truth.py` | Rebuild training JSONL files |
 
 ---
 
@@ -127,19 +115,17 @@ All new separated-llm labels carry:
 | `scripts/distill.py` | Train DistilBERT student model (`--out DIR`, `--no-save` for smoke tests) |
 | `scripts/label_separated.py` | Extract/ingest/assemble separated-scoring batches |
 | `scripts/migrate.py` | Bootstrap and incrementally ingest (`--ingest JSONL`) into `data/psq.db` |
-| `scripts/evaluate.py` | Evaluate model against test/held-out splits |
+| `scripts/eval_held_out.py` | Evaluate model against 100-text held-out benchmark |
 | `scripts/build_composite_ground_truth.py` | Rebuild training JSONL files |
 
 ---
 
 ## What's Next
 
-1. **Await v14 results** — training now, cmd: `python scripts/distill.py --db data/psq.db --out models/psq-v14`
-   - Incorporates 2,000 new separated-llm labels across all 10 dims
-   - Expect broad improvement, especially on hi/ad/ed/rb/tc/cc/da
-2. **Evaluate v14** — compare held-out r per dim vs v13 baseline
-3. **Consider DeBERTa-v3-small** for v15 — already supported in code, biggest potential upside
-4. **Consider max_length 256** for v15 — ESConv dialogues truncated at 128
+1. **Score remaining dims on ad batch** — `data/labeling-batch-ad.jsonl` has 300 texts with `ad` done; 9 more dims (te, hi, ed, rc, rb, tc, cc, da, co) pending if desired, or just ingest ad and move on
+2. **Investigate rc regression** — held-out r dropped from 0.325 → 0.244; consider rc-focused batch from workplace/org texts
+3. **Plan v15** — options: (a) ingest ad labels and retrain, (b) score more dims on ad batch first, (c) try DeBERTa-v3-small or max_length=256
+4. **Promote v14 to production** — copy `models/psq-v14/best.pt` → `models/psq-student/best.pt` when ready (requires calibration re-run)
 
 ---
 

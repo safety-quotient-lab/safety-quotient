@@ -2,13 +2,13 @@
 
 **Date:** 2026-02-27
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v13 DistilBERT — test_r=0.553, held-out_r=0.402 (separated labels). 4/10 dimensions show strong generalization. Halo effect confirmed; separated scoring implemented.
+**Status:** v14 DistilBERT — test_r=0.544, held-out_r=0.482 (separated labels). 8/10 dimensions improved vs v13; generalization gap reduced from 27% to 11%. Regulatory capacity regressed (0.325→0.244).
 
 ---
 
 ## 1. Summary Assessment
 
-The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v13 DistilBERT: test_r=0.553, held-out_r=0.402 with halo-free separated labels). Four dimensions (hostility, cooling, trust, resilience) generalize well to real-world text (r=0.39-0.57); six require better training signal. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call).
+The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v14 DistilBERT: test_r=0.544, held-out_r=0.482 with halo-free separated labels). Eight dimensions now generalize well to real-world text (r=0.41-0.65); regulatory_capacity requires additional targeted labels. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call).
 
 However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Most standard reliability and validity evidence has not yet been collected.
 

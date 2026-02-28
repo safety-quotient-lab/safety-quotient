@@ -563,13 +563,27 @@ A recurring problem surfaced: smoke-test training runs were silently overwriting
 
 Future training runs should follow the convention `--out models/psq-vN`, reserving `models/psq-student/` for the current production checkpoint only.
 
-### 16c. V14 Initiated
+### 16c. V14 Results
 
-Training began with `python scripts/distill.py --db data/psq.db --out models/psq-v14`. All hyperparameters are identical to v13 — the only change is the additional training signal from 2,000 halo-free labels. Holding architecture and hyperparameters constant allows attribution of any performance change to the data quality improvement.
+Training completed: 10 epochs, best checkpoint at epoch 8 (val_r = 0.528). Test-set average r = 0.544. Held-out average r = 0.482 — a +0.080 improvement over v13, the largest single-version gain in the project.
 
-The primary question is whether 200 separated-scored texts (per dimension) is sufficient to materially improve over the joint-scored baseline. For dimensions where the student model already performs moderately (cooling_capacity r = 0.57, trust_conditions r = 0.50), improvement may be marginal. For dimensions with weak signal (threat_exposure r = 0.16), the question is whether the architecture has capacity to learn threat at all, or whether the model has learned to suppress threat predictions from 13 training versions of conservative labeling.
+The held-out results answered the question of whether 200 separated-scored texts per dimension is sufficient: yes, substantially so. Eight of ten dimensions improved, with the three formerly-weakest showing the largest gains — threat_exposure jumped from r = 0.16 to r = 0.41, contractual_clarity from r = 0.27 to r = 0.43, and energy_dissipation from r = 0.39 to r = 0.53. This pattern is consistent with the expectation that halo-inflated joint labels were specifically harmful for dimensions with strong theoretical independence (threat and contractual clarity have low conceptual overlap with the remaining eight), and that even 200 clean separated labels is sufficient to override years of accumulated halo bias.
 
-Results pending.
+One notable regression: regulatory_capacity declined from r = 0.325 to r = 0.244 on the held-out set, despite a test-set r of 0.527. This test/held-out inversion suggests the 200 new rc labels may be sampling from a narrower distribution (Reddit stress posts, emotional support conversations) that does not generalize to the real-world rc benchmark. Regulatory capacity — the dimension assessing whether a communication environment provides adequate stress-regulatory resources — may require training texts drawn from organizational and workplace contexts rather than peer support contexts. This is the primary open question for v15 data planning.
+
+### 16d. Current State (V14)
+
+| Metric | Value |
+|---|---|
+| Architecture | DistilBERT-base-uncased (66.7M params) |
+| Training data | ~19,884 texts (DB), 15,859 train split |
+| Separated-llm labels | ~4,541 (all 10 dims) |
+| Test avg Pearson r | 0.544 |
+| Held-out avg Pearson r | 0.482 (+0.080 vs v13) |
+| Generalization gap | 11.4% (down from 27.3% in v13) |
+| Checkpoint | `models/psq-v14/best.pt` |
+
+The reduction in generalization gap — from 27.3% (v13) to 11.4% (v14) — is as significant as the raw held-out improvement. It suggests the model is generalizing rather than merely fitting the training distribution. The primary remaining gap is regulatory_capacity, which requires targeted data curation.
 
 ---
 

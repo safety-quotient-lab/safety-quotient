@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
-**Date:** 2026-02-26
-**Status:** v13 complete (test_r=0.553, held-out_r=0.402 against halo-free labels). CC threat_exposure removed, all synthetic+relabeled data included. ONNX exported (64MB INT8).
-**Next:** Relabel train-llm.jsonl with separated scoring, retrain v14, threat_exposure rehabilitation.
+**Date:** 2026-02-27
+**Status:** v14 complete (test_r=0.544, held-out_r=0.482 against halo-free labels). +2,000 separated-llm labels (200 texts × 10 dims). Most dims improved substantially on held-out; rc regressed.
+**Next:** Ingest 300-text ad batch (authority_dynamics scored), investigate rc regression, plan v15.
 
 ---
 
@@ -38,6 +38,7 @@
 18. [Construct Validity: Inter-Dimension Correlations](#18-construct-validity-inter-dimension-correlations-2026-02-27) — halo effect confirmed, cluster structure emerging
 19. [Separated Scoring & Hierarchical Reporting](#19-separated-scoring--hierarchical-reporting-2026-02-27) — halo-free held-out relabeling, g-PSQ + cluster subscales, validation
 20. [V14 Labeling Expansion & Training](#20-v14-labeling-expansion--training-2026-02-27) — 200-text all-dims batch scored, 2,000 new separated-llm labels, distill.py safety improvements
+21. [V14 Held-Out Results & Regression Analysis](#21-v14-held-out-results--regression-analysis-2026-02-27) — held-out_r=0.482 (+0.080 vs v13), rc regression, test/held-out inversion
 13. [References](#13-references)
 
 ---
@@ -2005,6 +2006,64 @@ Identical hyperparameters to v13 (max_length=128, patience=3, lr=2e-5, batch=32,
 - All prior separated-llm labels (te/rc/co/da/ed from earlier sessions)
 
 **Expected outcome:** Broad improvement across all dims, especially the 7 newly-covered dims (hi/ad/ed/rb/tc/cc/da) which now have 200+ clean separated labels. Primary uncertainty: whether 200 texts is sufficient to meaningfully improve dims with prior weak coverage.
+
+---
+
+## 21. V14 Held-Out Results & Regression Analysis (2026-02-27)
+
+### 21a. Held-Out Evaluation
+
+`eval_held_out.py --model models/psq-v14/best.pt` against the 100-text real-world benchmark (separated labels).
+
+| Dimension | v13 r | v14 r | Δ | Direction |
+|---|---|---|---|---|
+| threat_exposure | 0.160 | 0.414 | +0.254 | Strong improvement |
+| contractual_clarity | 0.271 | 0.432 | +0.161 | Strong improvement |
+| defensive_architecture | 0.368 | 0.474 | +0.106 | Improvement |
+| energy_dissipation | 0.393 | 0.531 | +0.138 | Improvement |
+| authority_dynamics | 0.457 | 0.503 | +0.046 | Improvement |
+| hostility_index | 0.480 | 0.523 | +0.043 | Improvement |
+| trust_conditions | 0.498 | 0.572 | +0.074 | Improvement |
+| cooling_capacity | 0.574 | 0.653 | +0.079 | Improvement |
+| resilience_baseline | 0.496 | 0.473 | -0.023 | Slight regression |
+| regulatory_capacity | 0.325 | 0.244 | -0.081 | Regression — investigate |
+| **Average** | **0.402** | **0.482** | **+0.080** | |
+
+The +0.080 held-out improvement is the largest single-version gain in the project. The primary driver appears to be the 2,000 new separated-llm labels replacing halo-inflated joint-llm signal. The threat_exposure jump (+0.254) is particularly striking given the dimension's history of near-zero performance.
+
+### 21b. V14 Test-Set Results
+
+For completeness, test-set (seen-distribution) results at best epoch (epoch 8, val_r=0.528):
+
+| Dimension | test_r | Notes |
+|---|---|---|
+| contractual_clarity | 0.809 | Strongest — consistent |
+| energy_dissipation | 0.628 | Good |
+| resilience_baseline | 0.637 | Good |
+| threat_exposure | 0.585 | Strong on test |
+| hostility_index | 0.575 | Good |
+| regulatory_capacity | 0.527 | Good on test, poor held-out — see §21c |
+| trust_conditions | 0.527 | Good |
+| defensive_architecture | 0.495 | Moderate |
+| cooling_capacity | 0.450 | Moderate on test, strong held-out — see §21c |
+| authority_dynamics | 0.358 | Weakest on test — opposite of held-out |
+| **Average** | **0.544** | |
+
+### 21c. Test/Held-Out Inversions
+
+Three dimensions show large rank-order inversions between test and held-out performance:
+
+| Dimension | test_r | held-out_r | Gap | Direction |
+|---|---|---|---|---|
+| regulatory_capacity | 0.527 | 0.244 | -0.283 | Good on test, poor held-out |
+| cooling_capacity | 0.450 | 0.653 | +0.203 | Poor on test, excellent held-out |
+| authority_dynamics | 0.358 | 0.503 | +0.145 | Weak on test, good held-out |
+
+These inversions reflect the distributional difference between the test split (random sample from the same pipeline as training) and the held-out set (100 curated real-world texts). The test split inherits the composite-proxy label distribution; the held-out set has clean separated LLM labels from a different source distribution.
+
+**Regulatory capacity regression:** rc test_r=0.527 suggests the model has learned *something* for rc — but the held-out regression (0.325→0.244) suggests the newly-added rc labels (from the weak-dims batch) may have introduced a systematic mismatch. Possible causes: (1) the 200 batch texts were sampled from Reddit/dreaddit, which may not represent the real-world rc distribution; (2) the rc definition may need refinement.
+
+**Recommendation:** Score an additional rc-focused batch drawn from more diverse sources (workplace texts, policy documents) before v15 training.
 
 ---
 
