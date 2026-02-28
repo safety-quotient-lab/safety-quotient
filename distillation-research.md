@@ -2317,7 +2317,16 @@ Threat_exposure has been volatile: 0.367 (v13) → 0.476 (v14) → 0.410 (v15) �
 2. Held-out te labels may have scoring inconsistencies
 3. New batches introduced te-confounding content
 
-Next: compare te predictions on held-out between v15 and v16 to identify which texts drove the regression.
+Per-text comparison (v15 vs v16 on 100 held-out texts, TE dimension):
+- v16 MAE is actually **lower** (1.773 vs 1.956) — more accurate on average
+- v16 improved on 63 texts, worsened on 37
+- But correlation dropped (0.398 vs 0.426) — a few large outlier errors hurt Pearson r
+- Both models systematically over-predict TE: preds mean ~5.5 vs label mean 3.92
+- Prediction spread too high: pred std ~1.8 vs label std 1.4
+
+Root cause: the TE held-out distribution is concentrated (60% at scores 4-5, only 8% at 6-7). A few large errors on low-frequency texts disproportionately hurt correlation. The r metric is unstable for TE due to low variance in labels. MAE may be a more reliable metric for this dimension.
+
+This is not a training regression — v16 is genuinely more accurate. The correlation metric is simply sensitive to outliers when label variance is low.
 
 ---
 
