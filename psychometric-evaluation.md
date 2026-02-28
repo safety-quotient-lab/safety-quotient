@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-27
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v14 DistilBERT — test_r=0.544, held-out_r=0.482 (separated labels). 8/10 dimensions improved vs v13; generalization gap reduced from 27% to 11%. Regulatory capacity regressed (0.325→0.244).
+**Status:** v15 DistilBERT — test_r=0.536, held-out_r=0.495 (separated labels). AD batch drove authority_dynamics +0.166; generalization gap down to 7.6%. Contractual clarity regressed (0.498→0.388).
 
 ---
 

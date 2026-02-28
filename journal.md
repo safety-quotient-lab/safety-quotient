@@ -414,16 +414,16 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ## 14. Current State and Open Questions
 
-### 14a. Model Performance (v14, 2026-02-27)
+### 14a. Model Performance (v15, 2026-02-27)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 20,127 texts in DB (60,361 scores) |
-| Test avg Pearson r | 0.544 (10/10 dimensions positive) |
-| Held-out avg Pearson r | 0.482 (+0.080 vs v13, separated labels) |
-| Generalization gap | 11.4% (down from 27.3% in v13) |
-| ONNX model size | 64 MB (INT8 quantized, v13 — v14 not yet exported) |
+| Training data | 20,127 texts in DB (63,361 scores, 9,771 separated-llm) |
+| Test avg Pearson r | 0.536 (10/10 dimensions positive) |
+| Held-out avg Pearson r | 0.495 (+0.013 vs v14, +0.093 vs v13) |
+| Generalization gap | 7.6% (down from 11.4% in v14) |
+| ONNX model size | 64 MB (INT8 quantized, v13 — v15 not yet exported) |
 | Inference latency | ~20ms / text (CPU) |
 
 ### 14b. Psychometric Properties
@@ -433,7 +433,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Test-retest reliability | Excellent | ICC = 0.935 (perturbation-based) | ICC > 0.75 (Cicchetti, 1994) |
 | Discriminant validity (vs. sentiment) | Strong | Mean |r| = 0.205 vs VADER | r < 0.30 (distinct construct) |
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
-| Held-out generalization | Moderate | r = 0.482, n = 100 (separated labels, v14) | Comparable to brief personality measures |
+| Held-out generalization | Moderate | r = 0.495, n = 100 (separated labels, v15) | Comparable to brief personality measures |
 | Construct validity (discriminant) | Confirmed | Halo addressed; 3-cluster hierarchy implemented | Requires CFA (n ≥ 200) |
 | Inter-rater reliability | Not measured | — | Critical gap |
 | Criterion validity | Not measured | — | Requires external criterion |
@@ -443,7 +443,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 1. **Dimensionality restructuring.** Should the 10-dimension model be replaced with a hierarchical structure (g-PSQ + clusters + dimensions)? The halo experiment suggests genuine factor structure, but the sample size (n = 30) is insufficient for confirmatory analysis.
 
-2. **Threat exposure rehabilitation.** Despite the Civil Comments fix, threat_exposure remains the weakest dimension (held-out r = 0.12). The model's strong "default to safe" prior from 13 training versions may require architectural intervention (e.g., dimension-specific learning rates) rather than just data correction.
+2. **Threat exposure rehabilitation.** Despite the Civil Comments fix and improvement to r=0.41 (v15), threat_exposure regressed from v14 (0.48) and remains volatile. The model's legacy "default to safe" prior may require architectural intervention (e.g., dimension-specific learning rates) rather than just data correction.
 
 3. **Training ceiling.** Test r has grown from 0.492 (v1) to 0.553 (v13) — a 12% improvement over 13 versions. The diminishing returns suggest we may be approaching the ceiling for this architecture + data mix. Next steps likely require either substantially more LLM-labeled data (expensive) or a larger base model (compute-constrained).
 
@@ -571,19 +571,19 @@ The held-out results answered the question of whether 200 separated-scored texts
 
 One notable regression: regulatory_capacity declined from r = 0.325 to r = 0.244 on the held-out set, despite a test-set r of 0.527. This test/held-out inversion suggests the 200 new rc labels may be sampling from a narrower distribution (Reddit stress posts, emotional support conversations) that does not generalize to the real-world rc benchmark. Regulatory capacity — the dimension assessing whether a communication environment provides adequate stress-regulatory resources — may require training texts drawn from organizational and workplace contexts rather than peer support contexts. This is the primary open question for v15 data planning.
 
-### 16d. Current State (V14)
+### 16d. Current State (V15)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | ~19,884 texts (DB), 15,859 train split |
-| Separated-llm labels | ~4,541 (all 10 dims) |
-| Test avg Pearson r | 0.544 |
-| Held-out avg Pearson r | 0.482 (+0.080 vs v13) |
-| Generalization gap | 11.4% (down from 27.3% in v13) |
-| Checkpoint | `models/psq-v14/best.pt` |
+| Training data | 20,127 texts (DB), 16,046 train split |
+| Separated-llm labels | 9,771 (all 10 dims) |
+| Test avg Pearson r | 0.536 |
+| Held-out avg Pearson r | 0.495 (+0.013 vs v14, +0.093 vs v13) |
+| Generalization gap | 7.6% (down from 11.4% in v14) |
+| Checkpoint | `models/psq-v15/best.pt` |
 
-The reduction in generalization gap — from 27.3% (v13) to 11.4% (v14) — is as significant as the raw held-out improvement. It suggests the model is generalizing rather than merely fitting the training distribution. The primary remaining gap is regulatory_capacity, which requires targeted data curation.
+The generalization gap continues to shrink — from 27.3% (v13) to 11.4% (v14) to 7.6% (v15) — as separated-llm labels replace noisy proxy data. The AD batch produced the single largest per-dimension held-out gain in the project (authority_dynamics +0.166), validating the targeted labeling strategy. The remaining weak points are regulatory_capacity (0.285, still lowest) and a new contractual_clarity regression (0.498→0.388) that warrants investigation.
 
 ---
 

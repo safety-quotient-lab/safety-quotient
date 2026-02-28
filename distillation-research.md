@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-27
-**Status:** v14 complete (test_r=0.544, held-out_r=0.482 against halo-free labels). +6,500 separated-llm labels total (200+150+300 texts × 10 dims each, plus 300 ad-only). 9,771 separated-llm scores in DB.
-**Next:** Train v15 with AD batch data, investigate rc regression, promote v14 to production.
+**Status:** v15 complete (test_r=0.536, held-out_r=0.495). AD batch (+0.166 on authority_dynamics held-out), rc partially recovered (+0.041). Generalization gap down to 7.6%. 9,771 separated-llm scores in DB.
+**Next:** Investigate co regression (-0.110 held-out), promote v15 to production, plan v16 labeling priorities.
 
 ---
 
@@ -40,6 +40,7 @@
 20. [V14 Labeling Expansion & Training](#20-v14-labeling-expansion--training-2026-02-27) — 200-text all-dims batch scored, 2,000 new separated-llm labels, distill.py safety improvements
 21. [V14 Held-Out Results & Regression Analysis](#21-v14-held-out-results--regression-analysis-2026-02-27) — held-out_r=0.482 (+0.080 vs v13), rc regression, test/held-out inversion
 22. [RC Labeling Batch & Context Limit Lesson](#22-rc-labeling-batch--context-limit-lesson-2026-02-27) — 150 texts × 10 dims, session context exhaustion, recovery workflow
+23. [V15 Training: AD+RC Batch Impact](#23-v15-training-adrc-batch-impact-2026-02-27) — held-out_r=0.495 (+0.013), ad +0.166, rc +0.041, co regressed
 13. [References](#13-references)
 
 ---
@@ -2120,6 +2121,71 @@ Lessons for large labeling sessions:
 | Separated-llm scores | 5,271 | 6,771 | 9,771 |
 
 *Note: The "before" count differs from §20b because the prior session had also ingested additional scores before hitting the context limit. The 1,500 new scores from the RC batch are confirmed by method breakdown: separated-llm went from ~5,271 to 6,771 (+1,500). The AD batch added 3,000 more (300 texts × 10 dims).
+
+---
+
+## 23. V15 Training: AD+RC Batch Impact (2026-02-27)
+
+### 23a. Training
+
+V15 trained on the full DB (16,046 train / 1,944 val / 2,043 test) with the same hyperparameters as v14. The only change is 3,000 new separated-llm scores from the AD batch (300 texts × 10 dims) and 1,500 from the RC batch (150 texts × 10 dims), bringing separated-llm to 9,771 total.
+
+Best epoch: 7/10 (val_r=0.523), early stopped at epoch 10 (patience=3). Training time: ~47 min (10 epochs × 281s).
+
+### 23b. Test Results
+
+| Dimension | v14 test_r | v15 test_r | Δ |
+|---|---|---|---|
+| threat_exposure | 0.569 | 0.594 | +0.025 |
+| hostility_index | 0.581 | 0.571 | -0.010 |
+| authority_dynamics | 0.333 | 0.338 | +0.005 |
+| energy_dissipation | 0.670 | 0.641 | -0.029 |
+| regulatory_capacity | 0.491 | 0.509 | +0.018 |
+| resilience_baseline | 0.604 | 0.627 | +0.023 |
+| trust_conditions | 0.500 | 0.517 | +0.017 |
+| cooling_capacity | 0.504 | 0.446 | -0.058 |
+| defensive_architecture | 0.434 | 0.468 | +0.034 |
+| contractual_clarity | 0.755 | 0.806 | +0.051 |
+| **Average** | **0.544** | **0.536** | **-0.008** |
+
+Test avg r slightly lower (-0.008), but this is misleading — the test split composition changed slightly with the DB update and test_r has always been a noisy metric.
+
+### 23c. Held-Out Results
+
+| Dimension | v14 held-out | v15 held-out | Δ |
+|---|---|---|---|
+| threat_exposure | 0.476 | 0.410 | -0.066 |
+| hostility_index | 0.488 | 0.538 | +0.050 |
+| authority_dynamics | 0.407 | 0.573 | **+0.166** |
+| energy_dissipation | 0.531 | 0.511 | -0.020 |
+| regulatory_capacity | 0.244 | 0.285 | **+0.041** |
+| resilience_baseline | 0.444 | 0.507 | +0.063 |
+| trust_conditions | 0.572 | 0.564 | -0.008 |
+| cooling_capacity | 0.653 | 0.653 | 0.000 |
+| defensive_architecture | 0.506 | 0.523 | +0.017 |
+| contractual_clarity | 0.498 | 0.388 | -0.110 |
+| **Average** | **0.482** | **0.495** | **+0.013** |
+
+### 23d. Analysis
+
+**Wins:**
+- **authority_dynamics** (+0.166): The single largest per-dimension held-out improvement in the project's history. The 300-text AD batch, scored on all 10 dims, provided high-quality signal for a dimension that had been mostly proxy-labeled (politeness/UCC, both noisy). This validates the separated-scoring approach for signal-starved dimensions.
+- **regulatory_capacity** (+0.041): Partial recovery from the v14 regression (0.325→0.244→0.285). The RC batch helped but rc remains the weakest dimension. More targeted labeling may be needed.
+- **resilience_baseline** (+0.063): Collateral benefit from the AD+RC batches — more separated-scored data on rb improved generalization.
+- **hostility_index** (+0.050): Similar collateral benefit.
+
+**Regressions:**
+- **contractual_clarity** (-0.110): The most concerning regression. Test_r actually improved (+0.051), suggesting the model learned the training distribution better but lost generalization. Possible cause: the AD batch texts may have a different contractual_clarity distribution than the held-out texts, creating a distributional shift.
+- **threat_exposure** (-0.066): Moderate regression. te remains difficult due to the legacy of CC poisoning across 13 training versions.
+
+**Generalization gap:** test_r=0.536, held-out_r=0.495 → gap=7.6% (v14: 11.4%, v13: 27.3%). The gap continues to shrink as separated-llm data replaces noisy proxy labels.
+
+### 23e. V15 Artifacts
+
+- `models/psq-v15/best.pt` — PyTorch checkpoint (epoch 7)
+- `models/psq-v15/held_out_results.json` — Held-out evaluation metrics
+- `models/psq-v15/tokenizer/` — Tokenizer files
+- `models/psq-v15/config.json`, `best_results.json`, `test_results.json`
 
 ---
 

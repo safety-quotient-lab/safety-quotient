@@ -6,32 +6,32 @@ It is updated at the end of each working session. Snapshots are saved as
 
 ---
 
-## Current Model: psq-v14 (complete)
+## Current Model: psq-v15 (complete)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT → 10-dim regression (knowledge distillation) |
-| Test r (avg 10 dims) | 0.544 |
-| Val r (best epoch) | 0.528 (epoch 8 of 10) |
-| Held-out r (avg 10 dims) | 0.482 (+0.080 vs v13) |
-| Generalization gap | 11.4% (down from 27.3% in v13) |
-| Checkpoint | `models/psq-v14/best.pt` |
-| Config | `models/psq-v14/config.json` |
+| Test r (avg 10 dims) | 0.536 |
+| Val r (best epoch) | 0.523 (epoch 7 of 10) |
+| Held-out r (avg 10 dims) | 0.495 (+0.013 vs v14, +0.093 vs v13) |
+| Generalization gap | 7.6% (down from 11.4% in v14) |
+| Checkpoint | `models/psq-v15/best.pt` |
+| Config | `models/psq-v15/config.json` |
 
-### Per-dimension held-out r (v14)
+### Per-dimension held-out r (v15)
 
-| Dimension | Held-out r | Status |
-|---|---|---|
-| regulatory_capacity | 0.244 | weak — regressed from v13 (0.325), investigate |
-| threat_exposure | 0.414 | moderate — dramatic improvement from 0.160 |
-| contractual_clarity | 0.432 | moderate — improvement from 0.271 |
-| resilience_baseline | 0.473 | moderate — slight regression from 0.496 |
-| defensive_architecture | 0.474 | moderate — improvement from 0.368 |
-| authority_dynamics | 0.503 | moderate — improvement from 0.457 |
-| hostility_index | 0.523 | good |
-| energy_dissipation | 0.531 | good — improvement from 0.393 |
-| trust_conditions | 0.572 | good |
-| cooling_capacity | 0.653 | good |
+| Dimension | Held-out r | Δ vs v14 | Status |
+|---|---|---|---|
+| regulatory_capacity | 0.285 | +0.041 | weak — partial recovery, still worst |
+| contractual_clarity | 0.388 | -0.110 | moderate — regressed, investigate |
+| threat_exposure | 0.410 | -0.066 | moderate — regressed |
+| resilience_baseline | 0.507 | +0.063 | good — improved |
+| energy_dissipation | 0.511 | -0.020 | good — slight regression |
+| defensive_architecture | 0.523 | +0.017 | good — improved |
+| hostility_index | 0.538 | +0.050 | good — improved |
+| trust_conditions | 0.564 | -0.008 | good — stable |
+| authority_dynamics | 0.573 | +0.166 | good — massive improvement from AD batch |
+| cooling_capacity | 0.653 | 0.000 | good — unchanged |
 
 ---
 
@@ -117,9 +117,10 @@ The RC batch (150 texts × 10 dims) exhausted the Claude Code context window bef
 
 ## What's Next
 
-1. **Train v15** — all separated-llm data ingested (9,771 scores); retrain with AD+RC batches to measure impact
-2. **Investigate rc regression** — held-out r dropped from 0.325 → 0.244; rc+ad batches now ingested, v15 training should show if new data helps
-3. **Promote v14 to production** — copy `models/psq-v14/best.pt` → `models/psq-student/best.pt` when ready (requires calibration re-run)
+1. **Investigate co regression** — contractual_clarity held-out dropped 0.498→0.388 despite test_r improving; distributional shift?
+2. **Promote v15 to production** — copy `models/psq-v15/best.pt` → `models/psq-student/best.pt`, re-run calibration
+3. **Plan v16 labeling** — priorities: co (regressed), rc (still weakest), te (regressed)
+4. **Score more batches from unlabeled pool** — ~7K texts available in `data/unlabeled-pool.jsonl`
 
 ---
 

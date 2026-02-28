@@ -32,8 +32,9 @@ Version-by-version record of every training run, with hyperparameters, data chan
 | v12 | 2026-02-27 | DistilBERT | — | 2e-5 | 16 | — | — | +synthetic ad_8 (305 auth) | Killed — trained on old composite (CC threat still in) |
 | **v13** | **2026-02-27** | **DistilBERT** | **8** | **2e-5** | **16** | **0.553** | **0.428** | CC threat_exposure REMOVED from composite, all synthetic + relabeled | Fixed composite (17,643 records), 4,199 LLM |
 | **v14** | **2026-02-27** | **DistilBERT** | **8** | **2e-5** | **32** | **0.544** | **0.482** | +2,000 separated-llm labels (all 10 dims, 200 texts × 10 dims). DB mode. | Same hyperparams as v13. `--out models/psq-v14`. |
+| **v15** | **2026-02-27** | **DistilBERT** | **7** | **2e-5** | **32** | **0.536** | **0.495** | +4,500 separated-llm (300 AD + 150 RC batches × 10 dims). DB: 63,361 scores. | Same hyperparams. `--out models/psq-v15`. |
 
-## Key Hyperparameters (v14, current)
+## Key Hyperparameters (v15, current)
 
 ```
 model_name:          distilbert-base-uncased
@@ -54,9 +55,25 @@ scheduler:           linear warmup (10% of steps) + linear decay
 
 ## Held-Out Results by Dimension
 
-### v14 (current best, 2026-02-27)
+### v15 (current best, 2026-02-27)
 
 Re-scored with separated LLM calls (one dimension per call). 100 real-world texts, complete 10-dimension coverage.
+
+| Dimension | r | MSE | n | Notes |
+|---|---|---|---|---|
+| cooling_capacity | +0.653 | 2.464 | 99 | Best — unchanged from v14 |
+| authority_dynamics | +0.573 | 1.818 | 93 | Massive jump (+0.166 from v14) — AD batch |
+| trust_conditions | +0.564 | 4.011 | 99 | Good — stable |
+| hostility_index | +0.538 | 4.134 | 99 | Good — improved (+0.050) |
+| defensive_architecture | +0.523 | 1.921 | 88 | Good — improved |
+| energy_dissipation | +0.511 | 1.618 | 99 | Good — slight regression |
+| resilience_baseline | +0.507 | 1.370 | 99 | Good — improved (+0.063) |
+| threat_exposure | +0.410 | 6.603 | 99 | Moderate — regressed from v14 |
+| contractual_clarity | +0.388 | 1.587 | 89 | Moderate — regressed (-0.110) |
+| regulatory_capacity | +0.285 | 2.662 | 99 | Weak — partial recovery (+0.041) |
+| **Average** | **+0.495** | | | **+0.013 vs v14, +0.093 vs v13** |
+
+### v14 (previous best, for comparison)
 
 | Dimension | r | MSE | n | Notes |
 |---|---|---|---|---|
@@ -72,7 +89,7 @@ Re-scored with separated LLM calls (one dimension per call). 100 real-world text
 | regulatory_capacity | +0.244 | 2.928 | 99 | Weak — regressed from v13 (0.325) |
 | **Average** | **+0.482** | | | **+0.080 vs v13** |
 
-### v13 (previous best, for comparison)
+### v13 (for comparison)
 
 | Dimension | r | MSE | n | Notes |
 |---|---|---|---|---|
@@ -94,6 +111,12 @@ Score calibration via isotonic regression reduces MAE by 4–25% and decompresse
 
 ## Artifacts
 
+v15 artifacts are in `models/psq-v15/`:
+- `best.pt` — PyTorch checkpoint (epoch 7)
+- `held_out_results.json` — Held-out evaluation metrics
+- `tokenizer/` — Tokenizer files
+- `config.json`, `best_results.json`, `test_results.json`
+
 v14 artifacts are in `models/psq-v14/`:
 - `best.pt` — PyTorch checkpoint (epoch 8)
 - `held_out_results.json` — Held-out evaluation metrics
@@ -101,7 +124,6 @@ v14 artifacts are in `models/psq-v14/`:
 - `config.json`, `best_results.json`, `test_results.json`
 
 v13 artifacts are in `models/psq-student/` (production slot):
-- `best.pt` — PyTorch checkpoint
 - `best.pt` — PyTorch checkpoint
 - `model.onnx` — Full-precision ONNX (254 MB)
 - `model_quantized.onnx` — INT8 quantized (64 MB)
