@@ -27,7 +27,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 14. [Current State and Open Questions](#14-current-state-and-open-questions)
 15. [Separated Scoring and Hierarchical Reporting](#15-separated-scoring-and-hierarchical-reporting)
 16. [Training Data Labeling Expansion and V14](#16-training-data-labeling-expansion-and-v14-2026-02-27)
-17. [Score-Concentration Fix and Targeted Labeling](#17-score-concentration-fix-and-targeted-labeling-2026-02-28)
+17. [Score-Concentration Fix and Targeted Labeling](#17-score-concentration-fix-and-targeted-labeling-2026-02-27)
 18. [References](#18-references)
 
 ---
@@ -589,7 +589,7 @@ The generalization gap continues to shrink — from 27.3% (v13) to 11.4% (v14) t
 
 ---
 
-## 17. Score-Concentration Fix and Targeted Labeling (2026-02-28)
+## 17. Score-Concentration Fix and Targeted Labeling (2026-02-27)
 
 The contractual_clarity regression in v15 (held-out 0.498→0.388) revealed a systematic vulnerability in our dimension-focused labeling strategy. When we scored 300 texts selected for authority_dynamics relevance, those texts were naturally neutral on contractual_clarity — producing correct but monotonic co=5 labels. With separated-llm priority and 5× sample weight, 58% of the co training distribution collapsed to a single value, overwhelming the co head with uninformative gradient.
 
@@ -597,9 +597,11 @@ This is not a labeling error — the labels are correct — but a statistical im
 
 We implemented a systemic fix: `_cap_score_concentration()` in `distill.py` identifies any (dimension, rounded_score) pair exceeding 30% of samples and reduces excess rows' sample_weight from 5.0 to 1.5 — preserving the labels but limiting their influence to composite-proxy levels. The approach is deterministic (seed=42), applies per-dimension, and is enabled by default. A 1-epoch smoke test showed immediate co recovery (test r=0.737 vs v15's 0.388 on held-out), though single-epoch numbers should not be over-interpreted.
 
-To complement the systemic fix, we extracted a CO-focused labeling batch: 200 texts from the unlabeled pool filtered by contractual-clarity keywords (agree, rule, policy, obligation, consent, permission, etc.). The co dimension was scored with 52% non-5 scores (range 1–9, mean 5.20), providing the distributional variance the co head needs. The remaining 9 dimensions will be scored in subsequent sessions.
+To complement the systemic fix, we extracted a CO-focused labeling batch: 200 texts from the unlabeled pool filtered by contractual-clarity keywords (agree, rule, policy, obligation, consent, permission, etc.). The co dimension was scored with 52% non-5 scores (range 1–9, mean 5.20), providing the distributional variance the co head needs. All 10 dimensions were scored and ingested in a single session, bringing the database to 20,327 texts and 65,361 scores. Comparing the CO batch's separated-llm scores to prior batches confirmed the targeting worked: 47.5% score-5 in the CO batch versus 58.3% in prior separated-llm CO labels.
 
-A practical addition: labeling sessions now record timing data. The ingest command accepts `--started-at` and logs duration and throughput to `data/labeling_log.jsonl`. First measurement: 200 texts scored in 3.2 minutes (3,750 texts/hr). This data will inform batch size planning for future labeling campaigns.
+A practical addition: labeling sessions now record timing data. The ingest command accepts `--started-at` and logs duration and throughput to `data/labeling_log.jsonl`. The full CO batch (200 texts × 10 dimensions) completed in 25.3 minutes — an average throughput of 4,743 texts/hr. Scoring speed varied significantly by context: first-encounter dimensions required careful reading (~3,500 texts/hr), while dimensions scored after the texts were already in working memory reached 23,000–24,000 texts/hr. This data will inform batch size planning for future labeling campaigns.
+
+v16 training was launched with both fixes active. Epoch 1 showed co test r=0.71, a dramatic recovery from v15's 0.388 held-out, though early-epoch numbers warrant caution. Full results are pending.
 
 ---
 

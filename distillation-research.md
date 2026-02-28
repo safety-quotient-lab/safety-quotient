@@ -1,6 +1,6 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
-**Date:** 2026-02-28
+**Date:** 2026-02-27
 **Status:** v15 complete (test_r=0.536, held-out_r=0.495). Score-concentration cap in distill.py. CO batch (200 texts × 10 dims) fully scored and ingested (DB: 20,327 texts, 65,361 scores). v16 training in progress.
 **Next:** Evaluate v16 held-out (especially co recovery), promote if improved.
 
@@ -41,7 +41,7 @@
 21. [V14 Held-Out Results & Regression Analysis](#21-v14-held-out-results--regression-analysis-2026-02-27) — held-out_r=0.482 (+0.080 vs v13), rc regression, test/held-out inversion
 22. [RC Labeling Batch & Context Limit Lesson](#22-rc-labeling-batch--context-limit-lesson-2026-02-27) — 150 texts × 10 dims, session context exhaustion, recovery workflow
 23. [V15 Training: AD+RC Batch Impact](#23-v15-training-adrc-batch-impact-2026-02-27) — held-out_r=0.495 (+0.013), ad +0.166, rc +0.041, co regressed
-24. [Score-Concentration Cap & CO Batch](#24-score-concentration-cap--co-batch-2026-02-28) — systemic weight cap for score flooding, CO-focused labeling batch
+24. [Score-Concentration Cap & CO Batch](#24-score-concentration-cap--co-batch-2026-02-27) — systemic weight cap for score flooding, CO-focused labeling batch
 13. [References](#13-references)
 
 ---
@@ -2203,7 +2203,7 @@ The confidence head outputs near-constant values for rc and cc, making confidenc
 
 ---
 
-## 24. Score-Concentration Cap & CO Batch (2026-02-28)
+## 24. Score-Concentration Cap & CO Batch (2026-02-27)
 
 ### 24a. Root Cause: Score-5 Flooding
 
