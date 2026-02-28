@@ -98,24 +98,24 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | All dims expansion | `data/labeling-batch-weak-dims.jsonl` | 200 | all 10 | 2026-02-27 | Extended to all 10 dims (same 200 texts) |
 | RC focus batch | `data/labeling-batch-rc.jsonl` | 150 | all 10 | 2026-02-27 | Targeting rc regression; diverse sources |
 | AD focus batch | `data/labeling-batch-ad.jsonl` | 300 | all 10 | 2026-02-27 | All dims scored and ingested |
-| CO focus batch | `data/labeling-batch-co.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for co-relevant content. Assembled → `labeling-batch-co-scored.jsonl`, ingested. |
+| CO focus batch | `data/labeling-batch-co.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. Keyword-filtered for co-relevant content (≥2 CO keywords). Integer scale. Assembled → `labeling-batch-co-scored.jsonl`, ingested. |
 | RB focus batch | `data/labeling-batch-rb.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for rb-relevant content (resilience, coping, recovery). |
 | CC focus batch | `data/labeling-batch-cc.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for cc-relevant content (calm, de-escalation, anger, composure). |
 | TE focus batch | `data/labeling-batch-te.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for te-relevant content (threat, violence, abuse, harm). TE score mean=3.17, good low-end variance. |
 | Broad spectrum | `data/labeling-batch-broad.jsonl` | 300 | 10/10 | 2026-02-28 | Complete. 150 random + 100 single-dim keyword + 50 multi-dim keyword. Best distributions: TE 18.3%, ED 25.7% score-5. |
 | Pct scale batch | `data/labeling-batch-pct-200.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. 0-100 percentage scale (÷10 on ingest). 86.2% non-integer, 4.8% exact-5, 35 unique values. Sources: empathetic_dialogues 73, berkeley 56, prosocial 50, dreaddit 16, esconv 5. |
 
-**Total separated-llm training labels:** 24,771 scores (across 21,627 texts in DB).
+**Total separated-llm training labels:** 26,771 scores (across 21,627 texts in DB).
 
 ## Composite Summary (v19+pct, 2026-02-28)
 
 | Metric | Value |
 |---|---|
 | Total texts in DB | 21,627 |
-| Total scores in DB | 78,361 |
+| Total scores in DB | 80,361 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
 | Joint-LLM records | 12,257 |
-| Separated-LLM records | 21,771 |
+| Separated-LLM records | 26,771 |
 | Synthetic records | 846 |
 | Held-out test records | 100 (separate, not in training) |
 | Train / Val / Test | ~16,700 / ~2,000 / ~2,100 (hash-based text split) |
