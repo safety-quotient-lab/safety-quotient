@@ -191,8 +191,8 @@ def main():
         results["_avg_r"] = round(avg, 4)
         results["_n_dims"] = len(rs)
 
-    # Save results
-    out_path = ROOT / "models" / "psq-student" / "held_out_results.json"
+    # Save results alongside the model checkpoint
+    out_path = Path(args.model).parent / "held_out_results.json"
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"\nResults saved to {out_path}")
