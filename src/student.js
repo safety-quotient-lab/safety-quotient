@@ -28,11 +28,25 @@ const DIMENSIONS = [
   "contractual_clarity",
 ];
 
-// Cluster definitions from halo experiment (§18 of distillation-research.md)
-const CLUSTERS = {
-  interpersonal_climate: ["authority_dynamics", "contractual_clarity", "trust_conditions", "threat_exposure"],
-  internal_resources: ["regulatory_capacity", "resilience_baseline", "defensive_architecture"],
-  bridge: ["cooling_capacity", "energy_dissipation", "hostility_index"],
+// Factor structure from EFA (promax rotation, §26-27 of distillation-research.md)
+const FACTORS_5 = {
+  hostility_threat:    ["hostility_index", "threat_exposure", "cooling_capacity"],
+  relational_contract: ["contractual_clarity", "trust_conditions"],
+  internal_resources:  ["resilience_baseline", "regulatory_capacity"],
+  power_dynamics:      ["authority_dynamics"],
+  stress_energy:       ["energy_dissipation"],
+};
+
+const FACTORS_3 = {
+  threat_hostility:    ["hostility_index", "threat_exposure"],
+  relational_safety:   ["trust_conditions", "contractual_clarity", "authority_dynamics"],
+  coping_resources:    ["resilience_baseline", "regulatory_capacity"],
+};
+
+const FACTORS_2 = {
+  content_hazard:      ["hostility_index", "threat_exposure", "cooling_capacity",
+                        "energy_dissipation", "defensive_architecture", "regulatory_capacity"],
+  relational_safety:   ["trust_conditions", "contractual_clarity"],
 };
 
 export class StudentProvider {
@@ -195,30 +209,32 @@ export class StudentProvider {
   }
 
   /**
-   * Compute hierarchical reporting: cluster subscales + g-PSQ general factor.
-   * Additive layer — the 10 individual dimensions remain primary.
+   * Compute hierarchical reporting: 3 factor levels + g-PSQ general factor.
+   * Levels: 2-factor (most abstract) → 3-factor → 5-factor (most granular).
+   * Empirically derived via EFA with promax rotation (§26-27 distillation-research.md).
    */
   static computeHierarchy(dimensionScores) {
-    const clusters = {};
-    for (const [clusterName, memberDims] of Object.entries(CLUSTERS)) {
-      let sumWeighted = 0, sumWeights = 0, sumConf = 0, n = 0;
-      for (const dim of memberDims) {
-        const d = dimensionScores[dim];
-        if (!d || d.score === undefined) continue;
-        const conf = d.confidence ?? 0.5;
-        sumWeighted += d.score * conf;
-        sumWeights += conf;
-        sumConf += conf;
-        n++;
+    const computeClusters = (factorMap) => {
+      const result = {};
+      for (const [name, memberDims] of Object.entries(factorMap)) {
+        let sumWeighted = 0, sumWeights = 0, sumConf = 0, n = 0;
+        for (const dim of memberDims) {
+          const d = dimensionScores[dim];
+          if (!d || d.score === undefined) continue;
+          const conf = d.confidence ?? 0.5;
+          sumWeighted += d.score * conf;
+          sumWeights += conf;
+          sumConf += conf;
+          n++;
+        }
+        result[name] = {
+          score: Math.round((sumWeights > 0 ? sumWeighted / sumWeights : 5) * 100) / 100,
+          confidence: Math.round((n > 0 ? sumConf / n : 0) * 1000) / 1000,
+          dimensions: memberDims,
+        };
       }
-      const score = sumWeights > 0 ? sumWeighted / sumWeights : 5;
-      const confidence = n > 0 ? sumConf / n : 0;
-      clusters[clusterName] = {
-        score: Math.round(score * 100) / 100,
-        confidence: Math.round(confidence * 1000) / 1000,
-        dimensions: memberDims,
-      };
-    }
+      return result;
+    };
 
     // g-PSQ: confidence-weighted mean of all 10 dimensions
     let totalWeighted = 0, totalWeights = 0, totalConf = 0, totalN = 0;
@@ -231,14 +247,14 @@ export class StudentProvider {
       totalConf += conf;
       totalN++;
     }
-    const gScore = totalWeights > 0 ? totalWeighted / totalWeights : 5;
-    const gConf = totalN > 0 ? totalConf / totalN : 0;
 
     return {
-      clusters,
+      factors_2: computeClusters(FACTORS_2),
+      factors_3: computeClusters(FACTORS_3),
+      factors_5: computeClusters(FACTORS_5),
       g_psq: {
-        score: Math.round(gScore * 100) / 100,
-        confidence: Math.round(gConf * 1000) / 1000,
+        score: Math.round((totalWeights > 0 ? totalWeighted / totalWeights : 5) * 100) / 100,
+        confidence: Math.round((totalN > 0 ? totalConf / totalN : 0) * 1000) / 1000,
       },
     };
   }

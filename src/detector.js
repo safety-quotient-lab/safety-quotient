@@ -112,12 +112,34 @@ const PROTECTIVE_DIMENSIONS = new Set([
   "cooling_capacity", "defensive_architecture", "contractual_clarity"
 ]);
 
-// Cluster definitions from halo experiment (§18 of distillation-research.md)
-const CLUSTERS = {
-  interpersonal_climate: ["authority_dynamics", "contractual_clarity", "trust_conditions", "threat_exposure"],
-  internal_resources: ["regulatory_capacity", "resilience_baseline", "defensive_architecture"],
-  bridge: ["cooling_capacity", "energy_dissipation", "hostility_index"],
+// Factor structure from EFA (promax rotation, §26-27 of distillation-research.md)
+// Three levels of abstraction — all empirically derived, perfect simple structure.
+// DA (defensive_architecture) has no primary loading >0.35 at 5-factor level.
+const FACTORS_5 = {
+  hostility_threat:    ["hostility_index", "threat_exposure", "cooling_capacity"],
+  relational_contract: ["contractual_clarity", "trust_conditions"],
+  internal_resources:  ["resilience_baseline", "regulatory_capacity"],
+  power_dynamics:      ["authority_dynamics"],
+  stress_energy:       ["energy_dissipation"],
+  // defensive_architecture loads weakly everywhere — assigned to internal_resources at 3-factor
 };
+
+const FACTORS_3 = {
+  threat_hostility:    ["hostility_index", "threat_exposure"],
+  relational_safety:   ["trust_conditions", "contractual_clarity", "authority_dynamics"],
+  coping_resources:    ["resilience_baseline", "regulatory_capacity"],
+  // CC, ED, DA have no primary loading at 3-factor level
+};
+
+const FACTORS_2 = {
+  content_hazard:      ["hostility_index", "threat_exposure", "cooling_capacity",
+                        "energy_dissipation", "defensive_architecture", "regulatory_capacity"],
+  relational_safety:   ["trust_conditions", "contractual_clarity"],
+  // AD, RB have no primary loading at 2-factor level
+};
+
+// Legacy alias for backward compatibility
+const CLUSTERS = FACTORS_5;
 
 export function getAllDimensionIds(instruments) {
   return Object.keys(instruments.dimensions);
@@ -177,7 +199,7 @@ export function aggregatePSQ(dimensionResults) {
     ((protectiveAvg - threatAvg + MAX_SCORE) / (2 * MAX_SCORE)) * 100
   ));
 
-  // Hierarchical reporting: cluster subscales + g-PSQ
+  // Hierarchical reporting: 3 levels of factor structure + g-PSQ
   const dimLookup = {};
   for (const r of dimensionResults) {
     if (r.score !== undefined && r.score !== null) {
@@ -185,23 +207,28 @@ export function aggregatePSQ(dimensionResults) {
     }
   }
 
-  const clusters = {};
-  for (const [clusterName, memberDims] of Object.entries(CLUSTERS)) {
-    let sumW = 0, sumC = 0, n = 0;
-    for (const dim of memberDims) {
-      const d = dimLookup[dim];
-      if (!d) continue;
-      sumW += d.score * d.confidence;
-      sumC += d.confidence;
-      n++;
+  // Compute cluster scores for a given factor map
+  const computeClusters = (factorMap) => {
+    const result = {};
+    for (const [name, memberDims] of Object.entries(factorMap)) {
+      let sumW = 0, sumC = 0, n = 0;
+      for (const dim of memberDims) {
+        const d = dimLookup[dim];
+        if (!d) continue;
+        sumW += d.score * d.confidence;
+        sumC += d.confidence;
+        n++;
+      }
+      result[name] = {
+        score: Math.round((sumC > 0 ? sumW / sumC : 5) * 100) / 100,
+        confidence: Math.round((n > 0 ? sumC / n : 0) * 1000) / 1000,
+        dimensions: memberDims,
+      };
     }
-    clusters[clusterName] = {
-      score: Math.round((sumC > 0 ? sumW / sumC : 5) * 100) / 100,
-      confidence: Math.round((n > 0 ? sumC / n : 0) * 1000) / 1000,
-      dimensions: memberDims,
-    };
-  }
+    return result;
+  };
 
+  // g-PSQ: confidence-weighted mean of all dimensions
   let gSumW = 0, gSumC = 0, gN = 0;
   for (const d of Object.values(dimLookup)) {
     gSumW += d.score * d.confidence;
@@ -217,7 +244,10 @@ export function aggregatePSQ(dimensionResults) {
     threat_n: threat.length,
     excluded,
     hierarchy: {
-      clusters,
+      // Three levels: 2-factor (most abstract) → 3-factor → 5-factor (most granular)
+      factors_2: computeClusters(FACTORS_2),
+      factors_3: computeClusters(FACTORS_3),
+      factors_5: computeClusters(FACTORS_5),
       g_psq: {
         score: Math.round((gSumC > 0 ? gSumW / gSumC : 5) * 100) / 100,
         confidence: Math.round((gN > 0 ? gSumC / gN : 0) * 1000) / 1000,
