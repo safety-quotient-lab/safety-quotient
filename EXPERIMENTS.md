@@ -42,6 +42,10 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v17:** Essentially flat vs v16 (held-out 0.563 vs 0.561). Different dim trade-offs: gains RC(+0.073), RB(+0.069), TC(+0.096), DA(+0.063); losses HI(-0.058), ED(-0.034), CC(-0.031). Not promoted — v16 remains in production. Early stopped epoch 9, best epoch 6.
 
+| v18 | 2026-02-28 | DistilBERT | — | 2e-5 | 32 | — | — | +2,000 separated-llm (CO 200 batch × 10 dims). DB: 21,127 texts, 73,361 scores. | Same as v16. `--out models/psq-v18`. |
+
+**Notes on v18:** Training in progress. CO batch adds 200 keyword-filtered co-relevant texts (CO mean=4.36, more varied than previous batches). Total separated-llm now 19,771.
+
 ## Key Hyperparameters (v16, current)
 
 ```
@@ -149,8 +153,8 @@ v14 artifacts are in `models/psq-v14/`:
 - `tokenizer/` — Tokenizer files
 - `config.json`, `best_results.json`, `test_results.json`
 
-v13 artifacts are in `models/psq-student/` (production slot):
-- `best.pt` — PyTorch checkpoint
+v16 artifacts are in `models/psq-student/` (production slot):
+- `best.pt` — PyTorch checkpoint (epoch 6)
 - `model.onnx` — Full-precision ONNX (254 MB)
 - `model_quantized.onnx` — INT8 quantized (64 MB)
 - `tokenizer/` — Tokenizer files

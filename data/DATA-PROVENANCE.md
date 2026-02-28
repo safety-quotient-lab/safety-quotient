@@ -102,6 +102,7 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | RB focus batch | `data/labeling-batch-rb.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for rb-relevant content (resilience, coping, recovery). |
 | CC focus batch | `data/labeling-batch-cc.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for cc-relevant content (calm, de-escalation, anger, composure). |
 | TE focus batch | `data/labeling-batch-te.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for te-relevant content (threat, violence, abuse, harm). TE score mean=3.17, good low-end variance. |
+| Broad spectrum | `data/labeling-batch-broad.jsonl` | 300 | 0/10 | 2026-02-28 | Not yet scored. 150 random + 100 single-dim keyword + 50 multi-dim keyword. Broad coverage, not dimension-focused. |
 
 **Total separated-llm training labels:** 19,771 scores (across 21,127 texts in DB).
 
@@ -124,16 +125,15 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 
 ```
 build_composite_ground_truth.py → composite-ground-truth.jsonl (17,643)
-  ↑ includes map_new_datasets.py results automatically
-LLM labeling / synthetic gen     → train-llm.jsonl (4,199 currently)
-  via: label_batch_helper.py append-synthetic --input <file>
-  via: batch_label_llm.js (API-labeled pool texts)
-  via: ingest_v10_data.py (bulk ingest synthetic + relabeled batches)
-build_unlabeled_pool.py          → unlabeled-pool.jsonl (17,451 texts)
+  ↑ config-driven via data/dataset_mappings.json (11 source datasets)
+label_separated.py              → separated-llm scores (per-dim, halo-free)
+  extract → score in Claude Code → ingest → assemble → migrate.py --ingest
+migrate.py                      → data/psq.db (canonical store)
+  --ingest JSONL for incremental additions
+build_unlabeled_pool.py         → unlabeled-pool.jsonl (17,451 texts)
   (raw dataset texts not in composite)
-assemble_held_out.py             → data/held-out-test.jsonl (100 texts)
                                    ↓
-distill.py merges all at training time (auto-dedup by text, LLM 5x weight)
+distill.py reads from psq.db training_data view (auto-dedup, LLM 5x weight)
 ```
 
 ## Data Quality Audit (v4 composite, 2026-02-26)

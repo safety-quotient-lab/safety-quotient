@@ -6,32 +6,35 @@ It is updated at the end of each working session. Snapshots are saved as
 
 ---
 
-## Current Model: psq-v15 (complete)
+## Current Model: psq-v16 (production), v18 training
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT → 10-dim regression (knowledge distillation) |
-| Test r (avg 10 dims) | 0.536 |
-| Val r (best epoch) | 0.523 (epoch 7 of 10) |
-| Held-out r (avg 10 dims) | 0.495 (+0.013 vs v14, +0.093 vs v13) |
-| Generalization gap | 7.6% (down from 11.4% in v14) |
-| Checkpoint | `models/psq-v15/best.pt` |
-| Config | `models/psq-v15/config.json` |
+| Test r (avg 10 dims) | 0.529 |
+| Held-out r (avg 10 dims) | 0.561 (+0.066 vs v15) |
+| Early stop | Epoch 6/9 |
+| Production checkpoint | `models/psq-student/best.pt` |
+| ONNX | `models/psq-student/model.onnx` (254 MB), `model_quantized.onnx` (64 MB) |
 
-### Per-dimension held-out r (v15)
+### Per-dimension held-out r (v16)
 
-| Dimension | Held-out r | Δ vs v14 | Status |
-|---|---|---|---|
-| regulatory_capacity | 0.285 | +0.041 | weak — partial recovery, still worst |
-| contractual_clarity | 0.388 | -0.110 | moderate — regressed, investigate |
-| threat_exposure | 0.410 | -0.066 | moderate — regressed |
-| resilience_baseline | 0.507 | +0.063 | good — improved |
-| energy_dissipation | 0.511 | -0.020 | good — slight regression |
-| defensive_architecture | 0.523 | +0.017 | good — improved |
-| hostility_index | 0.538 | +0.050 | good — improved |
-| trust_conditions | 0.564 | -0.008 | good — stable |
-| authority_dynamics | 0.573 | +0.166 | good — massive improvement from AD batch |
-| cooling_capacity | 0.653 | 0.000 | good — unchanged |
+| Dimension | Held-out r | Status |
+|---|---|---|
+| cooling_capacity | 0.643 | best |
+| authority_dynamics | 0.625 | good |
+| hostility_index | 0.604 | good |
+| energy_dissipation | 0.592 | good |
+| trust_conditions | 0.575 | good |
+| resilience_baseline | 0.563 | good — recovered from 0.285 |
+| regulatory_capacity | 0.563 | good — recovered from 0.285 |
+| contractual_clarity | 0.534 | good — recovered from 0.388 |
+| defensive_architecture | 0.523 | moderate |
+| threat_exposure | 0.347 | correlation artifact (MAE actually improved) |
+
+### v18 in progress
+
+Training with CO batch data (200 texts × 10 dims, CO mean=4.36). Best epoch 5 so far (val_r=0.501, CO val_r=0.737). Running in background.
 
 ---
 
@@ -39,89 +42,94 @@ It is updated at the end of each working session. Snapshots are saved as
 
 | Table | Count |
 |---|---|
-| texts | 20,127 |
-| scores | 63,361 |
-| splits (train) | 15,859 |
-| splits (val) | 1,913 |
-| splits (test) | 2,015 |
-| splits (held-out) | 100 |
-
-### Score method breakdown
-
-| Method | Count |
-|---|---|
+| texts | 21,127 |
+| scores | 73,361 |
+| separated-llm | 19,771 |
 | composite-proxy | 40,487 |
 | joint-llm | 12,257 |
-| separated-llm | 9,771 |
 | synthetic | 846 |
+| held-out | 100 texts (separate, not in training) |
 
 ---
 
-## Labeling
+## Completed Labeling Batches
 
-### Completed batches
-
-| Batch | File | Dims | n texts | Date |
+| Batch | File | Texts | Dims | Focus |
 |---|---|---|---|---|
-| held-out separated | `data/held-out-test.jsonl` | all 10 | 100 | pre-v13 |
-| weak dims batch | `data/labeling-batch-weak-dims.jsonl` | all 10 | 200 | 2026-02-27 |
-| rc focus batch | `data/labeling-batch-rc.jsonl` | all 10 | 150 | 2026-02-27 |
-
-| ad focus batch | `data/labeling-batch-ad.jsonl` | all 10 | 300 | 2026-02-27 |
-
-### Provenance fields (since 2026-02-27)
-
-All new separated-llm labels carry:
-- `scorer: claude-sonnet-4-6`
-- `provider: anthropic`
-- `interface: claude-code`
+| Weak dims | `labeling-batch-weak-dims.jsonl` | 200 | all 10 | te/rc/co |
+| RC focus | `labeling-batch-rc.jsonl` | 150 | all 10 | regulatory_capacity |
+| AD focus | `labeling-batch-ad.jsonl` | 300 | all 10 | authority_dynamics |
+| CO focus | `labeling-batch-co.jsonl` | 200 | all 10 | contractual_clarity (keyword-filtered, CO mean=4.36) |
+| RB focus | `labeling-batch-rb.jsonl` | 200 | all 10 | resilience_baseline |
+| CC focus | `labeling-batch-cc.jsonl` | 200 | all 10 | cooling_capacity |
+| TE focus | `labeling-batch-te.jsonl` | 200 | all 10 | threat_exposure (TE mean=3.17) |
+| **Broad spectrum** | `labeling-batch-broad.jsonl` | 300 | 0/10 | **Not yet scored.** 150 random + 100 single-dim + 50 multi-dim. |
 
 ---
 
-## Architecture Decisions
+## Criterion Validity Studies
+
+| Study | Dataset | Outcome | Key Result | Status |
+|---|---|---|---|---|
+| CaSiNo | 1,030 negotiations | satisfaction, likeness | AD top predictor (r=0.127***) | Complete (§30) |
+| CGA-Wiki | 4,188 Wikipedia talks | derailment | AD top predictor, AUC=0.599 | Complete (§31) |
+| **CMV** | **4,263 paired replies** | **persuasion (delta)** | **DA top predictor, AUC=0.590** | **Complete (§34)** |
+| Deal or No Deal | Lewis et al. 2017 | deal/points | — | Running in background |
+
+**Key cross-study finding:** AD is top predictor when status is *contested* (CaSiNo, CGA-Wiki). DA is top predictor when status is *fixed* (CMV). Profile >> average in all 3 studies (g-PSQ near-chance: 0.515–0.531). See journal §24–25 for theoretical analysis.
+
+---
+
+## Factor Structure
+
+- EFA on 2,359 complete texts → 5-factor BIC-optimal
+- Dominant g-factor: eigenvalue 4.844 (48.4% variance)
+- 5 clusters: Hostility/Threat (HI,TE,CC), Relational Contract (CO,TC), Internal Resources (RB,RC,DA), Power Dynamics (AD), Stress/Energy (ED)
+- AD and ED are singleton factors — genuinely independent
+- 5-factor preserves 88% of 10-dim info (avg R²=0.881)
+- g-PSQ alone AUC=0.515 (near-chance) vs 10-dim AUC=0.599
+
+---
+
+## AD Paradox: Three Theories (journal §24)
+
+1. **Meta-conversation** (Watzlawick 1967): AD measures command channel, not report
+2. **Leading indicator**: AD deteriorates before HI/TE in derailing conversations
+3. **Status negotiation** (Tajfel & Turner 1979): AD measures epistemic/moral status positioning
+
+CMV results favor Theory 3 (context-dependent). Construct rename: authority_dynamics → power_positioning.
+
+---
+
+## Key Architecture Decisions
 
 - **Separated scoring**: one LLM call per dimension per text (eliminates halo effect)
-- **Longitudinal SQLite schema**: scores as observations, texts/dimensions as axes
-- **best_scores view**: priority separated-llm(1) > synthetic(2) > joint-llm(3) > composite-proxy(4)
-- **Per-dim sample weights [N_DIMS]**: distill.py uses tensor weights per dimension
-- **distill.py DB mode**: `--db data/psq.db` reads directly from `training_data` view
-- **Splits**: frozen md5(text) hash assignments, persisted in `splits` table
+- **Score-concentration cap**: `_cap_score_concentration()` — when >30% of a dim's scores share one value, excess rows downweighted from 5.0 to 1.5
+- **SQLite schema**: scores as observations, texts/dimensions as axes
+- **best_scores view**: priority separated-llm > synthetic > joint-llm > composite-proxy
+- **Splits**: frozen md5(text) hash assignments in `splits` table
 
 ---
 
-## Key Scripts
+## Known Issues
 
-| Script | Purpose |
-|---|---|
-| `scripts/distill.py` | Train DistilBERT student model (`--out DIR`, `--no-save` for smoke tests) |
-| `scripts/label_separated.py` | Extract/ingest/assemble separated-scoring batches |
-| `scripts/migrate.py` | Bootstrap and incrementally ingest (`--ingest JSONL`) into `data/psq.db` |
-| `scripts/eval_held_out.py` | Evaluate model against 100-text held-out benchmark |
-| `scripts/build_composite_ground_truth.py` | Rebuild training JSONL files |
-
----
-
-## Operational Lessons
-
-### Context Limit on Large Labeling Sessions
-
-The RC batch (150 texts × 10 dims) exhausted the Claude Code context window before assemble/ingest could run. Score files in `/tmp/psq_separated/` persisted safely and were recovered in the next session.
-
-**Mitigations:**
-- Assemble after every 2-3 dimensions instead of waiting for all 10
-- Budget context for post-processing (assemble + ingest + docs)
-- Use `label_separated.py status` to verify progress before ending a session
-- Sub-batch with `--offset`/`--limit` for batches >100 texts
+- **AD data provenance**: 70.4% LLM-generated effective training signal (middle of pack, not outlier). Needs expert validation to confirm.
+- **TE correlation artifact**: held-out r=0.347 is misleadingly low; MAE actually improved. Caused by restricted variance in held-out TE scores.
+- **DA construct validity**: max promax loading 0.332 (below 0.35 threshold). 49% of scores are exact 5.0. Requires human expert validation.
 
 ---
 
 ## What's Next
 
-1. **Investigate co regression** — contractual_clarity held-out dropped 0.498→0.388 despite test_r improving; distributional shift?
-2. **Promote v15 to production** — copy `models/psq-v15/best.pt` → `models/psq-student/best.pt`, re-run calibration
-3. **Plan v16 labeling** — priorities: co (regressed), rc (still weakest), te (regressed)
-4. **Score more batches from unlabeled pool** — ~7K texts available in `data/unlabeled-pool.jsonl`
+See `TODO.md` for full task list. Immediate priorities:
+
+1. **v18 evaluation** — when training completes, run held-out eval
+2. **DonD results** — when script completes, document (tests AD deal vs points prediction)
+3. **Score broad-spectrum batch** — 300 texts × 10 dims in `/tmp/psq_separated/`
+4. **Rename AD → power_positioning** — after expert validation confirms
+5. **Bifactor architecture design** — task #16
+6. **Publication framing** — journal §26 has narrative, TODO.md has structure
 
 ---
 
-*Last updated: 2026-02-27*
+*Last updated: 2026-02-28*

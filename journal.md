@@ -34,7 +34,10 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 21. [The Derailment Test](#21-the-derailment-test-2026-02-28)
 22. [Dimension Reduction: Where the Signal Lives](#22-dimension-reduction-where-the-signal-lives-2026-02-28)
 23. [The Misfits: Why Authority Dynamics Predicts What Nothing Else Can](#23-the-misfits-why-authority-dynamics-predicts-what-nothing-else-can-2026-02-28)
-24. [References](#24-references)
+24. [The AD Paradox: Three Theories of Predictive Primacy](#24-the-ad-paradox-three-theories-of-predictive-primacy-2026-02-28)
+25. [The Persuasion Test: Change My View](#25-the-persuasion-test-change-my-view-2026-02-28)
+26. [Publication Narrative](#26-publication-narrative-2026-02-28)
+27. [References](#27-references)
 
 ---
 
@@ -763,9 +766,146 @@ We find this concern serious but unlikely to explain the full pattern. First, AD
 
 Nevertheless, the entire construct validity chain for AD currently runs through LLM interpretation. The held-out evaluation (r=0.625) uses LLM-scored labels as ground truth; the training data is majority LLM-scored; and no human expert has independently evaluated AD's scoring rubric against the texts. This is precisely the gap the expert validation protocol (§19) is designed to close. Until five independent expert psychologists produce ICC(2,1) ≥ 0.70 on AD scoring and demonstrate substantial convergent validity with the LLM labels, we must hold AD's criterion validity findings as *promising but provisionally grounded*. The strongest predictor in our battery is also the one most in need of human confirmation.
 
+## 24. The AD Paradox: Three Theories of Predictive Primacy (2026-02-28)
+
+The findings from §20–23 converge on a paradox that demands theoretical explanation: authority_dynamics has the weakest factor loading in the PSQ's internal structure (max promax loading 0.332, below the conventional 0.35 threshold) yet the strongest criterion validity across two independent studies. This is not merely a statistical curiosity — it is a substantive finding about the nature of psychoemotional safety that, if correctly interpreted, reshapes our understanding of what the PSQ is measuring. We advance three competing theoretical accounts, each generating distinct testable predictions, and argue that their resolution has implications for construct naming, instrument architecture, and the broader relationship between psychometric structure and criterion validity.
+
+### 24a. Theory 1: The Meta-Conversation Channel
+
+Watzlawick, Beavin, and Jackson (1967) distinguished two simultaneous channels in all human communication: *report* (content — what is said) and *command* (relationship — how the speaker positions themselves relative to the listener). Most PSQ dimensions measure report-level properties: how hostile is the content (HI), how much threat is described (TE), what coping strategies are evident (RC). Authority dynamics, we propose, primarily measures the *command* channel — the relational positioning that occurs alongside and often independently of content.
+
+This would explain AD's factor-analytic behavior. The general factor g-PSQ captures shared variance that is largely report-level: hostile content tends to be threatening, poorly regulated, and low on trust. AD correlates moderately with all of these (mean |r| = 0.480) because power challenges *accompany* hostile content — but AD also captures relational positioning that occurs without hostility (a polite assertion of authority, a subtle claim to expertise, a deferential hedge). This command-channel variance is orthogonal to report-level safety, which is precisely why AD loads weakly on any report-dominated factor.
+
+The predictive primacy follows directly. Conversation derailment is fundamentally a *relational* event — a breakdown in the social contract between participants — not merely an escalation of hostile content. A Wikipedia editor who writes "Your edit is wrong and here's why" may score moderately on hostility but very low (unsafe) on authority dynamics. The relational challenge, not the content, predicts whether the conversation will spiral into personal attacks. Watzlawick's framework predicts exactly this: relationship-level messages are more consequential for interaction outcomes than content-level messages, because they define the frame within which content is interpreted.
+
+**Testable prediction (T1):** If AD measures the command channel, then in conversations where participants explicitly negotiate relational framing (meta-conversation: "Who are you to tell me that?", "I'm just trying to help"), AD's predictive power should increase relative to other dimensions. In purely informational exchanges with no relational positioning (e.g., technical documentation), AD scores should cluster near the neutral point and lose predictive power.
+
+### 24b. Theory 2: The Leading Indicator
+
+A second possibility is that AD measures a temporal signal that other dimensions do not. In the CGA-Wiki study (§21), we observed a temporal gradient: PSQ scores from later conversation turns predicted derailment better than scores from earlier turns (AUC 0.519 → 0.570 → 0.599, first turn → early → all). This is consistent with the general hypothesis that PSQ measures *process*, not static content. But within this process, different dimensions may operate on different time scales.
+
+We propose that authority dynamics is a *leading indicator* — a dimension that shifts before overt hostility, distrust, or emotional dysregulation become manifest. The psychological sequence would be: (1) a participant makes a power claim or challenges another's standing, (2) the challenged participant experiences threat to their social identity, (3) this threat produces defensive hostility, emotional flooding, and trust breakdown. If this causal sequence is correct, AD scores should deteriorate 1–2 turns before HI, TE, and CC scores deteriorate.
+
+This theory explains both the factor structure and the criterion validity pattern. AD loads weakly on the general factor because it operates at a different temporal phase of the safety-threat dynamic — it is the *precursor* to the hostility/threat cluster, not a member of it. It predicts derailment strongly because it captures the initiating event (power challenge) rather than the downstream consequences (hostility, emotional dysregulation) that other dimensions measure.
+
+**Testable prediction (T2):** In a turn-by-turn analysis of CGA-Wiki conversations, AD scores should deteriorate *before* HI and TE scores in conversations that eventually derail. Specifically, the cross-lagged correlation between AD(t) and HI(t+1) should be stronger than between HI(t) and AD(t+1). If AD is merely co-occurring with hostility rather than preceding it, both cross-lagged correlations should be equal.
+
+### 24c. Theory 3: Status Negotiation and Epistemic Positioning
+
+The third theory draws on social identity theory (Tajfel & Turner, 1979) and the sociology of epistemic authority (Collins & Evans, 2007). On this account, AD does not measure formal authority or power hierarchy — the construct implied by its name — but rather *status negotiation*: the moment-to-moment positioning of speakers as epistemic authorities, group members, or moral agents. This is a broader and more interpersonally sensitive construct than "authority dynamics" suggests.
+
+Consider the texts where AD scores diverge most from other dimensions. A Wikipedia editor writing "Actually, if you read the sources more carefully, you'd see that..." scores moderate on hostility (mild condescension) but very low on AD — not because the editor holds formal authority, but because they are claiming epistemic superiority and positioning the other editor as an incompetent reader. A campsite negotiator saying "I really need the firewood because my kids get cold at night" scores low on hostility but moderately low on AD — they are making a moral claim (my children's welfare) that positions the other negotiator as potentially callous if they refuse. These are acts of *status positioning* — assertions about who has the right to define reality, whose needs take priority, whose expertise counts.
+
+This reframing explains why AD predicts outcomes in peer contexts (Wikipedia editors, Reddit commenters, campsite negotiations) where formal authority is absent. It is not formal power that predicts derailment but *contested epistemic and moral standing* — the negotiation of who gets to be right and who gets to be heard.
+
+If this theory is correct, the dimension should be renamed. "Authority dynamics" implies hierarchical power structures; "power positioning" or "status negotiation" better captures the construct as actually measured. The name matters because it shapes how human raters interpret the scoring rubric — and our expert validation study (§19) will ask raters to score "authority dynamics" using a rubric that may be misleading about what the construct actually is.
+
+**Testable prediction (T3a):** AD's predictive power should be equal or greater in peer contexts (Wikipedia, Reddit, campsite negotiation) compared to hierarchical contexts (boss-employee, teacher-student). If AD were measuring formal authority, hierarchical contexts should produce stronger effects.
+
+**Testable prediction (T3b):** In the Deal or No Deal criterion study, AD should predict whether a deal was reached (a relational outcome — did the parties find mutual standing?) but should *not* predict the number of points scored (a zero-sum resource allocation that depends on strategy, not status).
+
+**Testable prediction (T3c):** AD-residual scores should correlate with markers of epistemic positioning — hedging language ("I think," "perhaps"), certainty markers ("clearly," "obviously"), credentialing ("as an expert," "in my experience"), and appeal to authority ("according to," "research shows") — more strongly than with markers of emotional state.
+
+### 24d. Theoretical Integration and Construct Naming
+
+The three theories are not mutually exclusive. AD may measure command-channel communication (Theory 1) that operates as a leading indicator of conflict (Theory 2) through the specific mechanism of status negotiation (Theory 3). The theories describe different levels of the same phenomenon: Theory 1 identifies the *communication channel*, Theory 2 the *temporal dynamics*, and Theory 3 the *psychological mechanism*.
+
+If the empirical evidence supports this integrated account, several consequences follow:
+
+First, the construct should be renamed from "authority dynamics" to something that better captures its actual content. "Power positioning" is our current best candidate — it retains the interpersonal focus while removing the connotation of formal hierarchy. "Status negotiation" is more precise but may be less intuitive to non-specialist users. The expert validation study should test both labels against the current "authority dynamics" to determine which produces higher inter-rater reliability.
+
+Second, the PSQ's theoretical framework should be revised to explicitly distinguish report-level dimensions (HI, TE, RC, RB, ED, CC, DA) from command-level dimensions (AD/power positioning). This distinction is more informative than the current flat 10-dimension architecture and would explain — rather than merely describe — AD's anomalous factor structure.
+
+Third, the finding that a command-channel dimension is the PSQ's strongest external predictor supports a broader theoretical claim: that psychoemotional safety is fundamentally a *relational* property of communication, not merely a *content* property. The report-level dimensions (how hostile, how threatening, how well-regulated) are necessary but not sufficient. The relational scaffolding — who has power, how it is exercised, whether it is contested — is what determines whether a conversation remains safe or degrades into personal attack. This is consistent with Edmondson's (1999) original formulation of psychological safety as an interpersonal climate variable, not an individual trait or a property of message content.
+
+The resolution of these three theories awaits three empirical tests: (1) the Deal or No Deal criterion study (prediction T3b: deal vs. points), (2) a turn-by-turn temporal analysis of CGA-Wiki conversations (prediction T2: AD leads HI), and (3) the expert validation study with alternative construct labels (prediction T3a: peer vs. hierarchical contexts). Until these tests are completed, we hold all three theories as live hypotheses, noting that Theory 3 (status negotiation) currently has the most parsimonious explanatory coverage and the most actionable implications for construct revision.
+
+## 25. The Persuasion Test: Change My View (2026-02-28)
+
+The third criterion validity study extends the PSQ's predictive reach to a new domain: online persuasion. Using the winning-args-corpus from r/ChangeMyView (Tan, Niculae, Danescu-Niculescu-Mizil, & Lee, 2016), we scored 4,263 matched pairs — same original post, one reply that earned a delta (changed the OP's mind) and one that did not — across all 10 PSQ dimensions. The matched-pair design controls for topic, author characteristics, and subreddit norms, isolating the textual properties that discriminate persuasive from non-persuasive arguments.
+
+All 10 dimensions significantly discriminate delta from non-delta replies (paired t-tests, 9/10 surviving Bonferroni correction at alpha=0.005). The direction of effects is theoretically coherent: persuasive replies show higher defensive_architecture (d_z=+0.135, p<1e-17), higher trust_conditions (+0.090), higher cooling_capacity (+0.082), and higher hostility_index (+0.104, reflecting assertive engagement rather than hostility per se), but lower threat_exposure (-0.077, less threatening language). The only dimension not surviving Bonferroni correction is authority_dynamics (d_z=+0.033, p=0.032) — an important finding we return to below.
+
+The logistic regression results replicate the key structural finding from CGA-Wiki: the 10-dimension profile (AUC=0.590, 5-fold CV) substantially outperforms g-PSQ alone (0.531). The gap of 0.059 AUC units between profile and average is nearly identical to the CGA-Wiki gap (0.084), confirming that the *shape* of the PSQ profile carries predictive information that collapsing to a single score destroys.
+
+A text-length confound is present in CMV — delta replies are significantly longer (mean 1,623 vs 1,248 characters, d=0.301) — consistent with Tan et al.'s (2016) original finding that length predicts persuasion. Text length alone achieves AUC=0.596, and the 10-dimension PSQ adds incremental AUC of +0.012 beyond length (combined AUC=0.608). Partial correlations confirm that 9/10 dimensions retain significance after controlling for length.
+
+The most striking finding is defensive_architecture's emergence as the top individual predictor (r_pb=+0.085, paired accuracy=55.4%), displacing authority_dynamics from the top position it held in CaSiNo and CGA-Wiki. This is not a contradiction but a context-dependent pattern: in CMV, where the task is to construct a convincing argument rather than to navigate a relationship, the *structural quality of argumentation* (DA) matters more than *interpersonal power positioning* (AD). DA measures boundary maintenance, structured reasoning, and cognitive framing — precisely the toolkit of effective persuasion.
+
+Authority_dynamics, meanwhile, shows the weakest bivariate effect in CMV (r_pb=+0.021, not Bonferroni-significant) despite its dominance in CGA-Wiki and CaSiNo. This is exactly what Theory 3 from §24 predicts: AD/power positioning should matter most when status is *contested* (Wikipedia disputes, negotiation) and least when the social structure is *fixed* (CMV, where the OP has explicitly invited counterarguments and grants delta voluntarily). In CMV, the power dynamic is settled — the OP holds the delta, challengers must persuade — so there is little status to negotiate. The dimension's predictive power drops accordingly.
+
+This pattern provides the first empirical evidence distinguishing our three theories. Theory 1 (meta-conversation) and Theory 2 (leading indicator) predict AD should be generally predictive across contexts; Theory 3 (status negotiation) uniquely predicts context-dependent effects tied to whether status is fixed or contested. The CMV results favor Theory 3.
+
+The cross-study comparison now spans three independent datasets:
+
+| Study | Domain | N | Outcome | 10-dim AUC | g-PSQ AUC | Top dim | AD rank |
+|---|---|---|---|---|---|---|---|
+| CaSiNo | Negotiation | 1,030 | Satisfaction | — | — | AD (r=0.127) | 1st |
+| CGA-Wiki | Wikipedia | 4,188 | Derailment | 0.599 | 0.515 | AD (r_pb=-0.105) | 1st |
+| CMV | Persuasion | 4,263 pairs | Delta | 0.590 | 0.531 | DA (r_pb=+0.085) | 11th (weakest) |
+
+The consistency of the profile-shape-over-average finding across three studies — with gaps of 0.059–0.084 AUC — provides strong evidence that the PSQ's multi-dimensional architecture is psychometrically justified. The context-dependent ranking of dimensions provides equally strong evidence that these are genuine, distinct constructs rather than redundant measures of a single latent variable. If the 10 dimensions were merely noisy reflections of g-PSQ, their relative importance would not systematically vary with the outcome's psychological demands.
+
+## 26. Publication Narrative (2026-02-28)
+
+The PSQ project has converged on a publication-ready finding that is more interesting than what we set out to build. We began with an engineering goal: distill a 10-dimension psychoemotional safety scorer from an LLM teacher into a fast local model. What we found along the way is a substantive scientific result about the structure of conversational safety — one that contributes to theory, not just tooling.
+
+### 26a. The Core Contribution
+
+The central finding is **context-dependent predictive primacy**: in a multi-dimensional model of psychoemotional safety, the dimension that best predicts real-world outcomes *changes depending on the social context*. Authority dynamics (power positioning) dominates when status is contested (Wikipedia disputes, campsite negotiation). Defensive architecture (structured argumentation) dominates when status is fixed and the task is persuasion (Change My View). This is not a failure of the instrument — it is evidence that the 10 dimensions measure genuinely distinct psychological mechanisms that interact differently with different social demands.
+
+This finding has three layers of significance:
+
+**Methodological.** The 10-dimension profile consistently outperforms the single-score average (g-PSQ) across three studies. The gaps (0.059–0.084 AUC) are modest individually but remarkably consistent, and they survive text-length controls in the two studies where length is a confound. This is the strongest empirical argument against collapsing multi-dimensional safety instruments to single scores — a practice common in toxicity detection (Perspective API, Detoxify) and content moderation systems.
+
+**Theoretical.** The context-dependent ranking connects to Watzlawick et al.'s (1967) report/command distinction. Most NLP safety tools measure report-level properties (how hostile is the content). The PSQ's authority_dynamics dimension measures the command channel (who has power and how it is exercised), and this command-level signal is what predicts relational outcomes — but only when the relational structure is contested. This bridges communication theory, social psychology, and NLP in a way that no existing toxicity or safety instrument does.
+
+**Practical.** Content moderation systems that use single-score toxicity thresholds will miss the relational dynamics that actually predict conversation failure. The finding that different dimensions matter for different outcomes implies that safety tools should be context-aware — weighting power positioning heavily for moderation, defensive architecture for educational contexts, and regulatory capacity for therapeutic applications.
+
+### 26b. The Paper Structure
+
+A publication targeting a venue at the intersection of computational linguistics and psychology (EMNLP, ACL Findings, or Behavior Research Methods) would follow this structure:
+
+1. **Introduction.** The problem of multi-dimensional safety measurement. Why single-score toxicity is insufficient. The PSQ as a case study in knowledge distillation from LLM to local model.
+
+2. **The PSQ Instrument.** 10 dimensions, theoretical grounding in JD-R, COR, and psychological safety frameworks. Construction via composite proxy labeling + separated LLM scoring. DistilBERT student model architecture.
+
+3. **Factor Structure.** General factor (55% variance) + 5 clusters. Two singleton dimensions (AD, ED) that resist clustering. Bifactor implications.
+
+4. **Criterion Validity Battery.** Three studies:
+   - CaSiNo (n=1,030): negotiation satisfaction and liking
+   - CGA-Wiki (n=4,188): conversation derailment
+   - CMV (n=4,263 pairs): persuasion success
+
+   The cross-study comparison table is the centerpiece. Profile >> average in all three. AD top predictor in contested-status, DA top in fixed-status.
+
+5. **The Status Negotiation Theory.** Three competing theories of AD's predictive primacy. CMV evidence favoring Theory 3. Testable predictions. Implications for construct naming (authority_dynamics → power_positioning).
+
+6. **Limitations.** LLM labeling chain (no human ground truth yet). Held-out evaluation uses LLM labels. Expert validation needed. DistilBERT's 128-token context window limits long-text scoring. All criterion studies use English text from specific online platforms.
+
+7. **Discussion.** Safety is relational, not just content-level. Multi-dimensional instruments with context-aware interpretation outperform single-score alternatives. The dimension the model learned to detect (status negotiation) is more nuanced than what was designed (authority dynamics) — a case study in emergent construct validity through knowledge distillation.
+
+### 26c. What Strengthens the Paper Before Submission
+
+The current evidence base is strong for a workshop or short paper. For a main-conference long paper, several additions would strengthen it:
+
+- **Deal or No Deal results** (in progress) — if AD predicts deal but not points, the status negotiation theory gets causal-directional support
+- **Expert validation** — even preliminary ICC from 2-3 raters would address the "it's all LLM labeling" concern
+- **Turn-by-turn temporal analysis** — if AD leads HI in derailing conversations, the leading indicator theory gets direct support
+- **Bifactor model comparison** — does a bifactor architecture improve held-out r, or is the current flat architecture already sufficient?
+- **A non-English or non-online test** — criterion validity from a different discourse context (workplace transcripts, therapy sessions) would demonstrate generalizability
+
+### 26d. The Emergent Construct Validity Story
+
+Perhaps the most novel contribution for a psychometrics audience is the *emergent construct validity* narrative. The PSQ was designed with 10 dimensions based on theoretical frameworks (JD-R, COR, psychological safety). The LLM teacher was instructed to score these dimensions. The student model learned to replicate those scores. But the resulting instrument measures something more nuanced than what was specified — authority_dynamics turned out to capture *status negotiation*, not formal authority, and this emergent interpretation has stronger criterion validity than the designed one.
+
+This is analogous to the discovery of the p factor in clinical psychology (Caspi et al., 2014) — a general factor that emerged from a measurement instrument designed to measure specific disorders. The PSQ's general factor and its status-negotiation dimension are both *emergent* properties of the measurement process, not designed-in features. They represent what the data taught us about the structure of psychoemotional safety, beyond what our initial theory specified.
+
+This is a methodological contribution to the growing field of LLM-as-instrument-designer: the finding that an LLM, when asked to label psychological constructs, can discover construct-relevant features that the human designer did not specify. The student model, trained on these labels, then replicates these discoveries in a form that can be validated against external criteria. Knowledge distillation becomes not just model compression but *construct refinement*.
+
 ---
 
-## 24. References
+## 27. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 
@@ -790,6 +930,8 @@ Cattell, R. B. (1988). The meaning and strategic use of factor analysis. In J. R
 Conger, A. J. (1974). A revised definition for suppressor variables: A guide to their identification and interpretation. *Educational and Psychological Measurement, 34*(1), 35–46.
 
 Chawla, K., Ramirez, J., Clever, R., Lucas, G., May, J., & Gratch, J. (2021). CaSiNo: A corpus of campsite negotiation dialogues for automatic negotiation systems. In *Proceedings of NAACL-HLT 2021* (pp. 3167–3185).
+
+Collins, H. M., & Evans, R. (2007). *Rethinking Expertise*. University of Chicago Press.
 
 Cicchetti, D. V. (1994). Guidelines, criteria, and rules of thumb for evaluating normed and standardized assessment instruments in psychology. *Psychological Assessment, 6*(4), 284–290.
 
@@ -895,6 +1037,10 @@ Spielberger, C. D. (1999). *STAXI-2: State-Trait Anger Expression Inventory-2*. 
 
 Stamm, B. H. (2010). *The Concise ProQOL Manual* (2nd ed.). ProQOL.org.
 
+Tajfel, H., & Turner, J. C. (1979). An integrative theory of intergroup conflict. In W. G. Austin & S. Worchel (Eds.), *The Social Psychology of Intergroup Relations* (pp. 33–47). Brooks/Cole.
+
+Tan, C., Niculae, V., Danescu-Niculescu-Mizil, C., & Lee, L. (2016). Winning arguments: Interaction dynamics and persuasion strategies in good-faith online discussions. In *Proceedings of the 25th International Conference on World Wide Web* (pp. 613–624).
+
 Tepper, B. J. (2000). Consequences of abusive supervision. *Academy of Management Journal, 43*(2), 178–190.
 
 Thorndike, E. L. (1920). A constant error in psychological ratings. *Journal of Applied Psychology, 4*(1), 25–29.
@@ -912,5 +1058,7 @@ McCrae, R. R., & Costa, P. T. (1997). Conceptions and correlates of openness to 
 Meehl, P. E. (1956). Wanted — a good cookbook. *American Psychologist, 11*(6), 263–272.
 
 Meehl, P. E. (1990). Why summaries of research on psychological theories are often uninterpretable. *Psychological Reports, 66*(1), 195–244.
+
+Watzlawick, P., Beavin, J. H., & Jackson, D. D. (1967). *Pragmatics of Human Communication: A Study of Interactional Patterns, Pathologies, and Paradoxes*. W. W. Norton.
 
 Zhang, J., Chang, J., Danescu-Niculescu-Mizil, C., Dixon, L., Hua, Y., Taraborelli, D., & Thain, N. (2018). Conversations gone awry: Detecting early signs of conversational failure. In *Proceedings of ACL 2018* (pp. 1350–1361).

@@ -757,8 +757,7 @@ def main():
 
     if args.eval_only:
         ckpt = args.checkpoint or str(ROOT / "models" / "psq-student" / "best.pt")
-        print(f"Eval-only mode: {ckpt}")
-        # TODO: load and eval
+        print(f"Eval-only mode: use scripts/eval_held_out.py instead")
         return
 
     train(args)

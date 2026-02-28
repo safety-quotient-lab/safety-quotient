@@ -21,7 +21,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Construct validity | **Tested** — EFA rejects 10-factor independence (BIC-best: 5 factors, dominant general factor at 48% variance). Hierarchical model recommended. | High |
 | Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
-| Criterion validity | **Two studies** — CaSiNo: 9/10 dims predict satisfaction (r≈0.08-0.13\*\*\*), ΔR²=+0.016; CGA-Wiki: 10-dim PSQ predicts derailment (AUC=0.599), AD strongest predictor in both. | Medium |
+| Criterion validity | **Three studies** — CaSiNo: 9/10 dims predict satisfaction (r≈0.08-0.13\*\*\*), ΔR²=+0.016; CGA-Wiki: derailment (AUC=0.599); CMV: persuasion (AUC=0.590). AD strongest in contested-status (CaSiNo, CGA-Wiki); DA strongest in fixed-status (CMV). Profile >> average in all studies. | Medium-High |
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
@@ -421,7 +421,25 @@ Results:
 
 **Data provenance caveat**: AD's training signal is 70.4% LLM-generated (separated-llm 37%, joint-llm 25%, synthetic 8%), with only 29.6% from composite proxy mappings (UCC condescension and politeness corpus). This is comparable to other dimensions (range: HI at 52% to CO at 97%), but the entire construct validity chain for AD runs through LLM interpretation — including the held-out evaluation (r=0.625, scored by separated-llm). Several factors argue against pure LLM artifact: (1) cross-domain generalization to an unseen discourse register, (2) replication across two independent criterion studies, (3) AD-residual correlates with theoretically predicted text features (second-person pronouns, question marks, authority vocabulary), and (4) the most LLM-dependent dimension (CO at 97%) shows the weakest criterion validity. Nevertheless, AD's criterion findings remain *provisionally grounded* until the expert validation panel (§3h planned) produces human-scored ground truth with ICC(2,1) ≥ 0.70.
 
-**Recommendation:** Extend with Deal or No Deal (replication of negotiation findings) and CGA-CMV (change-my-view, different discourse context).
+**CMV Persuasion Prediction (2026-02-28).** Third criterion validity study. The winning-args-corpus from r/ChangeMyView (Tan et al., 2016; n=4,263 matched pairs — same original post, one delta-awarded reply and one not) tests PSQ in a persuasion context with a matched-pair design controlling for topic and author.
+
+- **All 10 dims discriminate** delta from non-delta replies (9/10 survive Bonferroni, p<.005).
+- **DA is top predictor** (r\_pb=+0.085, d\_z=0.135, paired accuracy 55.4%), NOT AD — a critical context-dependent finding.
+- **AD is weakest dim** (d\_z=0.033, p=0.032, non-significant at Bonferroni) — in contrast to its dominance in CaSiNo and CGA-Wiki.
+- **10-dim AUC=0.590** (5-fold CV) vs **g-PSQ=0.531** — profile >> average (gap 0.059), replicating CGA-Wiki pattern.
+- **Incremental AUC beyond text length**: +0.012 (0.596 → 0.608); 9/10 dims retain significance after partial correlation.
+
+**Context-dependent AD finding**: AD predicts when status is contested (Wikipedia disputes, negotiation) but not when status is fixed (CMV, where the OP explicitly invites counterarguments). This supports the status negotiation theory (journal §24, Theory 3) and argues against AD being a general-purpose predictor.
+
+**Cross-study summary:**
+
+| Study | Domain | N | Top dim | AD rank | 10-dim AUC | g-PSQ AUC |
+|---|---|---|---|---|---|---|
+| CaSiNo | Negotiation | 1,030 | AD | 1st | — | — |
+| CGA-Wiki | Wikipedia | 4,188 | AD | 1st | 0.599 | 0.515 |
+| CMV | Persuasion | 4,263 pairs | DA | 11th | 0.590 | 0.531 |
+
+**Recommendation:** Run Deal or No Deal (replication with deal/no-deal binary + points scored continuous outcome — tests AD deal vs. points prediction, journal §24 T3b).
 
 ### 3h. Formula Inconsistency — RESOLVED
 

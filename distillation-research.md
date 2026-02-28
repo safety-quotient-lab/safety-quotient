@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-28
 **Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC/TE batches. DB: 21,127 texts, 73,361 scores, 19,771 separated-llm.
-**Next:** Train v18 with CO batch data, Deal or No Deal + CMV criterion validity, expert panel validation.
+**Next:** v18 training in progress, Deal or No Deal criterion validity, expert panel validation, broad-spectrum labeling batch scoring.
 
 ---
 
@@ -48,6 +48,7 @@
 31. [Criterion Validity: CGA-Wiki Derailment Prediction](#31-criterion-validity-cga-wiki-derailment-prediction-2026-02-28) — PSQ predicts conversation derailment (AUC=0.599), AD strongest predictor
 32. [Dimension Reduction Evaluation](#32-dimension-reduction-evaluation-2026-02-28) — 10→5 preserves 88% info, 10→3 loses too much, CC/CO have high unique variance
 33. [Authority Dynamics and Energy Dissipation: Cluster Misfits and Predictive Dominance](#33-authority-dynamics-and-energy-dissipation-cluster-misfits-and-predictive-dominance-2026-02-28) — AD/ED don't belong in any cluster, AD is strongest external predictor, suppressor variable
+34. [Criterion Validity: CMV Persuasion Prediction](#34-criterion-validity-cmv-persuasion-prediction-2026-02-28) — 4,263 matched pairs, DA top predictor (not AD), profile >> average, context-dependent AD
 13. [References](#13-references)
 
 ---
@@ -3040,6 +3041,77 @@ The concern: does the LLM teach the student model an idiosyncratic definition of
 4. **Proxy signals for AD are weak and biased.** The UCC condescension mapping produces a mean of 6.74 (skewed), and the politeness data cluster around 5.0 (the neutral point). There is no strong independent validation of AD's scoring rubric.
 
 **Resolution path:** The expert validation protocol (§29) is specifically designed to address this concern. Five expert psychologists independently scoring 200 texts on all 10 dimensions will provide the first human ground truth for AD. If ICC(2,1) ≥ 0.70 between experts, and expert-LLM convergent validity is substantial (r ≥ 0.50), the LLM bias concern is largely mitigated. If ICC < 0.50, AD should be deprecated regardless of its criterion validity — a dimension that cannot be reliably scored by humans is not a valid psychometric construct, even if a model trained on LLM labels produces predictive scores.
+
+## 34. Criterion Validity: CMV Persuasion Prediction (2026-02-28)
+
+**Dataset:** r/ChangeMyView (Tan et al., 2016), 4,263 matched pairs (delta-awarded vs non-delta replies). ConvoKit winning-args-corpus.
+
+**Design:** Paired comparison — same original post, one successful reply and one not. Controls for topic and OP characteristics.
+
+### 34a. Group Comparison (Paired t-tests)
+
+| Dim | Delta Mean | No-Delta Mean | d_z | p | Bonferroni |
+|---|---|---|---|---|---|
+| DA | 6.468 | 6.310 | +0.135 | 2.3e-18 | Yes |
+| HI | 7.586 | 7.432 | +0.104 | 1.1e-11 | Yes |
+| TC | 7.182 | 7.067 | +0.090 | 3.9e-09 | Yes |
+| CC | 7.337 | 7.214 | +0.082 | 8.2e-08 | Yes |
+| RC | 5.763 | 5.702 | +0.078 | 4.1e-07 | Yes |
+| TE | 6.814 | 6.908 | -0.077 | 5.4e-07 | Yes |
+| CO | 5.963 | 5.897 | +0.064 | 2.9e-05 | Yes |
+| ED | 5.633 | 5.582 | +0.063 | 4.0e-05 | Yes |
+| RB | 6.167 | 6.114 | +0.060 | 9.6e-05 | Yes |
+| AD | 5.318 | 5.280 | +0.033 | 3.2e-02 | No |
+
+All 10 significant at p<.05; 9/10 survive Bonferroni. DA is the strongest (d_z=0.135), not AD.
+
+### 34b. Logistic Regression AUC (5-fold CV)
+
+| Model | AUC | SD |
+|---|---|---|
+| Text length only | 0.596 | 0.009 |
+| g-PSQ only | 0.531 | 0.011 |
+| 10-dim PSQ | 0.590 | 0.011 |
+| 10-dim + length | 0.608 | 0.009 |
+
+Profile vs average gap: 0.059 (consistent with CGA-Wiki's 0.084).
+
+### 34c. Point-Biserial Correlations
+
+DA strongest individual PSQ predictor (r_pb=+0.085), then HI (+0.064), TC (+0.054). AD is weakest and non-significant at Bonferroni level (+0.021, p=0.057).
+
+Text length is the dominant baseline (r_pb=+0.156).
+
+### 34d. Context-Dependent AD Prediction
+
+**Critical finding:** AD is the top predictor in CaSiNo and CGA-Wiki but the *weakest* in CMV. This is consistent with Theory 3 from journal §24 (status negotiation): in CMV, the power dynamic is settled (OP holds the delta, challengers must persuade), so there is little status to negotiate. AD's predictive power is context-dependent, favoring contested-status environments over fixed-status ones.
+
+**Cross-study summary:**
+
+| Study | Top dim | AD rank | 10-dim AUC | g-PSQ AUC | Gap |
+|---|---|---|---|---|---|
+| CaSiNo | AD | 1st | — | — | — |
+| CGA-Wiki | AD | 1st | 0.599 | 0.515 | 0.084 |
+| CMV | DA | 11th | 0.590 | 0.531 | 0.059 |
+
+See journal §25 for full narrative interpretation.
+
+### 33i. Theoretical Analysis: Three Competing Explanations for AD's Predictive Primacy
+
+The AD paradox — weakest factor loading, strongest criterion predictor — is analyzed in depth in journal.md §24. Three theories are advanced:
+
+1. **Meta-conversation channel** (Watzlawick et al., 1967): AD measures the *command* (relational positioning) channel rather than *report* (content) channel. Most PSQ dimensions measure report-level properties; AD uniquely captures who holds power and how it is exercised. This explains why AD is orthogonal to report-dominated factors yet predicts relational outcomes (derailment, negotiation satisfaction).
+
+2. **Leading indicator**: AD is a temporal precursor — power challenges precede overt hostility. AD should deteriorate 1–2 turns before HI/TE in conversations that derail. Testable via cross-lagged correlation analysis on CGA-Wiki turn-by-turn data.
+
+3. **Status negotiation** (Tajfel & Turner, 1979): AD measures epistemic/moral status positioning, not formal authority. Explains why AD predicts in peer contexts (Wikipedia, Reddit, campsite negotiation) where formal hierarchy is absent. Suggests renaming to "power positioning."
+
+**Key testable predictions:**
+- T2: AD(t) → HI(t+1) stronger than HI(t) → AD(t+1) in CGA-Wiki turn sequences
+- T3b: In DonD, AD predicts deal (relational) but not points scored (resource allocation)
+- T3c: AD-residual correlates more with epistemic markers (hedging, certainty, credentialing) than emotional markers
+
+**Construct naming implication:** If Theory 3 is supported, "authority_dynamics" should be renamed to "power_positioning" — the current label implies formal hierarchy that the construct does not primarily measure.
 
 ## 13. References
 
