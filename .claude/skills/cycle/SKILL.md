@@ -163,6 +163,7 @@ ls -lh models/psq-student/model.onnx models/psq-student/model_quantized.onnx
 - **Always stage:** `*.md` documentation, `scripts/*.py`, `scripts/*.sh`, `.claude/skills/**`, `data/DATA-PROVENANCE.md`, `models/psq-student/*.json` (small config/results files)
 - Write a commit message that summarizes the *why* (research outcome), not the *what* (files changed)
 - Commit using the standard Co-Authored-By trailer
+- Run `git push` to sync with remote (origin main)
 - Run `git status` after to verify clean working tree
 
 ### 10. Cleanup
