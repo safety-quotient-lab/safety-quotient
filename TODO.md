@@ -4,6 +4,26 @@ Last updated: 2026-02-28
 
 ## Priority 1: Immediate
 
+### Score production pct batch (200 texts × 10 dims)
+
+**Status:** `data/labeling-batch-pct-200.jsonl` created (200 texts, 5 sources). Ready for `extract --pct`.
+
+**Why:** Pilot (§44) confirmed 0-100 scale breaks integer bias. Need production-scale data scored with proper separated protocol (1 dim per session) to:
+1. Add pct-scored data to training pipeline
+2. Re-run factor analysis to test if g-factor inflation drops
+3. Determine if percentage scoring improves model resolution
+
+**Workflow:**
+```
+python scripts/label_separated.py extract --input data/labeling-batch-pct-200.jsonl --pct
+# Score each dim in separate sessions
+python scripts/label_separated.py ingest --dim <dim> --scores /tmp/scored.json
+# Assemble when all 10 done
+python scripts/label_separated.py assemble --input data/labeling-batch-pct-200.jsonl --output data/labeling-batch-pct-200-scored.jsonl
+# Ingest into DB
+python scripts/migrate.py --ingest data/labeling-batch-pct-200-scored.jsonl
+```
+
 ### Rename authority_dynamics → power_positioning
 
 **Why:** Three criterion validity studies (CaSiNo, CGA-Wiki, CMV) reveal that AD measures *status negotiation in peer contexts*, not formal authority or hierarchy. The current name "authority_dynamics" implies institutional power structures, but the construct actually measures:
@@ -52,16 +72,9 @@ Last updated: 2026-02-28
 - [ ] Should context be user-specified ("I'm building a moderation tool") or auto-detected from text features?
 - [ ] Does this belong in the ONNX model (custom post-processing) or in the application layer?
 
-### Deal or No Deal criterion study [IN PROGRESS]
+### Deal or No Deal criterion study [COMPLETE]
 
-**Why:** Tests prediction T3b from journal §24 — AD should predict deal (relational outcome) but NOT points scored (resource allocation). This would provide causal-directional evidence, not just correlations.
-
-**Status:** Script ready (`scripts/criterion_dealornodeal.py`), currently running in background. Uses v16 model from `models/psq-student/`.
-
-**Expected outcomes:**
-- If AD predicts deal but not points → Theory 3 (status negotiation) strongly supported
-- If AD predicts both → Theory 1/2 not ruled out, AD may be more general
-- If AD predicts neither → CaSiNo/CGA-Wiki findings may be domain-specific
+**Status:** Complete (§39). AUC=0.686 (strongest of 4 studies). ED top predictor (d=+0.614), AD suppressor replicated. Context-dependent primacy confirmed across 4 studies.
 
 ## Priority 2: Important
 
@@ -79,75 +92,17 @@ See `journal.md` and `Publication Narrative` section below. The criterion validi
 5. Factor structure: general factor + 5 clusters, but singletons (AD, ED) carry unique predictive signal
 6. The construct the model learned (power positioning) is more nuanced than what was intended (authority dynamics) — a case study in emergent construct validity
 
-### Bifactor model architecture for DistilBERT
+### Bifactor model architecture [IMPLEMENTED, TRAINING]
 
-**Why:** A bifactor model separates g-PSQ from dimension-specific residuals. The residuals are what carry context-dependent predictive information (§22, §25). Current architecture: shared projection → 10 independent heads. Bifactor would: shared projection → g-factor head + 10 residual heads.
+**Status:** Option A implemented (`--bifactor` flag in distill.py). v19b training in progress. g-PSQ target = mean of available dim scores. g-head is `nn.Linear(384, 1)` with sigmoid*10, loss weight 1.0.
 
-**Current architecture** (distill.py:188-240):
-```
-[CLS] → shared_proj(768→384) → 10 × Linear(384→2) [score, conf]
-```
+**Prerequisite confirmed:** r(mean_pred, mean_target) = 0.673 on held-out — sufficient headroom for explicit g-head.
 
-**Three candidate designs evaluated (2026-02-28):**
+**Next:** Evaluate v19b held-out results. If g-PSQ r > 0.95, the g-head is redundant. If lower, consider Option B (orthogonal decomposition) or C (cluster-mediated).
 
-#### Option A: Add g-head (RECOMMENDED for first experiment)
-```
-[CLS] → shared_proj(768→384) → 10 dim heads(384→2) [unchanged]
-                              → 1 g-head(384→2)     [NEW]
-```
-- Minimal change: add `self.g_head = nn.Linear(hidden // 2, 2)` and g-PSQ loss term
-- g-PSQ target = mean of available dimension scores (weighted by confidence)
-- g-PSQ loss weight: tune 0.1–0.5 (auxiliary, should not dominate dim-specific learning)
-- **Pro:** easy to implement, easy to compare, g-PSQ output directly useful for API
-- **Con:** no structural constraint forcing decomposition — g-head may be redundant with dim average
-- **Test before building:** correlate mean(dim_predictions) with g-PSQ targets on held-out. If r > 0.95, explicit g-head adds nothing.
+### Score broad-spectrum labeling batch [COMPLETE]
 
-#### Option B: Orthogonal decomposition (principled but risky)
-```
-[CLS] → shared_proj(768→384) → g_proj(384→64) → g_head(64→2)
-                              → residual(384-64=320) → dim_heads(320→2) × 10
-```
-- g-factor gets fixed 64-dim subspace, dims see only the remaining 320 dims
-- Enforces true bifactor: dims predict *after* g is removed
-- **Pro:** genuine decomposition; dim heads learn only unique variance
-- **Con:** information bottleneck (64 dims enough for g?); dims lose access to g-relevant features they may need; harder to train
-- **Risk:** if a dim is mostly g (like HI at 48.4% variance from g), its head only sees 51.6% of the relevant information
-
-#### Option C: Cluster-mediated (matches factor structure, most complex)
-```
-[CLS] → shared_proj(768→384) → 5 cluster projs(384→128)
-                                  ↓
-                               HI,TE,CC → F1 heads (128→2) × 3
-                               CO,TC    → F2 heads (128→2) × 2
-                               RB,RC,DA → F3 heads (128→2) × 3
-                               AD       → F4 head  (128→2) × 1
-                               ED       → F5 head  (128→2) × 1
-```
-- Mirrors 5-factor structure; AD/ED are singletons with own projections
-- **Pro:** psychometrically correct; cluster scores are learned, not post-hoc
-- **Con:** fixed cluster assignments may not be optimal; complex; many parameters; AD/ED clusters each see full 128-dim projection for a single head (wasteful)
-- **Variant:** let all heads still see the full 384, but add cluster-level auxiliary losses
-
-**Decision:** Start with Option A. If g-PSQ prediction r > 0.95 from current model (meaning g is already implicitly learned), skip A and go directly to B or C.
-
-**Implementation steps for Option A:**
-1. Add `self.g_head = nn.Linear(hidden // 2, 2)` to `PSQStudent.__init__`
-2. In `forward()`, compute g-score/g-conf from g_head alongside dim heads
-3. Return `(scores, confs, g_score, g_conf)` — backward compatible if callers ignore extras
-4. In training loop, compute g-PSQ target as confidence-weighted mean of available dim scores
-5. Add `g_loss_weight` hyperparameter (default 0.25)
-6. Total loss = dim_loss + g_loss_weight * g_loss
-7. Evaluate: does held-out r improve? Does g-PSQ prediction quality correlate with criterion AUC?
-
-**Open question:** Should g-PSQ be the *unweighted* mean of 10 dims, or the *first principal component* score? The latter is more theoretically correct (g-factor is not the arithmetic mean) but harder to compute as a training target.
-
-### Score broad-spectrum labeling batch
-
-**Status:** 300 texts extracted to `/tmp/psq_separated/`, ready for separated scoring across 10 Claude Code sessions.
-
-**Design:** 150 random + 100 single-dim keyword + 50 multi-dim keyword texts. Intended to provide varied scores across ALL dimensions simultaneously (vs previous batches that were dimension-focused).
-
-**Expected impact:** Reduce score-5 concentration for all dimensions. Previous focused batches (CO, RB, CC, TE) produced neutral scores on non-target dimensions.
+**Status:** Complete. 300 texts × 10 dims = 3,000 scores ingested. Drove v19 improvements (held-out_r=0.600).
 
 ## Priority 3: Future
 
@@ -159,7 +114,7 @@ Status: Protocol designed (§19), recruitment not started. 5 expert psychologist
 
 ### Additional criterion validity studies
 
-- **Deal or No Deal** — in progress (see above)
+- **Deal or No Deal** — COMPLETE (§39)
 - **Workplace communication** — predict manager ratings, 360 feedback, or exit interview sentiment
 - **Therapeutic alliance** — predict WAI scores from therapy transcripts
 - **Educational discourse** — predict student engagement or learning outcomes from classroom discussion
@@ -190,6 +145,6 @@ Status: Protocol designed (§19), recruitment not started. 5 expert psychologist
 
 Test prediction T2 from journal §24: does AD deteriorate before HI/TE in CGA-Wiki conversations that derail? Cross-lagged correlation analysis. Requires turn-level scoring (currently score full conversations).
 
-### ONNX model re-export after v18
+### ONNX model re-export [COMPLETE]
 
-v18 promoted — re-export ONNX + INT8 quantization + recalibrate.
+v19 promoted to production. ONNX re-exported (254 MB / 64 MB quantized).
