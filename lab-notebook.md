@@ -379,6 +379,7 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 | v22b    | midg data only (no proxy removal) | — | 0.578 | Worse than v21 |
 | v22c    | `--drop-proxy-dims + --curriculum` | 0.431 | 0.638 | Curriculum REJECTED |
 | **v23** | +550 texts (ccda/proxy-audit/held-out-expand) | — | **0.696** | **Current production** |
+| v24 | 256-token context (batch 16, grad_accum 2) | — | pending | Training (task bxsm4j1ou) |
 
 ---
 
@@ -460,3 +461,17 @@ Root cause: **distribution mismatch**, not token length. Berkeley/UCC are short 
 Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready to score.
 
 ▶ distillation-research.md §59/§60, journal.md §36, psychometric-evaluation.md, criterion-validity-summary.md, novelty-hunt-20260228-1423.md
+
+---
+
+### Session `20260228-1530` (v24 launched: 256-token context experiment)
+
+**v24 training started.** Smoke test passed (1 epoch, 649s, no OOM). Full run in background (task bxsm4j1ou).
+
+- Config: `--max-length 256 --batch-size 16 --grad-accum 2 --drop-proxy-dims`
+- Effective batch = 16 × 2 = 32 (same as v23). ~11 min/epoch on GTX 1060 6GB.
+- Hypothesis: longer context improves held-out_r on texts where 128-token truncation loses signal (DonD multi-turn, long reddit posts). Error analysis showed berkeley/UCC blind spots are distribution mismatch not length — so main gains expected from criterion datasets, not those sources.
+- Data: same as v23 (no new labels ingested). Pure architectural ablation.
+- Metrics pending.
+
+▶ EXPERIMENTS.md (v24 row added)
