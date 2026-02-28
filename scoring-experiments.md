@@ -114,6 +114,31 @@ If we change rubric anchors and scores change, two explanations are possible:
 - 10 sessions × 20 texts = 200 scorings total
 - ~10 min per dimension = ~100 min total
 
+### Results (2026-02-28)
+
+| Dim | Pearson r | Spearman ρ | ICC(3,1) | MAD |
+|-----|-----------|------------|----------|-----|
+| TE | 0.891 | 0.776 | 0.867 | 0.50 |
+| HI | 0.910 | 0.870 | 0.829 | 0.65 |
+| AD | 0.156 | -0.078 | 0.144 | 0.70 |
+| ED | 0.832 | 0.800 | 0.837 | 0.35 |
+| RC | 0.779 | 0.772 | 0.703 | 0.60 |
+| RB | 0.814 | 0.848 | 0.790 | 0.45 |
+| TC | 0.822 | 0.836 | 0.767 | 0.80 |
+| CC | 0.820 | 0.763 | 0.804 | 0.55 |
+| DA | 0.602 | 0.647 | 0.563 | 0.45 |
+| CO | 0.742 | 0.704 | 0.703 | 0.35 |
+
+**Mean Pearson r:** 0.737 (0.804 excluding AD)
+**Δ_noise:** 0.011 (within-text SD: gold=0.730, retest=0.741)
+**Go/no-go:** 6/10 dims ≥ 0.80 (8/10 ≥ 0.74). **Qualified GO.**
+
+**Notes:**
+- AD severely unstable (r=0.156) — pre-existing construct problem, not scoring prompt issue. Most texts score neutral on AD (limited variance).
+- DA also weak (r=0.602) — consistent with known DA construct validity concern.
+- Δ_noise of 0.011 means within-text SD treatment effects >0.022 are detectable.
+- Mean MAD = 0.54 score points — typical test-retest noise for integer-scale LLM scoring.
+
 ---
 
 ## Experiment 1: Halo-Awareness Instructions (Avenue 5)
@@ -154,6 +179,33 @@ If we change rubric anchors and scores change, two explanations are possible:
 
 - 20 scoring sessions (10 control + 10 treatment × 30 texts each)
 - ~15 min per dimension = ~300 min total
+
+### Results (2026-02-28)
+
+| Metric | Control | Treatment | Change |
+|--------|---------|-----------|--------|
+| M1: Within-text SD | 0.542 | 0.685 | +26.4% |
+| M2: Mean inter-dim \|r\| | 0.751 | 0.631 | -0.120 |
+| M4: Mean control-treatment ρ | — | 0.892 | — |
+| M5: Eigenvalue ratio | 78.4% | 68.6% | -9.8pp |
+
+**Per-dimension control-treatment ρ:** TE=0.928, HI=0.882, AD=0.909, ED=0.957, RC=0.938, RB=0.844, TC=0.960, CC=0.785, DA=0.923, CO=0.791. All ≥ 0.70.
+
+**Decision: ADOPT.** The halo-awareness instruction:
+- Increased within-text SD by 26.4% (>> 2×Δ_noise of 0.022, >> 15% threshold)
+- Reduced g-factor eigenvalue from 78.4% → 68.6% (meaningful dimensionality recovery)
+- Reduced mean inter-dim |r| from 0.751 → 0.631
+- Maintained construct stability (all ρ ≥ 0.79)
+
+**Caveats:**
+1. Single-scorer experiment — the "halo-aware" mindset is applied by the same scorer who knows the hypothesis. Cannot fully separate instruction effect from scorer intention.
+2. Exact-5 rates were mixed (HI and RB increased, TC and DA decreased) — the instruction did not uniformly reduce neutral scoring.
+3. Entropy mixed: DA/TC/CO/RC increased (better), HI/CC decreased (worse). Net effect is positive on structural metrics.
+4. **Criterion validity gate still required** before production deployment — must verify CaSiNo AUC ≥ 0.58 with halo-aware scores.
+
+**Files:**
+- Control: `/tmp/psq_exp1_control.jsonl`
+- Treatment: `/tmp/psq_exp1_treatment.jsonl`
 
 ---
 
