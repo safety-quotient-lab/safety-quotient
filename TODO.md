@@ -4,25 +4,11 @@ Last updated: 2026-02-28
 
 ## Priority 1: Immediate
 
-### Score production pct batch (200 texts × 10 dims)
+### Score production pct batch (200 texts × 10 dims) [COMPLETE — RETRACTED]
 
-**Status:** `data/labeling-batch-pct-200.jsonl` created (200 texts, 5 sources). Ready for `extract --pct`.
+**Status:** COMPLETE but RETRACTED. 200 texts scored and ingested. FA v3 (§47) showed pct scoring *collapses* dimension differentiation (eigenvalue 9.41 = 94.1% shared variance). v20 training confirmed no benefit (held-out_r=0.600, flat vs v19). Integer 0-10 scale retained.
 
-**Why:** Pilot (§44) confirmed 0-100 scale breaks integer bias. Need production-scale data scored with proper separated protocol (1 dim per session) to:
-1. Add pct-scored data to training pipeline
-2. Re-run factor analysis to test if g-factor inflation drops
-3. Determine if percentage scoring improves model resolution
-
-**Workflow:**
-```
-python scripts/label_separated.py extract --input data/labeling-batch-pct-200.jsonl --pct
-# Score each dim in separate sessions
-python scripts/label_separated.py ingest --dim <dim> --scores /tmp/scored.json
-# Assemble when all 10 done
-python scripts/label_separated.py assemble --input data/labeling-batch-pct-200.jsonl --output data/labeling-batch-pct-200-scored.jsonl
-# Ingest into DB
-python scripts/migrate.py --ingest data/labeling-batch-pct-200-scored.jsonl
-```
+**Lesson:** Pct scoring triggers anchoring-and-adjustment heuristic — scorer locks onto global impression at finer granularity instead of differentiating better.
 
 ### Rename authority_dynamics → power_positioning
 
@@ -92,13 +78,13 @@ See `journal.md` and `Publication Narrative` section below. The criterion validi
 5. Factor structure: general factor + 5 clusters, but singletons (AD, ED) carry unique predictive signal
 6. The construct the model learned (power positioning) is more nuanced than what was intended (authority dynamics) — a case study in emergent construct validity
 
-### Bifactor model architecture [IMPLEMENTED, TRAINING]
+### Bifactor model architecture [EVALUATED — NOT ADOPTED]
 
-**Status:** Option A implemented (`--bifactor` flag in distill.py). v19b training in progress. g-PSQ target = mean of available dim scores. g-head is `nn.Linear(384, 1)` with sigmoid*10, loss weight 1.0.
+**Status:** Option A implemented (`--bifactor` flag in distill.py). v19b evaluated: g-head learned well (g_r=0.594) but per-dim test_r dropped (0.509→0.502) — capacity competition in 384-dim projection layer.
 
-**Prerequisite confirmed:** r(mean_pred, mean_target) = 0.673 on held-out — sufficient headroom for explicit g-head.
+**Decision (2026-02-28):** Bifactor architecture is NOT the right approach. Structural analysis (§51) established that the g-factor is real co-variation (range/extremity effect), not scorer artifact. The PSQ should decompose **hierarchically** (PSQ → clusters → dimensions), not bifactor (which treats g as orthogonal to group factors, flattening the hierarchy). The g-factor IS the construct at its broadest level.
 
-**Next:** Evaluate v19b held-out results. If g-PSQ r > 0.95, the g-head is redundant. If lower, consider Option B (orthogonal decomposition) or C (cluster-mediated).
+**Alternative adopted:** Middle-g text enrichment — enrich training data with texts from g ∈ [3, 4.5) ∪ [5.5, 7] where dimension-specific signal is strongest, preserving the hierarchical decomposition.
 
 ### Score broad-spectrum labeling batch [COMPLETE]
 
@@ -119,7 +105,22 @@ Status: Protocol designed (§19), recruitment not started. 5 expert psychologist
 - **Therapeutic alliance** — predict WAI scores from therapy transcripts
 - **Educational discourse** — predict student engagement or learning outcomes from classroom discussion
 
+### Middle-g text enrichment (Option B)
+
+**Status:** Analysis in progress. See `distillation-research.md` §51 and `/tmp/psq_option_b_analysis.md`.
+
+**Why:** Structural analysis shows the g-factor is a range/extremity effect. Extreme texts (g<3 or g>7) contribute pure valence signal (EV1=82.8%, uniform loadings). Middle texts (g 4-6) show genuine dimension differentiation (EV1=38.7%, structured loadings). Enriching training with middle-g texts will improve dimension-specific prediction without modifying the scoring instrument.
+
+**Approach options:**
+1. Model-guided selection from unlabeled pool (pre-score 15K texts with v21, select from informative middle band)
+2. Upgrade existing proxy texts (1,900 texts with 5+ dims) to full 10-dim separated-llm labels
+3. Combined selection from both pools
+
+**Next:** Analyze v21 pre-scoring results to determine pool yield by g-band and source.
+
 ### Scoring rubric review
+
+**Status:** Not started. Priority 3 but substantive.
 
 **Why:** The score anchors in `psq-definition.md` were written at construct inception, before criterion validity studies revealed what the model actually learned. Key discrepancies likely exist:
 - AD (authority_dynamics): rubric describes institutional authority/hierarchy, but the model actually measures *status negotiation* in peer contexts (epistemic positioning, moral claims, relational power moves). See journal §24.
@@ -147,4 +148,4 @@ Test prediction T2 from journal §24: does AD deteriorate before HI/TE in CGA-Wi
 
 ### ONNX model re-export [COMPLETE]
 
-v19 promoted to production. ONNX re-exported (254 MB / 64 MB quantized).
+v21 promoted to production. ONNX re-exported (254 MB / 64 MB quantized).

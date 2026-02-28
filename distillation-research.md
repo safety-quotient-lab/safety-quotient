@@ -66,6 +66,7 @@
 49. [v21 Training: CO Batch and Scoring Experiments](#49-v21-training-co-batch-and-scoring-experiments-2026-02-28) — held-out_r=0.630 (new best, +0.030 vs v19), RC=0.729, CC=0.687, scoring experiment protocols designed
 50. [Scoring Experiment Results: Halo Reduction Interventions](#50-scoring-experiment-results-halo-reduction-interventions-2026-02-28) — all three interventions REJECTED; halo-awareness reversed after g-factor structural analysis
 51. [G-Factor Structural Analysis: Range-Extremity Effect and Hierarchical Model](#51-g-factor-structural-analysis-range-extremity-effect-and-hierarchical-model-2026-02-28) — g-factor is real (EV1=82.8% extreme vs 38.7% middle), hierarchical PSQ model, middle-g enrichment
+52. [Proxy Data Audit and Unlabeled Pool Assessment](#52-proxy-data-audit-and-unlabeled-pool-assessment-2026-02-28) — proxy-LLM agreement poor for 4+ dims, pool has 50% informative-band texts, middle-g enrichment feasible
 13. [References](#13-references)
 
 ---
@@ -4204,6 +4205,99 @@ This approach:
 2. Doesn't modify the scoring prompt (avoiding CC bias and CO decoupling)
 3. Gives the student model more signal about what makes dimensions *different* at moderate safety levels
 4. Is complementary to the existing score-concentration cap (which prevents any single score value from dominating a dimension's training distribution)
+
+---
+
+## §52. Proxy Data Audit and Unlabeled Pool Assessment (2026-02-28)
+
+### Motivation
+
+Before implementing middle-g text enrichment (Option B from §51), we need to understand the current training data composition — specifically, how much the proxy data is actually contributing, and whether the unlabeled pool has sufficient informative-band texts for enrichment.
+
+### Training Data Composition by Method
+
+| Method | Rows | Effective Weight | % of Total Weight |
+|---|---|---|---|
+| separated-llm | 17,948 | 71,017 | 60.4% |
+| proxy | 30,803 | 20,916 | 17.8% |
+| joint-llm | 9,541 | 19,256 | 16.4% |
+| synthetic | 684 | 6,390 | 5.4% |
+
+Effective weight = sum of `confidence^2 × sample_weight` for each row. Despite having the most rows (30,803), proxy data contributes only 17.8% of training signal because proxy rows have lower confidence (mean 0.37) and lower sample_weight (1.5 vs 5.0 for LLM). **One separated-llm row = 5.8× one proxy row in effective weight.**
+
+43% of proxy rows have confidence < 0.3. These provide minimal gradient signal through the confidence-squared loss weighting.
+
+### Proxy-LLM Agreement by Dimension
+
+For texts with both proxy and separated-llm scores, Pearson correlation:
+
+| Dimension | Proxy-LLM r | Mean Bias | N (overlap) | Verdict |
+|---|---|---|---|---|
+| resilience_baseline | 0.539 | -0.32 | ~250 | Usable |
+| resource_capacity | 0.497 | -0.47 | ~250 | Usable |
+| hostility_intensity | 0.488 | +0.13 | ~250 | Usable |
+| defensive_architecture | 0.448 | -0.45 | ~200 | Marginal |
+| authority_dynamics | 0.155 | -0.16 | ~200 | Harmful |
+| contractual_clarity | 0.102 | +0.38 | ~200 | Harmful |
+| trust_conditions | 0.071 | +1.46 | ~200 | Harmful |
+| threat_exposure | -0.260 | -0.86 | ~200 | Actively harmful |
+| energy_dissipation | — | all 5.0 | ~200 | Useless (constant) |
+
+For 4-5 dimensions, proxy labels are uncorrelated or negatively correlated with LLM labels. The proxy labels for these dimensions come from rough mappings of external datasets (e.g., mapping politeness scores to trust_conditions, or toxicity scores to threat_exposure) that don't actually capture the PSQ constructs as the LLM scorer understands them.
+
+**Key concern:** Even at 17.8% effective weight, proxy noise on TE, TC, CC, and AD may be actively fighting the LLM signal on these dimensions. The score-concentration cap (§24) partially mitigates this but doesn't address the fundamental correlation issue.
+
+### Proxy Coverage Gaps
+
+- 7,705 proxy texts have only 1 dimension scored (typically hostility_intensity from toxicity mappings)
+- 2,949 proxy texts have exactly 2 dimensions
+- Only 1,867 proxy texts have 5+ dimensions
+- No proxy text has all 10 dimensions scored
+
+The sparse coverage means proxy data mostly reinforces HI/RB/RC (which have reasonable proxy-LLM agreement) while adding noise to TE/TC/CC/AD (which have poor agreement).
+
+### Unlabeled Pool Assessment (2K Sample)
+
+Scored a stratified 2K sample from `data/unlabeled-pool.jsonl` (400 per source × 5 sources) using v21. Results:
+
+| Band | g Range | Count | % | Within-text SD |
+|---|---|---|---|---|
+| Extreme low | < 3.0 | 76 | 3.8% | 0.384 |
+| Informative low | [3.0, 4.5) | 466 | 23.3% | 0.578 |
+| Narrow middle | [4.5, 5.5) | 392 | 19.6% | 0.493 |
+| Informative high | [5.5, 7.0] | 543 | 27.2% | 0.560 |
+| Extreme high | > 7.0 | 69 | 3.5% | 0.363 |
+| **Missing** | — | 454 | 22.7% | — |
+
+**50.4% of pool texts fall in the informative middle band** (g ∈ [3, 4.5) ∪ [5.5, 7]). Extrapolating to the full 15,407-text pool: ~7,700 informative-band texts available.
+
+Informative-band texts show higher within-text SD (0.568 vs 0.521 overall) — confirming the §51 finding that moderate-g texts have more dimension differentiation.
+
+**By source:**
+
+| Source | N (sample) | % Informative | Mean g |
+|---|---|---|---|
+| dreaddit | 400 | 62.0% | 4.21 |
+| berkeley | 400 | 53.5% | 4.49 |
+| prosocial | 400 | 49.5% | 4.86 |
+| empathetic_dialogues | 400 | 47.3% | 4.88 |
+| esconv | 400 | 42.8% | 5.14 |
+
+Dreaddit (stress-related posts) and berkeley (hate speech) have the highest informative rates — their texts span a wider safety range.
+
+### Implications for Option B
+
+1. **The pool is rich enough.** ~7,700 informative-band texts means we can easily select 200-300 for a middle-g labeling batch with room for multiple rounds.
+
+2. **Proxy removal is worth testing.** A v22 ablation with proxy data removed for TE, TC, CC, and AD would test whether removing noise improves these dimensions. The effective weight loss is modest (~18% total, concentrated in dims where proxy agreement is poor).
+
+3. **Source selection matters.** Dreaddit and berkeley texts should be overrepresented in middle-g batches for maximum yield.
+
+4. **Two independent interventions possible:**
+   - *Subtractive*: Remove/down-weight harmful proxy dimensions (TE, TC, CC, AD proxy labels)
+   - *Additive*: Create new middle-g labeling batch from pool for full 10-dim separated scoring
+
+These are independent and can be tested separately to isolate effects.
 
 ---
 
