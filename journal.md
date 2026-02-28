@@ -31,7 +31,9 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 18. [Factor Analysis: The General Factor Question](#18-factor-analysis-the-general-factor-question-2026-02-28)
 19. [Expert Validation Protocol: The DA Question](#19-expert-validation-protocol-the-da-question-2026-02-28)
 20. [Criterion Validity: The Negotiation Test](#20-criterion-validity-the-negotiation-test-2026-02-28)
-21. [References](#21-references)
+21. [The Derailment Test](#21-the-derailment-test-2026-02-28)
+22. [Dimension Reduction: Where the Signal Lives](#22-dimension-reduction-where-the-signal-lives-2026-02-28)
+23. [References](#23-references)
 
 ---
 
@@ -682,7 +684,55 @@ The effect sizes (r≈0.10) should be interpreted in context. We are predicting 
 
 ---
 
-## 21. References
+## 21. The Derailment Test (2026-02-28)
+
+The CaSiNo study asked whether PSQ predicted how people *felt* after a conversation. The Conversations Gone Awry study asks something harder: can PSQ predict what people *did* — specifically, whether a Wikipedia talk-page conversation would derail into a personal attack?
+
+The corpus (Zhang et al., 2018) is elegant in its design: 4,188 conversations, perfectly balanced between those that derailed and those that didn't, drawn from Wikipedia editor disputes. The domain is entirely absent from PSQ training data — no Wikipedia talk pages, no editor interactions, nothing from this register of discourse. If PSQ predicts here, it predicts because the construct generalizes, not because the model memorized.
+
+It does predict. A logistic regression on all ten PSQ dimensions achieves AUC=0.599 on the held-out test set — modest but stable (5-fold CV: 0.579 ± 0.016). The direction is theoretically correct and intuitively satisfying: conversations that will derail show *lower* authority dynamics (-0.212), regulatory capacity (-0.177), and trust conditions (-0.150). These are conversations where participants feel less authority, less self-regulation capacity, and less interpersonal trust — the preconditions for losing composure.
+
+The temporal analysis reveals something important about what PSQ measures. When we score only the first turn of each conversation (before any conflict has emerged), prediction drops to near-chance (AUC=0.519). With early turns, it rises to 0.570. With all turns, 0.599. PSQ is not reading static lexical features — it is tracking an interpersonal trajectory. The psychological unsafety accumulates, and the model captures that accumulation. This is precisely what a process-level construct should do: detect the erosion of safety conditions over the course of an interaction.
+
+The implications of this temporal gradient deserve unpacking, because they touch on what PSQ *is* at a fundamental level.
+
+First, the gradient rules out the simplest explanation for PSQ's predictive power: that it is merely a toxicity detector in disguise. A toxicity classifier like Perspective API would show the opposite temporal pattern — strong signal on the final turns (which contain the personal attack) and weaker signal on early turns (which are typically civil). PSQ shows the reverse: its signal builds *before* the attack, in the apparently civil early exchanges where safety conditions are quietly eroding. This is the difference between measuring temperature (a state variable) and measuring heat transfer (a process variable). PSQ appears to be measuring the latter — the thermodynamic trajectory of an interpersonal system, not just its current state.
+
+Second, the gradient has practical implications for deployment. A toxicity filter that triggers only *after* someone has already been attacked is, from a safety perspective, closing the barn door after the horse has bolted. A PSQ monitor that detects deteriorating safety conditions *during* the conversation — even at the modest AUC=0.570 available at the halfway point — offers the possibility of preventive intervention. The confidence would increase with each additional turn, following the gradient: uncertain at first, increasingly confident as the trajectory clarifies. This maps naturally onto a traffic-light interface: green (first turn, insufficient data), yellow (mid-conversation, safety declining), red (accumulated evidence of impending derailment). The 128-token truncation we currently use is a limitation here — a production system would score each new turn incrementally, maintaining a running PSQ profile.
+
+Third, the temporal gradient is consistent with Edmondson's (1999) original formulation of psychological safety as a *shared belief* that emerges from repeated interpersonal interactions. Edmondson never proposed that safety is a fixed property of individuals or texts — she described it as a team-level phenomenon that develops through experience. Our finding that PSQ signal accumulates across turns is empirical support for this process view: safety is something that is *built or eroded* through interaction, not simply *present or absent* in the content.
+
+The AD finding replicates across studies with uncanny consistency. In CaSiNo, authority dynamics was the strongest criterion predictor of negotiation satisfaction. In CGA-Wiki, it is the strongest point-biserial correlate of derailment (r=-0.105, p<0.001). Two completely different domains — campsite negotiations and Wikipedia policy disputes — two different outcomes — subjective satisfaction and behavioral hostility — and the same dimension emerges as the strongest signal. Whatever AD captures about power dynamics and interpersonal authority, it is doing real psychological work.
+
+This cross-study replication has important consequences for the DA/AD construct validity debate. Our factor analysis (§18) showed that DA has no primary loading above 0.35 in the 5-factor promax solution — by traditional psychometric criteria, this would be grounds for deprecation. But the criterion validity evidence tells a different story: the construct that is hardest to *define* internally is the easiest to *validate* externally. This is not unprecedented in psychology. The Big Five dimension of Openness to Experience has a similarly contested internal structure — debate continues over whether it reflects intellect, aesthetic sensitivity, or imaginative tendency — yet it predicts academic performance, creativity, and political attitudes with remarkable consistency (McCrae & Costa, 1997). Our AD may be the PSQ's openness: a dimension whose predictive validity survives despite (or perhaps because of) its conceptual breadth.
+
+The practical implication is clear: we should not deprecate AD based on internal structure alone. The expert validation protocol (§19) includes a DA-specific decision tree — if experts can't reliably rate it (ICC<0.50), we deprecate; if they can, we investigate whether its criterion validity is mediated by other dimensions. But the CGA-Wiki data adds a new data point to this decision: AD predicts a behavioral outcome (personal attack) that none of the other dimensions predict as well. This is not redundant information.
+
+Perhaps most importantly for the dimensionality question: g-PSQ (the general factor, a simple mean of all ten dimensions) achieves AUC=0.515 — barely above coin flip. The ten individual dimensions together achieve 0.599. This is direct evidence that the general factor, while statistically dominant in the variance decomposition (55.4% of variance), carries almost no predictive utility for external outcomes. The information lives in the dimension profile, not the global score.
+
+This dissociation between variance explained and predictive utility is worth emphasizing because it cuts against a common psychometric intuition. In classical test theory, the first principal component is the "best summary" of a test battery — the single number that preserves the most information. But preserving variance is not the same as preserving *predictive* signal. Consider a medical analogy: a patient's average vital sign (mean of temperature, blood pressure, heart rate, respiratory rate) captures the most variance in the vital-sign battery, but no physician would use that average for diagnosis. The diagnostic information lives in the *pattern* — high temperature with low blood pressure means something entirely different from low temperature with high blood pressure. Our finding is analogous: the PSQ profile shape predicts, the profile average does not.
+
+This argues strongly against dimension reduction for any applied use case. The hierarchical reporting structure — g-PSQ for overview, 5 clusters for interpretation, 10 dimensions for prediction — is not just an organizational convenience; it reflects where the signal actually lives. Future PSQ applications should be designed around the 10-dimension vector, with the general factor and cluster scores serving as human-interpretable summaries rather than replacements.
+
+One additional finding deserves commentary: the non-significance of threat exposure (TE) and contractual clarity (CO) in the derailment study. These are the only two dimensions that show no mean difference between derailing and safe conversations. TE's non-significance is particularly instructive. One might expect that conversations containing more explicit threat content would be more likely to derail. But PSQ-TE does not measure whether threats are present — it measures the degree to which the *text content supports assessment of* threat exposure. A Wikipedia dispute about article deletion policy may contain substantial TE content (discussion of what constitutes a threat to article integrity) without any interpersonal hostility. Conversely, a conversation that derails may do so through authority violations (AD), trust betrayal (TC), or regulatory failure (RC) without any explicit threat language. TE's null result helps clarify what PSQ measures: the psychological safety *landscape* of text, not the interpersonal *behavior* of speakers.
+
+---
+
+## 22. Dimension Reduction: Where the Signal Lives (2026-02-28)
+
+The factor analysis (§18) showed that a general factor explains 55% of PSQ score variance, and a promax rotation yields a clean 5-factor solution. The natural question is whether we can simplify: does collapsing from 10 dimensions to 5 cluster scores (or even 3) lose anything that matters?
+
+The answer is nuanced. Statistically, the 5-factor model retains 88% of dimension-level information (average R² = 0.881 from cluster scores back to individual dimensions) and captures 91% of total variance. The 3-factor model drops to 74% — an unacceptable loss, driven by authority dynamics (R²=0.615) and energy dissipation (R²=0.449), which simply don't belong in their assigned clusters.
+
+But the criterion validity data provide a sharper answer. In the CGA-Wiki derailment study, g-PSQ (one number) achieves AUC=0.515. The 10 individual dimensions achieve 0.599. The predictive information is distributed across dimensions in a way that collapsing obscures. This is consistent with Meehl's (1956) observation that configural patterns in personality profiles often outperform simple sum scores — the *shape* of the profile matters, not just its average height.
+
+Two dimensions emerge with particularly high unique variance within their clusters: cooling capacity (39% unique in Hostility/Threat) and contractual clarity (36% unique in Relational Contract). These are the dimensions most likely to lose critical information if collapsed. Both measure something distinct from their cluster neighbors — CC captures emotion regulation capacity rather than hostility per se, and CO captures the clarity of interpersonal agreements rather than relational trust.
+
+Our recommendation: report hierarchically (g-PSQ → 5 clusters → 10 dimensions) but always retain the 10-dimension profile for prediction tasks. The 5-cluster level is useful for interpretation and communication — "this conversation shows low Relational Contract but high Internal Resources" — but it should supplement, not replace, the full dimensional scoring.
+
+---
+
+## 23. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 
@@ -815,3 +865,9 @@ Treviso, M., Ji, T., Pruthi, D., & Martins, A. F. T. (2023). Efficient methods f
 Turney, P. D., Neuman, Y., Assaf, D., & Cohen, Y. (2019). Dreaddit: A Reddit dataset for stress analysis in social media. In *Proceedings of the 10th International Workshop on Health Text Mining and Information Analysis* (pp. 97–107).
 
 Vaillant, G. E. (1977). *Adaptation to Life*. Little, Brown.
+
+McCrae, R. R., & Costa, P. T. (1997). Conceptions and correlates of openness to experience. In R. Hogan, J. Johnson, & S. Briggs (Eds.), *Handbook of Personality Psychology* (pp. 825–847). Academic Press.
+
+Meehl, P. E. (1956). Wanted — a good cookbook. *American Psychologist, 11*(6), 263–272.
+
+Zhang, J., Chang, J., Danescu-Niculescu-Mizil, C., Dixon, L., Hua, Y., Taraborelli, D., & Thain, N. (2018). Conversations gone awry: Detecting early signs of conversational failure. In *Proceedings of ACL 2018* (pp. 1350–1361).

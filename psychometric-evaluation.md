@@ -21,7 +21,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Construct validity | **Tested** — EFA rejects 10-factor independence (BIC-best: 5 factors, dominant general factor at 48% variance). Hierarchical model recommended. | High |
 | Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
-| Criterion validity | **Initial evidence** — CaSiNo: 9/10 dims predict satisfaction (r≈0.08-0.13***), incremental R²=+0.016 beyond sentiment. DA top predictor. | High |
+| Criterion validity | **Two studies** — CaSiNo: 9/10 dims predict satisfaction (r≈0.08-0.13\*\*\*), ΔR²=+0.016; CGA-Wiki: 10-dim PSQ predicts derailment (AUC=0.599), AD strongest predictor in both. | Medium |
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
@@ -245,6 +245,15 @@ However, rejection of 10 independent factors does not require merging dimensions
 4. Document the general factor and cluster structure in all technical reporting
 5. Do *not* claim 10 independent dimensions — claim 10 *theoretically distinct* dimensions that empirically cluster into 3–5 factors with a dominant general factor
 
+#### Dimension Reduction Evaluation (2026-02-28)
+
+Empirical test of information loss from dimension reduction (held-out labels, n=117):
+- **5-factor**: avg R²=0.881 (88% of dimension-level info preserved). Weakest: CC (0.772), CO (0.813).
+- **3-factor**: avg R²=0.738 — AD (0.615) and ED (0.449) poorly reconstructed.
+- **CGA-Wiki evidence**: g-PSQ AUC=0.515 (near-chance), 10-dim AUC=0.599. Individual dimensions carry non-redundant predictive signal.
+- **Unique variance >30%**: CC (39.4% in Hostility/Threat), CO (36.0% in Relational Contract).
+- **Conclusion**: 5-factor is the parsimony sweet spot. Do not reduce below 5 — AD and ED are genuinely independent. Keep 10 dimensions for prediction tasks.
+
 #### Promax (Oblique) Rotation Confirmation
 
 **Update (2026-02-28):** Promax rotation (k=4) was applied to test whether orthogonal rotation was distorting the structure. Key findings:
@@ -399,7 +408,18 @@ Effect sizes are small (r≈0.08-0.13) but consistent with content-level linguis
 
 **Notable finding**: DA — the construct with the weakest factor loading in the PSQ system — is the strongest criterion validity predictor. This suggests DA may lack within-system discriminant validity but has genuine predictive validity for interpersonal outcomes.
 
-**Recommendation:** Extend criterion validity with CGA-Wiki derailment prediction (behavioral outcome, paired design, zero circularity) and Deal or No Deal (replication of negotiation findings in a different dataset).
+**CGA-Wiki Derailment Prediction (2026-02-28).** Second criterion validity study. The Conversations Gone Awry corpus (Zhang et al., 2018; n=4,188 Wikipedia talk-page conversations, perfectly balanced: 2,094 derailing into personal attacks, 2,094 safe) provides a behavioral outcome with zero circularity — no Wikipedia talk pages in PSQ training data.
+
+Results:
+- **Logistic regression** (10-dim PSQ, train→test): AUC=0.599, accuracy=57.5%. g-PSQ alone near chance (AUC=0.515).
+- **Group comparison**: Derailing conversations have lower PSQ scores on 8/10 dimensions. Strongest: AD (d=-0.212\*\*\*), RC (d=-0.177\*\*\*), TC (d=-0.150\*\*\*).
+- **AD again strongest predictor** (r\_pb=-0.105\*\*\*): Replicates CaSiNo finding across a completely different domain and outcome type.
+- **Temporal signal decay**: AUC drops from 0.599 (all turns) → 0.570 (early turns) → 0.519 (first turn only). PSQ captures accumulated interpersonal dynamics, not static text properties.
+- **10-dim >> g-PSQ**: Individual dimensions carry non-redundant signal; general factor alone cannot predict.
+
+**Cross-study consistency**: AD/DA emerges as the strongest criterion predictor in both studies (CaSiNo: negotiation satisfaction; CGA-Wiki: derailment avoidance), despite having the weakest factor loading in the PSQ system. This paradox — low internal structure, high external validity — suggests AD captures something real that the other dimensions don't.
+
+**Recommendation:** Extend with Deal or No Deal (replication of negotiation findings) and CGA-CMV (change-my-view, different discourse context).
 
 ### 3h. Formula Inconsistency — RESOLVED
 
