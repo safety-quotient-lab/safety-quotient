@@ -39,36 +39,21 @@ It is updated at the end of each working session. Snapshots are saved as
 
 | Table | Count |
 |---|---|
-| texts | 19,884 |
-| scores | 58,131 |
+| texts | 20,127 |
+| scores | 60,361 |
 | splits (train) | 15,859 |
 | splits (val) | 1,913 |
 | splits (test) | 2,015 |
 | splits (held-out) | 100 |
 
-### Score method breakdown (best_scores view)
+### Score method breakdown
 
 | Method | Count |
 |---|---|
-| composite-proxy | ~40,500 |
-| joint-llm | ~12,300 |
-| separated-llm | ~2,541 |
-| synthetic | ~846 |
-
-### Separated-llm labels per dimension
-
-| Dimension | n |
-|---|---|
-| regulatory_capacity | 550 |
-| threat_exposure | 529 |
-| defensive_architecture | 350 |
-| energy_dissipation | 512 |
-| contractual_clarity | 300 |
-| authority_dynamics | 300 |
-| cooling_capacity | 300 |
-| hostility_index | 300 |
-| resilience_baseline | 300 |
-| trust_conditions | 300 |
+| composite-proxy | 40,487 |
+| joint-llm | 12,257 |
+| separated-llm | 6,771 |
+| synthetic | 846 |
 
 ---
 
@@ -79,8 +64,8 @@ It is updated at the end of each working session. Snapshots are saved as
 | Batch | File | Dims | n texts | Date |
 |---|---|---|---|---|
 | held-out separated | `data/held-out-test.jsonl` | all 10 | 100 | pre-v13 |
-| weak dims batch | `data/labeling-batch-weak-dims.jsonl` | te, rc, co | 200 | 2026-02-27 |
-| all dims batch | `data/labeling-batch-weak-dims.jsonl` | all 10 | 200 | 2026-02-27 |
+| weak dims batch | `data/labeling-batch-weak-dims.jsonl` | all 10 | 200 | 2026-02-27 |
+| rc focus batch | `data/labeling-batch-rc.jsonl` | all 10 | 150 | 2026-02-27 |
 
 ### In-progress / untracked batches
 
@@ -120,11 +105,25 @@ All new separated-llm labels carry:
 
 ---
 
+## Operational Lessons
+
+### Context Limit on Large Labeling Sessions
+
+The RC batch (150 texts × 10 dims) exhausted the Claude Code context window before assemble/ingest could run. Score files in `/tmp/psq_separated/` persisted safely and were recovered in the next session.
+
+**Mitigations:**
+- Assemble after every 2-3 dimensions instead of waiting for all 10
+- Budget context for post-processing (assemble + ingest + docs)
+- Use `label_separated.py status` to verify progress before ending a session
+- Sub-batch with `--offset`/`--limit` for batches >100 texts
+
+---
+
 ## What's Next
 
-1. **Score remaining dims on ad batch** — `data/labeling-batch-ad.jsonl` has 300 texts with `ad` done; 9 more dims (te, hi, ed, rc, rb, tc, cc, da, co) pending if desired, or just ingest ad and move on
-2. **Investigate rc regression** — held-out r dropped from 0.325 → 0.244; consider rc-focused batch from workplace/org texts
-3. **Plan v15** — options: (a) ingest ad labels and retrain, (b) score more dims on ad batch first, (c) try DeBERTa-v3-small or max_length=256
+1. **Score remaining dims on ad batch** — `data/labeling-batch-ad.jsonl` has 300 texts with `ad` done; 9 more dims pending
+2. **Investigate rc regression** — held-out r dropped from 0.325 → 0.244; rc batch ingested but v15 training needed to measure impact
+3. **Plan v15** — options: (a) ingest ad labels and retrain, (b) score more dims on ad batch first, (c) try max_length=256
 4. **Promote v14 to production** — copy `models/psq-v14/best.pt` → `models/psq-student/best.pt` when ready (requires calibration re-run)
 
 ---

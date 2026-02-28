@@ -1,7 +1,7 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-27
-**Status:** v14 complete (test_r=0.544, held-out_r=0.482 against halo-free labels). +2,000 separated-llm labels (200 texts × 10 dims). Most dims improved substantially on held-out; rc regressed.
+**Status:** v14 complete (test_r=0.544, held-out_r=0.482 against halo-free labels). +3,500 separated-llm labels total (200+150 texts × 10 dims). Most dims improved substantially on held-out; rc regressed.
 **Next:** Ingest 300-text ad batch (authority_dynamics scored), investigate rc regression, plan v15.
 
 ---
@@ -39,6 +39,7 @@
 19. [Separated Scoring & Hierarchical Reporting](#19-separated-scoring--hierarchical-reporting-2026-02-27) — halo-free held-out relabeling, g-PSQ + cluster subscales, validation
 20. [V14 Labeling Expansion & Training](#20-v14-labeling-expansion--training-2026-02-27) — 200-text all-dims batch scored, 2,000 new separated-llm labels, distill.py safety improvements
 21. [V14 Held-Out Results & Regression Analysis](#21-v14-held-out-results--regression-analysis-2026-02-27) — held-out_r=0.482 (+0.080 vs v13), rc regression, test/held-out inversion
+22. [RC Labeling Batch & Context Limit Lesson](#22-rc-labeling-batch--context-limit-lesson-2026-02-27) — 150 texts × 10 dims, session context exhaustion, recovery workflow
 13. [References](#13-references)
 
 ---
@@ -2064,6 +2065,61 @@ These inversions reflect the distributional difference between the test split (r
 **Regulatory capacity regression:** rc test_r=0.527 suggests the model has learned *something* for rc — but the held-out regression (0.325→0.244) suggests the newly-added rc labels (from the weak-dims batch) may have introduced a systematic mismatch. Possible causes: (1) the 200 batch texts were sampled from Reddit/dreaddit, which may not represent the real-world rc distribution; (2) the rc definition may need refinement.
 
 **Recommendation:** Score an additional rc-focused batch drawn from more diverse sources (workplace texts, policy documents) before v15 training.
+
+---
+
+## 22. RC Labeling Batch & Context Limit Lesson (2026-02-27)
+
+### 22a. The RC Labeling Batch
+
+A 150-text labeling batch (`data/labeling-batch-rc.jsonl`) was extracted to investigate the regulatory_capacity regression observed in v14 (held-out r dropped from 0.325 to 0.244). The batch was scored on all 10 dimensions using the separated scoring workflow, targeting diverse source coverage for rc.
+
+**Scoring completed:** All 10 dimensions × 150 texts = 1,500 scores. Scored in batches of 50 texts per dimension to stay within the 32K output-token limit per response.
+
+### 22b. Context Limit Failure
+
+The scoring session exhausted the Claude Code context window after completing all 10 dimensions but before running the assemble and DB ingest steps. This left the project in an inconsistent state:
+
+- `/tmp/psq_separated/*_scores.json` — all 10 dimension score files present (150 scores each)
+- No assembled JSONL file
+- No DB ingestion
+- Session metadata intact (`session_meta.json` with batch fingerprint)
+
+**Root cause:** Large labeling sessions consume substantial context. Each dimension scoring pass adds ~50 texts of input context (reading the batch file) plus ~50 output scores, multiplied by 10 dimensions. With 150 texts × 10 dims, the session burned through ~300K tokens of labeling context before reaching the post-processing steps.
+
+### 22c. Recovery
+
+The next session recovered cleanly:
+
+```bash
+python scripts/label_separated.py assemble \
+  --input data/labeling-batch-rc.jsonl \
+  --output /tmp/psq_separated/assembled_rc_final.jsonl
+
+python scripts/migrate.py --ingest /tmp/psq_separated/assembled_rc_final.jsonl
+# → 150 texts, 1,500 score observations
+```
+
+The `label_separated.py` workflow proved resilient to session interruption: score files persist in `/tmp/psq_separated/`, session metadata preserves the batch fingerprint for validation, and assemble/ingest can be run independently in any subsequent session.
+
+### 22d. Mitigation for Future Batches
+
+Lessons for large labeling sessions:
+
+1. **Assemble early, assemble often.** For batches >100 texts, run assemble after every 2-3 dimensions rather than waiting for all 10.
+2. **Budget context for post-processing.** Reserve the final ~10% of context for assemble + ingest + documentation updates. If context is running low, stop scoring and do post-processing.
+3. **The /tmp workflow is crash-safe.** Score files are persisted incrementally; no work is lost if a session ends unexpectedly. The `status` command shows which dimensions are done.
+4. **Sub-batch for very large batches.** The `--offset` and `--limit` flags in `extract` allow splitting batches across sessions (e.g., 300 texts in 3 sessions of 100).
+
+### 22e. Post-Ingestion Database State
+
+| Metric | Before RC batch | After RC batch |
+|---|---|---|
+| Total texts | 19,884 | 20,127 |
+| Total scores | 58,131* | 60,361 |
+| Separated-llm scores | 5,271 | 6,771 |
+
+*Note: The "before" count differs from §20b because the prior session had also ingested additional scores before hitting the context limit. The 1,500 new scores from the RC batch are confirmed by method breakdown: separated-llm went from ~5,271 to 6,771 (+1,500).
 
 ---
 

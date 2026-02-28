@@ -90,18 +90,31 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 
 **Re-scored with separated labeling (2026-02-27):** All 100 texts re-scored one dimension at a time (10 separate LLM calls per text) to eliminate halo effect. Original joint-scored file archived as `data/held-out-test-joint.jsonl`. Separated scoring performed via `scripts/label_separated.py` extract/ingest/assemble workflow. All 100 records now have complete 10-dimension coverage with `teacher: "separated-llm"`. Halo validation confirmed mean inter-dimension |r| dropped from 0.766 (joint) to 0.656 (separated).
 
-## Composite Summary (v12, 2026-02-27)
+### Tier 5: Separated-LLM Labeling Batches (training data)
+
+| Batch | File | Texts | Dims | Date | Notes |
+|---|---|---|---|---|---|
+| Weak dims (te/rc/co) | `data/labeling-batch-weak-dims.jsonl` | 200 | 3 | 2026-02-27 | First separated batch; te/rc/co only |
+| All dims expansion | `data/labeling-batch-weak-dims.jsonl` | 200 | all 10 | 2026-02-27 | Extended to all 10 dims (same 200 texts) |
+| RC focus batch | `data/labeling-batch-rc.jsonl` | 150 | all 10 | 2026-02-27 | Targeting rc regression; diverse sources |
+| AD focus batch | `data/labeling-batch-ad.jsonl` | 300 | ad only | 2026-02-27 | 9/10 dims still pending |
+
+**Total separated-llm training labels:** 6,771 scores (across 20,127 texts in DB).
+
+## Composite Summary (v14+rc, 2026-02-27)
 
 | Metric | Value |
 |---|---|
-| Total records | ~21,842 (17,643 composite + 4,199 LLM) |
-| Composite proxy records | 17,643 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
-| LLM records | 1,353 API + 1,905 synthetic + 941 relabeled = 4,199 |
+| Total texts in DB | 20,127 |
+| Total scores in DB | 60,361 |
+| Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
+| Joint-LLM records | 12,257 |
+| Separated-LLM records | 6,771 |
+| Synthetic records | 846 |
 | Held-out test records | 100 (separate, not in training) |
-| Train / Val / Test | ~80% / 10% / 10% (hash-based text split) |
+| Train / Val / Test | 15,859 / 1,913 / 2,015 (hash-based text split) |
 | Source datasets | 11 active (2 removed, 1 partially removed) |
 | Dimensions covered | 10/10 |
-| v12 training | all synthetic (ad_8, te_2, ed_2, da_2) + relabeled (thre, ener, regu, defe) |
 
 ## Data Pipeline
 

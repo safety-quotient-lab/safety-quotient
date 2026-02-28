@@ -414,16 +414,16 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ## 14. Current State and Open Questions
 
-### 14a. Model Performance (v13, 2026-02-27)
+### 14a. Model Performance (v14, 2026-02-27)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 17,643 composite + 4,199 LLM = ~21,842 |
-| Test avg Pearson r | 0.553 (10/10 dimensions positive) |
-| Held-out avg Pearson r | 0.402 (6/10 dims with r > 0.30, separated labels) |
-| Generalization gap | 27.3% |
-| ONNX model size | 64 MB (INT8 quantized) |
+| Training data | 20,127 texts in DB (60,361 scores) |
+| Test avg Pearson r | 0.544 (10/10 dimensions positive) |
+| Held-out avg Pearson r | 0.482 (+0.080 vs v13, separated labels) |
+| Generalization gap | 11.4% (down from 27.3% in v13) |
+| ONNX model size | 64 MB (INT8 quantized, v13 — v14 not yet exported) |
 | Inference latency | ~20ms / text (CPU) |
 
 ### 14b. Psychometric Properties
@@ -433,7 +433,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Test-retest reliability | Excellent | ICC = 0.935 (perturbation-based) | ICC > 0.75 (Cicchetti, 1994) |
 | Discriminant validity (vs. sentiment) | Strong | Mean |r| = 0.205 vs VADER | r < 0.30 (distinct construct) |
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
-| Held-out generalization | Moderate | r = 0.402, n = 100 (separated labels) | Comparable to brief personality measures |
+| Held-out generalization | Moderate | r = 0.482, n = 100 (separated labels, v14) | Comparable to brief personality measures |
 | Construct validity (discriminant) | Confirmed | Halo addressed; 3-cluster hierarchy implemented | Requires CFA (n ≥ 200) |
 | Inter-rater reliability | Not measured | — | Critical gap |
 | Criterion validity | Not measured | — | Requires external criterion |
