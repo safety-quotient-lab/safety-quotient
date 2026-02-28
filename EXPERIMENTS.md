@@ -54,6 +54,10 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v19b:** Bifactor experiment — added 11th output head predicting g-PSQ (mean of 10 dim scores). g-head learned well (r=0.594) but per-dim average dropped (0.509→0.502). CC benefited (+0.150) but RC/AD/CC/DA/TE all lost. Capacity competition: 11 heads share 384-dim projection. Early stopped epoch 7 (best@4), same as v19. **Not promoted — bifactor architecture is net-negative for per-dim prediction at DistilBERT scale.**
 
+| v20 | 2026-02-28 | DistilBERT | 10 | 2e-5 | 32 | 0.501 | 0.600 | +200 pct-scored texts (2K separated-llm, 86.2% non-integer). | `--out models/psq-v20`. No early stop (all 10 epochs). |
+
+**Notes on v20:** Pct-scored data had no measurable effect (held-out_r 0.600 = identical to v19). Dim-level shifts within noise (CO +0.024, CC +0.023 vs ED -0.034, TE -0.028). **Not promoted.** Pct scoring retracted as labeling format — FA v3 showed dimension collapse (eigenvalue 9.41 = 94.1% shared variance).
+
 ## Key Hyperparameters (v16, current)
 
 ```

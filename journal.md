@@ -978,6 +978,12 @@ This finding has important consequences beyond PSQ. It suggests that expanding t
 
 The practical implications are clear: revert to integer scoring for future labeling. The g-factor is real, the 10 dimensions are genuinely correlated, and the integer scale provides more informative dimension-specific variance than the percentage scale. The percentage resolution gains (less score-5 concentration, more unique values) are real but are outweighed by the dimension-collapse cost.
 
+### The Training Confirmation
+
+v20 training — which added the 200 pct-scored texts (2,000 new separated-llm labels) to the training set — produced an anticlimactic result that confirms the analysis: held-out_r = 0.600, identical to v19. The pct-scored data neither helps nor hurts. At 200 texts in a 17,000-text training set, the volume is too small to move the needle, and the collapsed dimension structure means the new labels carry primarily g-factor signal rather than dimension-specific information. The per-dimension shifts (CO +0.024, CC +0.023 vs ED -0.034, TE -0.028) are within random training variance for a 100-text held-out evaluation.
+
+The null result closes the percentage scoring research arc and opens a new one. A systematic literature review identified the root cause as **isomorphic rubric structure** — all ten PSQ rubrics follow the same template (0=extreme bad, 5=neutral, 10=extreme good), which teaches the scorer to treat them as instances of a single continuum. Humphry and Heldsinger (2014) documented precisely this phenomenon in educational assessment rubrics, calling it a "common structural design feature" that threatens validity. The most promising mitigation avenue is redesigning rubric anchors to be structurally dissimilar across dimensions — using concrete, dimension-specific content features rather than abstract quality gradients. A comprehensive research plan (`scoring-research-plan.md`) tracks eight research avenues for rubric-induced halo mitigation, ranked by evidence strength and feasibility.
+
 ---
 
 ## 30. References

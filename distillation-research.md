@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v19 production (test_r=0.509, held-out_r=0.600). 4 criterion validity studies. DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. g-factor confirmed real (NOT integer artifact): pct eigenvalue 9.41 vs int 6.73. Pct scoring collapses dimensions (within-SD 0.45 vs 0.72); revert to integer scoring.
-**Next:** Train v20, evaluate pct data impact on held-out. Score CO batch with integer scale (not pct).
+**Status:** v19 production (test_r=0.509, held-out_r=0.600). v20 trained with pct data: held-out_r=0.600 (flat, pct data neutral). 4 criterion validity studies. DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. g-factor confirmed real (NOT integer artifact): pct eigenvalue 9.41 vs int 6.73. Scoring research plan created (8 avenues for rubric-induced halo mitigation).
+**Next:** Design structurally dissimilar rubrics (Avenue 2), score CO batch with integer scale.
 
 ---
 
@@ -62,6 +62,7 @@
 45. [Production Percentage Scoring Batch](#45-production-percentage-scoring-batch-2026-02-28) — 200 texts × 10 dims with separated protocol: 86.2% non-integer, 4.8% exact-5, 35 unique values
 46. [Bifactor v19b Results](#46-bifactor-v19b-results-2026-02-28) — 11th head (g-PSQ) learns well (r=0.594) but per-dim test_r drops to 0.502; capacity competition
 47. [Factor Analysis v3: Percentage Scoring Deepens the g-Factor](#47-factor-analysis-v3-percentage-scoring-deepens-the-g-factor-2026-02-28) — pct-scored data shows eigenvalue 9.41 (94.1%), mean |r|=0.934. Integer bias NOT the cause; cross-session halo suspected.
+48. [v20 Training: Pct Data Impact](#48-v20-training-pct-data-impact-2026-02-28) — held-out_r=0.600 (flat vs v19), pct data neither helps nor hurts at 200-text scale
 13. [References](#13-references)
 
 ---
@@ -3941,6 +3942,60 @@ The root cause of pct dimension collapse is the **isomorphic rubric structure**.
 A comparison with an external scoring system (0-100 editorial bias scoring) suggests that 0-100 scales work well when (a) anchors describe **concrete, recognizable content categories** rather than abstract quality gradients, and (b) only ONE construct is scored per pass. PSQ's problem is not the scale width — it's that the rubric teaches the scorer to collapse dimensions.
 
 **Potential fix:** Score with dimension name + definition only (no rubric anchors), or redesign anchors to be structurally dissimilar across dimensions — using concrete content-type examples rather than abstract quality levels. This predicts within-text SD ~0.6-0.8 and mean |r| ~0.55-0.65 on a 0-100 scale — combining fine resolution with genuine dimension differentiation.
+
+---
+
+## 48. v20 Training: Pct Data Impact (2026-02-28)
+
+v20 trained with all existing data plus the 200-text pct-scored batch (2,000 new separated-llm scores with 86.2% non-integer values, 35 unique score levels). Full 10 epochs, no early stopping.
+
+### Results
+
+| Metric | v19 | v20 | Δ |
+|---|---|---|---|
+| test_r | 0.509 | 0.501 | -0.008 |
+| held-out_r | 0.600 | 0.600 | +0.001 |
+
+### Per-Dimension Held-Out Comparison
+
+| Dimension | v16 (prod) | v20 | Δ |
+|---|---|---|---|
+| threat_exposure | 0.495 | 0.467 | -0.028 |
+| hostility_index | 0.571 | 0.590 | +0.019 |
+| authority_dynamics | 0.657 | 0.654 | -0.003 |
+| energy_dissipation | 0.648 | 0.614 | -0.034 |
+| regulatory_capacity | 0.710 | 0.714 | +0.004 |
+| resilience_baseline | 0.624 | 0.622 | -0.002 |
+| trust_conditions | 0.636 | 0.620 | -0.016 |
+| cooling_capacity | 0.602 | 0.625 | +0.023 |
+| defensive_architecture | 0.538 | 0.557 | +0.019 |
+| contractual_clarity | 0.513 | 0.537 | +0.024 |
+| **Mean** | **0.599** | **0.600** | **+0.001** |
+
+### Analysis
+
+1. **Pct data is neutral.** 200 pct-scored texts out of ~17K training texts produced no measurable improvement. Three possible explanations: (a) 200 texts is too small to move the needle, (b) DistilBERT is already extracting what it can from label signal, (c) finer score granularity doesn't help when the held-out labels are integer-scored.
+
+2. **Dimension trade-offs are noise.** CO (+0.024) and CC (+0.023) improved slightly; ED (-0.034) and TE (-0.028) regressed slightly. These are within random training variance for a 100-text held-out set.
+
+3. **v20 NOT promoted.** No advantage over v16 (production). v19 remains the mathematical best but v16 was promoted based on dimension-level trade-offs; v20 doesn't change the picture.
+
+4. **Pct scoring verdict:** The FA v3 finding (dimension collapse) is the dominant concern. Even if pct data helped training marginally, the label quality (94% shared variance, within-SD 0.45) is too correlated to provide useful dimension-level signal. Integer scoring retained as standard.
+
+### Scoring Research Plan
+
+Following the variance decomposition (§47) and literature search on rubric-induced halo, a systematic research plan was created (`scoring-research-plan.md`) tracking 8 research avenues:
+
+1. **Scale format test** — compare 1-5, 1-7, 0-10, 0-100 on dimension differentiation (Preston & Colman, 2000; Li et al., 2026)
+2. **Structurally dissimilar rubrics** — redesign anchors to be dimension-specific, not isomorphic (Humphry & Heldsinger, 2014) — **highest priority**
+3. **Forced-choice/ipsative elements** — pairwise comparisons between dimensions (Bartram, 2007)
+4. **Randomized dimension order** — mitigate sequential anchoring (Bae & Lee, 2020)
+5. **Halo-awareness instructions** — meta-cognitive prompting (Sulsky & Day, 1994)
+6. **Chain-of-thought with quote retrieval** — force textual evidence citation before scoring (Wei et al., 2022)
+7. **Bifactor-aware scoring** — score g-PSQ first, then dimension deviations (novel approach)
+8. **Human expert validation** — definitive test of whether g-factor is LLM-specific or construct-inherent
+
+Key literature finding: Humphry & Heldsinger (2014) showed that structurally aligned rubric categories cause halo — directly applicable to PSQ's isomorphic rubric structure. This is the highest-priority avenue for intervention.
 
 ---
 
