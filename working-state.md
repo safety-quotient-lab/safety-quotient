@@ -123,11 +123,11 @@ CMV results favor Theory 3 (context-dependent). Construct rename: authority_dyna
 
 ## Known Issues
 
-- **Integer-only scoring bias** (NEW): LLM almost never uses non-integer scores. Effective scale is 11 bins (integers 0-10), not continuous. The 4-5-6 band captures 57-81% of all separated-llm scores. This inflates inter-dimension correlations and limits model resolution. Proposed fix: 0-100 percentage scoring scale.
-- **CO score-5 concentration**: 60.8% of separated-llm CO scores are exact 5.0 (worst of all dims). The PSQ construct definitions and scoring rubric (psq-definition.md) are externally authored and will not be modified. Mitigation is limited to: (a) score-concentration cap in distill.py, (b) keyword-filtered labeling batches, (c) broader text diversity, (d) potential 0-100 scale.
+- **Integer-only scoring bias** (MITIGATED): 0-100 percentage scale implemented (`--pct` flag). Pilot confirms: non-integer 2.1%→77.8%, exact-5 41.3%→7.2%. All future batches should use `--pct`. Existing 22,771 separated-llm scores remain integer-only.
+- **CO score-5 concentration** (IMPROVED): Pilot shows CO exact-5 drops from 60.8% to 10.0% with percentage scale. Structural mitigation: score-concentration cap + `--pct` scoring.
 - **AD data provenance**: 70.4% LLM-generated effective training signal (middle of pack, not outlier). Needs expert validation to confirm.
 - **DA construct validity**: max promax loading 0.332 (below 0.35 threshold). 49% of scores are exact 5.0. Requires human expert validation.
-- **g-factor inflation uncertainty**: g-factor eigenvalue 6.727 (67.3%) may be partly artifactual from integer-only bias. Resolution pending 0-100 scale pilot.
+- **g-factor inflation uncertainty**: g-factor eigenvalue 6.727 (67.3%) may be partly artifactual from integer-only bias. Resolution requires pct-scored data + re-run EFA. Factor analysis v3 yielded no new info (same N=1,970, AD is bottleneck).
 
 ---
 
@@ -141,12 +141,19 @@ CMV results favor Theory 3 (context-dependent). Construct rename: authority_dyna
 
 See `TODO.md` for full task list. Immediate priorities:
 
-1. **Integer-only scoring bias investigation** — Pilot 0-100 percentage scoring scale on 50 texts. Compare score distributions, inter-dimension correlations, and effective resolution vs. 0-10 integer scale. If successful, relabel with 0-100 scale for future batches.
-2. **v19 promotion** — Re-export ONNX from v19, promote to `models/psq-student/` production slot.
-3. **Bifactor full training** — `--bifactor` flag implemented and smoke-tested. Run full training with v19 data to evaluate g-PSQ head quality.
-4. **Factor analysis v3** — After 0-100 scale pilot, re-run EFA to determine if g-factor eigenvalue is genuine or inflated by integer bias.
-5. **Expert validation** — protocol designed, recruitment not started
+1. **Production pct-scored batch** — Extract 200+ texts with `--pct`, score using separated protocol (1 dim per session). This is the critical path to resolving g-factor inflation question.
+2. **Bifactor v19b evaluation** — Training in progress. Evaluate g-PSQ head quality on held-out.
+3. **Factor analysis with pct data** — After production pct batch is scored and ingested, re-run EFA to test if g-factor eigenvalue drops.
+4. **Expert validation** — protocol designed, recruitment not started
+
+### Completed This Session
+
+- v19 promoted to production (ONNX re-exported)
+- `--pct` flag implemented in `label_separated.py`
+- Percentage scoring pilot: 50 texts × 10 dims, confirms 37× improvement in non-integer scores
+- Factor analysis v3: same N=1,970 (AD bottleneck), no new findings
+- Bifactor v19b training launched
 
 ---
 
-*Last updated: 2026-02-28 (v19 cycle)*
+*Last updated: 2026-02-28 (pct pilot + bifactor cycle)*

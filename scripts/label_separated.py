@@ -318,7 +318,10 @@ def cmd_ingest(args):
             entry["started_at"] = started.isoformat()
             entry["duration_minutes"] = round(duration_min, 1)
             entry["texts_per_hour"] = round(len(normalized) / (duration_min / 60), 1) if duration_min > 0 else None
-            print(f"  Timing: {duration_min:.1f} min, {entry['texts_per_hour']:.0f} texts/hr")
+            if entry["texts_per_hour"] is not None:
+                print(f"  Timing: {duration_min:.1f} min, {entry['texts_per_hour']:.0f} texts/hr")
+            else:
+                print(f"  Timing: {duration_min:.1f} min (rate N/A)")
         except ValueError:
             print(f"  WARNING: Could not parse --started-at '{args.started_at}', skipping timing")
 

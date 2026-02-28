@@ -58,3 +58,12 @@
 {"timestamp": "2026-02-28T02:00:12.400435-06:00", "dimension": "cooling_capacity", "n_scored": 300, "n_total": 300, "batch": "data/labeling-batch-broad.jsonl"}
 {"timestamp": "2026-02-28T02:00:56.332237-06:00", "dimension": "defensive_architecture", "n_scored": 300, "n_total": 300, "batch": "data/labeling-batch-broad.jsonl"}
 {"timestamp": "2026-02-28T02:01:39.499708-06:00", "dimension": "contractual_clarity", "n_scored": 300, "n_total": 300, "batch": "data/labeling-batch-broad.jsonl"}
+{"timestamp": "2026-02-28T03:17:21.580863-06:00", "dimension": "hostility_index", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:17:39.335364-06:00", "dimension": "authority_dynamics", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:17:54.895346-06:00", "dimension": "energy_dissipation", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:17:54.942872-06:00", "dimension": "regulatory_capacity", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:18:25.939354-06:00", "dimension": "resilience_baseline", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:18:25.983458-06:00", "dimension": "trust_conditions", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:18:26.042786-06:00", "dimension": "cooling_capacity", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:18:26.096383-06:00", "dimension": "defensive_architecture", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}
+{"timestamp": "2026-02-28T03:18:26.141877-06:00", "dimension": "contractual_clarity", "n_scored": 50, "n_total": 50, "batch": "data/labeling-batch-pct-pilot.jsonl"}

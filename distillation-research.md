@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v19 best (test_r=0.509, held-out_r=0.600, +0.032 vs v18). v18 still in production slot pending v19 ONNX re-export. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Integer-only scoring bias discovered.
-**Next:** Investigate integer-only scoring bias (consider 0-100 percentage scale), bifactor full training, v19 promotion (ONNX re-export).
+**Status:** v19 production (test_r=0.509, held-out_r=0.600). 4 criterion validity studies. DB: 21,427 texts, 76,361 scores, 22,771 separated-llm. Integer-only bias confirmed; 0-100 percentage scale pilot successful (non-integer 2.1%→77.8%, exact-5 41.3%→7.2%). Bifactor v19b training in progress.
+**Next:** Production-scale percentage scoring batches, bifactor evaluation, factor analysis with pct-scored data.
 
 ---
 
@@ -58,6 +58,7 @@
 41. [v19 Training Results](#41-v19-training-results-2026-02-28) — held-out_r=0.600 (new best, +0.032 vs v18), TE +0.125, broad-spectrum batch drives weak-dim recovery
 42. [Factor Analysis v2: g-Factor Strengthening](#42-factor-analysis-v2-g-factor-strengthening-2026-02-28) — N=1,970, eigenvalue 6.727 (67.3%), KMO=0.902, 5-factor structure collapsed, parallel analysis retains 1 factor only
 43. [Score Distribution Audit: Integer-Only Bias](#43-score-distribution-audit-integer-only-bias-2026-02-28) — LLM almost never uses non-integer scores, effective 11-bin scale, CO worst at 60.8% score-5
+44. [Percentage Scoring Pilot](#44-percentage-scoring-pilot-2026-02-28) — 0-100 scale breaks integer bias: non-integer 2.1%→77.8%, exact-5 41.3%→7.2%, 26 unique values per dim vs 11
 13. [References](#13-references)
 
 ---
@@ -3631,7 +3632,70 @@ The primary candidate for addressing integer-only bias is to switch the LLM scor
 - Allow post-hoc binning or smoothing during training
 - Maintain backward compatibility with existing 0-10 score infrastructure after dividing by 10
 
-**Status:** Proposed, not yet tested. Next step is a pilot comparison: score 50 texts on both 0-10 and 0-100 scales, compare score distributions and inter-dimension correlations.
+**Status:** Pilot completed (§44). 0-100 percentage scale implemented (`--pct` flag in `label_separated.py`). Ready for production batches.
+
+---
+
+## 44. Percentage Scoring Pilot (2026-02-28)
+
+### Rationale
+
+§43 established that LLM scoring on a 0-10 scale produces effectively integer-only values (2.1% non-integer across 22,771 separated-llm scores), creating an 11-bin scale where 41.3% of all scores are exact 5.0 and 71.1% fall in the 4-6 band. This limits score resolution and may artificially inflate inter-dimension correlations.
+
+**Hypothesis:** Presenting the same rubric on a 0-100 scale will force finer granularity, producing non-integer values on the internal 0-10 scale after dividing by 10.
+
+### Implementation
+
+Added `--pct` flag to `label_separated.py`:
+- **Extract:** Rubric anchor keys multiplied by 10 (0→0, 2→20, 5→50, 8→80, 10→100). Instructions say "0-100 scale", "50 = neutral."
+- **Ingest:** Auto-detects percentage scale from session metadata. Divides incoming scores by 10 before clamping to 0-10 internal scale. Storage format unchanged.
+- **Backward compatible:** Omitting `--pct` gives the original 0-10 workflow. Downstream pipeline (distill.py, DB, ONNX) unaffected.
+
+### Pilot Design
+
+- **N = 50 texts** randomly sampled from `data/unlabeled-pool.jsonl` (seed=42)
+- **Sources:** prosocial (17), empathetic_dialogues (13), berkeley (13), dreaddit (4), esconv (3)
+- **All 10 dimensions scored** in a single session (note: this violates the separated-scoring protocol and introduces halo, but the pilot's purpose is to test *scale resolution*, not inter-dimension independence)
+
+### Results: Score Resolution
+
+| Metric | 0-10 scale (DB, N=22,771) | 0-100 scale (pilot, N=500) | Change |
+|---|---|---|---|
+| Non-integer scores | 2.1% | **77.8%** | 37× improvement |
+| Exact 5.0 concentration | 41.3% | **7.2%** | 5.7× reduction |
+| 4-6 band concentration | 71.1% | **44.6%** | 26pp reduction |
+| Unique values (overall) | 20 | **35** | 1.75× more |
+
+Per-dimension improvements:
+
+| Dimension | DB unique | DB exact-5% | Pilot unique | Pilot exact-5% |
+|---|---|---|---|---|
+| threat_exposure | 20 | 24.1% | 26 | 4.0% |
+| hostility_index | 11 | 43.4% | 28 | 6.0% |
+| authority_dynamics | 9 | 46.7% | 23 | 6.0% |
+| energy_dissipation | 15 | 38.4% | 21 | 8.0% |
+| regulatory_capacity | 17 | 34.6% | 25 | 6.0% |
+| resilience_baseline | 8 | 45.4% | 24 | 8.0% |
+| trust_conditions | 9 | 39.9% | 23 | 6.0% |
+| cooling_capacity | 10 | 36.3% | 24 | 8.0% |
+| defensive_architecture | 17 | 45.0% | 24 | 10.0% |
+| contractual_clarity | 9 | 60.8% | 22 | 10.0% |
+
+CO — the worst offender at 60.8% exact-5 — dropped to 10.0%. Every dimension showed dramatic improvement in unique value count and score-5 reduction.
+
+### Results: Inter-Dimension Correlations (Caution)
+
+The pilot inter-dimension correlations were extremely high (mean |r| = 0.986), with all pairs above r = 0.96. **This is a known artifact of single-session scoring** (all 10 dims in one conversation, introducing halo). The within-text SD was only 0.228 — texts received essentially the same score on all dimensions.
+
+This does NOT invalidate the scale-resolution findings. The resolution improvements (non-integer percentages, reduced score-5 concentration) are properties of the *scale*, not the *scoring protocol*. Production use must follow the separated protocol (1 dim per session) as established for all prior labeling batches.
+
+### Conclusions
+
+1. **Percentage scoring works as hypothesized.** The 0-100 scale produces genuinely continuous scores on the 0-10 internal scale (e.g., 73→7.3, 42→4.2), breaking the integer-only constraint.
+2. **Score-5 concentration is dramatically reduced.** From 41.3% to 7.2% overall — the central measurement pathology identified in §43 is effectively resolved.
+3. **All future labeling batches should use `--pct`.** The tool is backward-compatible and auto-detects on ingest.
+4. **The factor analysis question remains open.** Whether the g-factor eigenvalue of 6.727 (67.3%) will decrease with pct-scored data depends on whether the integer bias was inflating correlations. This requires scoring a substantial batch (200+ texts) with proper separated scoring (1 dim per session), then re-running EFA.
+5. **Factor analysis v3 yielded no new information** — N remains 1,970 (authority_dynamics is the bottleneck at exactly 1,970 complete texts, while other dims have 2,200+). The v3 eigenstructure is identical to v2.
 
 ---
 
