@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC batches. DB: 20,927 texts, 71,361 scores, 17,771 separated-llm.
-**Next:** Expert panel validation (protocol ready), AD data provenance resolution, Deal or No Deal criterion validity replication.
+**Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC/TE batches. DB: 21,127 texts, 73,361 scores, 19,771 separated-llm.
+**Next:** Train v18 with CO batch data, Deal or No Deal + CMV criterion validity, expert panel validation.
 
 ---
 

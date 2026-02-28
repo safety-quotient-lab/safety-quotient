@@ -103,17 +103,17 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | CC focus batch | `data/labeling-batch-cc.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for cc-relevant content (calm, de-escalation, anger, composure). |
 | TE focus batch | `data/labeling-batch-te.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for te-relevant content (threat, violence, abuse, harm). TE score mean=3.17, good low-end variance. |
 
-**Total separated-llm training labels:** 17,771 scores (across 20,927 texts in DB).
+**Total separated-llm training labels:** 19,771 scores (across 21,127 texts in DB).
 
-## Composite Summary (v16+TE, 2026-02-28)
+## Composite Summary (v16+CO, 2026-02-28)
 
 | Metric | Value |
 |---|---|
-| Total texts in DB | 20,927 |
-| Total scores in DB | 71,361 |
+| Total texts in DB | 21,127 |
+| Total scores in DB | 73,361 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
 | Joint-LLM records | 12,257 |
-| Separated-LLM records | 17,771 |
+| Separated-LLM records | 19,771 |
 | Synthetic records | 846 |
 | Held-out test records | 100 (separate, not in training) |
 | Train / Val / Test | ~16,700 / ~2,000 / ~2,100 (hash-based text split) |
