@@ -30,6 +30,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import sys
 from itertools import combinations
@@ -68,6 +69,12 @@ def truncate_text(text, max_len=200):
     return text[:max_len] + "..."
 
 
+def _batch_fingerprint(input_path: Path, offset: int, n_records: int) -> str:
+    """Stable fingerprint for a batch: md5(file)[:12] + offset + n."""
+    h = hashlib.md5(input_path.read_bytes()).hexdigest()[:12]
+    return f"{h}:{offset}:{n_records}"
+
+
 def cmd_extract(args):
     """Extract per-dimension batch files from input JSONL."""
     input_path = Path(args.input)
@@ -90,6 +97,30 @@ def cmd_extract(args):
     instruments = load_instruments()
     WORK_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Guard: stale score files from a previous batch cause score-to-text mismatches.
+    stale = sorted(WORK_DIR.glob("*_scores.json"))
+    if stale:
+        if not args.force:
+            print("ERROR: Stale score files found from a previous batch:")
+            for p in stale:
+                try:
+                    n = len(json.loads(p.read_text()))
+                except Exception:
+                    n = "?"
+                print(f"  {p.name}  ({n} scores)")
+            print()
+            print("Overwriting lookup.json while these files exist will map their scores")
+            print("onto the WRONG texts in the new batch (the bug that triggered this guard).")
+            print()
+            print("Options:")
+            print("  1. Ingest completed dims first, then re-run extract.")
+            print("  2. Pass --force to clear stale files and start fresh.")
+            sys.exit(1)
+        else:
+            for p in stale:
+                p.unlink()
+            print(f"--force: cleared {len(stale)} stale score file(s).")
+
     # Save lookup (id → text + source) — IDs are global (offset-aware)
     lookup = {}
     for i, rec in enumerate(records):
@@ -99,13 +130,16 @@ def cmd_extract(args):
     with open(lookup_path, "w") as f:
         json.dump(lookup, f)
 
-    # Save session metadata (provenance for assembled output)
+    # Save session metadata (provenance + batch fingerprint for assemble validation)
+    fingerprint = _batch_fingerprint(input_path, args.offset, len(records))
     meta = {
         "scorer": args.scorer,
         "provider": args.provider,
         "interface": args.interface,
         "input_file": str(input_path),
         "offset": args.offset,
+        "batch_size": len(records),
+        "batch_fingerprint": fingerprint,
     }
     with open(WORK_DIR / "session_meta.json", "w") as f:
         json.dump(meta, f, indent=2)
@@ -234,6 +268,33 @@ def cmd_assemble(args):
     if args.limit > 0:
         records = records[:args.limit]
 
+    # Load session metadata early — validate batch fingerprint before assembling.
+    meta_path = WORK_DIR / "session_meta.json"
+    meta = {}
+    if meta_path.exists():
+        with open(meta_path) as f:
+            meta = json.load(f)
+
+    stored_fp = meta.get("batch_fingerprint")
+    if stored_fp:
+        offset = meta.get("offset", 0)
+        n = meta.get("batch_size", len(records))
+        current_fp = _batch_fingerprint(input_path, offset, n)
+        if stored_fp != current_fp:
+            print("WARNING: Score files were generated for a DIFFERENT batch than the one you")
+            print(f"  are assembling now.")
+            print(f"  Scores generated for: {meta.get('input_file', '?')}  (fingerprint {stored_fp})")
+            print(f"  You are assembling:   {input_path}  (fingerprint {current_fp})")
+            print()
+            print("Assembling will map scores to the WRONG texts. Aborting.")
+            print("If you are sure this is intentional, delete session_meta.json to bypass.")
+            sys.exit(1)
+    elif meta.get("input_file") and meta["input_file"] != str(input_path):
+        # Legacy: no fingerprint but input_file differs
+        print(f"WARNING: Scores were generated for '{meta['input_file']}' "
+              f"but you are assembling '{input_path}'.")
+        print("Proceeding — add batch_fingerprint support by re-running extract to guard this properly.")
+
     # Load all dimension scores
     dim_scores = {}
     missing_dims = []
@@ -252,12 +313,6 @@ def cmd_assemble(args):
             print("Missing dimensions will get score=5, confidence=0.1")
             sys.exit(1)
 
-    # Load session metadata (provenance)
-    meta_path = WORK_DIR / "session_meta.json"
-    meta = {}
-    if meta_path.exists():
-        with open(meta_path) as f:
-            meta = json.load(f)
     scorer    = meta.get("scorer", "claude-code")
     provider  = meta.get("provider", "anthropic")
     interface = meta.get("interface", "claude-code")
@@ -604,6 +659,8 @@ def main():
     p_ext.add_argument("--interface", default="claude-code",
                        choices=["claude-code", "api"],
                        help="How scoring will be invoked (default: claude-code)")
+    p_ext.add_argument("--force", action="store_true",
+                       help="Clear stale score files from a previous batch before extracting")
 
     p_ing = sub.add_parser("ingest", help="Import scored dimension results")
     p_ing.add_argument("--dim", required=True, help="Dimension name or abbreviation")
