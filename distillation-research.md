@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v21 production (test_r=0.504, held-out_r=0.630, best). Scoring experiments complete: halo-awareness instruction ADOPTED (+26.4% within-text SD, AUC=0.971), dissimilar rubrics REJECTED, scale format RETAINED. Halo is a scorer-level phenomenon — only explicit instruction helps.
-**Next:** Adopt halo-aware instruction in production labeling. Continue labeling batches with adopted protocol. Consider CoT quote retrieval prompt.
+**Status:** v21 production (test_r=0.504, held-out_r=0.630, best). Scoring experiments complete: all three interventions REJECTED (halo-awareness reversed after g-factor structural analysis). g-factor is real co-variation (range/extremity effect), not scorer artifact.
+**Next:** Enrich training with middle-g texts (g ∈ [3, 4.5) ∪ [5.5, 7]) for dimension-specific signal. Preserve hierarchical PSQ → cluster → dimension decomposition.
 
 ---
 
@@ -64,7 +64,8 @@
 47. [Factor Analysis v3: Percentage Scoring Deepens the g-Factor](#47-factor-analysis-v3-percentage-scoring-deepens-the-g-factor-2026-02-28) — pct-scored data shows eigenvalue 9.41 (94.1%), mean |r|=0.934. Integer bias NOT the cause; cross-session halo suspected.
 48. [v20 Training: Pct Data Impact](#48-v20-training-pct-data-impact-2026-02-28) — held-out_r=0.600 (flat vs v19), pct data neither helps nor hurts at 200-text scale
 49. [v21 Training: CO Batch and Scoring Experiments](#49-v21-training-co-batch-and-scoring-experiments-2026-02-28) — held-out_r=0.630 (new best, +0.030 vs v19), RC=0.729, CC=0.687, scoring experiment protocols designed
-50. [Scoring Experiment Results: Halo Reduction Interventions](#50-scoring-experiment-results-halo-reduction-interventions-2026-02-28) — halo-awareness ADOPTED (+26.4% SD, AUC=0.971), rubrics REJECTED, scale RETAINED
+50. [Scoring Experiment Results: Halo Reduction Interventions](#50-scoring-experiment-results-halo-reduction-interventions-2026-02-28) — all three interventions REJECTED; halo-awareness reversed after g-factor structural analysis
+51. [G-Factor Structural Analysis: Range-Extremity Effect and Hierarchical Model](#51-g-factor-structural-analysis-range-extremity-effect-and-hierarchical-model-2026-02-28) — g-factor is real (EV1=82.8% extreme vs 38.7% middle), hierarchical PSQ model, middle-g enrichment
 13. [References](#13-references)
 
 ---
@@ -4056,7 +4057,7 @@ Supporting scripts created: `scripts/scoring_experiment_analysis.py` (analysis: 
 
 ## 50. Scoring Experiment Results: Halo Reduction Interventions (2026-02-28)
 
-Four experiments completed to systematically test interventions for reducing LLM scoring halo. Results are definitive — only one intervention is effective.
+Four experiments completed to systematically test interventions for reducing LLM scoring halo. All three interventions are REJECTED — the halo-awareness instruction was initially adopted based on pre-registered criteria but reversed after structural analysis of the g-factor (see §51).
 
 ### Phase 0: Test-Retest Baseline (N=20 held-out texts)
 
@@ -4073,11 +4074,11 @@ Added explicit instruction: "Score ONLY [Dimension Name] — ignore your impress
 | Eigenvalue ratio | 78.4% | 68.6% | -9.8pp |
 | Control-treatment ρ | — | 0.892 mean | all ≥ 0.79 |
 
-**Decision: ADOPT.** All criteria exceeded (SD +26.4% >> 15% threshold, >> 2×Δ_noise).
+**Initial decision: ADOPT** (met all pre-registered criteria). **Subsequently REVERSED** — see §51.
 
 ### Criterion Validity Gate (N=40 CaSiNo negotiations)
 
-Scored 40 stratified CaSiNo dialogues (15 high-sat, 15 low-sat, 10 mid) with halo-aware prompt. AUC = 0.971 (>> 0.58 gate threshold). **PASSED.** Note: absolute AUC likely inflated by same-scorer awareness and small N; directional finding is strong.
+Scored 40 stratified CaSiNo dialogues (15 high-sat, 15 low-sat, 10 mid) with halo-aware prompt. AUC = 0.971 (>> 0.58 gate threshold). **PASSED.** Note: absolute AUC likely inflated by same-scorer awareness and small N; directional finding is strong. Gate result is moot given adoption reversal.
 
 ### Experiment 2: Dissimilar Rubrics (N=30 fresh texts)
 
@@ -4089,9 +4090,7 @@ Rewrote anchor vocabulary for CO, ED, AD to use dimension-specific behavioral fe
 | Mean inter-dim \|r\| | 0.810 | 0.793 | -0.017 |
 | Eigenvalue ratio | 83.3% | 82.1% | -1.2pp |
 
-**Diagnostic:** Only modified dims changed (CO exact-5: 77%→53%, AD: 60%→50%). 7 unmodified dims: ρ = 1.000 for 5/7 dims. No contagion effect — unmodified dims SD actually decreased 3.7%. This is construct redefinition, not halo reduction.
-
-**Decision: REJECT.** +5.3% SD well below 20% threshold. CO ρ = 0.626 (borderline) confirms the rewritten anchors measure a slightly different construct.
+**Decision: REJECT.** Only modified dims changed — construct redefinition, not halo reduction. +5.3% SD well below 20% threshold.
 
 ### Experiment 3: Scale Format (N=20 fresh texts)
 
@@ -4103,19 +4102,108 @@ Scored at 0-10 (control) and 1-7 scales. Pilot gate triggered (|r| difference 0.
 | Eigenvalue ratio | 75.4% | 74.7% | -0.7pp |
 | Mean entropy | 1.769 | 1.681 | -0.088 |
 
-Cross-scale ρ: mean 0.994 (range 0.968–1.000). Neutral rates identical across scales.
+**Decision: RETAIN 0-10.** Scale format has zero effect on halo.
 
-**Decision: RETAIN 0-10.** Scale format has zero effect on halo. Scorer applies identical rank ordering regardless of scale granularity.
+### Conclusions (Revised)
 
-### Conclusions
-
-1. **Halo-awareness instruction is the sole effective intervention.** It reduces g-factor eigenvalue from ~78%→69% and increases within-text SD by 26%, while preserving construct stability (all ρ ≥ 0.79) and criterion validity (AUC = 0.971).
-2. **Halo is a scorer-level phenomenon.** Structural interventions (rubric rewording, scale changes) cannot break it because the LLM forms a global text impression that is mapped across all dimensions.
+1. **All three scorer-level interventions are rejected.** Halo-awareness instruction was initially adopted but reversed after structural analysis revealed the g-factor is real co-variation, not scorer artifact (§51).
+2. **The g-factor is the PSQ.** At the broadest level of the hierarchical model (PSQ → clusters → dimensions), the general factor *is* the construct. Suppressing it with scorer instruction damages the theoretical structure.
 3. **Rubric changes risk construct redefinition** without reducing halo — a worse outcome than doing nothing.
 4. **The 0-10 integer scale is adequate.** No evidence that alternative scales reduce halo or improve differentiation.
-5. **Production recommendation:** Adopt halo-awareness instruction in all future separated scoring sessions. No rubric or scale changes needed.
+5. **Correct approach is structural, not scorer-level:** Enrich training data with middle-g texts where dimension-specific signal is strongest, and preserve the hierarchical decomposition in the model architecture (see §51).
 
 Full protocol and results: `scoring-experiments.md`.
+
+---
+
+## 51. G-Factor Structural Analysis: Range-Extremity Effect and Hierarchical Model (2026-02-28)
+
+### Motivation
+
+The scoring experiments (§50) raised a fundamental question: is the dominant eigenvalue (48-67% of variance across analyses) scorer halo or genuine co-variation? The answer determines whether we should fight the g-factor (via scorer instruction) or model it (via hierarchical architecture). We conducted a deep structural analysis of the separated-llm scoring data to distinguish these explanations.
+
+### Analysis 1: What Predicts the G-Factor?
+
+Computed per-text mean score across all 10 dimensions (g) for 2,359 texts with complete dimension coverage.
+
+| Predictor | Correlation with g | Interpretation |
+|---|---|---|
+| Text length (chars) | r = 0.012 | Zero — g is not a length artifact |
+| Source dataset | F-test significant | Berkeley g=3.85, ProsocialDialog g=5.16 — source explains some variance |
+| Text length + source (R²) | ~1.7% of EV1 variance | Partialing out both: EV1 drops 71.5% → 69.8%. Trivial. |
+
+**Conclusion:** The g-factor is not an artifact of text length, source composition, or any measurable text-level covariate. It reflects something intrinsic to the texts.
+
+### Analysis 2: The Range-Extremity Effect
+
+This is the critical finding. We stratified texts by their g-score into extreme vs. middle bands and computed the eigenvalue structure within each band.
+
+| Text group | n | EV1 | Mean |r| | PC1 loading SD | Interpretation |
+|---|---|---|---|---|---|
+| Extreme (g < 3 or g > 7) | 232 | 82.8% | 0.807 | 0.023 | Pure valence — all dims load equally |
+| Middle (g ∈ [4, 6]) | 1,447 | 38.7% | 0.285 | 0.117 | Genuine differentiation — RC/RB load highest, ED lowest |
+| Narrow middle (g ∈ [4.5, 5.5)) | ~600 | 23.6% | — | — | Dominated by exact-5 scores (62-76%) — noise, not differentiation |
+| Informative middle (g ∈ [3, 4.5) ∪ [5.5, 7]) | 681 | 64.2% | 0.595 | — | Best signal band — real co-variation with real differentiation |
+
+**Key insight:** Extreme texts have perfectly uniform PC1 loadings (SD = 0.023). This means every dimension contributes equally to the first principal component — there is no dimension-specific structure. The text is uniformly threatening (g < 3) or uniformly safe (g > 7), and all 10 dimensions correctly track this single valence signal. This is not halo — it's correct measurement. A workplace where someone is being actively threatened genuinely does have high hostility, low trust, poor contractual clarity, and high energy drain.
+
+Middle texts have structured PC1 loadings (SD = 0.117, 5× higher than extreme). RC and RB load highest on PC1 (internal resources are the best predictor of moderate overall safety); ED loads lowest (energy dynamics operate independently in the moderate range). This matches the EFA 5-factor structure and is theoretically coherent.
+
+### Analysis 3: Ipsatization (G-Factor Removal)
+
+After subtracting per-text means (removing g), the residual inter-dimension correlations reveal bipolar structure:
+
+| Pair | Ipsatized r | Interpretation |
+|---|---|---|
+| TE-HI | +0.43 | Threat cluster — genuine co-variation |
+| ED-CC | -0.51 | Tradeoff — energy drain and contractual clarity are inversely related |
+| RC-RB | +0.42 | Internal resources cluster |
+| Mean |r| (all pairs) | 0.232 | Down from 0.679 — most co-variation was genuine g |
+
+The ipsatized structure matches the EFA cluster solution from §26: Hostility/Threat (HI, TE, CC), Internal Resources (RB, RC, DA), Relational Contract (CO, TC), with AD and ED as context-dependent singletons.
+
+### Analysis 4: Score-5 Diagnostic
+
+Texts scored exactly 5 on one dimension were examined for scoring patterns on the other 9 dimensions:
+
+- Texts scored 5 on most dimensions have **lower** SD on the remaining dimensions — consistent with halo (global neutral impression → all dims neutral)
+- **Exception:** CO. Texts scored 5 on CO have **slightly higher** SD on other dimensions (+0.047) — CO = 5 genuinely means "no contractual content" and is independent of overall text quality
+
+This confirms CO is correctly defined as a content-presence dimension rather than a quality-valence dimension.
+
+### Analysis 5: Implications for Model Architecture
+
+The user's key insight: **the g-factor IS the PSQ at its broadest level**. The hierarchical decomposition should be:
+
+```
+PSQ (g-factor, overall safety)
+├── 2-factor (e.g., Threat vs Resource)
+│   ├── 3-factor
+│   │   ├── 5-factor (Hostility/Threat, Relational Contract, Internal Resources, Power Dynamics, Stress/Energy)
+│   │   │   └── 10 dimensions
+```
+
+This is fundamentally different from a bifactor model, which treats g as orthogonal to group factors. In the hierarchical model:
+- g **causes** the group factors (clusters), which **cause** the dimension scores
+- The correlations between dimensions are **explained by** the hierarchy — they flow through g and the clusters
+- At each level, you get an interpretable score: how safe is this text overall (g)? Is the threat from hostility or resource depletion (2-factor)? Which specific dimensions drive the concern (10-factor)?
+
+A bifactor model would make g and group factors **compete** for variance independently. This flattens the hierarchy and treats g as a nuisance to partition out rather than the construct itself. The scoring experiments confirmed that fighting g at the scorer level (halo-awareness instruction) produces changes within test-retest noise while introducing bias — the same logic applies to the model architecture.
+
+### Recommendation: Middle-G Text Enrichment (Option B)
+
+The student model learns the g-factor primarily from extreme texts where it's pure valence. To improve dimension-specific prediction, we should give it more training data from the **informative middle band** (g ∈ [3, 4.5) ∪ [5.5, 7]) where:
+- Dimensions genuinely differentiate (EV1 = 64.2%, not 82.8%)
+- PC1 loadings are structured (RC/RB high, ED low) rather than uniform
+- Exact-5 rates are moderate (24.2%, not 62-76%)
+
+**Implementation:** When selecting the next labeling batch from `data/unlabeled-pool.jsonl`, pre-score a sample of texts with the current v21 model to estimate g, then select texts in the informative middle band. This doesn't change the scoring instrument — it changes the training distribution to emphasize texts where dimension-specific signal is strongest.
+
+This approach:
+1. Preserves the hierarchical PSQ model (g remains the top-level construct)
+2. Doesn't modify the scoring prompt (avoiding CC bias and CO decoupling)
+3. Gives the student model more signal about what makes dimensions *different* at moderate safety levels
+4. Is complementary to the existing score-concentration cap (which prevents any single score value from dominating a dimension's training distribution)
 
 ---
 

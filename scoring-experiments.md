@@ -191,16 +191,76 @@ If we change rubric anchors and scores change, two explanations are possible:
 
 **Per-dimension control-treatment ρ:** TE=0.928, HI=0.882, AD=0.909, ED=0.957, RC=0.938, RB=0.844, TC=0.960, CC=0.785, DA=0.923, CO=0.791. All ≥ 0.70.
 
-**Decision: ADOPT.** The halo-awareness instruction:
+**Initial decision: ADOPT** (subsequently reversed — see Post-Hoc Analysis below).
+
+The instruction met all pre-registered adoption criteria:
 - Increased within-text SD by 26.4% (>> 2×Δ_noise of 0.022, >> 15% threshold)
 - Reduced g-factor eigenvalue from 78.4% → 68.6% (meaningful dimensionality recovery)
 - Reduced mean inter-dim |r| from 0.751 → 0.631
 - Maintained construct stability (all ρ ≥ 0.79)
 
-**Caveats:**
+**Caveats noted at time of adoption:**
 1. Single-scorer experiment — the "halo-aware" mindset is applied by the same scorer who knows the hypothesis. Cannot fully separate instruction effect from scorer intention.
 2. Exact-5 rates were mixed (HI and RB increased, TC and DA decreased) — the instruction did not uniformly reduce neutral scoring.
 3. Entropy mixed: DA/TC/CO/RC increased (better), HI/CC decreased (worse). Net effect is positive on structural metrics.
+
+### Post-Hoc Analysis: The Range-Extremity Effect (2026-02-28)
+
+Deeper investigation of the g-factor's source reversed the adoption decision. The central question: does the dominant eigenvalue reflect scorer halo (measurement artifact) or genuine co-variation (real psychological structure)? If the latter, the halo-aware instruction would be fighting real signal.
+
+**Finding 1: The g-factor is a range/extremity effect.**
+
+Texts were stratified by their mean score across all 10 dimensions (g):
+
+| Text group | n | EV1 | Mean |r| | PC1 loading SD |
+|---|---|---|---|---|
+| Extreme (g < 3 or g > 7) | 232 | 82.8% | 0.807 | 0.023 |
+| Middle (g ∈ [4, 6]) | 1,447 | 38.7% | 0.285 | 0.117 |
+| Informative middle (g ∈ [3, 4.5) ∪ [5.5, 7]) | 681 | 64.2% | 0.595 | — |
+
+Extreme texts have perfectly uniform PC1 loadings (SD = 0.023) — every dimension loads equally, indicating pure valence ("this text is uniformly threatening/safe"). Middle texts have structured PC1 loadings (SD = 0.117) — RC and RB load highest, ED lowest, indicating genuine psychological differentiation. The g-factor is substantially inflated by texts where all dimensions legitimately co-vary because the content is uniformly extreme.
+
+**Finding 2: Text properties don't explain the g-factor.**
+
+- Text length × g: r = 0.012 (zero correlation)
+- Partialing out text length + source: EV1 drops 71.5% → 69.8% (trivial, 1.7pp)
+- g-factor persists within every source dataset (54.9% – 77.4%)
+
+The g-factor is not a source artifact, length artifact, or scoring artifact — it reflects genuine co-variation in the texts themselves.
+
+**Finding 3: Ipsatization reveals real bipolar structure.**
+
+After subtracting each text's mean score (removing g), mean |r| drops from 0.679 to 0.232. The residual structure is theoretically coherent:
+- TE-HI: +0.43 (threat cluster)
+- ED-CC: -0.51 (energy depletion vs contractual clarity — genuine tradeoff)
+- RC-RB: +0.42 (internal resources cluster)
+
+This matches the EFA 5-factor structure from §26 and is consistent with the hierarchical decomposition PSQ → clusters → dimensions.
+
+**Finding 4: The instruction's individual effects are within noise.**
+
+- 79% of individual scores (237/300) were unchanged between control and treatment
+- Mean |Δ| per score = 0.217, which is *below* the test-retest noise floor of 0.54 (Phase 0 MAD)
+- CC showed systematic +0.33 upward bias (12/14 changes are +1) — mean shift, not differentiation
+- CO decoupled from other dimensions (HI-CO ρ: 0.506 → 0.111) — loss of legitimate co-variation
+- ~1/3 of the headline +26.4% SD increase comes from CC bias and CO decoupling
+
+**Finding 5: Halo-awareness would damage the hierarchical model.**
+
+The PSQ is intended to decompose hierarchically: PSQ (g) → 2-3 factor clusters → 5 factor groups → 10 dimensions. In this model, the g-factor *is* the PSQ — it's the construct at its broadest level. A bifactor architecture (which treats g as orthogonal to group factors) would flatten this hierarchy. The halo-aware instruction, by instructing the scorer to "ignore your impression of other dimensions," fights the real co-variation that defines the top of the hierarchy.
+
+For extreme texts (g < 3 or g > 7, n = 232), all dimensions *should* co-vary because the content is uniformly threatening or safe. Telling the scorer to ignore this is asking them to hallucinate dimension-specific signal where none exists.
+
+**Revised decision: REJECT.** The halo-awareness instruction:
+1. Fights genuine co-variation, not measurement artifact — the g-factor is primarily a range/extremity effect reflecting real textual properties
+2. Produces per-score changes below the test-retest noise floor (0.217 < 0.54)
+3. Introduces systematic CC bias (+0.33 mean shift) and CO decoupling
+4. Would damage the hierarchical PSQ model by suppressing legitimate g-factor signal
+5. Cannot distinguish halo from real co-variation at the scorer level
+
+**Alternative adopted: Structural approaches** (see §51 in distillation-research.md):
+- **Middle-g text enrichment:** Select labeling batch texts from g ∈ [3, 4.5) ∪ [5.5, 7] where dimension-specific signal is strongest, giving the student model more training signal about what makes dimensions *different*
+- **Hierarchical model architecture:** Preserve PSQ → cluster → dimension decomposition rather than bifactor (which treats g and group factors as orthogonal competitors)
 
 **Files:**
 - Control: `/tmp/psq_exp1_control.jsonl`
@@ -236,7 +296,7 @@ If we change rubric anchors and scores change, two explanations are possible:
 
 **Interpretation:** Gate formally PASSED. However, correlations are unusually high (mean r=0.793), likely inflated by: (a) small sample (N=40), (b) same scorer aware of outcomes, (c) no cross-validation. The directional finding is strong — halo-aware scores clearly maintain criterion validity — but absolute magnitudes should not be compared to the original CaSiNo study (model-scored, N=1,030, AUC=0.599).
 
-**Decision:** Proceed with halo-aware adoption. The gate confirms criterion validity is preserved at minimum; absolute AUC comparison is inappropriate given methodological differences.
+**Decision:** Gate formally PASSED — criterion validity preserved. However, halo-aware adoption was subsequently reversed based on structural analysis of the g-factor (see Post-Hoc Analysis above). The gate result is moot given the reversal.
 
 **Files:**
 - Texts: `/tmp/psq_casino_gate.jsonl`
@@ -526,14 +586,15 @@ Text selection script (to be written): deterministic hash-based sampling from un
 | Phase | Protocol | Scoring | Analysis | Decision |
 |---|---|---|---|---|
 | 0. Test-Retest | DONE | DONE | DONE | Qualified GO (6/10 ≥ 0.80) |
-| 1. Halo-Awareness | DONE | DONE | DONE | **ADOPT** (gate PASSED, AUC=0.971) |
+| 1. Halo-Awareness | DONE | DONE | DONE | **REJECT** (post-hoc: g-factor is real, not halo) |
 | 2. Dissimilar Rubrics | DONE | DONE | DONE | REJECT (construct redefinition, +5.3% SD) |
 | 3. Scale Format | DONE | DONE | DONE | RETAIN 0-10 (negligible effect, pilot gate triggered) |
 
 ### Summary of Findings
 
-1. **Halo-awareness instruction is the only effective intervention.** It reduced g-factor eigenvalue from 78.4%→68.6%, increased within-text SD by 26.4%, and passed the criterion validity gate (AUC=0.971).
-2. **Rubric structure does not drive halo.** Dissimilar rubrics changed construct definitions without reducing halo — only modified dims changed, no contagion effect on unmodified dims.
-3. **Scale format does not drive halo.** Scorer applies identical rank ordering at 0-10 and 1-7 scales. Neutral-anchoring rates are scale-independent.
-4. **Halo is primarily a scorer-level phenomenon** — the LLM forms a global impression of text quality and maps it across dimensions. Structural interventions (rubric wording, scale granularity) cannot break this without explicit instruction to score independently.
-5. **No combinatorial experiment needed** — only one intervention (halo-awareness) produced a positive effect. The others are null.
+1. **No scoring intervention is adopted.** All three interventions tested (halo-awareness instruction, dissimilar rubrics, alternative scale formats) are REJECTED. The halo-awareness instruction was initially adopted based on pre-registered criteria but reversed after structural analysis revealed the g-factor is primarily real co-variation, not scorer artifact.
+2. **The g-factor is a range/extremity effect.** Extreme texts (g < 3 or g > 7) show EV1 = 82.8% with perfectly uniform PC1 loadings (SD = 0.023) — pure valence, not halo. Middle texts (g 4-6) show EV1 = 38.7% with structured loadings (SD = 0.117) — genuine dimension-specific differentiation. The g-factor reflects real textual properties, not measurement artifact.
+3. **Rubric structure does not drive halo.** Dissimilar rubrics changed construct definitions without reducing halo — only modified dims changed, no contagion effect on unmodified dims.
+4. **Scale format does not drive halo.** Scorer applies identical rank ordering at 0-10 and 1-7 scales. Neutral-anchoring rates are scale-independent.
+5. **The g-factor IS the PSQ at its broadest level.** The hierarchical model PSQ → clusters → dimensions means the g-factor is the construct itself at the top of the hierarchy. Fighting it with scorer instruction would damage the theoretical structure. The correct approach is structural: enrich training data with middle-g texts (where dimension-specific signal is strongest) and preserve the hierarchical decomposition in the model architecture.
+6. **Scorer-level interventions cannot distinguish halo from real co-variation.** The halo-awareness instruction's individual score changes (mean |Δ| = 0.217) are below the test-retest noise floor (MAD = 0.54). The headline metrics improvements are partially attributable to CC bias (+0.33 mean shift) and CO decoupling (loss of legitimate co-variation).
