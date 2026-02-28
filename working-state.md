@@ -6,35 +6,35 @@ It is updated at the end of each working session. Snapshots are saved as
 
 ---
 
-## Current Model: psq-v16 (production), v18 training
+## Current Model: psq-v18 (production)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT → 10-dim regression (knowledge distillation) |
-| Test r (avg 10 dims) | 0.529 |
-| Held-out r (avg 10 dims) | 0.561 (+0.066 vs v15) |
-| Early stop | Epoch 6/9 |
+| Test r (avg 10 dims) | 0.525 |
+| Held-out r (avg 10 dims) | 0.568 (+0.007 vs v16, new best) |
+| Epochs | 10 (no early stop) |
 | Production checkpoint | `models/psq-student/best.pt` |
-| ONNX | `models/psq-student/model.onnx` (254 MB), `model_quantized.onnx` (64 MB) |
+| ONNX | needs re-export from v18 |
 
-### Per-dimension held-out r (v16)
+### Per-dimension held-out r (v18)
 
-| Dimension | Held-out r | Status |
-|---|---|---|
-| cooling_capacity | 0.643 | best |
-| authority_dynamics | 0.625 | good |
-| hostility_index | 0.604 | good |
-| energy_dissipation | 0.592 | good |
-| trust_conditions | 0.575 | good |
-| resilience_baseline | 0.563 | good — recovered from 0.285 |
-| regulatory_capacity | 0.563 | good — recovered from 0.285 |
-| contractual_clarity | 0.534 | good — recovered from 0.388 |
-| defensive_architecture | 0.523 | moderate |
-| threat_exposure | 0.347 | correlation artifact (MAE actually improved) |
+| Dimension | Held-out r | Δ vs v16 | Status |
+|---|---|---|---|
+| regulatory_capacity | 0.679 | +0.116 | **best** — massive jump |
+| resilience_baseline | 0.651 | +0.088 | strong gain |
+| trust_conditions | 0.620 | +0.045 | improved |
+| cooling_capacity | 0.618 | -0.025 | good |
+| authority_dynamics | 0.599 | -0.026 | good |
+| energy_dissipation | 0.562 | -0.030 | good |
+| hostility_index | 0.557 | -0.047 | good |
+| contractual_clarity | 0.533 | -0.001 | flat |
+| defensive_architecture | 0.488 | -0.035 | moderate |
+| threat_exposure | 0.370 | +0.023 | correlation artifact |
 
-### v18 in progress
+### g-Factor Prerequisite Check
 
-Training with CO batch data (200 texts × 10 dims, CO mean=4.36). Best epoch 5 so far (val_r=0.501, CO val_r=0.737). Running in background.
+r(mean_pred, mean_target) = **0.644** on held-out (n=87). Well below 0.95 — bifactor Option A is worth building.
 
 ---
 
@@ -114,7 +114,7 @@ CMV results favor Theory 3 (context-dependent). Construct rename: authority_dyna
 ## Known Issues
 
 - **AD data provenance**: 70.4% LLM-generated effective training signal (middle of pack, not outlier). Needs expert validation to confirm.
-- **TE correlation artifact**: held-out r=0.347 is misleadingly low; MAE actually improved. Caused by restricted variance in held-out TE scores.
+- **TE correlation artifact**: held-out r=0.370 is misleadingly low; MAE actually improved. Caused by restricted variance in held-out TE scores.
 - **DA construct validity**: max promax loading 0.332 (below 0.35 threshold). 49% of scores are exact 5.0. Requires human expert validation.
 
 ---
@@ -123,12 +123,12 @@ CMV results favor Theory 3 (context-dependent). Construct rename: authority_dyna
 
 See `TODO.md` for full task list. Immediate priorities:
 
-1. **v18 evaluation** — when training completes, run held-out eval
+1. **ONNX re-export from v18** — v18 promoted, ONNX needs re-export + INT8 quantization
 2. **DonD results** — when script completes, document (tests AD deal vs points prediction)
 3. **Score broad-spectrum batch** — 300 texts × 10 dims in `/tmp/psq_separated/`
-4. **Rename AD → power_positioning** — after expert validation confirms
-5. **Bifactor architecture design** — task #16
-6. **Publication framing** — journal §26 has narrative, TODO.md has structure
+4. **Bifactor Option A** — g-factor prerequisite confirmed (r=0.644), implement g-head
+5. **Score distribution remediation** — CO at 63.2% score-5 needs rubric revision, not just more data
+6. **Scoring rubric review** — check if psq-definition.md anchors still match learned constructs
 
 ---
 

@@ -164,10 +164,32 @@ Status: Protocol designed (§19), recruitment not started. 5 expert psychologist
 - **Therapeutic alliance** — predict WAI scores from therapy transcripts
 - **Educational discourse** — predict student engagement or learning outcomes from classroom discussion
 
+### Scoring rubric review
+
+**Why:** The score anchors in `psq-definition.md` were written at construct inception, before criterion validity studies revealed what the model actually learned. Key discrepancies likely exist:
+- AD (authority_dynamics): rubric describes institutional authority/hierarchy, but the model actually measures *status negotiation* in peer contexts (epistemic positioning, moral claims, relational power moves). See journal §24.
+- Other dimensions may have similar drift between intended construct and learned construct.
+
+**Approach:**
+- [ ] Review each dimension's score anchors (1-3, 4-6, 7-9) against actual high/low-scoring texts in the held-out set
+- [ ] For each dimension, sample 5 texts at score extremes (held-out predictions <3 and >7) and verify anchors match observed content
+- [ ] Update anchors where the model's learned construct diverges from the original definition
+- [ ] Prioritize AD (known discrepancy), ED (singleton, unclear construct), DA (weak factor loading)
+
+### Criterion validity summary table
+
+**Why:** Cross-study comparison data is scattered across journal.md §25, distillation-research.md §34, and psychometric-evaluation.md §3g. Need a single canonical table that lives somewhere accessible for quick reference during writing and presentations.
+
+**Approach:**
+- [ ] Create a comprehensive cross-study table with: study, dataset, domain, N, outcome, top predictor, AD rank, 10-dim metric, g-PSQ metric, key finding
+- [ ] Include all completed studies (CaSiNo, CGA-Wiki, CMV) plus DonD when complete
+- [ ] Place in `psq-definition.md` (Section: Criterion Validity Evidence) or as a standalone `criterion-validity-summary.md`
+- [ ] Reference from journal.md, distillation-research.md, and psychometric-evaluation.md
+
 ### Turn-by-turn temporal analysis
 
 Test prediction T2 from journal §24: does AD deteriorate before HI/TE in CGA-Wiki conversations that derail? Cross-lagged correlation analysis. Requires turn-level scoring (currently score full conversations).
 
 ### ONNX model re-export after v18
 
-If v18 is promoted, re-export ONNX + INT8 quantization + recalibrate.
+v18 promoted — re-export ONNX + INT8 quantization + recalibrate.

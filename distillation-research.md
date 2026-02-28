@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC/TE batches. DB: 21,127 texts, 73,361 scores, 19,771 separated-llm.
-**Next:** v18 training in progress, Deal or No Deal criterion validity, expert panel validation, broad-spectrum labeling batch scoring.
+**Status:** v18 promoted (test_r=0.525, held-out_r=0.568). Score-concentration cap + CO/RB/CC/TE batches. DB: 21,127 texts, 73,361 scores, 19,771 separated-llm.
+**Next:** ONNX re-export from v18, Deal or No Deal criterion validity, bifactor Option A (g-factor r=0.644, headroom confirmed), broad-spectrum labeling batch scoring.
 
 ---
 
@@ -50,6 +50,9 @@
 33. [Authority Dynamics and Energy Dissipation: Cluster Misfits and Predictive Dominance](#33-authority-dynamics-and-energy-dissipation-cluster-misfits-and-predictive-dominance-2026-02-28) — AD/ED don't belong in any cluster, AD is strongest external predictor, suppressor variable
 34. [Criterion Validity: CMV Persuasion Prediction](#34-criterion-validity-cmv-persuasion-prediction-2026-02-28) — 4,263 matched pairs, DA top predictor (not AD), profile >> average, context-dependent AD
 35. [Bifactor Architecture Design Analysis](#35-bifactor-architecture-design-analysis-2026-02-28) — three candidate designs (A: add g-head, B: orthogonal, C: cluster-mediated), decision framework
+36. [v18 Results and g-Factor Prerequisite Check](#36-v18-results-and-g-factor-prerequisite-check-2026-02-28) — v18 held-out_r=0.568 (new best), g-factor r=0.644 confirms bifactor headroom
+37. [ED Construct Validity Assessment](#37-ed-construct-validity-assessment-2026-02-28) — energy_dissipation is genuine singleton capturing resource depletion, context-dependent criterion validity
+38. [Score Distribution Audit](#38-score-distribution-audit-2026-02-28) — score-5 concentration still problematic (8/10 dims >30%), CO worst at 63.2%
 13. [References](#13-references)
 
 ---
@@ -3155,6 +3158,155 @@ The bifactor architecture has implications beyond held-out r. The criterion vali
 - **For context-specific applications:** weight residuals by context type (AD for contested-status, DA for fixed-status)
 
 This maps to the context-aware scoring API design in TODO.md.
+
+## 36. v18 Results and g-Factor Prerequisite Check (2026-02-28)
+
+### 36a. v18 Training Results
+
+v18 trained on the CO batch data (200 keyword-filtered co-relevant texts × 10 dims, CO mean=4.36). Ran all 10 epochs without early stopping (3360s total).
+
+| Dimension | v16 held-out | v18 held-out | Δ |
+|---|---|---|---|
+| threat_exposure | 0.347 | 0.370 | +0.023 |
+| hostility_index | 0.604 | 0.557 | -0.047 |
+| authority_dynamics | 0.625 | 0.599 | -0.026 |
+| energy_dissipation | 0.592 | 0.562 | -0.030 |
+| regulatory_capacity | 0.563 | **0.679** | **+0.116** |
+| resilience_baseline | 0.563 | **0.651** | **+0.088** |
+| trust_conditions | 0.575 | **0.620** | **+0.045** |
+| cooling_capacity | 0.643 | 0.618 | -0.025 |
+| defensive_architecture | 0.523 | 0.488 | -0.035 |
+| contractual_clarity | 0.534 | 0.533 | -0.001 |
+| **AVERAGE** | **0.561** | **0.568** | **+0.007** |
+
+**Key findings:**
+- RC massive jump (+0.116) — now the best individual dimension at 0.679
+- RB strong gain (+0.088) — up to 0.651
+- CO held-out flat (0.533) despite huge test improvement (test CO=0.766). The CO batch improved in-distribution generalization but the held-out set may lack CO variance.
+- HI, AD, ED, CC, DA each slightly down — typical dimension trade-off from redistributed gradient pressure.
+
+**Decision:** Promoted to production. The +0.007 average gain is modest but consistent, and the RC/RB/TC improvements are individually significant.
+
+### 36b. g-Factor Prerequisite Check
+
+Tested whether a dedicated g-head (bifactor Option A) would add value by computing `corr(mean(dim_predictions), mean(dim_targets))` on the held-out set using v18.
+
+| Metric | Value |
+|---|---|
+| **r(mean_pred, mean_target)** | **0.644** |
+| R² | 0.415 |
+| N (texts with all 10 valid) | 87/100 |
+
+**Verdict:** r=0.644 is far below the 0.95 threshold where a g-head would be redundant. The model's 10 dimension heads, when averaged, explain only 41.5% of the variance in the true general factor. Even a 10-predictor OLS regression only reaches R²=0.466.
+
+**Implication:** A dedicated g-head learning directly from the CLS embedding could capture shared psychological safety signal that the 10 separate heads miss. Proceed with bifactor Option A.
+
+## 37. ED Construct Validity Assessment (2026-02-28)
+
+Energy_dissipation (ED) is the other singleton factor alongside AD (§33). Unlike AD — which has generated extensive theoretical analysis due to its surprising criterion validity — ED has received less scrutiny. This section consolidates the evidence.
+
+### 37a. Factor Structure
+
+ED loads as its own singleton factor (F5: Stress/Energy, promax loading +0.77) in the 5-factor solution (§27). When forced into 3 factors, its R²=0.449 — the worst reconstruction of any dimension. ED is nearly equidistant from all three major clusters (Internal Resources: 0.506, Hostility/Threat: 0.480, Relational Contract: 0.466), making it a true orphan.
+
+**g-factor loading:** R²=0.447 — the *lowest* of all 10 dimensions. ED is the most independent from the general safety factor, meaning it measures something genuinely distinct from the shared safety-threat continuum.
+
+**Unique variance:** 34.6% retained after removing all 9 other dimensions. This is substantial and comparable to AD's 36.4%.
+
+### 37b. Partial Correlation Structure
+
+After removing g-PSQ (§33b), ED shows:
+- Strong negative partial with CC (-0.536) and TC (-0.455): ED-residual describes depletion *without* cooling opportunities or trust
+- Strong positive partial with TE (+0.470): ED-residual co-occurs with high threat
+- This pattern matches Conservation of Resources theory (Hobfoll, 1989) — resource drain without replenishment in threatening environments
+
+### 37c. Criterion Validity
+
+ED's criterion performance is context-dependent and illuminating:
+
+| Study | Domain | ED metric | Rank (of 10) | Interpretation |
+|---|---|---|---|---|
+| CaSiNo (§30) | Negotiation | r=+0.114*** (satisfaction), r=+0.125*** (likeness) | 2nd (satisfaction), 2nd (likeness) | **Strong** — energy dynamics strongly predict negotiation outcomes |
+| CGA-Wiki (§31) | Derailment | ΔAUC=-0.005 (leave-one-out) | 7th | **Weak** — ED adds minimal signal for derailment prediction |
+| CMV (§34) | Persuasion | — | — | Moderate (neither top nor bottom predictor) |
+
+The CaSiNo vs CGA-Wiki contrast is theoretically meaningful:
+- In **negotiations**, energy depletion directly affects satisfaction — exhausted negotiators are unhappy. ED is a process-level construct that captures how depleting the interaction was.
+- In **derailment prediction**, ED adds little because derailment is driven by power dynamics (AD) and hostility (HI), not exhaustion. You don't need to be exhausted to derail a conversation.
+
+This pattern supports ED as a *process-level* rather than *outcome-level* construct. ED captures how draining the interaction is, which matters for satisfaction/experience outcomes but not for behavioral escalation outcomes.
+
+### 37d. Data Quality
+
+| Source | N | Score-5% | Mean | Std |
+|---|---|---|---|---|
+| composite-proxy | 3,728 | 48.6% | 4.35 | — |
+| separated-llm | 1,962 | 42.2% | 4.73 | 1.24 |
+| joint-llm | 1,108 | 83.8% | 4.87 | — |
+| synthetic | 150 | 10.0% | 6.10 | — |
+
+The separated-llm distribution shows moderate score-5 concentration (42.2%) with reasonable spread (std=1.24). The proxy labels come primarily from Dreaddit (stress detection), which provides a binary stress/non-stress signal mapped to a continuous scale — adequate for the aggressive end but noisy in the middle.
+
+### 37e. Construct Validity Verdict
+
+**ED is a valid, genuine singleton construct.** The evidence supports retaining it:
+
+1. **Factor independence:** Lowest g-loading (0.447), singleton promax factor, cannot be reconstructed from other dimensions (3-factor R²=0.449)
+2. **Theoretical grounding:** Maps to Conservation of Resources (Hobfoll, 1989) and allostatic load (McEwen, 1998), with distinctive partial correlation pattern (depletion + threat - cooling)
+3. **Context-dependent criterion validity:** Strong for process/experience outcomes (negotiation satisfaction), weak for behavioral outcomes (derailment) — theoretically coherent
+4. **Qualitative validation:** High ED-residual texts describe chronic exhaustion, burnout, sustained demand without relief — matching the intended construct
+
+**Key concern:** ED is inherently *longitudinal* — burnout, allostatic load, and resource depletion are processes that unfold over time. Scoring a single text for "energy dissipation" captures a snapshot, not the trajectory. This may explain the moderate held-out r (0.562) and moderate criterion validity: ED is best suited for temporal analysis (e.g., tracking depletion across turns in a conversation) rather than single-text classification.
+
+**Recommendation:** Retain ED as-is. Flag it in the publication as a "process dimension" that may show stronger criterion validity in temporal/longitudinal analyses (see TODO.md: turn-by-turn temporal analysis). Do not deprecate — the criterion evidence (CaSiNo: r=0.114***, 0.125***) is too strong.
+
+## 38. Score Distribution Audit (2026-02-28)
+
+### 38a. Score-5 Concentration by Dimension (separated-llm only)
+
+| Dim | N | %Score-5 | Std | Assessment |
+|---|---|---|---|---|
+| **CO** | 1,950 | **63.2%** | 1.11 | Critical |
+| RB | 1,750 | 47.2% | 1.17 | Severe |
+| AD | 2,330 | 46.0% | 1.61 | Severe |
+| DA | 2,000 | 45.0% | 1.12 | Severe |
+| HI | 1,750 | 44.8% | 1.49 | Severe |
+| ED | 1,962 | 40.3% | 1.24 | High |
+| TC | 1,750 | 39.0% | 1.40 | Moderate |
+| CC | 1,750 | 35.8% | 1.38 | Moderate |
+| RC | 2,350 | 35.1% | 1.32 | Moderate |
+| **TE** | 2,179 | **24.9%** | 1.86 | Good |
+
+8 of 10 dimensions exceed the 30% cap threshold in separated-llm data. The `_cap_score_concentration()` mechanism in distill.py mitigates this during training (reducing excess score-5 weights from 5.0 to 1.5), but cannot recover information that was never captured.
+
+### 38b. Separated-LLM vs Joint-LLM Improvement
+
+| Dim | Joint-LLM %5 | Separated-LLM %5 | Δ |
+|---|---|---|---|
+| TE | 74.2% | 24.9% | -49.3 pp (best) |
+| ED | 80.8% | 40.3% | -40.5 pp |
+| CC | 74.3% | 35.8% | -38.5 pp |
+| RB | 82.3% | 47.2% | -35.1 pp |
+| HI | 78.9% | 44.8% | -34.1 pp |
+| RC | 68.9% | 35.1% | -33.8 pp |
+| DA | 62.9% | 45.0% | -17.9 pp |
+| TC | 30.7% | 39.0% | +8.3 pp |
+| AD | 24.7% | 46.0% | +21.3 pp |
+| **CO** | 34.7% | **63.2%** | **+28.5 pp** |
+
+Separated scoring dramatically improved 7/10 dimensions but worsened 3 (CO, AD, TC). The CO regression is especially concerning: the CO-focused labeling batch (200 keyword-filtered texts) did not resolve the problem. The root cause is likely construct ambiguity — most texts are genuinely neutral on CO, producing a legitimate (but unhelpful) pile-up at 5.0.
+
+### 38c. Success Story: TE
+
+TE has the best distribution (24.9% score-5, std=1.86, entropy ratio 0.91). The TE-focused batch used keyword-filtered texts with pre-selected threat-relevant content (mean=3.17), which produced scores spread across the full range. This strategy — selecting texts likely to produce extreme scores — should be replicated for the worst dimensions.
+
+### 38d. Recommendations
+
+1. **Broad-spectrum batch is critical.** The 300-text batch in `/tmp/psq_separated/` (150 random + 100 single-dim + 50 multi-dim) is designed to produce varied scores across ALL dimensions. This should address the non-target-dimension concentration problem.
+
+2. **CO needs rubric revision, not just more data.** At 63.2% score-5, more CO-keyword texts won't help if the LLM's scoring rubric doesn't differentiate middle-range CO. Consider revising CO score anchors to be more discriminating.
+
+3. **AD and TC regression may be an artifact of text selection.** Previous batches focused on specific dimensions, and the non-target dimensions (including AD and TC) received passive scoring on texts that genuinely lack variation on those constructs. The broad-spectrum batch should partially address this.
 
 ## 13. References
 

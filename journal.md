@@ -425,16 +425,16 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ## 14. Current State and Open Questions
 
-### 14a. Model Performance (v15, 2026-02-27)
+### 14a. Model Performance (v18, 2026-02-28)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 20,127 texts in DB (63,361 scores, 9,771 separated-llm) |
-| Test avg Pearson r | 0.536 (10/10 dimensions positive) |
-| Held-out avg Pearson r | 0.495 (+0.013 vs v14, +0.093 vs v13) |
-| Generalization gap | 7.6% (down from 11.4% in v14) |
-| ONNX model size | 64 MB (INT8 quantized, v13 — v15 not yet exported) |
+| Training data | 21,127 texts in DB (73,361 scores, 19,771 separated-llm) |
+| Test avg Pearson r | 0.525 (10/10 dimensions positive) |
+| Held-out avg Pearson r | 0.568 (new best, +0.007 vs v16, +0.140 vs v13) |
+| Generalization gap | ~8% |
+| ONNX model size | 64 MB (INT8 quantized, v16 — v18 not yet exported) |
 | Inference latency | ~20ms / text (CPU) |
 
 ### 14b. Psychometric Properties
@@ -444,10 +444,10 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Test-retest reliability | Excellent | ICC = 0.935 (perturbation-based) | ICC > 0.75 (Cicchetti, 1994) |
 | Discriminant validity (vs. sentiment) | Strong | Mean |r| = 0.205 vs VADER | r < 0.30 (distinct construct) |
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
-| Held-out generalization | Moderate | r = 0.495, n = 100 (separated labels, v15) | Comparable to brief personality measures |
-| Construct validity (discriminant) | Confirmed | Halo addressed; 3-cluster hierarchy implemented | Requires CFA (n ≥ 200) |
+| Held-out generalization | Moderate-Good | r = 0.568, n = 100 (separated labels, v18) | Comparable to brief personality measures |
+| Construct validity (discriminant) | Confirmed | 5-factor EFA (n=2,359); AD/ED singletons | CFA needed (n ≥ 200) |
+| Criterion validity | **Medium-High** | **3 studies: CaSiNo, CGA-Wiki, CMV** | Profile >> average; context-dependent primacy |
 | Inter-rater reliability | Not measured | — | Critical gap |
-| Criterion validity | Not measured | — | Requires external criterion |
 | Measurement invariance | Not measured | — | DIF analysis across text types |
 
 ### 14c. Open Questions
