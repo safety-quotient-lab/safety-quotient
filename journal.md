@@ -28,7 +28,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 15. [Separated Scoring and Hierarchical Reporting](#15-separated-scoring-and-hierarchical-reporting)
 16. [Training Data Labeling Expansion and V14](#16-training-data-labeling-expansion-and-v14-2026-02-27)
 17. [Score-Concentration Fix and Targeted Labeling](#17-score-concentration-fix-and-targeted-labeling-2026-02-27)
-18. [References](#18-references)
+18. [Factor Analysis: The General Factor Question](#18-factor-analysis-the-general-factor-question-2026-02-28)
+19. [References](#19-references)
 
 ---
 
@@ -629,7 +630,23 @@ Notably, the generalization gap inverted: test_r=0.529 vs held-out_r=0.561, mean
 
 ---
 
-## 18. References
+## 18. Factor Analysis: The General Factor Question (2026-02-28)
+
+We subjected the 10-dimension PSQ to full exploratory factor analysis for the first time. The dataset comprised 2,359 texts with complete 10-dimension coverage — 1,470 from separated-llm scoring (halo-free) and the remainder from joint-llm and composite-proxy sources. KMO was 0.819 (meritorious), confirming the data was well-suited for factor analysis.
+
+The results were unambiguous: the 10-factor independence hypothesis was rejected by every standard criterion. Kaiser's rule retained 3 factors, parallel analysis retained 2, and BIC model selection favored 5. A dominant first eigenvalue (4.844, explaining 48.4% of variance) indicated that most dimensions load on a single general factor — what we might call "overall psychological safety of content."
+
+The finding was even stronger in the separated-llm subset. Counter-intuitively, halo-free scoring produced *higher* inter-dimension correlations (mean |r|=0.564 vs 0.417 for all data). We had expected the opposite: that joint scoring inflated correlations and separated scoring would reveal independence. Instead, the composite-proxy data — with its narrow, noisy per-dimension mappings — had been *artificially deflating* correlations by introducing independent noise into each dimension. When scored with careful, dimension-specific attention, the LLM teacher recognized the genuine co-variation that exists in natural text: hostile content really does tend to lack trust, impair regulation, and involve power imbalances.
+
+The BIC-best 5-factor solution revealed interpretable clusters: Hostility/Threat (HI, TE, CC), Relational Contract (CO, TC), Internal Resources (RB, RC, DA), Power Dynamics (AD), and Stress/Energy (ED). Defensive architecture cross-loaded on three factors, confirming its status as the most diffuse construct in the system (see §12 in the psychometric evaluation).
+
+This result has a parallel in personality psychology. The Big Five personality factors (Costa & McCrae, 1992) also show a general factor — the "Big One" or general factor of personality (GFP; Musek, 2007) — that explains roughly 50% of variance. Yet the field retains the five-factor structure because (a) the factors have distinct predictive validity for different outcomes, and (b) they suggest different interventions. Similarly, the 10 PSQ dimensions may co-vary but serve different theoretical and practical purposes: hostility implies content moderation, while contractual clarity implies expectation-setting.
+
+Our recommendation is a hierarchical reporting model: an overall PSQ score (general factor), 3–5 cluster scores, and 10 dimension scores with the explicit caveat that dimensions within a cluster are not independent. This is analogous to how the WISC reports Full Scale IQ, Index Scores, and Subtest Scores — a nested measurement framework where the subscales provide texture within a dominant general factor. We do not claim 10 independent dimensions; we claim 10 theoretically distinct facets of a coherent construct.
+
+---
+
+## 19. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

@@ -2330,6 +2330,101 @@ This is not a training regression — v16 is genuinely more accurate. The correl
 
 ---
 
+## 26. Factor Analysis: 10-Dimension Structure Test (2026-02-28)
+
+### 26a. Motivation
+
+The psychometric evaluation identified high pairwise correlations between several dimensions (RC↔RB at 0.877, HI↔CC at 0.840 in earlier data). The question: do the 10 PSQ dimensions represent 10 distinct latent factors, or fewer? We tested H0: 10 factors should be retained.
+
+### 26b. Data
+
+2,359 texts with complete 10-dimension coverage from `best_scores` view:
+- 1,470 separated-llm (halo-free, one dim per LLM call)
+- 976 joint-llm
+- 150 composite-proxy
+
+### 26c. Adequacy
+
+- **KMO = 0.819** (meritorious — data is well-suited for factor analysis)
+- **Bartlett's test:** χ²=12,750.5, df=45, p≈0.000
+
+### 26d. Factor Retention Criteria
+
+| Method | Factors |
+|---|---|
+| Kaiser (eigenvalue > 1) | 3 (all data), 2 (separated-llm) |
+| Parallel analysis (Horn's, 95th %ile, 1000 iterations) | 2 |
+| BIC model selection | 5 (ΔBIC: 4-factor +110, 6-factor +1.4) |
+| 10-factor fit | Collapsed to 5 (F6–F10 zero loadings) |
+
+First eigenvalue: 4.844 (48.4% variance). Dominant general factor.
+
+### 26e. Eigenvalues
+
+| Factor | Eigenvalue | % Var | Cumul % |
+|---|---|---|---|
+| 1 | 4.844 | 48.4 | 48.4 |
+| 2 | 1.292 | 12.9 | 61.4 |
+| 3 | 1.029 | 10.3 | 71.6 |
+| 4 | 0.851 | 8.5 | 80.2 |
+| 5 | 0.572 | 5.7 | 85.9 |
+| 6–10 | 0.171–0.395 | 1.7–3.9 | 100.0 |
+
+### 26f. BIC-Best 5-Factor Solution (varimax)
+
+```
+         F1     F2     F3     F4     F5    h²
+TE    -0.72  -0.12  -0.05  -0.14   0.48  0.778
+RC    -0.32  -0.23  -0.64  -0.18   0.22  0.640
+RB    -0.07  -0.21  -0.73  -0.06   0.24  0.653
+TC    -0.29  -0.78  -0.29  -0.34   0.02  0.892
+HI    -0.85  -0.15  -0.17  -0.20   0.13  0.836
+CC    -0.59  -0.16  -0.49  -0.26  -0.01  0.685
+ED    -0.25  -0.06  -0.26  -0.04   0.77  0.719
+DA    -0.38  -0.20  -0.50  -0.36   0.14  0.588
+AD    -0.24  -0.25  -0.13  -0.83   0.05  0.829
+CO    -0.03  -0.82  -0.08  -0.07   0.09  0.698
+```
+
+Factor interpretation:
+- **F1 Hostility/Threat:** HI(-0.85), TE(-0.72), CC(-0.59), DA(-0.38)
+- **F2 Relational Contract:** CO(-0.82), TC(-0.78)
+- **F3 Internal Resources:** RB(-0.73), RC(-0.64), DA(-0.50), CC(-0.49)
+- **F4 Power Dynamics:** AD(-0.83), DA(-0.36)
+- **F5 Stress/Energy:** ED(+0.77), TE(+0.48)
+
+Cross-loaders: DA loads on F1, F3, F4. CC loads on F1, F3. TE loads on F1, F5.
+
+### 26g. Separated-LLM Only (n=1,470)
+
+Separated scoring produced *higher* correlations than mixed data (mean |r|=0.564 vs 0.417, pairs |r|>0.7: 11/45 vs 1/45). This is not halo — it reflects genuine co-variation in natural text. The composite-proxy data introduced independent noise per dimension that artificially deflated correlations.
+
+Kaiser criterion on separated data retains only 2 factors. First eigenvalue explains 61.5% of variance.
+
+### 26h. Correlation Matrix (all 2,359 texts)
+
+```
+      TE   RC   RB   TC   HI   CC   ED   DA   AD   CO
+TE  1.00 .41  .24  .38  .73  .50  .57  .46  .35  .18
+RC       1.00 .60  .52  .48  .60  .44  .58  .38  .30
+RB            1.00 .43  .26  .44  .41  .51  .22  .25
+TC                 1.00 .48  .53  .22  .54  .59  .70
+HI                      1.00 .66  .37  .52  .43  .18
+CC                           1.00 .29  .60  .46  .21
+ED                                1.00 .34  .18  .15
+DA                                     1.00 .51  .26
+AD                                          1.00 .29
+CO                                               1.00
+```
+
+Off-diagonal |r|: mean=0.417, median=0.433
+
+### 26i. Verdict
+
+**H0 rejected.** 10 independent factors not supported. Data supports 2–5 latent factors with a dominant general factor (48–62% variance).
+
+**Recommendation:** Hierarchical reporting model — overall PSQ (general factor), cluster scores (3–5 factors), dimension scores (10, with caveat that within-cluster dimensions are not independent). Do not claim 10 independent dimensions; claim 10 theoretically distinct facets.
+
 ## 13. References
 
 - Kennedy, C.J., et al. (2020). Constructing interval variables via faceted Rasch measurement and multitask deep learning: a hate speech application. *arXiv:2009.10277*.

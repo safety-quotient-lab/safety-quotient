@@ -10,7 +10,7 @@
 
 The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v16 DistilBERT: test_r=0.529, held-out_r=0.561 with halo-free separated labels). All 10 dimensions now generalize to real-world text (r=0.35-0.64); threat_exposure correlation is low (0.35) but MAE analysis shows predictions are actually accurate — the low r is a statistical artifact of low label variance. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call).
 
-However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Most standard reliability and validity evidence has not yet been collected.
+However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Factor analysis (n=2,359 complete texts) rejects the 10-factor independence assumption — a dominant general factor explains 48–62% of variance, and BIC favors a 5-factor model. The 10 dimensions are better understood as theoretically distinct facets that empirically cluster into 3–5 higher-order factors. Most standard reliability and validity evidence has not yet been collected.
 
 ### Scorecard
 
@@ -18,7 +18,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 |---|---|---|
 | Theoretical grounding | **Strong** | — |
 | Content validity | **Partial** | High |
-| Construct validity | **Preliminary** (pairwise correlations) | Critical |
+| Construct validity | **Tested** — EFA rejects 10-factor independence (BIC-best: 5 factors, dominant general factor at 48% variance). Hierarchical model recommended. | High |
 | Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
 | Criterion validity | **Not measured** | High |
@@ -152,42 +152,104 @@ This is a **level-of-analysis shift** from trait/state measurement to stimulus a
 
 **Recommendation:** Acknowledge this explicitly in documentation. Frame instrument references as "conceptual grounding" rather than "measurement with." Consider: the PSQ dimensions are *inspired by* these instruments, and the validity of the text-level construct must be established independently.
 
-### 3c. Factor Analysis — Dimension Independence Partially Tested
+### 3c. Factor Analysis — 10-Factor Structure NOT Supported
 
 **Standard:** Multi-dimensional instruments should demonstrate that dimensions are empirically distinct (discriminant validity) via factor analysis (AERA/APA/NCME Standard 1.13).
 
-**Update (2026-02-26):** Pairwise Pearson correlations have been computed across all records with overlapping ground-truth scores (see distillation-research.md §8x). Key findings:
+**Update (2026-02-28, full factor analysis):** EFA was conducted on 2,359 texts with complete 10-dimension coverage (1,470 separated-llm, 976 joint-llm, 150 composite-proxy). Analyses used sklearn FactorAnalysis with varimax rotation.
 
-**Strongly correlated pairs (|r| > 0.5) — 7 of 45 pairs:**
+#### Adequacy Tests
 
-| Pair | r | n |
+| Test | Result | Interpretation |
 |---|---|---|
-| Regulatory Capacity ↔ Resilience Baseline | 0.877 | 3,932 |
-| Hostility Index ↔ Cooling Capacity | 0.840 | 3,949 |
-| Authority Dynamics ↔ Trust Conditions | 0.787 | 3,949 |
-| Hostility Index ↔ Authority Dynamics | 0.737 | 3,949 |
-| Hostility Index ↔ Trust Conditions | 0.687 | 3,949 |
-| Authority Dynamics ↔ Cooling Capacity | 0.650 | 1,949 |
-| Trust Conditions ↔ Cooling Capacity | 0.583 | 1,949 |
+| KMO (Kaiser-Meyer-Olkin) | **0.819** | Meritorious — data is well-suited for factor analysis |
+| Bartlett's sphericity | χ²=12,750.5, df=45, p≈0.000 | Correlations are not an identity matrix |
 
-**Near-zero pairs (good discriminant validity):** 15 pairs with |r| < 0.2, confirming dimensions like Energy Dissipation, Threat Exposure, and Defensive Architecture measure distinct constructs.
+#### How Many Factors?
 
-**Summary statistics:** Mean off-diagonal |r| = 0.257, median = 0.174.
+| Method | Factors Retained |
+|---|---|
+| Kaiser criterion (eigenvalue > 1) | **3** (all data), **2** (separated-llm only) |
+| Parallel analysis (Horn's, 95th %ile) | **2** |
+| BIC (model selection) | **5** (ΔBIC=0 vs 4-factor +110, 6-factor +1.4) |
+| 10-factor model fit | Collapsed to **5** non-trivial factors (F6–F10 all zero loadings) |
 
-**Interpretation:** The 10-factor structure is partially supported. Most dimension pairs show low correlation, suggesting distinct constructs. However, three pairs (r > 0.8) raise questions:
-1. **Regulatory Capacity ↔ Resilience Baseline (r=0.877):** Both measure emotion regulation capacity from different angles. A 7-factor model merging these may be more parsimonious.
-2. **Hostility Index ↔ Cooling Capacity (r=0.840):** Hostile content inherently lacks de-escalation — the theoretical prediction that these are distinct (one is a threat factor, one is protective) is not supported empirically in current data.
-3. Some high correlations may reflect shared proxy methodology (e.g., both from UCC) rather than true construct overlap. LLM-only correlations are needed for a cleaner signal.
+The first eigenvalue alone explains **48.4%** of variance (61.5% for separated-llm only), indicating a dominant general factor.
 
-**Update (2026-02-27, halo effect confirmed):** A halo experiment (§18 of distillation-research.md) demonstrated that joint LLM scoring inflates inter-dimension correlations by ~0.15 on average. Mean |r| = 0.766 (joint) vs 0.656 (separated). Two genuine clusters emerged: Interpersonal Climate (authority_dynamics, contractual_clarity, trust_conditions, threat_exposure) and Internal Resources (regulatory_capacity, resilience_baseline, defensive_architecture), with bridge dimensions (cooling_capacity, energy_dissipation, hostility_index). The held-out test was re-scored with separated calls (one dimension per LLM call) to eliminate this contamination. The 10-dimension structure is retained; clusters are additive reporting layers only.
+#### Scree Analysis
 
-**Remaining gap:** Full confirmatory factor analysis (CFA) requires records scored on all 10 dimensions simultaneously, which the current training data does not provide (each record has 1-6 dimensions). The 900 LLM-labeled records are closer (each scored on 1 dimension), but a dedicated labeling pass scoring all 10 dimensions on 500+ texts would be needed.
+| Factor | Eigenvalue | % Variance | Cumulative |
+|---|---|---|---|
+| 1 | 4.844 | 48.4% | 48.4% |
+| 2 | 1.292 | 12.9% | 61.4% |
+| 3 | 1.029 | 10.3% | 71.6% |
+| 4 | 0.851 | 8.5% | 80.2% |
+| 5 | 0.572 | 5.7% | 85.9% |
+| 6–10 | 0.171–0.395 | 1.7–3.9% | 100% |
 
-**Recommendation (updated):** The initial pairwise correlation results are encouraging but not conclusive. Priority steps:
-1. Score 500 texts on all 10 dimensions simultaneously (LLM or expert raters)
-2. Run EFA on the full 10×500 matrix
-3. Test both 10-factor and reduced (7- or 8-factor) models
-4. Report factor loadings, interfactor correlations, and model fit indices (RMSEA, CFI, TLI)
+#### BIC-Best 5-Factor Solution (varimax)
+
+| Factor | Dimensions (loading > 0.35) | Interpretation |
+|---|---|---|
+| F1: Hostility/Threat | HI(-0.85), TE(-0.72), CC(-0.59), DA(-0.38) | Aggressive/threatening content |
+| F2: Relational Contract | CO(-0.82), TC(-0.78) | Clarity of expectations and trust |
+| F3: Internal Resources | RB(-0.73), RC(-0.64), DA(-0.50), CC(-0.49) | Coping and regulation support |
+| F4: Power Dynamics | AD(-0.83), DA(-0.36) | Authority relationship quality |
+| F5: Stress/Energy | ED(+0.77), TE(+0.48) | Energy drain and accumulation |
+
+Cross-loading dimensions: DA loads on F1, F3, and F4 (no clear primary factor). CC loads on F1 and F3.
+
+All factor score correlations are near zero (max |r|=0.110), confirming orthogonal structure after rotation.
+
+#### Correlation Matrix (all 2,359 complete texts)
+
+|  | TE | RC | RB | TC | HI | CC | ED | DA | AD | CO |
+|---|---|---|---|---|---|---|---|---|---|---|
+| TE | 1.00 | .41 | .24 | .38 | **.73** | .50 | .57 | .46 | .35 | .18 |
+| RC | | 1.00 | .60 | .52 | .48 | .60 | .44 | .58 | .38 | .30 |
+| RB | | | 1.00 | .43 | .26 | .44 | .41 | .51 | .22 | .25 |
+| TC | | | | 1.00 | .48 | .53 | .22 | .54 | .59 | **.70** |
+| HI | | | | | 1.00 | .66 | .37 | .52 | .43 | .18 |
+| CC | | | | | | 1.00 | .29 | .60 | .46 | .21 |
+| ED | | | | | | | 1.00 | .34 | .18 | .15 |
+| DA | | | | | | | | 1.00 | .51 | .26 |
+| AD | | | | | | | | | 1.00 | .29 |
+| CO | | | | | | | | | | 1.00 |
+
+Off-diagonal |r|: mean=0.417, median=0.433. Pairs with |r|>0.5: 15/45. Pairs with |r|<0.2: 4/45.
+
+#### Separated-LLM Only (n=1,470, halo-free)
+
+Counter-intuitively, separated scoring produced *higher* inter-dimension correlations than mixed data:
+
+| Metric | All data (n=2,359) | Separated-LLM (n=1,470) |
+|---|---|---|
+| Mean off-diagonal \|r\| | 0.417 | **0.564** |
+| Pairs \|r\| > 0.5 | 15/45 | **28/45** |
+| Pairs \|r\| > 0.7 | 1/45 | **11/45** |
+| Kaiser factors retained | 3 | **2** |
+| Eigenvalue 1 (% variance) | 4.844 (48.4%) | **6.153 (61.5%)** |
+
+This is *not* halo contamination — separated scoring eliminates halo by design (one dimension per LLM call). The higher correlations reflect genuine co-variation: texts that are hostile also tend to lack trust, have poor authority dynamics, weak cooling capacity, etc. The composite-proxy data (with its narrower, noisier mappings) artificially *deflated* correlations by introducing independent noise per dimension.
+
+#### Verdict on H0 (10 factors are distinct)
+
+**H0 is rejected by all standard criteria.** The data supports 2–5 latent factors, not 10. The dominant general factor (48–62% of variance) indicates that most of the 10 dimensions measure a single underlying construct — "overall psychological safety of content."
+
+However, rejection of 10 independent factors does not require merging dimensions. Each dimension retains 17–41% unique variance in the 5-factor model (specificity), and the dimensions capture theoretically distinct constructs that imply different interventions.
+
+**Recommendation:** Adopt a **hierarchical reporting model**:
+1. Report the **overall PSQ** as the primary score (captures the general factor)
+2. Report **cluster scores** for the 3–5 higher-order factors (Hostility/Threat, Relational Contract, Internal Resources, Power Dynamics, Stress/Energy)
+3. Report **dimension scores** as fine-grained detail with the caveat that dimensions within a cluster are not independent
+4. Document the general factor and cluster structure in all technical reporting
+5. Do *not* claim 10 independent dimensions — claim 10 *theoretically distinct* dimensions that empirically cluster into 3–5 factors with a dominant general factor
+
+#### Earlier Analyses (retained for provenance)
+
+**Pairwise correlations (2026-02-26):** Initial analysis on records with overlapping ground-truth scores showed 7/45 pairs with |r|>0.5 (strongest: RC↔RB at 0.877, HI↔CC at 0.840). These were computed on partially-overlapping subsets and are superseded by the full correlation matrix above.
+
+**Halo effect (2026-02-27):** A halo experiment confirmed joint LLM scoring inflates inter-dimension correlations by ~0.15 on average. Mean |r|=0.766 (joint) vs 0.656 (separated) on the 100-text held-out set. The held-out test was re-scored with separated calls to eliminate this contamination.
 
 ### 3d. Confidence Calibration — PROBLEMATIC
 
