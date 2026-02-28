@@ -38,13 +38,13 @@ It is updated at the end of each working session. Snapshots are saved as
 
 Testing two independent interventions: (A) proxy removal for 4 dims, (B) middle-g enrichment data.
 
-| Run | Intervention | Status | test_r | Notes |
-|---|---|---|---|---|
-| v22a | `--drop-proxy-dims` (removes TE,TC,CC,AD composite-proxy rows) | **Done** | 0.446 | Proxy removal alone hurt — need held-out eval |
-| v22b | +midg batch only (250 texts × 10 dims, no proxy drop) | Pending | — | `--out models/psq-v22b` |
-| v22c | Both (proxy drop + midg data) | Pending | — | `--out models/psq-v22c --drop-proxy-dims` |
+| Run | Intervention | Status | test_r | held-out_r | Notes |
+|---|---|---|---|---|---|
+| v22a | `--drop-proxy-dims` (removes TE,TC,CC,AD composite-proxy rows) | **Done** | 0.457 | **0.682** | **NEW BEST.** Test_r paradox: proxy-labeled test split penalizes proxy removal. |
+| v22b | +midg batch only (250 texts × 10 dims, no proxy drop) | Training | — | — | `--out models/psq-v22b` |
+| v22c | Both (proxy drop + midg data) | Pending | — | — | `--out models/psq-v22c --drop-proxy-dims` |
 
-**v22a per-dim test_r:** CC 0.721 (strong), ED 0.592, RB 0.520, HI 0.520, RC 0.491, DA 0.444, CC 0.403, AD 0.358, TC 0.285, TE 0.228
+**v22a held-out highlights:** TE 0.492→**0.805** (+0.313, largest ever), 9/10 dims improved. Only CC regressed (-0.051). TE proxy was adversarial (r=-0.260); removal unleashed separated-LLM signal.
 
 ---
 
@@ -140,17 +140,21 @@ Testing two independent interventions: (A) proxy removal for 4 dims, (B) middle-
 
 ## What's Next
 
-1. **Complete v22 ablation** — Run v22b (midg only) and v22c (both). Evaluate all three on held-out. Determine if proxy removal, midg enrichment, or both improve held-out_r.
-2. **Held-out eval for v22a** — v22a training complete (test_r=0.446). Need held-out evaluation to see if lower test_r translates to held-out.
-3. **Expert validation** — protocol designed (`expert-validation-protocol.md`), recruitment not started.
+1. **Complete v22 ablation** — v22b training in progress. v22c pending. Compare all three on held-out.
+2. **Promote v22a to production** — held-out_r=0.682 (+0.052 vs v21). Pending v22b/v22c comparison, but v22a is already the strongest model.
+3. **CC-targeted labeling batch** — `data/labeling-batch-ccda.jsonl` (200 texts) prepared. CC is the only dim that regressed in v22a (0.555→0.504).
+4. **Expert validation** — protocol designed (`expert-validation-protocol.md`), recruitment not started.
 
 ### Completed This Session
 
 - Middle-g batch scored: 250 texts × 10 dims = 2,500 new separated-llm labels
 - Midg batch ingested into psq.db (21,877 texts, 82,861 scores)
 - `--drop-proxy-dims` flag added to distill.py
-- v22a training completed (test_r=0.446, proxy removal only)
-- §53 added to distillation-research.md documenting v22 intervention design
+- v22a: test_r=0.457, **held-out_r=0.682** (new best, +0.052 vs v21)
+- TE 0.492→0.805 (+0.313, largest single-dim improvement ever)
+- Test-split paradox documented: test_r regresses because test split uses proxy labels as ground truth
+- CC-targeted batch prepared: `data/labeling-batch-ccda.jsonl` (200 texts)
+- §53-54 added to distillation-research.md; §32 rewritten in journal.md
 
 ---
 

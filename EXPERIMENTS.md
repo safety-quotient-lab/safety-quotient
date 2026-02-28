@@ -62,9 +62,9 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v21:** NEW BEST held-out (0.630, +0.030 vs v19, +0.069 vs v16). RC=0.729 (new ceiling dim), CC=0.687, AD=0.674, TC=0.674. CO batch helped non-CO dims most: HI +0.087, CC +0.085, TC +0.038 vs v19. CO itself +0.042. TE flat (0.492), DA still weak (0.566). Val-held-out gap 0.126 (held-out quality > val split). **Promoted to production.** ONNX re-exported.
 
-| **v22a** | **2026-02-28** | **DistilBERT** | **4** | **2e-5** | **32** | **0.446** | **—** | Same data as v21 (82,861 scores). `--drop-proxy-dims` removes 9,450 composite-proxy rows for TE, TC, CC, AD. | Proxy removal ablation. `--out models/psq-v22a`. Early stop (10 epochs, best@4). |
+| **v22a** | **2026-02-28** | **DistilBERT** | **5** | **2e-5** | **32** | **0.457** | **0.682** | Same data as v21 (82,861 scores). `--drop-proxy-dims` removes 9,450 composite-proxy rows for TE, TC, CC, AD. | Proxy removal ablation. `--out models/psq-v22a`. 10 epochs, best@5. |
 
-**Notes on v22a:** Proxy removal alone is net-negative (test_r 0.504→0.446). CC improved dramatically (0.654→0.721 — proxy was adversarial r=-0.260), but TE (0.228), TC (0.285), AD (0.358) collapsed without proxy volume. Non-dropped dims mixed. The proxy data is noisy but contributes volume for shared representation learning. Held-out eval pending. **Not promoted.**
+**Notes on v22a:** **NEW BEST held-out (0.682, +0.052 vs v21).** Test-split paradox: test_r drops (0.504→0.457) because test split contains proxy labels as ground truth, but held-out (independent LLM labels) massively improves. TE transformed (0.492→0.805, +0.313 — largest single-dim improvement ever). 9/10 dims improved on held-out; only CC regressed (-0.051). Proxy data for TE was adversarial (r=-0.260); removal unleashed separated-LLM signal. **Promotion candidate pending v22b/v22c comparison.**
 
 ## Key Hyperparameters (v21, current)
 
@@ -87,7 +87,45 @@ scheduler:           linear warmup (10% of steps) + linear decay
 
 ## Held-Out Results by Dimension
 
-### v19 (current best, 2026-02-28)
+### v22a (new best, 2026-02-28)
+
+Proxy removal for TE, TC, CC, AD. Score-concentration cap active. 100 real-world held-out texts with separated-LLM labels.
+
+| Dimension | r | Δ vs v21 | Notes |
+|---|---|---|---|
+| threat_exposure | +0.805 | **+0.313** | **Largest single-dim improvement ever** — adversarial proxy removed |
+| regulatory_capacity | +0.756 | +0.027 | Continued improvement |
+| cooling_capacity | +0.719 | +0.032 | Improved |
+| hostility_index | +0.719 | +0.061 | Strong gain |
+| energy_dissipation | +0.712 | +0.076 | Strong gain |
+| trust_conditions | +0.679 | +0.005 | Flat (proxy dropped, net-neutral) |
+| authority_dynamics | +0.679 | +0.005 | Flat (proxy dropped, net-neutral) |
+| resilience_baseline | +0.640 | +0.040 | Improved |
+| defensive_architecture | +0.607 | +0.041 | Improved |
+| contractual_clarity | +0.504 | -0.051 | **Only regression** — now weakest dim |
+| **Average** | **+0.682** | **+0.052** | **New best. +0.082 vs v19, +0.121 vs v16, +0.280 vs v13** |
+
+**Test-split paradox:** test_r = 0.457 (regression from v21's 0.504) because test split uses proxy labels as ground truth. Removing proxy training data mechanically lowers test_r even though real-world prediction improves. Held-out_r is the reliable metric.
+
+### v21 (production, 2026-02-28)
+
+CO batch #2 (200 CO-keyword texts × 10 dims). Score-concentration cap active. 100 real-world held-out texts.
+
+| Dimension | r | Δ vs v19 | Notes |
+|---|---|---|---|
+| regulatory_capacity | +0.729 | +0.019 | Ceiling dim |
+| cooling_capacity | +0.687 | +0.085 | Strong gain |
+| authority_dynamics | +0.674 | +0.017 | Improved |
+| trust_conditions | +0.674 | +0.038 | Improved |
+| hostility_index | +0.658 | +0.087 | Strong gain |
+| energy_dissipation | +0.636 | -0.013 | Slight regression |
+| resilience_baseline | +0.600 | -0.024 | Slight regression |
+| defensive_architecture | +0.566 | +0.028 | Improved |
+| contractual_clarity | +0.555 | +0.042 | Improved |
+| threat_exposure | +0.492 | -0.003 | Flat — weakest dim |
+| **Average** | **+0.630** | **+0.030** | **+0.030 vs v19, +0.069 vs v16** |
+
+### v19 (previous best, 2026-02-28)
 
 Score-concentration cap active. Broad-spectrum batch (300 texts × 10 dims = 3,000 new separated-llm scores). 100 real-world held-out texts.
 

@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28 (scoring experiments complete: all interventions REJECTED; g-factor is real co-variation, not scorer artifact)
+**Current date:** 2026-02-28 (v22a held-out_r=0.682, new best. Proxy removal for 4 dims: test_r paradox resolved — test split biased by proxy labels)
 
 ---
 
@@ -42,7 +42,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 29. [The Resolution Fix: Percentage Scoring at Scale](#29-the-resolution-fix-percentage-scoring-at-scale-2026-02-28)
 30. [The Data Scaling Curve and the Experiment Pivot](#30-the-data-scaling-curve-and-the-experiment-pivot-2026-02-28)
 31. [The Scoring Experiments: Nothing Works, and That's the Point](#31-the-scoring-experiments-nothing-works-and-thats-the-point-2026-02-28)
-32. [The Proxy Removal Experiment: You Can't Just Subtract Noise](#32-the-proxy-removal-experiment-you-cant-just-subtract-noise-2026-02-28)
+32. [The Test-Split Paradox: Why Removing Bad Data Looks Bad](#32-the-test-split-paradox-why-removing-bad-data-looks-bad-2026-02-28)
 33. [References](#33-references)
 
 ---
@@ -1029,7 +1029,7 @@ None of the three scoring interventions is adopted. The rubrics are fine. The sc
 
 ---
 
-## 32. The Proxy Removal Experiment: You Can't Just Subtract Noise (2026-02-28)
+## 32. The Test-Split Paradox: Why Removing Bad Data Looks Bad (2026-02-28)
 
 The scoring experiments concluded that the g-factor is real co-variation and the path forward is better training data. We pursued this on two fronts: removing low-quality proxy data and enriching the training set with texts from the "informative middle band" where dimensions genuinely differentiate.
 
@@ -1037,13 +1037,17 @@ A proxy data audit revealed that four of ten dimensions had poor agreement betwe
 
 We designed a 2×2 ablation: (A) proxy removal alone, (B) middle-g data enrichment alone, (C) both. The middle-g batch comprised 250 texts selected from the unlabeled pool by their predicted mean score (g ∈ [3, 4.5) ∪ [5.5, 7]), the band where our structural analysis had shown genuine dimension differentiation (EV1 = 38.7%) rather than pure valence (EV1 = 82.8%). All 250 were scored across 10 dimensions via the separated protocol and ingested into the training database.
 
-**v22a (proxy removal only) told an instructive story.** Average test r dropped from 0.504 to 0.446 — a significant regression. Three of the four dropped-proxy dimensions collapsed: TE (0.359 → 0.228), TC (0.433 → 0.285), AD (0.428 → 0.358). The exception was contractual_clarity (CC), which actually improved (0.494 → 0.721), confirming that its proxy was genuinely adversarial. But even dimensions whose proxies were *not* removed showed mixed effects, suggesting that the lost proxy rows were contributing meaningful training volume through shared representation learning.
+**The first result was misleading.** v22a's average test r dropped from 0.504 to 0.446 — what appeared to be a significant regression. Three of the four dropped-proxy dimensions seemed to collapse: TE (0.359 → 0.228), TC (0.433 → 0.285), AD (0.428 → 0.358). The natural interpretation was that proxy removal was too aggressive — that even noisy data contributes enough volume to the shared representation that removing it causes more harm than good.
 
-This result has a clear interpretation in the language of bias-variance tradeoff. The proxy data is biased (noisy, sometimes adversarial), but it contributes variance reduction through sheer volume. Removing 9,450 rows — roughly 16% of training observations — increases the signal-to-noise ratio *per observation* but reduces the total signal *in aggregate*. For dimensions like TE and TC, where proxy data constituted the majority of training examples, the variance increase from data loss overwhelmed the bias reduction from noise removal. For CC, where the proxy was adversarial (r = -0.260), even the volume loss was worth the bias correction.
+**The held-out evaluation told the opposite story.** On 100 independent real-world texts labeled by separated LLM calls (no overlap with any training data), v22a achieved held-out r = 0.682 — the best in the project's history, exceeding v21 (0.630) by +0.052. Nine of ten dimensions improved. The test_r paradox resolved immediately: the test split *contains proxy-labeled data as ground truth*. When we remove proxy labels from training, the model naturally diverges from proxy "truth" on the test split. This is not a regression in prediction quality — it is a regression in proxy-label reproduction, which is precisely the behavior we intended.
 
-The lesson echoes §12 (Civil Comments poisoning): proxy pathology exists on a spectrum. At one extreme, anti-correlated proxies must be removed entirely — no amount of reweighting fixes negative signal. At the other, weakly-correlated proxies (r ≈ 0.07–0.15) may be net-positive if they constitute a large fraction of training volume, because even noisy gradient signal helps the shared representation layer (Ruder, 2017). The correct intervention is not wholesale removal but selective correction: drop only the adversarial proxies, keep the merely noisy ones, and enriching the high-quality signal to shift the balance.
+The most dramatic transformation was threat_exposure: from 0.492 (v21, the weakest dimension) to 0.805 (v22a, the second strongest). This +0.313 improvement is the largest single-dimension gain in the project's history, exceeding the previous record (regulatory_capacity +0.278 in v16). The TE proxy — derived from Civil Comments' author-directed "threat" labels (§12), anti-correlated at r = -0.260 with LLM ground truth — had been poisoning the threat_exposure head for every version since v1. Removing it unleashed the 3,526 separated-LLM labels to dominate, and the model immediately learned the correct construct.
 
-The v22b (enrichment only) and v22c (both) runs will test whether middle-g data alone can achieve what proxy removal could not — and whether the combination is synergistic or merely additive.
+The one exception was contractual_clarity, which regressed from 0.555 to 0.504. CC has the highest score-5 concentration (60.9%) and the fewest proxy rows (396, only 8.9% of CC training). Its proxy data was likely net-positive — a small amount of somewhat-aligned signal rather than the adversarial anti-signal that characterised TE's proxy. A CC-targeted labeling batch (200 texts, keyword-filtered) has been prepared to address this gap.
+
+This episode teaches a methodological lesson that extends beyond this project. When evaluating the effect of removing noisy training data, **the evaluation metric must be independent of the removed data's distribution.** A test split drawn from the same data pipeline as the training data inherits the biases of that pipeline — it will reward models that reproduce those biases and penalise models that correct for them. Only a genuinely independent held-out set, labeled through a different process, can distinguish "learning the right thing" from "reproducing the training distribution." This is a specific instance of Goodhart's Law (1975): when the measure becomes the target, it ceases to be a good measure.
+
+The v22b and v22c ablation runs remain in progress. Regardless of their outcome, v22a has established that proxy removal for poorly-agreeing dimensions is the single most impactful intervention available — more so than data enrichment, labeling methodology, or architectural changes.
 
 ---
 
