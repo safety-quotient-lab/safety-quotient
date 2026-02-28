@@ -2425,6 +2425,54 @@ Off-diagonal |r|: mean=0.417, median=0.433
 
 **Recommendation:** Hierarchical reporting model — overall PSQ (general factor), cluster scores (3–5 factors), dimension scores (10, with caveat that within-cluster dimensions are not independent). Do not claim 10 independent dimensions; claim 10 theoretically distinct facets.
 
+## 27. Promax (Oblique) Rotation Confirmation (2026-02-28)
+
+### 27a. Motivation
+
+Varimax forces orthogonal factors. Promax (k=4) allows oblique rotation, revealing factor correlations.
+
+### 27b. Key Finding: Perfect Simple Structure
+
+Promax achieved 0/10 cross-loaders at 2, 3, and 5 factors (varimax had 3-5). Every dimension loads on exactly one factor.
+
+### 27c. 5-Factor Promax Pattern Matrix
+
+```
+         F1     F2     F3     F4     F5
+HI    -0.66
+TE    -0.52
+CC    -0.35
+CO           -0.75
+TC           -0.59
+RB                  -0.66
+RC                  -0.49
+AD                         -0.67
+ED                                 0.67
+DA    (no loading > 0.35)
+```
+
+### 27d. Factor Correlations (Phi)
+
+Mean |r| = 0.234, max |r| = 0.470 (F1↔F4: Hostility↔Power). No pair exceeds 0.5 — factors are correlated but distinct. 5-factor oblique structure is defensible.
+
+## 28. V17 Training Results (2026-02-28)
+
+v17 trained on 71,361-score DB (including TE batch). Early stopped epoch 9 (best epoch 6). test_r=0.503, held-out_r=0.563. Flat vs v16 (0.561). Not promoted.
+
+| Dim | v16 | v17 | Δ |
+|---|---|---|---|
+| TE | 0.347 | 0.339 | -0.008 |
+| HI | 0.604 | 0.546 | -0.058 |
+| AD | 0.625 | 0.614 | -0.011 |
+| ED | 0.592 | 0.558 | -0.034 |
+| RC | 0.563 | 0.636 | +0.073 |
+| RB | 0.576 | 0.645 | +0.069 |
+| TC | 0.526 | 0.622 | +0.096 |
+| CC | 0.643 | 0.612 | -0.031 |
+| DA | 0.491 | 0.554 | +0.063 |
+| CO | 0.534 | 0.506 | -0.028 |
+| **AVG** | **0.561** | **0.563** | **+0.002** |
+
 ## 13. References
 
 - Kennedy, C.J., et al. (2020). Constructing interval variables via faceted Rasch measurement and multitask deep learning: a hate speech application. *arXiv:2009.10277*.

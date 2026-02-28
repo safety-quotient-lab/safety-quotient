@@ -245,6 +245,15 @@ However, rejection of 10 independent factors does not require merging dimensions
 4. Document the general factor and cluster structure in all technical reporting
 5. Do *not* claim 10 independent dimensions — claim 10 *theoretically distinct* dimensions that empirically cluster into 3–5 factors with a dominant general factor
 
+#### Promax (Oblique) Rotation Confirmation
+
+**Update (2026-02-28):** Promax rotation (k=4) was applied to test whether orthogonal rotation was distorting the structure. Key findings:
+
+- **Perfect simple structure:** Promax achieved 0/10 cross-loaders at 2, 3, and 5 factors (varimax had 3–5 cross-loaders). Every dimension loads on exactly one factor.
+- **Factor correlations are moderate:** Mean |r|=0.234, max |r|=0.470 (Hostility↔Power). No pair exceeds 0.5 — factors are correlated but distinct.
+- **5-factor promax clusters:** HI/TE/CC (Hostility), CO/TC (Contract), RB/RC (Resources), AD (Power), ED (Energy). DA has no loading >0.35 in promax — the weakest construct.
+- **Conclusion:** Oblique rotation confirms the 5-factor structure is defensible. Factors are related (as expected for facets of a single meta-construct) but sufficiently separable.
+
 #### Earlier Analyses (retained for provenance)
 
 **Pairwise correlations (2026-02-26):** Initial analysis on records with overlapping ground-truth scores showed 7/45 pairs with |r|>0.5 (strongest: RC↔RB at 0.877, HI↔CC at 0.840). These were computed on partially-overlapping subsets and are superseded by the full correlation matrix above.

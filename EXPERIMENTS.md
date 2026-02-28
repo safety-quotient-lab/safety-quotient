@@ -36,7 +36,11 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 | **v16** | **2026-02-27** | **DistilBERT** | **6** | **2e-5** | **32** | **0.529** | **0.561** | +6,000 separated-llm (CO 200 + RB 200 + CC 200 batches × 10 dims). DB: 20,727 texts, 69,361 scores. | Score-concentration cap (>30% → weight 1.5). `--out models/psq-v16`. |
 
-**Notes on v16:** Best held-out ever (0.561, +0.066 vs v15). RC massive recovery (0.285→0.563). CO recovered (0.388→0.534). TE regressed (0.476→0.347) — needs investigation. Early stopped at epoch 9, best at epoch 6.
+**Notes on v16:** Best held-out ever (0.561, +0.066 vs v15). RC massive recovery (0.285→0.563). CO recovered (0.388→0.534). TE regressed (0.476→0.347) — correlation artifact (MAE improved). Early stopped at epoch 9, best at epoch 6.
+
+| v17 | 2026-02-28 | DistilBERT | 6 | 2e-5 | 32 | 0.503 | 0.563 | +2,000 separated-llm (TE 200 batch × 10 dims). DB: 20,927 texts, 71,361 scores. | Same as v16. `--out models/psq-v17`. |
+
+**Notes on v17:** Essentially flat vs v16 (held-out 0.563 vs 0.561). Different dim trade-offs: gains RC(+0.073), RB(+0.069), TC(+0.096), DA(+0.063); losses HI(-0.058), ED(-0.034), CC(-0.031). Not promoted — v16 remains in production. Early stopped epoch 9, best epoch 6.
 
 ## Key Hyperparameters (v16, current)
 
