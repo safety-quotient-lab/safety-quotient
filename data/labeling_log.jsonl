@@ -28,3 +28,13 @@
 {"timestamp": "2026-02-27T20:58:10.375543-06:00", "dimension": "trust_conditions", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-cc.jsonl", "started_at": "2026-02-27T20:51:57-06:00", "duration_minutes": 6.2, "texts_per_hour": 1928.4}
 {"timestamp": "2026-02-27T20:58:10.420970-06:00", "dimension": "defensive_architecture", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-cc.jsonl", "started_at": "2026-02-27T20:51:57-06:00", "duration_minutes": 6.2, "texts_per_hour": 1928.1}
 {"timestamp": "2026-02-27T20:58:10.468527-06:00", "dimension": "contractual_clarity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-cc.jsonl", "started_at": "2026-02-27T20:51:57-06:00", "duration_minutes": 6.2, "texts_per_hour": 1927.9}
+{"timestamp": "2026-02-27T21:27:20.260007-06:00", "dimension": "threat_exposure", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:28:02.733079-06:00", "dimension": "hostility_index", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:28:29.624399-06:00", "dimension": "authority_dynamics", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:31:22.981585-06:00", "dimension": "energy_dissipation", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:31:23.040799-06:00", "dimension": "regulatory_capacity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:31:23.092808-06:00", "dimension": "resilience_baseline", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:31:23.141833-06:00", "dimension": "trust_conditions", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:31:23.191930-06:00", "dimension": "cooling_capacity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:31:23.242771-06:00", "dimension": "defensive_architecture", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}
+{"timestamp": "2026-02-27T21:31:23.294337-06:00", "dimension": "contractual_clarity", "n_scored": 200, "n_total": 200, "batch": "data/labeling-batch-te.jsonl"}

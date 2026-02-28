@@ -2,13 +2,13 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v15 DistilBERT — test_r=0.536, held-out_r=0.495 (separated labels). Score-concentration cap added to distill.py to fix co regression (score-5 flooding). CO labeling batch in progress (200 texts, 1/10 dims scored).
+**Status:** v16 DistilBERT — test_r=0.529, held-out_r=0.561 (separated labels, best ever). Score-concentration cap active. 8/10 dims r>0.53, RC massive recovery (+0.278), TE regressed (correlation artifact, MAE actually improved).
 
 ---
 
 ## 1. Summary Assessment
 
-The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v14 DistilBERT: test_r=0.544, held-out_r=0.482 with halo-free separated labels). Eight dimensions now generalize well to real-world text (r=0.41-0.65); regulatory_capacity requires additional targeted labels. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call).
+The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v16 DistilBERT: test_r=0.529, held-out_r=0.561 with halo-free separated labels). All 10 dimensions now generalize to real-world text (r=0.35-0.64); threat_exposure correlation is low (0.35) but MAE analysis shows predictions are actually accurate — the low r is a statistical artifact of low label variance. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call).
 
 However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Most standard reliability and validity evidence has not yet been collected.
 
@@ -25,6 +25,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** | Critical |
+| Held-out generalization | **Strong** (held-out_r=0.561, 10/10 dims p<0.001) | — |
 | Range utilization / bias | **Measured** (6/10 good, 2/10 poor) | High |
 | Measurement invariance / bias | **Planned, not done** | High |
 | Normative data | **Not established** | Medium |
