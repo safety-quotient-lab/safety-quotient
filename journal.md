@@ -966,6 +966,18 @@ The magnitude of improvement is difficult to overstate. Under the integer regime
 
 The bifactor experiment (v19b) provided a useful negative result in parallel. Adding an 11th output head to predict g-PSQ (the general factor, operationalized as the mean of 10 dimension scores) produced a well-learned g-head (r=0.594) but degraded per-dimension prediction (test_r 0.509→0.502). The DistilBERT backbone (66.7M params, 384-dim projection) does not have sufficient representational capacity to serve 11 output heads without capacity competition. The practical implication is clear: if a general factor score is needed, compute it post-hoc from the 10 dimension scores rather than training a dedicated head. The bifactor architecture (Design A from §35) should be revisited only with a larger base model.
 
+### The Dimension Collapse
+
+But the more consequential finding came from factor analysis on the pct-scored data. The original hypothesis — that integer-only scoring was mechanically inflating inter-dimension correlations through shared "score-5" signals — predicted that percentage scoring would *reduce* the g-factor eigenvalue. The opposite occurred. The g-factor eigenvalue jumped from 6.727 (67.3% of variance, integer data) to 9.410 (94.1%, pct data). Mean inter-dimension correlation rose from 0.632 to 0.934.
+
+The diagnostic data are unambiguous. Within-text standard deviation — the measure of how much a scorer differentiates between dimensions for a single text — dropped from 0.717 (integer) to 0.448 (pct). Two-thirds of pct-scored texts have all ten dimension scores within a one-point range. Between-text variance accounts for 93.2% of total variance, meaning the scores are almost entirely "overall safety" with negligible dimension-specific signal. Eight of ten dimensions retain less than 5% unique variance in the pct data, versus 16-47% in integer data.
+
+The mechanism appears to be anchoring-and-adjustment: the 0-100 scale invites the scorer to first form a global safety impression ("about 35%"), then make tiny adjustments per dimension ("maybe 33% for TE, 37% for TC"). The adjustments are real — parallel analysis on residuals after removing the text mean retains 3 factors — but they are overwhelmed by the global anchor. Integer scoring, paradoxically, forces larger discrete jumps between dimensions, producing more genuine differentiation.
+
+This finding has important consequences beyond PSQ. It suggests that expanding the number of response options in a rating scale does not monotonically improve measurement quality. There is an optimum: enough options to capture meaningful between-item differences, but not so many that the rater's global impression dominates the within-item differentiation. For constructs with genuine multi-dimensional structure, an 11-point scale (0-10 integers) may outperform a 101-point scale (0-100 percentages), consistent with Schwarz et al.'s (1991) work on response format effects in survey methodology.
+
+The practical implications are clear: revert to integer scoring for future labeling. The g-factor is real, the 10 dimensions are genuinely correlated, and the integer scale provides more informative dimension-specific variance than the percentage scale. The percentage resolution gains (less score-5 concentration, more unique values) are real but are outweighed by the dimension-collapse cost.
+
 ---
 
 ## 30. References

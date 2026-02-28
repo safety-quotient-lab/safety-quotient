@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v19 production (test_r=0.509, held-out_r=0.600). 4 criterion validity studies. DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. Percentage scoring validated at scale (86.2% non-integer, 4.8% exact-5, 35 unique values). Bifactor v19b complete (test_r=0.502, g_r=0.594 — capacity competition with 11th head).
-**Next:** Train v20 with pct-scored data, evaluate held-out improvement, score CO-focused batch with pct scale.
+**Status:** v19 production (test_r=0.509, held-out_r=0.600). 4 criterion validity studies. DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. g-factor confirmed real (NOT integer artifact): pct eigenvalue 9.41 vs int 6.73. Pct scoring collapses dimensions (within-SD 0.45 vs 0.72); revert to integer scoring.
+**Next:** Train v20, evaluate pct data impact on held-out. Score CO batch with integer scale (not pct).
 
 ---
 
@@ -61,6 +61,7 @@
 44. [Percentage Scoring Pilot](#44-percentage-scoring-pilot-2026-02-28) — 0-100 scale breaks integer bias: non-integer 2.1%→77.8%, exact-5 41.3%→7.2%, 26 unique values per dim vs 11
 45. [Production Percentage Scoring Batch](#45-production-percentage-scoring-batch-2026-02-28) — 200 texts × 10 dims with separated protocol: 86.2% non-integer, 4.8% exact-5, 35 unique values
 46. [Bifactor v19b Results](#46-bifactor-v19b-results-2026-02-28) — 11th head (g-PSQ) learns well (r=0.594) but per-dim test_r drops to 0.502; capacity competition
+47. [Factor Analysis v3: Percentage Scoring Deepens the g-Factor](#47-factor-analysis-v3-percentage-scoring-deepens-the-g-factor-2026-02-28) — pct-scored data shows eigenvalue 9.41 (94.1%), mean |r|=0.934. Integer bias NOT the cause; cross-session halo suspected.
 13. [References](#13-references)
 
 ---
@@ -3733,9 +3734,9 @@ After ingest: 21,627 texts, 78,361 scores, 24,771 separated-llm (+2,000 from thi
 
 ### Implications
 
-1. **All future labeling should use `--pct`.** The improvement is large, consistent, and backward-compatible.
-2. **Factor analysis v3 with pct-scored data** will test whether the g-factor eigenvalue of 6.727 (67.3%) was inflated by integer bias. If eigenvalue drops substantially, the 5-factor structure may re-emerge.
-3. **Score-concentration cap** may become unnecessary for pct-scored data — only 4.8% exact-5 vs the 30% cap threshold.
+1. ~~All future labeling should use `--pct`.~~ **RETRACTED in §47.** Pct scoring collapses dimensions — within-text SD drops from 0.717 to 0.448, unique variance per dim drops to <5% for 8/10 dims. Revert to integer scoring.
+2. **Factor analysis v3 with pct-scored data** tested whether the g-factor eigenvalue was inflated by integer bias. **Result: opposite.** Eigenvalue rose from 6.727 to 9.410. The g-factor is real and the integer scale provides BETTER dimension differentiation. See §47.
+3. **Score-concentration cap** remains necessary — integer scoring still has high exact-5 concentration.
 
 ---
 
@@ -3785,6 +3786,122 @@ The g-head learned meaningfully (r=0.594), confirming that the general factor is
 **Conclusion:** The bifactor architecture is not net-positive for per-dimension prediction with DistilBERT's limited capacity. If g-PSQ is needed, it should be computed post-hoc as the mean of dimension scores rather than trained as a separate head. The Design A approach (§35) adds complexity without improving the primary use case.
 
 **Alternative:** A larger base model (e.g., DeBERTa-v3-base at 184M params) might accommodate the 11th head without capacity competition. This is not a priority given the current deployment constraints.
+
+---
+
+## §47. Factor Analysis v3: Percentage Scoring Deepens the g-Factor (2026-02-28)
+
+The critical open question from §43/§44 was whether the dominant g-factor (eigenvalue 6.727, 67.3% variance in integer-scored data) was partly an artifact of integer-only scoring bias — shared "score-5" signals mechanically inflating inter-dimension correlations. The production pct batch (200 texts × 10 dims, separated protocol) provides a direct test.
+
+### Results
+
+| Dataset | N | Eigenvalue 1 | % Variance | KMO | Mean |r| | Parallel retains |
+|---|---|---|---|---|---|---|
+| INT (v2 replication) | 1,970 | 6.727 | 67.3% | 0.902 | 0.632 | 1 factor |
+| PCT only | 200 | **9.410** | **94.1%** | 0.924 | **0.934** | 1 factor |
+| ALL (combined) | 2,170 | 7.223 | 72.2% | 0.917 | 0.688 | 1 factor |
+
+The g-factor is **dramatically stronger** with percentage scoring — the opposite of the hypothesis. All 45 pairwise correlations are higher in pct than in integer data (mean Δr = +0.302, **every single pair**). Factor 1 loadings all exceed +0.91 in the pct subset.
+
+### Pct Factor 1 Loadings
+
+| Dimension | PCT loading | INT loading |
+|---|---|---|
+| regulatory_capacity | +0.991 | +0.870 |
+| cooling_capacity | +0.994 | +0.862 |
+| trust_conditions | +0.990 | +0.920 |
+| defensive_architecture | +0.988 | +0.912 |
+| energy_dissipation | +0.981 | +0.738 |
+| resilience_baseline | +0.981 | +0.750 |
+| hostility_index | +0.977 | +0.825 |
+| contractual_clarity | +0.964 | +0.734 |
+| authority_dynamics | +0.918 | +0.781 |
+| threat_exposure | +0.913 | +0.782 |
+
+### Score Distribution Comparison
+
+| Metric | PCT | INT |
+|---|---|---|
+| Non-integer | 86.2% | 0.0% |
+| Exact 5.0 | 4.8% | 43.5% |
+| Unique values | 35 | 11 |
+| Std | 1.918 | 1.344 |
+| Mean | 3.946 | 4.579 |
+
+### Interpretation
+
+The pct-scored texts have higher variance (std 1.918 vs 1.344) and lower means (3.946 vs 4.579), confirming the percentage scale produces more differentiated scores. But the inter-dimension correlations (mean |r| = 0.934) are implausibly high for genuinely distinct constructs. Several hypotheses require investigation:
+
+1. **Cross-session halo.** The same LLM scorer (Claude) may develop an implicit "text difficulty" representation that persists across conversation sessions, even when dimensions are scored separately. The separated protocol eliminates *within-session* halo but cannot eliminate *cross-scorer* consistency when the scorer is the same entity.
+
+2. **Text pool homogeneity.** The 200 texts come from 5 sources (empathetic_dialogues 73, berkeley 56, prosocial 50, dreaddit 16, esconv 5). If these texts genuinely vary primarily on a single safety-threat axis, the high correlations reflect reality, not artifact.
+
+3. **Scale-induced anchoring.** The 0-100 scale may encourage a "general impression → percentage" mapping, where the scorer first forms a global safety judgment and then maps it to a number, rather than evaluating each dimension independently. This would be a form of halo operating through the scale mechanism itself.
+
+4. **Genuine co-variation.** The dimensions may truly co-vary this strongly in natural text. The integer scale's lower correlations (mean |r| = 0.632) would then be the artifact — a measurement floor imposed by the 11-bin constraint.
+
+### Deep Dive: Within-Text Differentiation
+
+The critical diagnostic is within-text SD — how much do scores vary across the 10 dimensions for a single text. This directly measures dimension differentiation.
+
+| Metric | PCT (N=200) | INT (N=1,970) |
+|---|---|---|
+| Within-text SD (mean) | **0.448** | **0.717** |
+| Within-text range | 1.397 | 2.023 |
+| Texts with within-SD < 0.5 | 67.0% | 30.9% |
+| Between-text variance | 93.2% | 65.8% |
+
+**The pct scorer is 1.6× LESS differentiated across dimensions than the integer scorer.** Two-thirds of pct texts have within-SD < 0.5, meaning the 10 dimension scores span less than one point on the 0-10 scale. The between-text variance (93.2%) means the scores are almost entirely determined by "how safe is this text overall" rather than "how safe is this text on *this specific dimension*."
+
+This pattern holds after controlling for text-mean matching (Δ within-SD = -0.271 at matched means) and is *worse* for extreme texts (within-SD = 0.372 for texts with mean < 3 or > 7), ruling out text homogeneity as the explanation.
+
+### Unique Variance per Dimension
+
+| Dimension | PCT unique | INT unique |
+|---|---|---|
+| threat_exposure | 14.9% | 20.7% |
+| hostility_index | 2.9% | 17.8% |
+| authority_dynamics | 7.3% | 33.0% |
+| energy_dissipation | 1.4% | 28.9% |
+| regulatory_capacity | 0.7% | 21.4% |
+| resilience_baseline | 0.8% | 27.5% |
+| trust_conditions | 1.7% | 15.9% |
+| cooling_capacity | 0.6% | 23.9% |
+| defensive_architecture | 1.5% | 17.6% |
+| contractual_clarity | 4.8% | 46.5% |
+
+In pct-scored data, 8 of 10 dimensions have **less than 5% unique variance** — they are almost entirely redundant with the other 9. In integer-scored data, unique variance ranges from 15.9% to 46.5%. The pct scale has effectively collapsed the 10-dimension construct into a single number.
+
+### Silver Lining: Residual Structure
+
+After removing the text mean (g-factor proxy), the pct residuals retain a genuine multi-factor structure:
+
+- Parallel analysis on residuals retains **3 factors** (eigenvalues 3.69, 2.01, 1.85)
+- Strong residual pairs: RC-RB (+0.736), AD-RB (-0.718), AD-CC (-0.582), CC-CO (-0.576), TE-DA (-0.552)
+- The dimensions DO differentiate from each other — but only in the residual after removing an overwhelmingly dominant global assessment
+
+### Diagnosis
+
+The 0-100 percentage scale appears to trigger **anchoring-and-adjustment** scoring behavior:
+
+1. The scorer forms a global safety impression (the "anchor" — e.g., "this text feels like 28% safe")
+2. Each dimension is then a small adjustment from that anchor (±2-5 percentage points)
+3. The anchor dominates; the adjustments are tiny relative to the between-text variance
+
+With integer scoring, the coarser scale forces larger discrete jumps, which paradoxically produces MORE dimension differentiation — a text can be "5 on trust but 3 on threat" because 3 and 5 are two full bins apart. On the percentage scale, the same text becomes "52% trust, 48% threat" — technically differentiated but practically indistinguishable.
+
+**This is a well-known psychometric phenomenon:** Schwarz et al. (1991) showed that wider rating scales encourage endpoint avoidance and central-tendency bias. The 0-100 scale gives the scorer *too much room* to express sub-dimension granularity that doesn't exist in their judgment, while paradoxically making the dimensions MORE correlated because the global anchor dominates.
+
+### Implications
+
+1. **Percentage scoring improves between-text resolution** (more unique values, less exact-5) but **destroys within-text differentiation** (dimensions collapse to g-factor).
+2. **For training purposes**, pct-scored data contributes useful between-text variance but NOT useful between-dimension variance. The model will learn "overall safety" from pct data but not "TE is different from CC."
+3. **The g-factor eigenvalue of 6.727 (integer) is NOT inflated by integer bias.** If anything, the integer scale's lower correlations reflect MORE accurate dimension measurement, not LESS.
+4. **Future labeling should NOT use `--pct` as-is.** The resolution gains are real but the dimension-collapse cost is too high. Options:
+   - Revert to 0-10 integer scoring (preserves dimension structure)
+   - Hybrid: use 0-10 with explicit "you may use decimals" instruction (lower anchoring risk)
+   - Sequential anchoring mitigation: require the scorer to first assign dimension-specific qualitative labels, then convert to numbers
+5. **Factor analysis v3 conclusion:** The 10 dimensions share a genuine, strong general factor. The g-factor is real, not an artifact of integer scoring. But the dimensions DO carry meaningful unique variance (15-47% in integer data, confirmed by residual parallel analysis retaining 3 factors in pct data). The hierarchical reporting structure (g-PSQ → clusters → dimensions) remains appropriate.
 
 ---
 
