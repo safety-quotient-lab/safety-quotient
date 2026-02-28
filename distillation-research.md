@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v15 complete (test_r=0.536, held-out_r=0.495). Score-concentration cap added to distill.py (systemic fix for co regression). CO labeling batch (200 texts) extracted and co dim scored (1/10). Labeling timing infrastructure added.
-**Next:** Score remaining 9 dims of CO batch, train v16, evaluate co recovery.
+**Status:** v15 complete (test_r=0.536, held-out_r=0.495). Score-concentration cap in distill.py. CO batch (200 texts × 10 dims) fully scored and ingested (DB: 20,327 texts, 65,361 scores). v16 training in progress.
+**Next:** Evaluate v16 held-out (especially co recovery), promote if improved.
 
 ---
 
@@ -2245,6 +2245,17 @@ A timing log was added to track labeling throughput:
 - `label_separated.py timing` shows per-dimension and aggregate statistics
 
 First measurement: 200 texts × 1 dim (co) in 3.2 min = 3,750 texts/hr.
+
+### 24e. CO Batch Completion
+
+All 10 dimensions scored and ingested for the 200-text CO batch. DB now: 20,327 texts, 65,361 scores (+200 texts, +2,000 scores).
+
+Aggregate timing (10 dims × 200 texts):
+- Total: 25.3 min for 2,000 text-dim scores (~4,743 texts/hr average)
+- Careful scoring (first encounter): 3,200–5,100 texts/hr
+- Fast scoring (texts already in context): 23,000–24,400 texts/hr
+
+v16 training launched with score-concentration cap + new CO data.
 
 ---
 
