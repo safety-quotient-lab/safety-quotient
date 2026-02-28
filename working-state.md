@@ -1,8 +1,10 @@
-# PSQ Project — Working State
+# PSQ Project — Working State [ARCHIVED]
 
-This file captures the current operational state of the PSQ Content Evaluator project.
-It is updated at the end of each working session. Snapshots are saved as
-`working-state-snapshot-YYYYMMDD-HHMM.md`.
+> **This file is no longer maintained.** Its "Current State" function has been merged
+> into `lab-notebook.md` (see the "Current State" block at the top of that file).
+> The content below is preserved as a historical snapshot from 2026-02-28 (v22 ablation phase).
+
+---
 
 ---
 

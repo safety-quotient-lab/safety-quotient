@@ -119,13 +119,21 @@ The session log. This is a chronological record of what happened in each session
 
 **What to add/update:**
 
-- **New session entry** (append at bottom, before the References/Summary sections if those exist):
+- **Current State block** (top of file, *overwrite in place* — not appended):
+  - Model: version, held-out_r, test_r, checkpoint path, ONNX sizes
+  - Per-dimension held-out r table (all 10 dims vs previous best)
+  - Database counts (texts, total scores, separated-llm)
+  - Labeling batches: ingested table + pending table
+  - Criterion validity studies table (update model column when reruns done)
+  - Known Issues table (update status when issues resolve or new ones appear)
+
+- **New session entry** (append at bottom of the session log, before the v-Series Summary Table):
   - Header: `### Session \`YYYYMMDD-HHMM\` (1-line summary)`
   - Bullet points: what was done, with key numbers (model version, held-out_r, batch sizes, AUC results)
   - Cross-references: `▶ distillation-research.md §N, journal.md §N` for the detailed write-ups
   - Pending items: list what was started but not completed (labeling batches extracted but not scored, training launched but results pending)
 
-- **v-Series Summary Table** (middle of file): Add a row for any new training version. Fix stale rows (e.g., "pending" that has now resolved). The table should always match EXPERIMENTS.md.
+- **v-Series Summary Table** (near end of file): Add a row for any new training version. Fix stale rows (e.g., "pending" that has now resolved). The table should always match EXPERIMENTS.md.
 
 - **Open Questions** (end of file):
   - Strike through answered questions with `~~Q: text~~` and add `**ANSWERED:** ...`

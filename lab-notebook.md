@@ -8,6 +8,94 @@ Structured extraction from research sessions. Each entry records what was done, 
 
 ---
 
+## Current State *(overwrite each session)*
+
+### Model: v23 (production, 2026-02-28)
+
+| Metric | Value |
+|---|---|
+| Architecture | DistilBERT-base-uncased (66.7M params) |
+| Held-out r (avg 10 dims) | **0.696** (+0.014 vs v22a, +0.066 vs v21) |
+| Test r | 0.387 (test-split paradox — proxy labels as GT for remaining test texts) |
+| Production checkpoint | `models/psq-student/best.pt` |
+| ONNX | `model.onnx` 254 MB / `model_quantized.onnx` 64 MB INT8 |
+
+### Per-dimension held-out r (v23)
+
+| Dim | v22a | **v23** | Δ |
+|---|---|---|---|
+| regulatory_capacity | 0.756 | **0.782** | +0.026 |
+| threat_exposure | 0.805 | **0.800** | −0.005 |
+| energy_dissipation | 0.712 | **0.768** | +0.056 |
+| cooling_capacity | 0.719 | **0.739** | +0.020 |
+| authority_dynamics | 0.679 | **0.709** | +0.030 |
+| trust_conditions | 0.679 | **0.689** | +0.010 |
+| hostility_index | 0.719 | 0.691 | −0.028 |
+| defensive_architecture | 0.607 | **0.608** | +0.001 |
+| resilience_baseline | 0.640 | 0.621 | −0.019 |
+| contractual_clarity | 0.504 | **0.549** | +0.045 |
+| **Average** | **0.682** | **0.696** | **+0.014** |
+
+### Database (data/psq.db)
+
+| | Count |
+|---|---|
+| Texts | 22,186 |
+| Total scores | 90,361 |
+| Separated-LLM (scorer=claude-sonnet-4-6) | 34,850 |
+| Held-out set | 100 texts (separate file, not in training) |
+| Train / val / test split | ~17,800 / ~2,150 / ~2,200 texts |
+
+### Labeling Batches (ingested)
+
+| Batch | Texts | Focus | Notes |
+|---|---|---|---|
+| weak-dims | 200 | te/rc/co | — |
+| rc | 150 | regulatory_capacity | — |
+| ad | 300 | authority_dynamics | — |
+| co | 200 | contractual_clarity | keyword-filtered |
+| rb | 200 | resilience_baseline | — |
+| cc | 200 | cooling_capacity | — |
+| te | 200 | threat_exposure | TE mean=3.17 |
+| broad | 300 | all dims | 150 random + 100 single-dim + 50 multi-dim |
+| pct-200 | 200 | all dims | 0-100 pct scale pilot (ingested, scale RETRACTED) |
+| midg | 250 | all dims | g∈[3,4.5)∪[5.5,7] middle-band enrichment |
+| ccda | 200 | CO+CC | v23 batch — CO-targeted keyword-filtered |
+| proxy-audit | 200 | all dims | source-diverse: goemotions/ucc/casino/berkeley |
+| held-out-expand | 150 | all dims | ingested as training data (not held-out) |
+| test-clean | 200 | all dims | test-split texts relabeled with LLM |
+
+**Pending (extracted, not yet scored):**
+
+| Batch | Texts | Priority | Rationale |
+|---|---|---|---|
+| ucc | 150 | **Highest** | 3% sep-llm coverage; worst MAE source (2.296) |
+| civil | 100 | High | 1% sep-llm coverage; MAE=1.681 |
+| extreme-adco | 118 | Medium | AD compression fix; CO pool sparse (only 118 found) |
+
+### Criterion Validity Studies
+
+| Study | N | Top predictor | 10-dim AUC | g-PSQ AUC | Model |
+|---|---|---|---|---|---|
+| CaSiNo | 1,030 | AD (r=0.127***) | — | — | v16 |
+| CGA-Wiki | 4,188 | AD (r_pb=−0.105***) | 0.599 | 0.515 | v16 |
+| CMV | 4,263 pairs | DA (r_pb=+0.059***) | 0.5735 | 0.5227 | **v23** |
+| DonD | 12,234 | TE bivariate (d=+0.801) | **0.732** | 0.700 | **v23** |
+
+Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138, relational). T3b confirmed: AD predicts deal, not points. Context-dependent primacy: AD in contested-status, TE+ED in sustained negotiation, DA in fixed-status.
+
+### Known Issues
+
+| Issue | Status |
+|---|---|
+| DA construct validity (weak factor loading, 49% scores=5) | Open — requires expert panel ICC(2,1) |
+| AD range compression (output std=1.54 vs actual 2.46) | Partially addressed — UCC/extreme-adco batches pending |
+| Berkeley/UCC blind spot (MAE 2.5/2.3) | Distribution mismatch, not token length — UCC batch pending |
+| CO still weakest dimension (0.549) | Improving — more data needed |
+| Expert validation recruitment | Not started — protocol designed |
+
+---
+
 ## Notation
 
 - `→` Decision or action taken as a result of finding
