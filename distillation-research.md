@@ -2175,17 +2175,30 @@ Test avg r slightly lower (-0.008), but this is misleading — the test split co
 - **hostility_index** (+0.050): Similar collateral benefit.
 
 **Regressions:**
-- **contractual_clarity** (-0.110): The most concerning regression. Test_r actually improved (+0.051), suggesting the model learned the training distribution better but lost generalization. Possible cause: the AD batch texts may have a different contractual_clarity distribution than the held-out texts, creating a distributional shift.
+- **contractual_clarity** (-0.110): Root cause identified — **score-5 flooding**. 58% of separated-llm co training scores are exact 5.0 (vs 33% for joint-llm). The AD batch texts are genuinely neutral on co (selected for ad relevance), so co=5 is correct, but with separated-llm priority + 5x LLM weight, these 298 new "predict 5" signals overwhelmed the co head. v15 predictions shifted +0.2 toward 5.0 on held-out texts with true scores in the 2-4 range (MAE worsened from 1.26 to 1.34 on non-5 texts). Test_r is unaffected because the test split has the same 5.0 concentration (61%). Fix: score a co-focused batch from unlabeled pool, or cap single-value concentration at 30% per dim.
 - **threat_exposure** (-0.066): Moderate regression. te remains difficult due to the legacy of CC poisoning across 13 training versions.
 
 **Generalization gap:** test_r=0.536, held-out_r=0.495 → gap=7.6% (v14: 11.4%, v13: 27.3%). The gap continues to shrink as separated-llm data replaces noisy proxy labels.
 
-### 23e. V15 Artifacts
+### 23e. Calibration
+
+Score calibration (isotonic regression) improved MAE by 6-26% across all 10 dims. However, confidence calibration revealed two collapsed dimensions:
+
+| Dimension | Conf range | Post-calibration r(conf,acc) | Issue |
+|---|---|---|---|
+| regulatory_capacity | 0.81–0.81 | NaN | Constant confidence — model always outputs 0.81 |
+| cooling_capacity | 0.67–0.67 | NaN | Constant confidence — model always outputs 0.67 |
+
+The confidence head outputs near-constant values for rc and cc, making confidence calibration meaningless for those dimensions. This suggests the confidence head may lack per-dimension capacity — it learns a single "uncertainty" estimate that doesn't vary with actual prediction difficulty. All other dims had negative raw r(conf,acc) corrected to positive by isotonic regression, indicating the model's raw confidence is still inverted (higher confidence = worse accuracy) but recoverable post-hoc.
+
+### 23f. V15 Artifacts
 
 - `models/psq-v15/best.pt` — PyTorch checkpoint (epoch 7)
 - `models/psq-v15/held_out_results.json` — Held-out evaluation metrics
+- `models/psq-v15/calibration.json` — Score + confidence calibration maps
 - `models/psq-v15/tokenizer/` — Tokenizer files
 - `models/psq-v15/config.json`, `best_results.json`, `test_results.json`
+- Promoted to `models/psq-student/` production slot
 
 ---
 
