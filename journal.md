@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28 (v19 cycle, pct batch + bifactor)
+**Current date:** 2026-02-28 (v21 cycle, CO batch + scoring experiments)
 
 ---
 
@@ -40,7 +40,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 27. [The Deal Test: When Energy Matters More Than Status](#27-the-deal-test-when-energy-matters-more-than-status-2026-02-28)
 28. [The g-Factor Deepens and the Integer Problem](#28-the-g-factor-deepens-and-the-integer-problem-2026-02-28)
 29. [The Resolution Fix: Percentage Scoring at Scale](#29-the-resolution-fix-percentage-scoring-at-scale-2026-02-28)
-30. [References](#30-references)
+30. [The Data Scaling Curve and the Experiment Pivot](#30-the-data-scaling-curve-and-the-experiment-pivot-2026-02-28)
+31. [References](#31-references)
 
 ---
 
@@ -986,7 +987,23 @@ The null result closes the percentage scoring research arc and opens a new one. 
 
 ---
 
-## 30. References
+## 30. The Data Scaling Curve and the Experiment Pivot (2026-02-28)
+
+The v21 training result — held-out_r = 0.630, a +0.030 improvement over v19's 0.600 — provided the most important empirical signal of the project's current phase: the data scaling curve has not plateaued. Each successive batch of 200 separated-scored texts has pushed held-out performance higher: v14 (0.482), v15 (0.495), v16 (0.561), v18 (0.568), v19 (0.600), v21 (0.630). The trajectory is sublinear but persistent, suggesting diminishing returns at each increment rather than a hard asymptote.
+
+The CO batch — 200 texts drawn from the unlabeled pool using contractual clarity keywords — was designed to provide varied CO scores, breaking the score-5 flooding that had regressed CO in v15. It succeeded at that (CO held-out 0.513 → 0.555), but the more interesting finding was the broad collateral benefit. Hostility index improved by +0.087, cooling capacity by +0.085, trust conditions by +0.038 — all without any targeted selection for those dimensions. The mechanism is straightforward: texts with rich contractual content (agreements, promises, violations) are inherently interpersonally complex, providing signal across multiple dimensions simultaneously. This echoes the broad-spectrum batch finding from §41: thematically diverse text selection produces wider gains than dimension-targeted selection.
+
+Regulatory capacity reached 0.729, the highest single-dimension held-out correlation in the project's history. The RC trajectory from v14 to v21 — 0.285, 0.326, 0.563, 0.679, 0.710, 0.729 — is the cleanest example of how separated scoring data progressively teaches the student model to recognize a construct that composite proxies barely captured. Threat exposure (0.492) and contractual clarity (0.555) remain the weakest dimensions, likely because they require understanding document-level pragmatic function (what is being threatened? what is being agreed?) rather than local linguistic features that DistilBERT captures well at its 128-token window.
+
+With v21 promoted to production, attention shifted from data scaling to measurement methodology. The percentage scoring experiment (§29) had demonstrated that simply expanding the response scale does not improve dimension differentiation — it makes it worse by enabling anchoring-and-adjustment. The root cause remains the isomorphic rubric structure. All ten PSQ rubrics follow the same template (0 = extreme bad, 5 = neutral, 10 = extreme good), which teaches the LLM scorer to treat them as instances of a single quality continuum (Humphry & Heldsinger, 2014).
+
+Three controlled experiments were designed to test different approaches to breaking this structural similarity, with rigorous methodological safeguards learned from the percentage scoring experience: fresh controls scored in the same experimental window (no stale gold labels), non-overlapping text sets from the unlabeled pool (no familiarity contamination), scale-invariant metrics (entropy, eigenvalue ratio), and a criterion validity gate requiring maintained predictive power (CaSiNo AUC ≥ 0.58). The key design insight is that any change to the scoring prompt or rubric must be tested as a controlled experiment against the production instrument, never deployed directly — a principle established when an attempted in-flight modification to the scoring prompt was correctly identified as scientifically indefensible.
+
+The project now faces a pivotal question: can the halo problem be mitigated through measurement design, or is it an irreducible property of LLM-based rating? If the scoring experiments reduce the g-factor eigenvalue while maintaining criterion validity, the path to publishable psychometric quality becomes clear. If they do not, the 10-dimension structure may need to be reconceptualized as a hierarchical model where the general factor is a first-class construct rather than a measurement artifact.
+
+---
+
+## 31. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

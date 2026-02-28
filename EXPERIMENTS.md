@@ -58,7 +58,11 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v20:** Pct-scored data had no measurable effect (held-out_r 0.600 = identical to v19). Dim-level shifts within noise (CO +0.024, CC +0.023 vs ED -0.034, TE -0.028). **Not promoted.** Pct scoring retracted as labeling format — FA v3 showed dimension collapse (eigenvalue 9.41 = 94.1% shared variance).
 
-## Key Hyperparameters (v16, current)
+| **v21** | **2026-02-28** | **DistilBERT** | **6** | **2e-5** | **32** | **0.504** | **0.630** | +2,000 separated-llm (CO batch: 200 CO-keyword texts × 10 dims). DB: 21,627 texts, 80,361 scores, 26,771 separated-llm. | Score-concentration cap. `--out models/psq-v21`. Early stop epoch 9, best epoch 6. |
+
+**Notes on v21:** NEW BEST held-out (0.630, +0.030 vs v19, +0.069 vs v16). RC=0.729 (new ceiling dim), CC=0.687, AD=0.674, TC=0.674. CO batch helped non-CO dims most: HI +0.087, CC +0.085, TC +0.038 vs v19. CO itself +0.042. TE flat (0.492), DA still weak (0.566). Val-held-out gap 0.126 (held-out quality > val split). **Promoted to production.** ONNX re-exported.
+
+## Key Hyperparameters (v21, current)
 
 ```
 model_name:          distilbert-base-uncased

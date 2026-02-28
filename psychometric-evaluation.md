@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v19 DistilBERT — test_r=0.509, held-out_r=0.600 (separated labels, best ever, +0.032 vs v18). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Integer-only scoring bias addressed with percentage scoring (86.2% non-integer at scale). Bifactor v19b: g_r=0.594 but per-dim capacity competition.
+**Status:** v21 DistilBERT — test_r=0.504, held-out_r=0.630 (separated labels, best ever, +0.030 vs v19). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,627 texts, 80,361 scores, 26,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Scoring experiment protocols designed for rubric-induced halo mitigation (3 experiments + test-retest baseline).
 
 ---
 
@@ -25,7 +25,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
-| Held-out generalization | **Strong** (held-out_r=0.600, 10/10 dims r>0.49, v19) | — |
+| Held-out generalization | **Strong** (held-out_r=0.630, 10/10 dims r>0.49, v21) | — |
 | Range utilization / bias | **Measured** (6/10 good, 2/10 poor) | High |
 | Measurement invariance / bias | **Planned, not done** | High |
 | Normative data | **Not established** | Medium |

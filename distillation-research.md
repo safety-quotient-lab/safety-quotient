@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v19 production (test_r=0.509, held-out_r=0.600). v20 trained with pct data: held-out_r=0.600 (flat, pct data neutral). 4 criterion validity studies. DB: 21,627 texts, 78,361 scores, 24,771 separated-llm. g-factor confirmed real (NOT integer artifact): pct eigenvalue 9.41 vs int 6.73. Scoring research plan created (8 avenues for rubric-induced halo mitigation).
-**Next:** Design structurally dissimilar rubrics (Avenue 2), score CO batch with integer scale.
+**Status:** v21 production (test_r=0.504, held-out_r=0.630, new best). CO batch (200 CO-relevant texts × 10 dims) ingested. 4 criterion validity studies. DB: 21,627 texts, 80,361 scores, 26,771 separated-llm. g-factor confirmed real (NOT integer artifact): pct eigenvalue 9.41 vs int 6.73. Scoring experiment protocols designed (3 experiments + test-retest baseline).
+**Next:** Execute scoring experiments (Phase 0 test-retest, then Exp 1-3 for halo mitigation).
 
 ---
 
@@ -63,6 +63,7 @@
 46. [Bifactor v19b Results](#46-bifactor-v19b-results-2026-02-28) — 11th head (g-PSQ) learns well (r=0.594) but per-dim test_r drops to 0.502; capacity competition
 47. [Factor Analysis v3: Percentage Scoring Deepens the g-Factor](#47-factor-analysis-v3-percentage-scoring-deepens-the-g-factor-2026-02-28) — pct-scored data shows eigenvalue 9.41 (94.1%), mean |r|=0.934. Integer bias NOT the cause; cross-session halo suspected.
 48. [v20 Training: Pct Data Impact](#48-v20-training-pct-data-impact-2026-02-28) — held-out_r=0.600 (flat vs v19), pct data neither helps nor hurts at 200-text scale
+49. [v21 Training: CO Batch and Scoring Experiments](#49-v21-training-co-batch-and-scoring-experiments-2026-02-28) — held-out_r=0.630 (new best, +0.030 vs v19), RC=0.729, CC=0.687, scoring experiment protocols designed
 13. [References](#13-references)
 
 ---
@@ -3996,6 +3997,59 @@ Following the variance decomposition (§47) and literature search on rubric-indu
 8. **Human expert validation** — definitive test of whether g-factor is LLM-specific or construct-inherent
 
 Key literature finding: Humphry & Heldsinger (2014) showed that structurally aligned rubric categories cause halo — directly applicable to PSQ's isomorphic rubric structure. This is the highest-priority avenue for intervention.
+
+---
+
+## 49. v21 Training: CO Batch and Scoring Experiments (2026-02-28)
+
+### Data Addition
+
+The CO-focused batch — 200 texts from the unlabeled pool filtered for contractual clarity keywords (≥2 of: agree, rule, policy, expect, promise, contract, boundary, terms, law, obligation, require, understanding, clear, fair, unfair, consent, permission, violat) — was scored across all 10 dimensions using the separated protocol. This added 2,000 new separated-llm labels to the training set (DB: 21,627 texts, 80,361 scores, 26,771 separated-llm).
+
+### Training Results
+
+| Dimension | v16 (prev prod) | v19 (prev best) | v21 | v21 Δ vs v16 | v21 Δ vs v19 |
+|---|---|---|---|---|---|
+| threat_exposure | 0.347 | 0.495 | 0.492 | +0.145 | -0.003 |
+| hostility_index | 0.604 | 0.571 | 0.658 | +0.054 | +0.087 |
+| authority_dynamics | 0.625 | 0.657 | 0.674 | +0.049 | +0.017 |
+| energy_dissipation | 0.592 | 0.649 | 0.639 | +0.046 | -0.010 |
+| regulatory_capacity | 0.563 | 0.710 | 0.729 | +0.166 | +0.019 |
+| resilience_baseline | 0.576 | 0.624 | 0.632 | +0.055 | +0.008 |
+| trust_conditions | 0.585 | 0.636 | 0.674 | +0.089 | +0.038 |
+| cooling_capacity | 0.643 | 0.602 | 0.687 | +0.044 | +0.085 |
+| defensive_architecture | 0.539 | 0.538 | 0.566 | +0.027 | +0.028 |
+| contractual_clarity | 0.534 | 0.513 | 0.555 | +0.022 | +0.042 |
+| **Mean** | **0.561** | **0.600** | **0.630** | **+0.069** | **+0.030** |
+
+Best epoch: 6/9 (early stopped at epoch 9, patience=3). test_r=0.504. Training time: 2,733s (9 epochs × 303s).
+
+### Analysis
+
+1. **New best held-out ever** (0.630). The +0.030 vs v19 is the third consecutive version to improve held-out, suggesting the data scaling curve has not plateaued.
+
+2. **CO batch helped non-CO dims most.** The strongest held-out gains vs v19 were HI (+0.087), CC (+0.085), CO (+0.042), TC (+0.038). The CO-keyword filter selected texts with rich interpersonal content, which happens to carry signal for multiple dimensions. CO itself gained +0.042, a moderate but real improvement.
+
+3. **RC is the new ceiling dim** at 0.729. This dim has climbed monotonically: v14 0.285 → v15 0.326 → v16 0.563 → v18 0.679 → v19 0.710 → v21 0.729. The separated scoring data for RC is clearly high-quality and the construct is well-captured by DistilBERT.
+
+4. **Weakest dims unchanged.** TE (0.492) and CO (0.555) remain the bottom two. TE regression from v19 is within noise (-0.003). DA (0.566) improved slightly but remains below 0.60.
+
+5. **Val-held-out gap widening** (0.504 test vs 0.630 held-out = 0.126 gap). This reflects the quality difference between training val split (mixed composite-proxy/joint-llm labels) and held-out (pure separated-llm labels). The model generalizes better than the val split suggests.
+
+6. **v21 promoted to production.** ONNX re-exported (254 MB full, 64 MB INT8).
+
+### Scoring Experiment Protocols
+
+With v21 training complete, attention shifted to the halo mitigation research plan. Three controlled experiments were designed (`scoring-experiments.md`):
+
+- **Phase 0: Test-Retest Baseline** — re-score 20 held-out texts with identical protocol to establish scorer variability (Δ_noise). Treatment effects must exceed 2×Δ_noise.
+- **Experiment 1: Halo-Awareness Instructions** — add meta-cognitive "score ONLY this dimension" instruction to scoring prompt. 30 fresh texts from unlabeled pool.
+- **Experiment 2: Dissimilar Rubrics** — redesign CO, ED, AD rubric anchors to be structurally unique rather than isomorphic. 30 fresh texts.
+- **Experiment 3: Scale Format** — compare 0-10 integer vs 1-7 Likert on dimension differentiation. 20 fresh texts.
+
+Key design principles: (a) fresh controls scored in same experimental window (no stale gold labels), (b) non-overlapping text sets from unlabeled pool (no familiarity contamination), (c) scale-invariant metrics (entropy, eigenvalue ratio, rank-order), (d) criterion validity gate (CaSiNo AUC ≥ 0.58), (e) construct redefinition diagnostic for Exp 2 (check 7 unmodified dims).
+
+Supporting scripts created: `scripts/scoring_experiment_analysis.py` (analysis: retest, ab, crossscale modes), `scripts/select_experiment_texts.py` (deterministic hash-based text selection, stratified by source). Text sets prepared in `/tmp/psq_experiments/`.
 
 ---
 

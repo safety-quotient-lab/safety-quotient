@@ -107,7 +107,7 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 
 **Total separated-llm training labels:** 26,771 scores (across 21,627 texts in DB).
 
-## Composite Summary (v19+pct, 2026-02-28)
+## Composite Summary (v21, 2026-02-28)
 
 | Metric | Value |
 |---|---|
