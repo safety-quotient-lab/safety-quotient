@@ -3903,6 +3903,45 @@ With integer scoring, the coarser scale forces larger discrete jumps, which para
    - Sequential anchoring mitigation: require the scorer to first assign dimension-specific qualitative labels, then convert to numbers
 5. **Factor analysis v3 conclusion:** The 10 dimensions share a genuine, strong general factor. The g-factor is real, not an artifact of integer scoring. But the dimensions DO carry meaningful unique variance (15-47% in integer data, confirmed by residual parallel analysis retaining 3 factors in pct data). The hierarchical reporting structure (g-PSQ → clusters → dimensions) remains appropriate.
 
+### Variance Decomposition: Signal vs Quantization Noise
+
+To determine how much of the integer within-text SD (0.717) is genuine dimension differentiation versus quantization noise from rounding, we applied five complementary approaches: theoretical noise modeling, Monte Carlo simulation, jittering, attenuation correction, and information-theoretic decomposition.
+
+**Result:** Rounding noise accounts for only **13.5% of within-text variance** (0.083 of 0.618). The noise-corrected within-text SD is 0.731 — barely different from the observed 0.717. The true (noise-free) inter-dimension mean |r| is approximately 0.662, versus 0.632 observed.
+
+| Regime | Within-SD | Mean |r| | g-eigenvalue |
+|---|---|---|---|
+| PCT (observed) | 0.448 | 0.934 | 9.410 |
+| INT (observed) | 0.717 | 0.632 | 6.727 |
+| INT (noise-corrected) | **0.731** | **0.662** | **~7.05** |
+
+The gap between PCT and INT correlations is 0.302. Rounding attenuation explains only 0.030 (10.1%). The remaining 0.272 (89.9%) is **rubric-induced anchoring** — the isomorphic rubric structure causes the scorer to anchor on a global safety impression.
+
+### Per-Dimension Variance Budget (integer, corrected)
+
+| Dimension | Total var | g-shared | Unique | Noise | %unique |
+|---|---|---|---|---|---|
+| contractual_clarity | 1.247 | 0.657 | 0.507 | 0.083 | **40.6%** |
+| resilience_baseline | 1.514 | 0.822 | 0.609 | 0.083 | **40.2%** |
+| energy_dissipation | 1.632 | 0.908 | 0.641 | 0.083 | **39.3%** |
+| authority_dynamics | 1.710 | 1.055 | 0.572 | 0.083 | **33.5%** |
+| threat_exposure | 2.762 | 1.790 | 0.889 | 0.083 | **32.2%** |
+| hostility_index | 2.255 | 1.587 | 0.585 | 0.083 | 25.9% |
+| cooling_capacity | 1.957 | 1.439 | 0.434 | 0.083 | 22.2% |
+| regulatory_capacity | 1.648 | 1.220 | 0.345 | 0.083 | 20.9% |
+| defensive_architecture | 1.297 | 1.052 | 0.161 | 0.083 | 12.4% |
+| trust_conditions | 1.937 | 1.620 | 0.234 | 0.083 | 12.1% |
+
+CO, RB, ED, and AD have the highest unique variance (33-41%) — these dimensions capture the most information that the general factor misses. TC and DA have the lowest (12%) — they are most redundant with g-PSQ. This aligns with criterion validity findings: AD's unique variance (33.5%) contains the predictive signal that makes it the strongest external predictor despite its high g-loading.
+
+### The Rubric-as-Halo-Vector Insight
+
+The root cause of pct dimension collapse is the **isomorphic rubric structure**. All 10 rubrics follow the same template: 0=extreme bad, 50="neutral — no [X] signals", 100=extreme good. The scorer correctly infers that the rubrics describe ten instances of a single continuum, and scores accordingly.
+
+A comparison with an external scoring system (0-100 editorial bias scoring) suggests that 0-100 scales work well when (a) anchors describe **concrete, recognizable content categories** rather than abstract quality gradients, and (b) only ONE construct is scored per pass. PSQ's problem is not the scale width — it's that the rubric teaches the scorer to collapse dimensions.
+
+**Potential fix:** Score with dimension name + definition only (no rubric anchors), or redesign anchors to be structurally dissimilar across dimensions — using concrete content-type examples rather than abstract quality levels. This predicts within-text SD ~0.6-0.8 and mean |r| ~0.55-0.65 on a 0-100 scale — combining fine resolution with genuine dimension differentiation.
+
 ---
 
 ## 13. References
