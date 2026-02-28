@@ -2,15 +2,15 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v18 DistilBERT — test_r=0.525, held-out_r=0.568 (separated labels, best ever). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm.
+**Status:** v19 DistilBERT — test_r=0.509, held-out_r=0.600 (separated labels, best ever, +0.032 vs v18). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Integer-only scoring bias identified.
 
 ---
 
 ## 1. Summary Assessment
 
-The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v18 DistilBERT: test_r=0.525, held-out_r=0.568 with halo-free separated labels). All 10 dimensions now generalize to real-world text (r=0.35-0.68); threat_exposure correlation is low (0.37) but MAE analysis shows predictions are actually accurate — the low r is a statistical artifact of low label variance. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call). Four independent criterion validity studies demonstrate that PSQ profiles predict real-world outcomes (negotiation satisfaction, conversation derailment, persuasion success, deal-reaching) with AUC 0.59–0.69, and that profile shape predicts while the average does not.
+The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v19 DistilBERT: test_r=0.509, held-out_r=0.600 with halo-free separated labels). All 10 dimensions now generalize to real-world text (r=0.49-0.71); threat_exposure has recovered to 0.495 (from 0.370 in v18) following broad-spectrum data addition. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call). Four independent criterion validity studies demonstrate that PSQ profiles predict real-world outcomes (negotiation satisfaction, conversation derailment, persuasion success, deal-reaching) with AUC 0.59–0.69, and that profile shape predicts while the average does not.
 
-However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Factor analysis (n=2,359 complete texts) rejects the 10-factor independence assumption — a dominant general factor explains 48–62% of variance, and BIC favors a 5-factor model. The 10 dimensions are better understood as theoretically distinct facets that empirically cluster into 3–5 higher-order factors. Most standard reliability and validity evidence has not yet been collected.
+However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Factor analysis v2 (n=1,970 separated-llm texts) shows a dominant general factor explaining 67.3% of variance (eigenvalue 6.727, KMO=0.902), with parallel analysis retaining only 1 factor. The previous 5-factor structure has largely collapsed; 8/10 dimensions load primarily on the general factor. A newly discovered integer-only scoring bias (LLM almost never assigns non-integer scores) may be inflating correlations by compressing effective resolution to 11 bins. Most standard reliability and validity evidence has not yet been collected.
 
 ### Scorecard
 
@@ -18,14 +18,14 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 |---|---|---|
 | Theoretical grounding | **Strong** | — |
 | Content validity | **Partial** | High |
-| Construct validity | **Tested** — EFA rejects 10-factor independence (BIC-best: 5 factors, dominant general factor at 48% variance). Hierarchical model recommended. | High |
+| Construct validity | **Tested** — EFA v2 rejects 10-factor independence. g-factor eigenvalue 6.727 (67.3% variance), parallel analysis retains 1 factor only. 5-factor structure collapsed. Integer-only scoring bias may inflate g-factor. | High |
 | Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
 | Criterion validity | **Four studies** — CaSiNo: satisfaction (r≈0.08-0.13\*\*\*); CGA-Wiki: derailment (AUC=0.599); CMV: persuasion (AUC=0.590); DonD: deal-reaching (AUC=0.686). Context-dependent primacy: AD in contested-status, ED in sustained negotiation, DA in fixed-status. Profile >> average in all studies. | **Strong** |
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
-| Held-out generalization | **Strong** (held-out_r=0.568, 10/10 dims p<0.001, v18) | — |
+| Held-out generalization | **Strong** (held-out_r=0.600, 10/10 dims r>0.49, v19) | — |
 | Range utilization / bias | **Measured** (6/10 good, 2/10 poor) | High |
 | Measurement invariance / bias | **Planned, not done** | High |
 | Normative data | **Not established** | Medium |
@@ -156,38 +156,55 @@ This is a **level-of-analysis shift** from trait/state measurement to stimulus a
 
 **Standard:** Multi-dimensional instruments should demonstrate that dimensions are empirically distinct (discriminant validity) via factor analysis (AERA/APA/NCME Standard 1.13).
 
-**Update (2026-02-28, full factor analysis):** EFA was conducted on 2,359 texts with complete 10-dimension coverage (1,470 separated-llm, 976 joint-llm, 150 composite-proxy). Analyses used sklearn FactorAnalysis with varimax rotation.
+**Update (2026-02-28, factor analysis v1):** EFA was conducted on 2,359 texts with complete 10-dimension coverage (1,470 separated-llm, 976 joint-llm, 150 composite-proxy). Analyses used sklearn FactorAnalysis with varimax rotation.
 
 #### Adequacy Tests
 
-| Test | Result | Interpretation |
-|---|---|---|
-| KMO (Kaiser-Meyer-Olkin) | **0.819** | Meritorious — data is well-suited for factor analysis |
-| Bartlett's sphericity | χ²=12,750.5, df=45, p≈0.000 | Correlations are not an identity matrix |
+| Test | v1 Result (N=2,359, mixed) | v2 Result (N=1,970, sep-llm only) | Interpretation |
+|---|---|---|---|
+| KMO (Kaiser-Meyer-Olkin) | **0.819** | **0.902** | Meritorious → Superb |
+| Bartlett's sphericity | χ²=12,750.5, df=45, p≈0.000 | — | Correlations are not an identity matrix |
 
 #### How Many Factors?
 
-| Method | Factors Retained |
-|---|---|
-| Kaiser criterion (eigenvalue > 1) | **3** (all data), **2** (separated-llm only) |
-| Parallel analysis (Horn's, 95th %ile) | **2** |
-| BIC (model selection) | **5** (ΔBIC=0 vs 4-factor +110, 6-factor +1.4) |
-| 10-factor model fit | Collapsed to **5** non-trivial factors (F6–F10 all zero loadings) |
+| Method | v1 (mixed) | v2 (sep-llm only) |
+|---|---|---|
+| Kaiser criterion (eigenvalue > 1) | **3** (all data), **2** (sep-llm) | — |
+| Parallel analysis (Horn's, 95th %ile) | **2** | **1** |
+| BIC (model selection) | **5** (ΔBIC=0 vs 4-factor +110) | **5** (but 4-/5-factor didn't converge) |
+| 10-factor model fit | Collapsed to **5** non-trivial factors | — |
 
-The first eigenvalue alone explains **48.4%** of variance (61.5% for separated-llm only), indicating a dominant general factor.
+The first eigenvalue alone explains **48.4%** of variance in v1, rising to **67.3%** in v2, indicating a dominant and strengthening general factor.
 
 #### Scree Analysis
 
-| Factor | Eigenvalue | % Variance | Cumulative |
-|---|---|---|---|
-| 1 | 4.844 | 48.4% | 48.4% |
-| 2 | 1.292 | 12.9% | 61.4% |
-| 3 | 1.029 | 10.3% | 71.6% |
-| 4 | 0.851 | 8.5% | 80.2% |
-| 5 | 0.572 | 5.7% | 85.9% |
-| 6–10 | 0.171–0.395 | 1.7–3.9% | 100% |
+| Factor | v1 Eigenvalue | v1 % Variance | v2 Eigenvalue | v2 % Variance |
+|---|---|---|---|---|
+| 1 | 4.844 | 48.4% | **6.727** | **67.3%** |
+| 2 | 1.292 | 12.9% | — | — |
+| 3 | 1.029 | 10.3% | — | — |
+| 4 | 0.851 | 8.5% | — | — |
+| 5 | 0.572 | 5.7% | — | — |
+| 6–10 | 0.171–0.395 | 1.7–3.9% | — | — |
 
-#### BIC-Best 5-Factor Solution (varimax)
+#### g-Factor Loadings (v2, all dimensions)
+
+| Dimension | g-Loading |
+|---|---|
+| trust_conditions | 0.930 |
+| defensive_architecture | 0.914 |
+| cooling_capacity | 0.864 |
+| regulatory_capacity | 0.854 |
+| hostility_index | 0.824 |
+| resilience_baseline | 0.810 |
+| threat_exposure | 0.768 |
+| authority_dynamics | 0.737 |
+| contractual_clarity | 0.720 |
+| energy_dissipation | 0.661 |
+
+All 10 dimensions load >0.66 on the general factor. The 5-factor structure from v1 has largely collapsed: Factor 1 absorbs 8/10 dimensions; only CO, ED, and AD separate weakly.
+
+#### BIC-Best 5-Factor Solution (v1, varimax) — retained for provenance
 
 | Factor | Dimensions (loading > 0.35) | Interpretation |
 |---|---|---|
@@ -201,49 +218,40 @@ Cross-loading dimensions: DA loads on F1, F3, and F4 (no clear primary factor). 
 
 All factor score correlations are near zero (max |r|=0.110), confirming orthogonal structure after rotation.
 
-#### Correlation Matrix (all 2,359 complete texts)
+#### Correlation Comparison
 
-|  | TE | RC | RB | TC | HI | CC | ED | DA | AD | CO |
-|---|---|---|---|---|---|---|---|---|---|---|
-| TE | 1.00 | .41 | .24 | .38 | **.73** | .50 | .57 | .46 | .35 | .18 |
-| RC | | 1.00 | .60 | .52 | .48 | .60 | .44 | .58 | .38 | .30 |
-| RB | | | 1.00 | .43 | .26 | .44 | .41 | .51 | .22 | .25 |
-| TC | | | | 1.00 | .48 | .53 | .22 | .54 | .59 | **.70** |
-| HI | | | | | 1.00 | .66 | .37 | .52 | .43 | .18 |
-| CC | | | | | | 1.00 | .29 | .60 | .46 | .21 |
-| ED | | | | | | | 1.00 | .34 | .18 | .15 |
-| DA | | | | | | | | 1.00 | .51 | .26 |
-| AD | | | | | | | | | 1.00 | .29 |
-| CO | | | | | | | | | | 1.00 |
+| Metric | v1 (N=2,359, mixed) | v1 sep-llm (N=1,470) | v2 (N=1,970, sep-llm only) |
+|---|---|---|---|
+| Mean off-diagonal \|r\| | 0.417 | 0.564 | **0.632** |
+| Pairs \|r\| > 0.5 | 15/45 | 28/45 | — |
+| Pairs \|r\| > 0.7 | 1/45 | 11/45 | — |
+| Kaiser factors retained | 3 | 2 | — |
+| Eigenvalue 1 (% variance) | 4.844 (48.4%) | 6.153 (61.5%) | **6.727 (67.3%)** |
 
-Off-diagonal |r|: mean=0.417, median=0.433. Pairs with |r|>0.5: 15/45. Pairs with |r|<0.2: 4/45.
+The monotonic increase in inter-dimension correlations (0.417 → 0.564 → 0.632) as composite-proxy data is excluded suggests the composite-proxy mappings introduce dimension-specific noise that artificially decorrelates dimensions. However, the integer-only scoring bias (see below) may also contribute to correlation inflation.
 
-#### Separated-LLM Only (n=1,470, halo-free)
+#### Integer-Only Scoring Bias (discovered 2026-02-28)
 
-Counter-intuitively, separated scoring produced *higher* inter-dimension correlations than mixed data:
+A score distribution audit revealed that the LLM scorer almost never assigns non-integer values. The effective scoring scale is **11 bins (integers 0-10)**, not continuous 0-10. The 4-5-6 band captures 57-81% of all separated-llm scores. Score-5 concentration: CO 60.8% (worst), TE 24.1% (best), 9/10 dims above the 30% cap threshold.
 
-| Metric | All data (n=2,359) | Separated-LLM (n=1,470) |
-|---|---|---|
-| Mean off-diagonal \|r\| | 0.417 | **0.564** |
-| Pairs \|r\| > 0.5 | 15/45 | **28/45** |
-| Pairs \|r\| > 0.7 | 1/45 | **11/45** |
-| Kaiser factors retained | 3 | **2** |
-| Eigenvalue 1 (% variance) | 4.844 (48.4%) | **6.153 (61.5%)** |
-
-This is *not* halo contamination — separated scoring eliminates halo by design (one dimension per LLM call). The higher correlations reflect genuine co-variation: texts that are hostile also tend to lack trust, have poor authority dynamics, weak cooling capacity, etc. The composite-proxy data (with its narrower, noisier mappings) artificially *deflated* correlations by introducing independent noise per dimension.
+This has direct implications for the factor analysis:
+- Shared "score-5" signal mechanically inflates inter-dimension correlations
+- The g-factor eigenvalue may be partly artifactual
+- Resolution: pilot 0-100 percentage scoring scale, then re-run factor analysis
 
 #### Verdict on H0 (10 factors are distinct)
 
-**H0 is rejected by all standard criteria.** The data supports 2–5 latent factors, not 10. The dominant general factor (48–62% of variance) indicates that most of the 10 dimensions measure a single underlying construct — "overall psychological safety of content."
+**H0 is rejected by all standard criteria.** The data supports 1–5 latent factors, not 10. The dominant general factor (67.3% of variance in v2) indicates that most of the 10 dimensions measure a single underlying construct — "overall psychological safety of content." Parallel analysis retains only 1 factor. The 5-factor structure from v1 has become unstable in v2.
 
-However, rejection of 10 independent factors does not require merging dimensions. Each dimension retains 17–41% unique variance in the 5-factor model (specificity), and the dimensions capture theoretically distinct constructs that imply different interventions.
+However, rejection of 10 independent factors does not require merging dimensions. The dimensions capture theoretically distinct constructs that imply different interventions, and criterion validity studies show that individual dimensions carry non-redundant predictive signal (g-PSQ AUC near chance in all 4 studies, 10-dim profiles predict).
 
-**Recommendation:** Adopt a **hierarchical reporting model**:
+**Recommendation (updated):** Adopt a **hierarchical reporting model**:
 1. Report the **overall PSQ** as the primary score (captures the general factor)
-2. Report **cluster scores** for the 3–5 higher-order factors (Hostility/Threat, Relational Contract, Internal Resources, Power Dynamics, Stress/Energy)
-3. Report **dimension scores** as fine-grained detail with the caveat that dimensions within a cluster are not independent
-4. Document the general factor and cluster structure in all technical reporting
-5. Do *not* claim 10 independent dimensions — claim 10 *theoretically distinct* dimensions that empirically cluster into 3–5 factors with a dominant general factor
+2. Report **cluster scores** cautiously — the 5-factor structure may not be stable; await resolution of integer-only bias before committing to a cluster layer
+3. Report **dimension scores** as fine-grained detail with the caveat that dimensions share a strong general factor
+4. Document the general factor and integer-only bias caveat in all technical reporting
+5. Do *not* claim 10 independent dimensions — claim 10 *theoretically distinct* dimensions that empirically share 67% of variance via a general factor
+6. Investigate whether switching to a 0-100 scoring scale reduces the g-factor eigenvalue
 
 #### Dimension Reduction Evaluation (2026-02-28)
 

@@ -6,35 +6,37 @@ It is updated at the end of each working session. Snapshots are saved as
 
 ---
 
-## Current Model: psq-v18 (production)
+## Current Model: psq-v19 (production)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT → 10-dim regression (knowledge distillation) |
-| Test r (avg 10 dims) | 0.525 |
-| Held-out r (avg 10 dims) | 0.568 (+0.007 vs v16, new best) |
-| Epochs | 10 (no early stop) |
+| Test r (avg 10 dims) | 0.509 |
+| Held-out r (avg 10 dims) | **0.600** (+0.032 vs v18, new best) |
+| Epochs | 10 (early stopped epoch 7, best epoch 4) |
 | Production checkpoint | `models/psq-student/best.pt` |
-| ONNX | needs re-export from v18 |
+| ONNX | re-exported from v19 (254 MB / 64 MB quantized) |
 
-### Per-dimension held-out r (v18)
+### Per-dimension held-out r (v19)
 
-| Dimension | Held-out r | Δ vs v16 | Status |
+| Dimension | Held-out r | Δ vs v18 | Status |
 |---|---|---|---|
-| regulatory_capacity | 0.679 | +0.116 | **best** — massive jump |
-| resilience_baseline | 0.651 | +0.088 | strong gain |
-| trust_conditions | 0.620 | +0.045 | improved |
-| cooling_capacity | 0.618 | -0.025 | good |
-| authority_dynamics | 0.599 | -0.026 | good |
-| energy_dissipation | 0.562 | -0.030 | good |
-| hostility_index | 0.557 | -0.047 | good |
-| contractual_clarity | 0.533 | -0.001 | flat |
-| defensive_architecture | 0.488 | -0.035 | moderate |
-| threat_exposure | 0.370 | +0.023 | correlation artifact |
+| regulatory_capacity | 0.710 | +0.031 | **best** — continued improvement |
+| authority_dynamics | 0.657 | +0.058 | strong gain |
+| energy_dissipation | 0.649 | +0.087 | strong gain |
+| trust_conditions | 0.636 | +0.016 | improved |
+| resilience_baseline | 0.624 | -0.027 | slight regression |
+| cooling_capacity | 0.602 | -0.016 | good |
+| hostility_index | 0.571 | +0.014 | good |
+| defensive_architecture | 0.538 | +0.050 | improved |
+| contractual_clarity | 0.513 | -0.020 | slight regression |
+| threat_exposure | 0.495 | **+0.125** | **massive recovery** |
 
-### g-Factor Prerequisite Check
+### Bifactor Status
 
-r(mean_pred, mean_target) = **0.644** on held-out (n=87). Well below 0.95 — bifactor Option A is worth building.
+- `--bifactor` flag implemented and smoke-tested (1 epoch, g_psq r=0.5277)
+- g-factor prerequisite confirmed: r(mean_pred, mean_target) = 0.644 on held-out
+- Full bifactor training deferred pending v19 cycle completion
 
 ---
 
@@ -42,9 +44,9 @@ r(mean_pred, mean_target) = **0.644** on held-out (n=87). Well below 0.95 — bi
 
 | Table | Count |
 |---|---|
-| texts | 21,127 |
-| scores | 73,361 |
-| separated-llm | 19,771 |
+| texts | 21,427 |
+| scores | 76,361 |
+| separated-llm | 22,771 |
 | composite-proxy | 40,487 |
 | joint-llm | 12,257 |
 | synthetic | 846 |
@@ -63,7 +65,7 @@ r(mean_pred, mean_target) = **0.644** on held-out (n=87). Well below 0.95 — bi
 | RB focus | `labeling-batch-rb.jsonl` | 200 | all 10 | resilience_baseline |
 | CC focus | `labeling-batch-cc.jsonl` | 200 | all 10 | cooling_capacity |
 | TE focus | `labeling-batch-te.jsonl` | 200 | all 10 | threat_exposure (TE mean=3.17) |
-| **Broad spectrum** | `labeling-batch-broad.jsonl` | 300 | 0/10 | **Not yet scored.** 150 random + 100 single-dim + 50 multi-dim. |
+| Broad spectrum | `labeling-batch-broad.jsonl` | 300 | all 10 | broad-spectrum (150 random + 100 single-dim + 50 multi-dim) |
 
 ---
 
@@ -82,10 +84,18 @@ r(mean_pred, mean_target) = **0.644** on held-out (n=87). Well below 0.95 — bi
 
 ## Factor Structure
 
-- EFA on 2,359 complete texts → 5-factor BIC-optimal
-- Dominant g-factor: eigenvalue 4.844 (48.4% variance)
+### v2 (separated-llm only, N=1,970)
+- g-factor eigenvalue: **6.727 (67.3% variance)** — up from 4.844 (48.4%) in v1
+- KMO = **0.902** ("Superb") — up from 0.819
+- Parallel analysis retains **1 factor only** (was 2 in v1)
+- 5-factor structure **collapsed**: Factor 1 absorbs 8/10 dims; only CO, ED, AD separate weakly
+- g-factor loadings all >0.66: TC (0.930), DA (0.914), CC (0.864), RC (0.854)
+- Mean inter-dim |r| = **0.632** (up from 0.417 in mixed data)
+- **Integer-only scoring bias discovered**: LLM uses 11 bins (integers 0-10), not continuous scale
+- g-factor may be partly inflated by score-5 concentration (24-61% across dims)
+
+### v1 (retained for comparison, N=2,359 mixed)
 - 5 clusters: Hostility/Threat (HI,TE,CC), Relational Contract (CO,TC), Internal Resources (RB,RC,DA), Power Dynamics (AD), Stress/Energy (ED)
-- AD and ED are singleton factors — genuinely independent
 - 5-factor preserves 88% of 10-dim info (avg R²=0.881)
 - g-PSQ alone AUC=0.515 (near-chance) vs 10-dim AUC=0.599
 
@@ -113,9 +123,17 @@ CMV results favor Theory 3 (context-dependent). Construct rename: authority_dyna
 
 ## Known Issues
 
+- **Integer-only scoring bias** (NEW): LLM almost never uses non-integer scores. Effective scale is 11 bins (integers 0-10), not continuous. The 4-5-6 band captures 57-81% of all separated-llm scores. This inflates inter-dimension correlations and limits model resolution. Proposed fix: 0-100 percentage scoring scale.
+- **CO score-5 concentration**: 60.8% of separated-llm CO scores are exact 5.0 (worst of all dims). The PSQ construct definitions and scoring rubric (psq-definition.md) are externally authored and will not be modified. Mitigation is limited to: (a) score-concentration cap in distill.py, (b) keyword-filtered labeling batches, (c) broader text diversity, (d) potential 0-100 scale.
 - **AD data provenance**: 70.4% LLM-generated effective training signal (middle of pack, not outlier). Needs expert validation to confirm.
-- **TE correlation artifact**: held-out r=0.370 is misleadingly low; MAE actually improved. Caused by restricted variance in held-out TE scores.
 - **DA construct validity**: max promax loading 0.332 (below 0.35 threshold). 49% of scores are exact 5.0. Requires human expert validation.
+- **g-factor inflation uncertainty**: g-factor eigenvalue 6.727 (67.3%) may be partly artifactual from integer-only bias. Resolution pending 0-100 scale pilot.
+
+---
+
+## Key Design Constraint
+
+**The PSQ construct definitions and scoring rubric (psq-definition.md) are externally authored and immutable.** All 10 dimension definitions, score anchors, and the overall PSQ formula are treated as fixed inputs to the measurement system. When score distributions show concentration or other statistical issues, the response is to improve data sourcing and model training — never to revise the rubric itself.
 
 ---
 
@@ -123,12 +141,12 @@ CMV results favor Theory 3 (context-dependent). Construct rename: authority_dyna
 
 See `TODO.md` for full task list. Immediate priorities:
 
-1. **v19 training** — broad-spectrum batch ingested (3,000 new scores), retrain to see impact
-2. **Bifactor Option A** — g-factor prerequisite confirmed (r=0.644), implement g-head
-3. **CO rubric revision** — CO at 63.2% score-5 needs rubric revision, not just more data
-4. **Scoring rubric review** — check if psq-definition.md anchors still match learned constructs
+1. **Integer-only scoring bias investigation** — Pilot 0-100 percentage scoring scale on 50 texts. Compare score distributions, inter-dimension correlations, and effective resolution vs. 0-10 integer scale. If successful, relabel with 0-100 scale for future batches.
+2. **v19 promotion** — Re-export ONNX from v19, promote to `models/psq-student/` production slot.
+3. **Bifactor full training** — `--bifactor` flag implemented and smoke-tested. Run full training with v19 data to evaluate g-PSQ head quality.
+4. **Factor analysis v3** — After 0-100 scale pilot, re-run EFA to determine if g-factor eigenvalue is genuine or inflated by integer bias.
 5. **Expert validation** — protocol designed, recruitment not started
 
 ---
 
-*Last updated: 2026-02-28*
+*Last updated: 2026-02-28 (v19 cycle)*

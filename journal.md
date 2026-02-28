@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28
+**Current date:** 2026-02-28 (v19 cycle)
 
 ---
 
@@ -38,7 +38,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 25. [The Persuasion Test: Change My View](#25-the-persuasion-test-change-my-view-2026-02-28)
 26. [Publication Narrative](#26-publication-narrative-2026-02-28)
 27. [The Deal Test: When Energy Matters More Than Status](#27-the-deal-test-when-energy-matters-more-than-status-2026-02-28)
-28. [References](#28-references)
+28. [The g-Factor Deepens and the Integer Problem](#28-the-g-factor-deepens-and-the-integer-problem-2026-02-28)
+29. [References](#29-references)
 
 ---
 
@@ -922,7 +923,39 @@ The AD suppressor variable pattern replicated again: despite a near-zero bivaria
 
 ---
 
-## 28. References
+## 28. The g-Factor Deepens and the Integer Problem (2026-02-28)
+
+The fourth training cycle produced the best model yet — v19, held-out r=0.600 — but the more consequential findings came from two analytical investigations that challenge assumptions about the measurement system itself.
+
+### The Broad-Spectrum Strategy
+
+v19 benefited from the broad-spectrum labeling batch: 300 texts selected for diversity (150 random, 100 single-dimension keyword-filtered, 50 multi-dimension) rather than targeting a specific weak dimension. The result was the broadest improvement profile of any training run: 7/10 dimensions improved, with the three weakest dimensions showing the largest gains. Threat exposure recovered by +0.125 (its largest single-run improvement), energy dissipation by +0.087, and authority dynamics by +0.058. Only three dimensions regressed, all modestly (resilience -0.027, contractual clarity -0.020, cooling capacity -0.016).
+
+The lesson is counterintuitive. The dimension-focused batches (CO-filtered, TE-filtered, AD-filtered) improved their target dimensions but often at the cost of others, because the keyword-filtered texts had skewed profiles. The broad-spectrum approach, by providing diverse texts with diverse score profiles, gave the model a richer signal landscape. This is consistent with the factor analysis finding that the dimensions share a strong general factor: improving the model's grasp of "overall safety" lifts all dimensions, while improving its grasp of one specific dimension can distort its general calibration.
+
+### Factor Analysis v2: The g-Factor Strengthens
+
+A re-run of the factor analysis on N=1,970 texts with complete separated-llm coverage (excluding joint-llm and composite-proxy) produced a striking result: the first eigenvalue jumped from 4.844 (48.4% of variance) to 6.727 (67.3%). KMO improved from 0.819 ("Meritorious") to 0.902 ("Superb"). Parallel analysis, which previously retained 2 factors, now retains only 1. The 5-factor structure — Hostility/Threat, Relational Contract, Internal Resources, Power Dynamics, Stress/Energy — largely collapsed. Factor 1 absorbed 8 of 10 dimensions; only CO, ED, and AD maintained weak separation.
+
+All 10 g-factor loadings exceeded 0.66, with trust_conditions (0.930) and defensive_architecture (0.914) at the top. This is remarkable for DA, the construct that had the weakest promax loading in the previous analysis. The mean inter-dimension correlation rose from 0.417 to 0.632.
+
+The strengthening has two possible explanations, and they are not mutually exclusive. First, as composite-proxy noise is excluded from the analysis, the genuine correlation structure becomes more apparent. The proxy mappings (Berkeley hate speech to threat exposure, UCC condescension to authority dynamics) introduced dimension-specific noise that artificially decorrelated dimensions. With pure separated-llm data, the true co-variation of psychoemotional safety dimensions is visible, and it is high. Second, the integer-only scoring bias may be inflating correlations mechanically.
+
+### The Integer Problem
+
+This is the most consequential discovery of the cycle. A score distribution audit revealed that the LLM scorer almost never assigns non-integer values on the 0-10 scale. Despite the rubric permitting continuous scores, the effective scoring scale is 11 bins (integers 0 through 10). Worse, the 4-5-6 band captures 57-81% of all separated-llm scores, with score-5 concentration ranging from 24.1% (TE, the best) to 60.8% (CO, the worst).
+
+This means the measurement system has less resolution than it appears to have. When a 0-10 scale is effectively an 11-point ordinal scale with most mass in three bins, the practical information content per score is low. Two texts that differ meaningfully in, say, contractual clarity may both receive a score of 5 — not because the LLM cannot distinguish them, but because the integer scale does not require it to.
+
+The integer bias also has a direct mechanistic path to inflated inter-dimension correlations. If 45% of texts receive score-5 on both dimension A and dimension B, the shared "neutral" signal creates correlation even if the dimensions are genuinely independent for the 55% of texts outside that bin. The score-concentration cap downweights these texts in training (from 5.0 to 3.38-4.58), but the cap operates on the training loss, not on the correlation matrix used for factor analysis.
+
+The proposed mitigation is to switch the LLM scoring prompt from a 0-10 scale to a 0-100 percentage scale, with post-processing back to 0-10 for model training. The hypothesis is that asking the LLM to assign a percentage (e.g., "45% vs 55%") will produce finer granularity than asking for a score (e.g., "4 vs 5" — or more likely, "5 vs 5"). This is a well-known psychometric technique: expanding the response scale forces raters to make finer discriminations.
+
+This investigation has high priority because it affects the interpretation of every prior analysis. If the g-factor eigenvalue drops substantially under a 0-100 scoring regime, the 5-factor structure may re-emerge. If it does not, the general factor is genuine. Either way, the measurement system needs more resolution.
+
+---
+
+## 29. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

@@ -191,10 +191,15 @@ class PSQStudent(nn.Module):
     Each head outputs 2 values: predicted score (0-10) and confidence (0-1).
     Works with any HuggingFace encoder that provides last_hidden_state
     (e.g. DistilBERT, DeBERTa-v3).
+
+    When bifactor=True, adds an 11th head predicting the general factor
+    (g-PSQ = mean of 10 dimension scores). The g-head shares the same
+    [CLS] projection as the dimension heads.
     """
 
-    def __init__(self, model_name, n_dims=N_DIMS):
+    def __init__(self, model_name, n_dims=N_DIMS, bifactor=False):
         super().__init__()
+        self.bifactor = bifactor
         # use_safetensors=True avoids torch.load CVE issue on torch <2.6;
         # .float() ensures float32 even if weights are stored as float16
         # (e.g. microsoft/deberta-v3-small ships fp16 safetensors).
@@ -215,6 +220,10 @@ class PSQStudent(nn.Module):
         self.heads = nn.ModuleList([
             nn.Linear(hidden // 2, 2) for _ in range(n_dims)
         ])
+
+        # Bifactor: general factor head (g-PSQ), predicts single score (0-10)
+        if bifactor:
+            self.g_head = nn.Linear(hidden // 2, 1)
 
     def forward(self, input_ids, attention_mask):
         outputs = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
@@ -237,6 +246,12 @@ class PSQStudent(nn.Module):
         # Stack: [batch, n_dims]
         scores = torch.stack(scores, dim=1)
         confs = torch.stack(confs, dim=1)
+
+        if self.bifactor:
+            # g-PSQ: sigmoid * 10 → range 0-10
+            g_score = torch.sigmoid(self.g_head(projected).squeeze(-1)) * 10.0
+            return scores, confs, g_score
+
         return scores, confs
 
 
@@ -245,7 +260,7 @@ class PSQStudent(nn.Module):
 # =====================================================================
 def compute_loss(pred_scores, pred_confs, true_scores, true_confs, mask, weights,
                  conf_weight=0.25, conf_threshold=0.15, conf_mode="teacher",
-                 conf_power=2.0):
+                 conf_power=2.0, pred_g=None, true_g=None, g_mask=None):
     """Masked loss: only compute where ground truth exists and confidence exceeds threshold.
 
     Loss is weighted by true_confs**conf_power * sample_weight so low-confidence proxy
@@ -264,6 +279,10 @@ def compute_loss(pred_scores, pred_confs, true_scores, true_confs, mask, weights
       "accuracy" — predict own accuracy: conf_target = 1 - |score_error| / 5
                    so a prediction off by 2.5 → conf_target = 0.5, perfect → 1.0
       "off"      — no confidence loss (conf_weight forced to 0)
+
+    Bifactor (when pred_g, true_g, g_mask are provided):
+      Adds MSE loss for g-PSQ (general factor) prediction, weighted 1.0.
+      g-PSQ target is mean of available dimension scores per text.
     """
     # Additional mask: exclude very low confidence ground truth
     conf_mask = mask & (true_confs > conf_threshold)
@@ -286,27 +305,39 @@ def compute_loss(pred_scores, pred_confs, true_scores, true_confs, mask, weights
 
     # Confidence loss
     if conf_mode == "off" or conf_weight == 0:
-        return score_loss
-
-    if conf_mode == "accuracy":
-        # Train confidence to predict own accuracy: 1 - |error|/5 clamped to [0, 1]
-        # Error of 0 → target 1.0, error of 5+ → target 0.0
-        score_errors = torch.abs(pred_scores.detach() - safe_true_scores)
-        conf_targets = torch.clamp(1.0 - score_errors / 5.0, 0.0, 1.0)
+        total_loss = score_loss
     else:
-        # Original: reproduce teacher confidence
-        conf_targets = safe_true_confs
+        if conf_mode == "accuracy":
+            # Train confidence to predict own accuracy: 1 - |error|/5 clamped to [0, 1]
+            # Error of 0 → target 1.0, error of 5+ → target 0.0
+            score_errors = torch.abs(pred_scores.detach() - safe_true_scores)
+            conf_targets = torch.clamp(1.0 - score_errors / 5.0, 0.0, 1.0)
+        else:
+            # Original: reproduce teacher confidence
+            conf_targets = safe_true_confs
 
-    conf_diff = (pred_confs - conf_targets) ** 2
-    conf_loss = (conf_diff * conf_weights).sum() / conf_weights.sum()
+        conf_diff = (pred_confs - conf_targets) ** 2
+        conf_loss = (conf_diff * conf_weights).sum() / conf_weights.sum()
+        total_loss = score_loss + conf_weight * conf_loss
 
-    return score_loss + conf_weight * conf_loss
+    # Bifactor: g-PSQ loss (weighted 1.0, simple MSE on available texts)
+    if pred_g is not None and true_g is not None and g_mask is not None:
+        if g_mask.sum() > 0:
+            g_loss = ((pred_g - true_g) ** 2 * g_mask.float()).sum() / g_mask.float().sum()
+            total_loss = total_loss + g_loss
+
+    return total_loss
 
 
-def evaluate(model, dataloader, device):
-    """Evaluate model, return per-dimension Pearson r and MSE."""
+def evaluate(model, dataloader, device, bifactor=False):
+    """Evaluate model, return per-dimension Pearson r and MSE.
+
+    When bifactor=True, also evaluates g-PSQ prediction (mean of available
+    dimension scores) and reports it under the 'g_psq' key.
+    """
     model.eval()
     all_pred_scores = []
+    all_pred_g = []
     all_true_scores = []
     all_masks = []
 
@@ -314,7 +345,12 @@ def evaluate(model, dataloader, device):
         for batch in dataloader:
             input_ids = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
-            pred_s, pred_c = model(input_ids, attention_mask)
+            if bifactor:
+                pred_s, pred_c, pred_g = model(input_ids, attention_mask)
+                all_pred_g.append(pred_g.cpu())
+            else:
+                pred_s, pred_c = model(input_ids, attention_mask)
+
             all_pred_scores.append(pred_s.cpu())
             all_true_scores.append(batch["scores"])
             all_masks.append(batch["mask"])
@@ -334,11 +370,28 @@ def evaluate(model, dataloader, device):
         mse = float(np.mean((p - t) ** 2))
         results[dim_id] = {"r": round(r, 4), "mse": round(mse, 4), "n": int(m.sum())}
 
-    # Weighted average r (by n)
+    # Weighted average r (by n) — always based on 10 dims only, not g-PSQ
     rs = [v["r"] for v in results.values() if not np.isnan(v["r"])]
     ns = [v["n"] for v in results.values() if not np.isnan(v["r"])]
     avg_r = sum(r * n for r, n in zip(rs, ns)) / sum(ns) if ns else 0
     results["_avg_r"] = round(avg_r, 4)
+
+    # Bifactor: evaluate g-PSQ prediction
+    if bifactor and all_pred_g:
+        pred_g = torch.cat(all_pred_g, dim=0).numpy()
+        # Compute true g-PSQ = mean of available dim scores per text
+        safe_true = np.where(masks & ~np.isnan(true), true, 0.0)
+        dim_counts = (masks & ~np.isnan(true)).sum(axis=1)  # [N]
+        # Only evaluate texts with at least 1 valid dimension
+        g_valid = dim_counts >= 1
+        true_g = np.where(g_valid, safe_true.sum(axis=1) / np.maximum(dim_counts, 1), np.nan)
+
+        if g_valid.sum() >= 5:
+            g_r, _ = stats.pearsonr(pred_g[g_valid], true_g[g_valid])
+            g_mse = float(np.mean((pred_g[g_valid] - true_g[g_valid]) ** 2))
+            results["g_psq"] = {"r": round(g_r, 4), "mse": round(g_mse, 4), "n": int(g_valid.sum())}
+        else:
+            results["g_psq"] = {"r": float("nan"), "mse": float("nan"), "n": int(g_valid.sum())}
 
     return results
 
@@ -546,7 +599,10 @@ def train(args):
 
     # Model
     print(f"\nLoading model: {args.model_name}")
-    model = PSQStudent(args.model_name).to(device)
+    bifactor = getattr(args, "bifactor", False)
+    model = PSQStudent(args.model_name, bifactor=bifactor).to(device)
+    if bifactor:
+        print(f"  Bifactor: g-PSQ head enabled (11th output head)")
     n_params = sum(p.numel() for p in model.parameters())
     n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"  Parameters: {n_params:,} total, {n_trainable:,} trainable")
@@ -603,7 +659,17 @@ def train(args):
             true_scores = torch.where(torch.isnan(true_scores), torch.zeros_like(true_scores), true_scores)
             true_confs = torch.where(torch.isnan(true_confs), torch.zeros_like(true_confs), true_confs)
 
-            pred_scores, pred_confs = model(input_ids, attention_mask)
+            if bifactor:
+                pred_scores, pred_confs, pred_g = model(input_ids, attention_mask)
+                # g-PSQ target = mean of available dim scores per text
+                g_conf_mask = mask & (true_confs > args.conf_threshold)
+                safe_scores_for_g = torch.where(g_conf_mask, true_scores, torch.zeros_like(true_scores))
+                g_counts = g_conf_mask.float().sum(dim=1)  # [batch]
+                g_mask_valid = g_counts >= 1  # at least 1 valid dim
+                true_g = torch.where(g_mask_valid, safe_scores_for_g.sum(dim=1) / g_counts.clamp(min=1), torch.zeros_like(g_counts))
+            else:
+                pred_scores, pred_confs = model(input_ids, attention_mask)
+                pred_g, true_g, g_mask_valid = None, None, None
 
             # Determine confidence mode for this epoch
             if args.conf_mode == "two-phase":
@@ -613,7 +679,8 @@ def train(args):
 
             loss = compute_loss(pred_scores, pred_confs, true_scores, true_confs, mask, weights,
                                 args.conf_weight, args.conf_threshold, conf_mode=epoch_conf_mode,
-                                conf_power=args.conf_power)
+                                conf_power=args.conf_power,
+                                pred_g=pred_g, true_g=true_g, g_mask=g_mask_valid)
 
             # Scale loss for gradient accumulation
             if args.grad_accum > 1:
@@ -633,7 +700,7 @@ def train(args):
         avg_loss = epoch_loss / max(n_batches, 1)
 
         # Validation
-        val_results = evaluate(model, val_loader, device)
+        val_results = evaluate(model, val_loader, device, bifactor=bifactor)
         val_r = val_results["_avg_r"]
 
         epoch_elapsed = time.time() - epoch_start
@@ -646,6 +713,9 @@ def train(args):
             r = val_results[dim_id]["r"]
             if not np.isnan(r):
                 print(f"  {dim_id[:4]}={r:.2f}", end="")
+        # g-PSQ if bifactor
+        if bifactor and "g_psq" in val_results and not np.isnan(val_results["g_psq"]["r"]):
+            print(f"  g={val_results['g_psq']['r']:.2f}", end="")
         print()
 
         # Early stopping
@@ -672,7 +742,7 @@ def train(args):
     # Final evaluation on test set
     print(f"\nLoading best model for test evaluation...")
     model.load_state_dict(torch.load(save_dir / "best.pt", weights_only=True))
-    test_results = evaluate(model, test_loader, device)
+    test_results = evaluate(model, test_loader, device, bifactor=bifactor)
 
     print(f"\nTest Results (best model):")
     print(f"  {'Dimension':<25s} {'r':>8s} {'MSE':>8s} {'n':>6s}")
@@ -680,6 +750,12 @@ def train(args):
     for dim_id in DIMENSIONS:
         r = test_results[dim_id]
         print(f"  {dim_id:<25s} {r['r']:+8.4f} {r['mse']:8.4f} {r['n']:6d}")
+    if bifactor and "g_psq" in test_results:
+        g = test_results["g_psq"]
+        if not np.isnan(g["r"]):
+            print(f"  {'g_psq':<25s} {g['r']:+8.4f} {g['mse']:8.4f} {g['n']:6d}")
+        else:
+            print(f"  {'g_psq':<25s} {'N/A':>8s} {'N/A':>8s} {g['n']:6d}")
     print(f"  {'AVERAGE':<25s} {test_results['_avg_r']:+8.4f}")
 
     # Save test results
@@ -688,22 +764,24 @@ def train(args):
 
     if not args.no_save:
         # Save config
-        with open(save_dir / "config.json", "w") as f:
-            json.dump({
-                "model_name": args.model_name,
-                "max_length": args.max_length,
-                "dimensions": DIMENSIONS,
-                "n_dims": N_DIMS,
-                "data_source": "db" if (not args.no_db and (ROOT / args.db).exists()) else "jsonl",
-                "hyperparams": {k: getattr(args, k, v) for k, v in DEFAULTS.items()},
-                "timing": {
-                    "total_seconds": round(total_elapsed, 1),
-                    "avg_epoch_seconds": round(avg_epoch, 1),
-                    "epoch_times": [round(t, 1) for t in epoch_times],
-                    "n_epochs_run": len(epoch_times),
-                    "n_train_samples": len(train_recs),
+        config = {
+            "model_name": args.model_name,
+            "max_length": args.max_length,
+            "dimensions": DIMENSIONS,
+            "n_dims": N_DIMS,
+            "bifactor": bifactor,
+            "data_source": "db" if (not args.no_db and (ROOT / args.db).exists()) else "jsonl",
+            "hyperparams": {k: getattr(args, k, v) for k, v in DEFAULTS.items()},
+            "timing": {
+                "total_seconds": round(total_elapsed, 1),
+                "avg_epoch_seconds": round(avg_epoch, 1),
+                "epoch_times": [round(t, 1) for t in epoch_times],
+                "n_epochs_run": len(epoch_times),
+                "n_train_samples": len(train_recs),
                 },
-            }, f, indent=2, cls=NumpyEncoder)
+            }
+        with open(save_dir / "config.json", "w") as f:
+            json.dump(config, f, indent=2, cls=NumpyEncoder)
 
         # Save tokenizer for ONNX/JS inference
         tokenizer_dir = save_dir / "tokenizer"
@@ -751,6 +829,10 @@ def main():
                        help="Disable score-concentration cap (default: cap enabled)")
     parser.add_argument("--no-save", action="store_true",
                        help="Discard checkpoints after training (smoke-test mode)")
+    parser.add_argument("--bifactor", action="store_true",
+                       help="Add g-PSQ general factor head (11th output). "
+                            "g-PSQ target = mean of available dim scores. "
+                            "Loss weight 1.0, same [CLS] projection as dim heads.")
     parser.add_argument("--eval-only", action="store_true")
     parser.add_argument("--checkpoint", default=None)
     args = parser.parse_args()

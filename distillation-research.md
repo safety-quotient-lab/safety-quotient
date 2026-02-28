@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v18 promoted (test_r=0.525, held-out_r=0.568). ONNX re-exported. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm.
-**Next:** v19 training with broad-spectrum data, bifactor Option A (g-factor r=0.644), CO rubric revision.
+**Status:** v19 best (test_r=0.509, held-out_r=0.600, +0.032 vs v18). v18 still in production slot pending v19 ONNX re-export. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm. Factor analysis v2: g-factor eigenvalue 6.727 (67.3% variance), KMO=0.902. Integer-only scoring bias discovered.
+**Next:** Investigate integer-only scoring bias (consider 0-100 percentage scale), bifactor full training, v19 promotion (ONNX re-export).
 
 ---
 
@@ -55,6 +55,9 @@
 38. [Score Distribution Audit](#38-score-distribution-audit-2026-02-28) — score-5 concentration still problematic (8/10 dims >30%), CO worst at 63.2%
 39. [Criterion Validity: Deal or No Deal](#39-criterion-validity-deal-or-no-deal-2026-02-28) — 4th study, AUC=0.686 (strongest yet), ED top predictor, AD suppressor replicated
 40. [Broad-Spectrum Labeling Batch](#40-broad-spectrum-labeling-batch-2026-02-28) — 300 texts × 10 dims = 3,000 new separated-llm scores, DB now 76,361 total
+41. [v19 Training Results](#41-v19-training-results-2026-02-28) — held-out_r=0.600 (new best, +0.032 vs v18), TE +0.125, broad-spectrum batch drives weak-dim recovery
+42. [Factor Analysis v2: g-Factor Strengthening](#42-factor-analysis-v2-g-factor-strengthening-2026-02-28) — N=1,970, eigenvalue 6.727 (67.3%), KMO=0.902, 5-factor structure collapsed, parallel analysis retains 1 factor only
+43. [Score Distribution Audit: Integer-Only Bias](#43-score-distribution-audit-integer-only-bias-2026-02-28) — LLM almost never uses non-integer scores, effective 11-bin scale, CO worst at 60.8% score-5
 13. [References](#13-references)
 
 ---
@@ -3420,6 +3423,217 @@ All 10 dimensions scored via separated scoring (one dim per pass, 300 texts per 
 | Separated-llm | 19,771 | 22,771 |
 
 The broad-spectrum batch adds 3,000 separated-llm scores across all 10 dimensions simultaneously, making it the most balanced addition to date.
+
+## 41. v19 Training Results (2026-02-28)
+
+### 41a. Data
+
+Training data from psq.db:
+- 17,109 train / 2,066 val / 2,158 test texts
+- 21,427 texts total, 76,361 scores (22,771 separated-llm)
+- New since v18: broad-spectrum batch (300 texts × 10 dims = 3,000 separated-llm scores)
+
+Score-concentration cap applied to all 10 dimensions (same as v18).
+
+### 41b. Training
+
+- Architecture: DistilBERT (same as v14–v18)
+- 10 epochs, early stopped at epoch 7, best checkpoint at epoch 4
+- LR: 2e-5, effective batch: 32
+
+### 41c. Results
+
+| Metric | v18 | v19 | Change |
+|---|---|---|---|
+| test_r | 0.525 | 0.509 | -0.016 |
+| held-out_r | 0.568 | **0.600** | **+0.032** |
+| Best epoch | 10 | 4 | Earlier convergence |
+
+The test_r decline with held-out_r improvement continues the pattern from v14 onward: as more separated-llm data enters training, test_r (measured against a mixture of composite-proxy, joint-llm, and separated-llm labels) becomes less informative, while held-out_r (measured against pure separated-llm labels) better reflects true generalization.
+
+### 41d. Per-Dimension Held-Out Results
+
+| Dimension | v18 | v19 | Δ | Direction |
+|---|---|---|---|---|
+| regulatory_capacity | 0.679 | 0.710 | +0.031 | improved |
+| authority_dynamics | 0.599 | 0.657 | +0.058 | improved |
+| energy_dissipation | 0.562 | 0.649 | +0.087 | strong gain |
+| trust_conditions | 0.620 | 0.636 | +0.016 | improved |
+| resilience_baseline | 0.651 | 0.624 | -0.027 | slight regression |
+| cooling_capacity | 0.618 | 0.602 | -0.016 | slight regression |
+| hostility_index | 0.557 | 0.571 | +0.014 | improved |
+| defensive_architecture | 0.488 | 0.538 | +0.050 | improved |
+| contractual_clarity | 0.533 | 0.513 | -0.020 | slight regression |
+| threat_exposure | 0.370 | 0.495 | **+0.125** | **massive recovery** |
+| **Average** | **0.568** | **0.600** | **+0.032** | |
+
+### 41e. Analysis
+
+**Wins (7/10 dimensions improved):**
+- TE +0.125: The single largest dimension improvement in any training run. The broad-spectrum batch's TE scores had excellent distribution (18.3% score-5, well below the 30% cap), providing the model with genuine variance to learn from. This is the first time TE has reached the "moderate" tier (>0.45).
+- ED +0.087: The broad-spectrum batch also improved ED distribution (25.7% score-5 vs 40.3% in prior data). ED now ranks 3rd (was 6th in v18).
+- AD +0.058: Continues steady improvement since v15 (0.573→0.599→0.657).
+- DA +0.050: Recovery from v17's dip (0.539→0.488→0.538). Still the construct validity concern dimension.
+
+**Losses (3/10 dimensions regressed):**
+- RB -0.027, CO -0.020, CC -0.016: All small regressions, typical dimension trade-off pattern. RB and CO had been previous strong performers. The broad-spectrum batch was not specifically targeted at these dimensions.
+
+**Strategic interpretation:** The broad-spectrum batch strategy (diverse text selection rather than dimension-targeted) proved highly effective at improving the weakest dimensions without catastrophic regression on strong ones. The 7/10 improvement ratio is the best of any single training run. The strategy of sourcing diverse texts rather than dimension-focused texts distributes improvement across the profile.
+
+### 41f. Bifactor Status
+
+The `--bifactor` flag was merged into distill.py during this cycle and smoke-tested (1 epoch, g_psq test r=0.5277). Full bifactor training was deferred in favor of the v19 standard run. Next step: full bifactor training run with the v19 data.
+
+---
+
+## 42. Factor Analysis v2: g-Factor Strengthening (2026-02-28)
+
+### 42a. Context
+
+The original factor analysis (§26) was conducted on N=2,359 texts with complete 10-dimension coverage. Since then, the broad-spectrum batch added 300 more texts with separated-llm scores. This updated analysis uses N=1,970 texts with complete 10-dimension separated-llm coverage only (excluding joint-llm and composite-proxy to get a purer signal).
+
+### 42b. Adequacy
+
+| Test | v1 (N=2,359, mixed) | v2 (N=1,970, separated-llm only) |
+|---|---|---|
+| KMO | 0.819 (Meritorious) | **0.902 (Superb)** |
+| Bartlett's χ² | 12,750.5 | — |
+
+KMO improvement from 0.819 to 0.902 is substantial. The separated-llm-only data is better suited for factor analysis than the mixed data, likely because composite-proxy noise is eliminated.
+
+### 42c. Eigenvalue Comparison
+
+| Factor | v1 Eigenvalue | v1 % Var | v2 Eigenvalue | v2 % Var |
+|---|---|---|---|---|
+| 1 | 4.844 | 48.4% | **6.727** | **67.3%** |
+| 2 | 1.292 | 12.9% | — | — |
+| 3 | 1.029 | 10.3% | — | — |
+
+The 1st eigenvalue increased from 4.844 to 6.727 — a 38.9% increase. The percentage of variance explained jumped from 48.4% to 67.3%. This is a massive strengthening of the general factor.
+
+### 42d. Factor Retention
+
+| Method | v1 | v2 |
+|---|---|---|
+| Parallel analysis | 2 | **1** |
+| BIC-best | 5 | 5 (but 4-/5-factor didn't converge) |
+| Kaiser | 3 (mixed) / 2 (sep-llm) | — |
+
+Parallel analysis now retains only 1 factor — the g-factor alone exceeds random data. The BIC still prefers 5 factors technically, but the 4- and 5-factor solutions failed to converge, indicating the higher-factor structure has become unstable.
+
+### 42e. g-Factor Loadings (all dimensions)
+
+| Dimension | g-Loading |
+|---|---|
+| trust_conditions | 0.930 |
+| defensive_architecture | 0.914 |
+| cooling_capacity | 0.864 |
+| regulatory_capacity | 0.854 |
+| hostility_index | 0.824 |
+| resilience_baseline | 0.810 |
+| threat_exposure | 0.768 |
+| authority_dynamics | 0.737 |
+| contractual_clarity | 0.720 |
+| energy_dissipation | 0.661 |
+
+All 10 dimensions load >0.66 on the general factor. TC (0.930) and DA (0.914) are the highest loaders — a notable change from the previous analysis where DA was the weakest construct.
+
+### 42f. Correlation Summary
+
+| Metric | v1 (N=2,359, mixed) | v2 (N=1,970, sep-llm only) |
+|---|---|---|
+| Mean off-diagonal \|r\| | 0.417 | **0.632** |
+| Pairs \|r\| > 0.5 | 15/45 | — |
+| Pairs \|r\| > 0.7 | 1/45 | — |
+
+Mean inter-dimension correlation increased from 0.417 to 0.632 — a 51.6% increase.
+
+### 42g. 5-Factor Structure Collapse
+
+The previous 5-factor solution (Hostility/Threat, Relational Contract, Internal Resources, Power Dynamics, Stress/Energy) largely collapsed in v2:
+
+- Factor 1 now absorbs 8/10 dimensions
+- Only CO, ED, and AD separate weakly into their own factors
+- The 4- and 5-factor solutions failed to converge
+
+This is consistent with the eigenvalue analysis: a single dominant factor explains 67.3% of variance, leaving little room for meaningful secondary structure.
+
+### 42h. Interpretation
+
+Two competing explanations:
+
+1. **Genuine g-factor strengthening.** As more high-quality separated-llm data enters the corpus, the true correlation structure of psychoemotional safety becomes more apparent. The composite-proxy data in v1 introduced dimension-specific noise that artificially deflated correlations. The "true" structure of PSQ is closer to a single general factor with dimension-specific residuals.
+
+2. **Score-5 concentration artifact.** The integer-only scoring bias (§43) means most LLM scores cluster in the 4-5-6 band. If 57-81% of scores fall in a 3-point range on an 11-point effective scale, inter-dimension correlations will be inflated because the shared "neutral/middling" signal dominates. Score-5 concentration at 24-61% across dimensions would mechanically increase correlations.
+
+These explanations are not mutually exclusive. The true g-factor is likely real (it predicts criterion outcomes) but its eigenvalue may be inflated by restricted score range.
+
+### 42i. Implications
+
+- The bifactor model becomes even more important: the g-factor is dominant enough that explicit modeling is needed to extract dimension-specific residuals.
+- The 5-factor intermediate structure may not be stable enough to report as a secondary layer.
+- If the integer-only bias can be resolved (§43), a re-analysis would determine how much of the g-factor strengthening is genuine vs. artifactual.
+
+---
+
+## 43. Score Distribution Audit: Integer-Only Bias (2026-02-28)
+
+### 43a. Score-5 Concentration by Dimension
+
+Audit of separated-llm scores in psq.db:
+
+| Dimension | %Score-5 | Mean | Std | Status |
+|---|---|---|---|---|
+| CO | **60.8%** | — | — | Worst — majority at neutral |
+| AD | 51.7% | — | — | Critical |
+| DA | 44.7% | — | — | Above cap |
+| TC | 45.0% | — | — | Above cap |
+| CC | 39.3% | — | — | Above cap |
+| HI | 35.0% | — | — | Above cap |
+| RB | 35.0% | — | — | Above cap |
+| RC | 31.0% | — | — | Above cap |
+| ED | 25.7% | — | — | Good (below 30%) |
+| TE | **24.1%** | — | — | **Best** — only dim below cap |
+
+9/10 dimensions exceed the 30% score-concentration cap threshold. Only TE (24.1%) is below it. CO (60.8%) has a clear majority of scores at exactly 5.0.
+
+### 43b. Integer-Only Scoring Bias
+
+**Critical discovery:** The LLM scorer (Claude) almost never assigns non-integer values on the 0-10 scale. Despite the rubric allowing continuous scores, the effective scoring scale is **11 bins (integers 0-10)**, not a continuous 0-10 range.
+
+This has several consequences:
+1. **Reduced discriminative power**: 11 bins provide less information than a continuous scale. The 4-5-6 band captures 57-81% of all separated-llm scores, making most texts indistinguishable.
+2. **Inflated correlations**: When most scores cluster at the same integer value, inter-dimension correlations are mechanically elevated (see §42h).
+3. **Cap limitation**: The score-concentration cap reduces weight from 5.0 to 3.38-4.58 but cannot create variance that doesn't exist in the labels.
+
+### 43c. Source Dataset Analysis
+
+The score-5 concentration is not purely an LLM bias. Three source datasets contribute disproportionately:
+- **empathetic_dialogues**: Genuinely neutral emotional support conversations — reasonable to score at 5 on most dimensions.
+- **prosocial**: Prosocial backbone dialogues — similarly neutral.
+- **berkeley**: Hate speech annotations — but many texts are non-hateful and genuinely neutral.
+
+The issue is that the unlabeled pool is dominated by texts from these datasets, which are genuinely middling on most PSQ dimensions. Keyword-filtered batches (CO batch, TE batch) partially mitigate this, but the broad-spectrum batch showed that random sampling still produces high concentration (44.7% for CO/AD).
+
+### 43d. Rubric Policy
+
+The PSQ construct definitions and scoring rubric (psq-definition.md) are externally authored and immutable. No rubric revisions are permitted. Mitigation must come through:
+1. Data sourcing (texts with genuine variance)
+2. Model training (score-concentration cap)
+3. Scoring methodology (potential scale change to 0-100)
+
+### 43e. Proposed Mitigation: Percentage-Based Scoring
+
+The primary candidate for addressing integer-only bias is to switch the LLM scoring prompt from a 0-10 scale to a **0-100 percentage scale** with post-processing back to 0-10. This would:
+
+- Force the LLM to make finer-grained distinctions (a score of "45" vs "55" is psychologically different from "5" vs "5")
+- Create a richer effective scale (potentially 100 bins vs 11)
+- Allow post-hoc binning or smoothing during training
+- Maintain backward compatibility with existing 0-10 score infrastructure after dividing by 10
+
+**Status:** Proposed, not yet tested. Next step is a pilot comparison: score 50 texts on both 0-10 and 0-100 scales, compare score distributions and inter-dimension correlations.
+
+---
 
 ## 13. References
 

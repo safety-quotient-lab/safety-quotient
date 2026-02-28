@@ -46,6 +46,10 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v18:** New held-out best (0.568, +0.007 vs v16). RC massive jump (0.563→0.679), RB strong gain (0.563→0.651), TC improved (0.575→0.620). CO held-out flat (0.534→0.533) despite huge test improvement (CO test=0.766). HI/AD/ED/CC slightly down — typical dimension trade-off. Ran all 10 epochs (no early stop), 3360s total. **Promoted to production.**
 
+| **v19** | **2026-02-28** | **DistilBERT** | **7** | **2e-5** | **32** | **0.509** | **0.600** | +3,000 separated-llm (broad-spectrum 300 texts × 10 dims). DB: 21,427 texts, 76,361 scores. | Same as v16. Score-concentration cap on all 10 dims. `--out models/psq-v19`. |
+
+**Notes on v19:** NEW BEST held-out (0.600, +0.032 vs v18). 10 epochs, early stopped at epoch 7 (best at epoch 4). Broad-spectrum batch (150 random + 100 single-dim + 50 multi-dim keyword-filtered) drove broad improvement across weakest dims. Key wins: TE +0.125 (0.370→0.495, biggest single-dim improvement), ED +0.087 (0.562→0.649), AD +0.058 (0.599→0.657), DA +0.050 (0.488→0.538). Key losses: RB -0.027 (0.651→0.624), CO -0.020 (0.533→0.513), CC -0.016 (0.618→0.602). **Not yet promoted — awaiting ONNX re-export.**
+
 ## Key Hyperparameters (v16, current)
 
 ```
@@ -67,7 +71,25 @@ scheduler:           linear warmup (10% of steps) + linear decay
 
 ## Held-Out Results by Dimension
 
-### v16 (current best, 2026-02-27)
+### v19 (current best, 2026-02-28)
+
+Score-concentration cap active. Broad-spectrum batch (300 texts × 10 dims = 3,000 new separated-llm scores). 100 real-world held-out texts.
+
+| Dimension | r | Δ vs v18 | Notes |
+|---|---|---|---|
+| regulatory_capacity | +0.710 | +0.031 | **best** — continued improvement |
+| authority_dynamics | +0.657 | +0.058 | strong gain |
+| energy_dissipation | +0.649 | +0.087 | strong gain |
+| trust_conditions | +0.636 | +0.016 | improved |
+| resilience_baseline | +0.624 | -0.027 | slight regression |
+| cooling_capacity | +0.602 | -0.016 | good |
+| hostility_index | +0.571 | +0.014 | good |
+| defensive_architecture | +0.538 | +0.050 | improved |
+| contractual_clarity | +0.513 | -0.020 | slight regression |
+| threat_exposure | +0.495 | **+0.125** | **massive recovery** — broad-spectrum data |
+| **Average** | **+0.600** | | **+0.032 vs v18, +0.039 vs v16, +0.172 vs v13** |
+
+### v16 (previous production, 2026-02-27)
 
 Score-concentration cap active. CO/RB/CC batches (600 texts × 10 dims = 6,000 new separated-llm scores). 100 real-world held-out texts.
 
@@ -140,6 +162,12 @@ Re-scored with separated LLM calls (one dimension per call). 100 real-world text
 Score calibration via isotonic regression reduces MAE by 4–25% and decompresses score ranges. Confidence calibration fixes inverted confidence (raw r(conf,acc) was negative for 6/10 dims; post-calibration all positive).
 
 ## Artifacts
+
+v19 artifacts are in `models/psq-v19/`:
+- `best.pt` — PyTorch checkpoint (epoch 4)
+- `held_out_results.json` — Held-out evaluation metrics
+- `tokenizer/` — Tokenizer files
+- `config.json`, `best_results.json`, `test_results.json`
 
 v15 artifacts are in `models/psq-v15/`:
 - `best.pt` — PyTorch checkpoint (epoch 7)
