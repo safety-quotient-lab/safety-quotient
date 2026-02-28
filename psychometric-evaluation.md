@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v16 DistilBERT — test_r=0.529, held-out_r=0.561 (separated labels, best ever). Score-concentration cap active. 8/10 dims r>0.53, RC massive recovery (+0.278), TE regressed (correlation artifact, MAE actually improved).
+**Status:** v16 DistilBERT — test_r=0.529, held-out_r=0.561 (separated labels, best ever). Score-concentration cap active. 8/10 dims r>0.53, RC massive recovery (+0.278). TE r=0.35 is a correlation artifact (MAE improved 25%, low label variance).
 
 ---
 
@@ -21,7 +21,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Construct validity | **Tested** — EFA rejects 10-factor independence (BIC-best: 5 factors, dominant general factor at 48% variance). Hierarchical model recommended. | High |
 | Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
-| Criterion validity | **Not measured** | High |
+| Criterion validity | **Initial evidence** — CaSiNo: 9/10 dims predict satisfaction (r≈0.08-0.13***), incremental R²=+0.016 beyond sentiment. DA top predictor. | High |
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
@@ -384,12 +384,22 @@ This compression is a natural property of isotonic regression — it cannot incr
 None of these comparisons have been conducted.
 
 **Criterion validity** asks: Do PSQ scores predict real-world outcomes?
-- Do low-PSQ texts appear in contexts where safety complaints were filed?
-- Do high-PSQ communication patterns correlate with team retention/wellbeing?
 
-No outcome data has been collected.
+**CaSiNo Negotiation Outcomes (2026-02-28).** First criterion validity evidence. The CaSiNo dataset (Chawla et al., 2021; n=1,030 dialogues, 2,060 participant-level observations) includes three post-negotiation outcome variables never used as PSQ training signals: satisfaction (1-5), opponent likeness (1-5), and points scored (0-32).
 
-**Recommendation:** This is the most important gap for establishing PSQ as a meaningful measurement. Even a small study (n=50 teams, correlate PSQ scores of team communications with Edmondson survey scores) would provide critical evidence.
+Results:
+- **Satisfaction**: 9/10 PSQ dimensions significantly predict satisfaction (p<0.05). Strongest: energy_dissipation (r=+0.114\*\*\*), defensive_architecture (r=+0.108\*\*\*). g-PSQ r=+0.096\*\*\*.
+- **Opponent likeness**: 9/10 significant. Strongest: defensive_architecture (r=+0.126\*\*\*), energy_dissipation (r=+0.125\*\*\*). g-PSQ r=+0.099\*\*\*.
+- **Points scored**: Near-zero (max |r|=0.054). PSQ predicts relational outcomes, not competitive ones — theoretically correct.
+- **Partial correlations** (controlling text length): DA is the only dimension that *increases* after control (+0.004), indicating it captures interpersonal boundary dynamics beyond conversational complexity.
+- **Incremental R²**: PSQ adds +0.016 (satisfaction) and +0.023 (likeness) beyond sentiment + text length. Small but significant: PSQ captures something beyond simple positivity.
+- **Extreme groups**: High-PSQ (Q4) dialogues produce +0.18 more satisfaction and +0.23 more likeness than low-PSQ (Q1) dialogues (Cohen's d≈0.17-0.20).
+
+Effect sizes are small (r≈0.08-0.13) but consistent with content-level linguistic predictors in the literature (Pennebaker & King, 1999: r=0.05-0.15; Tausczik & Pennebaker, 2010: r=0.08-0.20).
+
+**Notable finding**: DA — the construct with the weakest factor loading in the PSQ system — is the strongest criterion validity predictor. This suggests DA may lack within-system discriminant validity but has genuine predictive validity for interpersonal outcomes.
+
+**Recommendation:** Extend criterion validity with CGA-Wiki derailment prediction (behavioral outcome, paired design, zero circularity) and Deal or No Deal (replication of negotiation findings in a different dataset).
 
 ### 3h. Formula Inconsistency — RESOLVED
 

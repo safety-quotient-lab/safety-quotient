@@ -30,7 +30,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 17. [Score-Concentration Fix and Targeted Labeling](#17-score-concentration-fix-and-targeted-labeling-2026-02-27)
 18. [Factor Analysis: The General Factor Question](#18-factor-analysis-the-general-factor-question-2026-02-28)
 19. [Expert Validation Protocol: The DA Question](#19-expert-validation-protocol-the-da-question-2026-02-28)
-20. [References](#20-references)
+20. [Criterion Validity: The Negotiation Test](#20-criterion-validity-the-negotiation-test-2026-02-28)
+21. [References](#21-references)
 
 ---
 
@@ -663,7 +664,25 @@ The estimated cost ($5,625–$15,000 for 5 raters at professional consulting rat
 
 ---
 
-## 20. References
+## 20. Criterion Validity: The Negotiation Test (2026-02-28)
+
+We conducted the first criterion validity test of the PSQ, asking a deceptively simple question: do PSQ scores on conversation text predict how people actually feel after the conversation is over?
+
+The CaSiNo negotiation corpus (Chawla et al., 2021) provided a natural experiment. Each dialogue — a campsite resource negotiation between two MTurk workers — ends with each participant independently reporting their satisfaction with the outcome, how much they liked their opponent, and their objective points scored. These outcome variables were never used in PSQ training; the only CaSiNo signal in the PSQ pipeline is strategy annotation ratios mapped to contractual clarity. The satisfaction and likeness ratings are fully external criteria.
+
+The results were modest but theoretically coherent. Nine of ten PSQ dimensions significantly predicted both satisfaction (r=+0.07 to +0.11) and opponent likeness (r=+0.07 to +0.13), with all correlations in the positive direction: higher PSQ content → more satisfied negotiators who liked each other more. Points scored — the objective competitive outcome — showed near-zero correlations with PSQ. This dissociation is exactly what psychological safety theory predicts: safety is about relational quality, not competitive advantage. A psychologically safe conversation helps both parties feel good, regardless of who "won."
+
+The most surprising finding involved Defensive Architecture, the construct we had been preparing to potentially deprecate. After controlling for text length and sentiment, DA emerged as the single strongest predictor of both satisfaction (ΔR²=+0.007) and opponent likeness (ΔR²=+0.009), and it was the only dimension whose partial correlation *increased* after controlling for text length. Whatever DA captures — boundary respect, interpersonal defense quality, self-protective behavior support — it matters for real-world interpersonal outcomes, even if it refuses to load cleanly on any single factor in our measurement model.
+
+This creates an intriguing paradox. DA has the weakest discriminant validity within the PSQ system (no primary factor loading >0.35, mean r=0.48 with other dimensions) but the strongest criterion validity against an external outcome. One interpretation, consistent with Caspi et al.'s (2014) p-factor model in psychopathology, is that DA functions as a "general safety indicator" — a dimension that reflects overall safety quality rather than a specific, separable facet. In clinical parlance, it may be more like a clinician's "gestalt impression" than a subscale score: hard to decompose analytically but predictively valid.
+
+The incremental R² beyond sentiment (ΔR²=+0.016 for satisfaction, +0.023 for likeness) confirms that PSQ captures something beyond simple positivity. These are small effects — comparable to LIWC dimensions predicting interpersonal outcomes (Tausczik & Pennebaker, 2010) — but they represent real signal in a domain where content-level measurement has never been attempted at this granularity.
+
+The effect sizes (r≈0.10) should be interpreted in context. We are predicting a post-conversation subjective experience from the text of the conversation itself, using a 66-million-parameter model trained on an entirely different construct (psychological safety of text content, not negotiation outcomes). That it predicts at all — and in the theoretically predicted direction, across 9 of 10 dimensions — constitutes meaningful, if preliminary, criterion validity evidence. The next test — predicting conversation derailment from early turns in the Conversations Gone Awry corpus — will probe whether PSQ can identify latent unsafety before it manifests as overt hostility.
+
+---
+
+## 21. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 
