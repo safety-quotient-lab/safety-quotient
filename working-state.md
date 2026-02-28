@@ -73,10 +73,10 @@ r(mean_pred, mean_target) = **0.644** on held-out (n=87). Well below 0.95 — bi
 |---|---|---|---|---|
 | CaSiNo | 1,030 negotiations | satisfaction, likeness | AD top predictor (r=0.127***) | Complete (§30) |
 | CGA-Wiki | 4,188 Wikipedia talks | derailment | AD top predictor, AUC=0.599 | Complete (§31) |
-| **CMV** | **4,263 paired replies** | **persuasion (delta)** | **DA top predictor, AUC=0.590** | **Complete (§34)** |
-| Deal or No Deal | Lewis et al. 2017 | deal/points | — | Running in background |
+| CMV | 4,263 paired replies | persuasion (delta) | DA top predictor, AUC=0.590 | Complete (§34) |
+| **DonD** | **12,234 dialogues** | **deal reached** | **ED top (d=+0.614), AUC=0.686** | **Complete (§39)** |
 
-**Key cross-study finding:** AD is top predictor when status is *contested* (CaSiNo, CGA-Wiki). DA is top predictor when status is *fixed* (CMV). Profile >> average in all 3 studies (g-PSQ near-chance: 0.515–0.531). See journal §24–25 for theoretical analysis.
+**Key cross-study finding:** Context-dependent primacy across 4 studies. AD dominates contested-status/relational (CaSiNo, CGA-Wiki). ED dominates sustained engagement/behavioral (DonD). DA dominates fixed-status (CMV). Profile >> average in all 4 studies (g-PSQ: 0.515–0.622). See journal §24–25, §27 for theoretical analysis.
 
 ---
 
@@ -123,12 +123,11 @@ CMV results favor Theory 3 (context-dependent). Construct rename: authority_dyna
 
 See `TODO.md` for full task list. Immediate priorities:
 
-1. **ONNX re-export from v18** — v18 promoted, ONNX needs re-export + INT8 quantization
-2. **DonD results** — when script completes, document (tests AD deal vs points prediction)
-3. **Score broad-spectrum batch** — 300 texts × 10 dims in `/tmp/psq_separated/`
-4. **Bifactor Option A** — g-factor prerequisite confirmed (r=0.644), implement g-head
-5. **Score distribution remediation** — CO at 63.2% score-5 needs rubric revision, not just more data
-6. **Scoring rubric review** — check if psq-definition.md anchors still match learned constructs
+1. **v19 training** — broad-spectrum batch ingested (3,000 new scores), retrain to see impact
+2. **Bifactor Option A** — g-factor prerequisite confirmed (r=0.644), implement g-head
+3. **CO rubric revision** — CO at 63.2% score-5 needs rubric revision, not just more data
+4. **Scoring rubric review** — check if psq-definition.md anchors still match learned constructs
+5. **Expert validation** — protocol designed, recruitment not started
 
 ---
 

@@ -2,13 +2,13 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v16 DistilBERT — test_r=0.529, held-out_r=0.561 (separated labels, best ever). Score-concentration cap active. 8/10 dims r>0.53, RC massive recovery (+0.278). TE r=0.35 is a correlation artifact (MAE improved 25%, low label variance).
+**Status:** v18 DistilBERT — test_r=0.525, held-out_r=0.568 (separated labels, best ever). Score-concentration cap active. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm.
 
 ---
 
 ## 1. Summary Assessment
 
-The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v16 DistilBERT: test_r=0.529, held-out_r=0.561 with halo-free separated labels). All 10 dimensions now generalize to real-world text (r=0.35-0.64); threat_exposure correlation is low (0.35) but MAE analysis shows predictions are actually accurate — the low r is a statistical artifact of low label variance. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call).
+The PSQ is a 10-dimension content-level psychological safety measurement system grounded in 170+ validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v18 DistilBERT: test_r=0.525, held-out_r=0.568 with halo-free separated labels). All 10 dimensions now generalize to real-world text (r=0.35-0.68); threat_exposure correlation is low (0.37) but MAE analysis shows predictions are actually accurate — the low r is a statistical artifact of low label variance. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call). Four independent criterion validity studies demonstrate that PSQ profiles predict real-world outcomes (negotiation satisfaction, conversation derailment, persuasion success, deal-reaching) with AUC 0.59–0.69, and that profile shape predicts while the average does not.
 
 However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Factor analysis (n=2,359 complete texts) rejects the 10-factor independence assumption — a dominant general factor explains 48–62% of variance, and BIC favors a 5-factor model. The 10 dimensions are better understood as theoretically distinct facets that empirically cluster into 3–5 higher-order factors. Most standard reliability and validity evidence has not yet been collected.
 
@@ -21,11 +21,11 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Construct validity | **Tested** — EFA rejects 10-factor independence (BIC-best: 5 factors, dominant general factor at 48% variance). Hierarchical model recommended. | High |
 | Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
-| Criterion validity | **Three studies** — CaSiNo: 9/10 dims predict satisfaction (r≈0.08-0.13\*\*\*), ΔR²=+0.016; CGA-Wiki: derailment (AUC=0.599); CMV: persuasion (AUC=0.590). AD strongest in contested-status (CaSiNo, CGA-Wiki); DA strongest in fixed-status (CMV). Profile >> average in all studies. | Medium-High |
+| Criterion validity | **Four studies** — CaSiNo: satisfaction (r≈0.08-0.13\*\*\*); CGA-Wiki: derailment (AUC=0.599); CMV: persuasion (AUC=0.590); DonD: deal-reaching (AUC=0.686). Context-dependent primacy: AD in contested-status, ED in sustained negotiation, DA in fixed-status. Profile >> average in all studies. | **Strong** |
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
-| Held-out generalization | **Strong** (held-out_r=0.561, 10/10 dims p<0.001) | — |
+| Held-out generalization | **Strong** (held-out_r=0.568, 10/10 dims p<0.001, v18) | — |
 | Range utilization / bias | **Measured** (6/10 good, 2/10 poor) | High |
 | Measurement invariance / bias | **Planned, not done** | High |
 | Normative data | **Not established** | Medium |
@@ -438,8 +438,18 @@ Results:
 | CaSiNo | Negotiation | 1,030 | AD | 1st | — | — |
 | CGA-Wiki | Wikipedia | 4,188 | AD | 1st | 0.599 | 0.515 |
 | CMV | Persuasion | 4,263 pairs | DA | 11th | 0.590 | 0.531 |
+| DonD | Negotiation | 12,234 | ED | 10th (neg) | 0.686 | 0.622 |
 
-**Recommendation:** Run Deal or No Deal (replication with deal/no-deal binary + points scored continuous outcome — tests AD deal vs. points prediction, journal §24 T3b).
+**Deal or No Deal (2026-02-28).** Fourth criterion validity study. The DonD corpus (Lewis et al., 2017; n=12,234 negotiation dialogues) provides a behavioral outcome — deal reached vs. no deal — tested with PSQ v18. This is the largest criterion validity study to date.
+
+Results:
+- **10-dim AUC=0.686** — strongest criterion validity result across all 4 studies. g-PSQ AUC=0.622.
+- **ED is top predictor** (d=+0.614, r_pb=+0.247), the largest single-dimension effect across all studies. AD is weakest (d=-0.063, near zero).
+- **AD suppressor replicated**: AD coefficient=-0.534 in logistic regression despite weak bivariate r — confirms suppressor pattern from CGA-Wiki and CMV.
+- **Incremental AUC beyond controls**: +0.059 beyond text length + turns. High-PSQ (Q4) deal rate 84.4% vs Low-PSQ (Q1) 68.5% — 15.9pp difference.
+- **ED validates as "process dimension"**: Deal-reaching requires sustained engagement without energy collapse. ED's dominance here, combined with its strong showing in CaSiNo (satisfaction), supports its construct validity as a resource depletion measure.
+
+**Context-dependent primacy finding refined**: AD dominates when status is contested (CaSiNo, CGA-Wiki). ED dominates when behavioral outcome depends on sustained engagement (DonD). DA dominates when status is structurally fixed (CMV). This pattern is theoretically coherent and constitutes the strongest evidence against the PSQ being a single-factor construct.
 
 ### 3h. Formula Inconsistency — RESOLVED
 

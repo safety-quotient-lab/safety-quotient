@@ -102,16 +102,16 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | RB focus batch | `data/labeling-batch-rb.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for rb-relevant content (resilience, coping, recovery). |
 | CC focus batch | `data/labeling-batch-cc.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for cc-relevant content (calm, de-escalation, anger, composure). |
 | TE focus batch | `data/labeling-batch-te.jsonl` | 200 | 10/10 | 2026-02-27 | Complete. Keyword-filtered for te-relevant content (threat, violence, abuse, harm). TE score mean=3.17, good low-end variance. |
-| Broad spectrum | `data/labeling-batch-broad.jsonl` | 300 | 0/10 | 2026-02-28 | Not yet scored. 150 random + 100 single-dim keyword + 50 multi-dim keyword. Broad coverage, not dimension-focused. |
+| Broad spectrum | `data/labeling-batch-broad.jsonl` | 300 | 10/10 | 2026-02-28 | Complete. 150 random + 100 single-dim keyword + 50 multi-dim keyword. Best distributions: TE 18.3%, ED 25.7% score-5. |
 
-**Total separated-llm training labels:** 19,771 scores (across 21,127 texts in DB).
+**Total separated-llm training labels:** 22,771 scores (across 21,427 texts in DB).
 
-## Composite Summary (v16+CO, 2026-02-28)
+## Composite Summary (v18+broad, 2026-02-28)
 
 | Metric | Value |
 |---|---|
-| Total texts in DB | 21,127 |
-| Total scores in DB | 73,361 |
+| Total texts in DB | 21,427 |
+| Total scores in DB | 76,361 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
 | Joint-LLM records | 12,257 |
 | Separated-LLM records | 19,771 |

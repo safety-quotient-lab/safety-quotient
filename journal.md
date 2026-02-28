@@ -37,7 +37,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 24. [The AD Paradox: Three Theories of Predictive Primacy](#24-the-ad-paradox-three-theories-of-predictive-primacy-2026-02-28)
 25. [The Persuasion Test: Change My View](#25-the-persuasion-test-change-my-view-2026-02-28)
 26. [Publication Narrative](#26-publication-narrative-2026-02-28)
-27. [References](#27-references)
+27. [The Deal Test: When Energy Matters More Than Status](#27-the-deal-test-when-energy-matters-more-than-status-2026-02-28)
+28. [References](#28-references)
 
 ---
 
@@ -430,11 +431,11 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 21,127 texts in DB (73,361 scores, 19,771 separated-llm) |
+| Training data | 21,427 texts in DB (76,361 scores, 22,771 separated-llm) |
 | Test avg Pearson r | 0.525 (10/10 dimensions positive) |
 | Held-out avg Pearson r | 0.568 (new best, +0.007 vs v16, +0.140 vs v13) |
 | Generalization gap | ~8% |
-| ONNX model size | 64 MB (INT8 quantized, v16 — v18 not yet exported) |
+| ONNX model size | 64 MB (INT8 quantized, v18) |
 | Inference latency | ~20ms / text (CPU) |
 
 ### 14b. Psychometric Properties
@@ -446,7 +447,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
 | Held-out generalization | Moderate-Good | r = 0.568, n = 100 (separated labels, v18) | Comparable to brief personality measures |
 | Construct validity (discriminant) | Confirmed | 5-factor EFA (n=2,359); AD/ED singletons | CFA needed (n ≥ 200) |
-| Criterion validity | **Medium-High** | **3 studies: CaSiNo, CGA-Wiki, CMV** | Profile >> average; context-dependent primacy |
+| Criterion validity | **Strong** | **4 studies: CaSiNo, CGA-Wiki, CMV, DonD** (AUC 0.59–0.69) | Profile >> average; context-dependent primacy |
 | Inter-rater reliability | Not measured | — | Critical gap |
 | Measurement invariance | Not measured | — | DIF analysis across text types |
 
@@ -905,7 +906,23 @@ This is a methodological contribution to the growing field of LLM-as-instrument-
 
 ---
 
-## 27. References
+## 27. The Deal Test: When Energy Matters More Than Status (2026-02-28)
+
+The fourth criterion validity study — and the largest — used the Deal or No Deal negotiation corpus (Lewis et al., 2017; n=12,234 dialogues). Where CaSiNo measured self-reported satisfaction, DonD provides a behavioral outcome: whether the negotiation actually produced a deal, and how many points were scored. This distinction matters. A participant can feel satisfied about a failed negotiation, or dissatisfied about a successful one. By testing PSQ against both relational (CaSiNo) and behavioral (DonD) outcomes within the same domain (negotiation), we can separate what PSQ predicts about *experience* from what it predicts about *results*.
+
+The results were striking. First, the 10-dimension PSQ achieved its strongest AUC to date: 0.686, compared to 0.599 (CGA-Wiki), 0.590 (CMV), and uncalculated for CaSiNo (which used continuous outcomes). Second, the top predictor was energy_dissipation (ED), with a Cohen's d of +0.614 — by far the largest single-dimension effect size across all four studies. AD, which had dominated both CaSiNo and CGA-Wiki, was the weakest predictor in DonD (d=-0.063, near zero and slightly negative).
+
+This inversion is theoretically coherent. In DonD negotiations, both parties want a deal — the question is whether they can sustain engagement long enough to find mutually acceptable terms. ED, which captures the availability of healthy dissipation pathways and recovery from engagement fatigue, directly indexes this capacity. AD, which captures status positioning and authority dynamics, is less relevant when both parties are motivated to agree. The status negotiation theory (§24, Theory 3) predicted exactly this: AD should predict more strongly when status is contested and the outcome depends on who defines the terms, not when the task is to reach mutual accommodation.
+
+With four studies complete, the context-dependency pattern resolves into a clean matrix. AD dominates in contested-status interactions with relational outcomes (CaSiNo satisfaction) and behavioral outcomes (CGA-Wiki derailment prevention). ED dominates in behavioral outcomes that depend on sustained engagement (DonD deal-reaching). DA dominates when status is structurally fixed (CMV persuasion). The g-PSQ average remains near-chance in every study (AUC: 0.515–0.622), while the 10-dimension profile consistently predicts — confirming that it is the *shape* of the safety profile, not its average level, that carries signal.
+
+The incremental validity was also notable: high-PSQ dialogues (Q4) reached deals at 84.4%, compared to 68.5% for low-PSQ (Q1) — a 15.9 percentage-point difference. Text length is a significant confound (r=-0.339 with deal outcome; shorter conversations tend to deal more easily), but PSQ retains significance after controlling for length (incremental AUC +0.059 beyond length + turns).
+
+The AD suppressor variable pattern replicated again: despite a near-zero bivariate correlation, AD received a negative coefficient (-0.534) in logistic regression, indicating it carries information that improves multivariate prediction once shared variance with other dimensions is removed. This is now confirmed across three of four studies and represents one of the most robust findings in the PSQ criterion validity program.
+
+---
+
+## 28. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

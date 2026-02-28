@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v18 promoted (test_r=0.525, held-out_r=0.568). Score-concentration cap + CO/RB/CC/TE batches. DB: 21,127 texts, 73,361 scores, 19,771 separated-llm.
-**Next:** ONNX re-export from v18, Deal or No Deal criterion validity, bifactor Option A (g-factor r=0.644, headroom confirmed), broad-spectrum labeling batch scoring.
+**Status:** v18 promoted (test_r=0.525, held-out_r=0.568). ONNX re-exported. 4 criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD). DB: 21,427 texts, 76,361 scores, 22,771 separated-llm.
+**Next:** v19 training with broad-spectrum data, bifactor Option A (g-factor r=0.644), CO rubric revision.
 
 ---
 
@@ -53,6 +53,8 @@
 36. [v18 Results and g-Factor Prerequisite Check](#36-v18-results-and-g-factor-prerequisite-check-2026-02-28) — v18 held-out_r=0.568 (new best), g-factor r=0.644 confirms bifactor headroom
 37. [ED Construct Validity Assessment](#37-ed-construct-validity-assessment-2026-02-28) — energy_dissipation is genuine singleton capturing resource depletion, context-dependent criterion validity
 38. [Score Distribution Audit](#38-score-distribution-audit-2026-02-28) — score-5 concentration still problematic (8/10 dims >30%), CO worst at 63.2%
+39. [Criterion Validity: Deal or No Deal](#39-criterion-validity-deal-or-no-deal-2026-02-28) — 4th study, AUC=0.686 (strongest yet), ED top predictor, AD suppressor replicated
+40. [Broad-Spectrum Labeling Batch](#40-broad-spectrum-labeling-batch-2026-02-28) — 300 texts × 10 dims = 3,000 new separated-llm scores, DB now 76,361 total
 13. [References](#13-references)
 
 ---
@@ -3307,6 +3309,117 @@ TE has the best distribution (24.9% score-5, std=1.86, entropy ratio 0.91). The 
 2. **CO needs rubric revision, not just more data.** At 63.2% score-5, more CO-keyword texts won't help if the LLM's scoring rubric doesn't differentiate middle-range CO. Consider revising CO score anchors to be more discriminating.
 
 3. **AD and TC regression may be an artifact of text selection.** Previous batches focused on specific dimensions, and the non-target dimensions (including AD and TC) received passive scoring on texts that genuinely lack variation on those constructs. The broad-spectrum batch should partially address this.
+
+## 39. Criterion Validity: Deal or No Deal (2026-02-28)
+
+Fourth criterion validity study. The Deal or No Deal dataset (Lewis et al., 2017) contains 12,234 negotiation dialogues with binary deal/no-deal outcomes and continuous points-scored. Unlike CaSiNo (human satisfaction self-reports), DonD provides behavioral outcomes — whether parties reached agreement.
+
+### 39a. Dataset
+
+- 12,234 dialogues from DeepMind's DonD corpus
+- Binary outcome: deal reached (77.2%) vs. no deal (22.8%)
+- Continuous outcome: points scored (0–10, item-value-based)
+- PSQ v18 model used for scoring (held-out_r=0.568)
+- No DonD texts in PSQ training data (zero circularity)
+
+### 39b. Results: Deal Prediction
+
+| Metric | 10-dim PSQ | g-PSQ | Text length |
+|---|---|---|---|
+| AUC | **0.686** | 0.622 | 0.675 |
+| Profile >> avg gap | +0.064 | — | — |
+
+10-dim AUC=0.686 is the strongest criterion validity result to date, exceeding CGA-Wiki (0.599) and CMV (0.590). The profile-vs-average gap (+0.064) replicates the consistent finding across all 4 studies.
+
+### 39c. Dimension-Level Analysis
+
+| Dim | Cohen's d | r_pb | Direction |
+|---|---|---|---|
+| **ED** | **+0.614** | **+0.247** | Deal-makers much higher |
+| RB | +0.502 | +0.203 | — |
+| RC | +0.478 | +0.194 | — |
+| HI | +0.363 | +0.149 | — |
+| CC | +0.340 | +0.140 | — |
+| TC | +0.312 | +0.129 | — |
+| DA | +0.295 | +0.122 | — |
+| CO | +0.248 | +0.103 | — |
+| TE | +0.195 | +0.081 | — |
+| **AD** | **-0.063** | **-0.026** | **Negative / near-zero** |
+
+ED is the top predictor (d=+0.614, largest effect size across all 4 studies). AD is weakest and slightly negative — this is notable because AD was the strongest predictor in CaSiNo and CGA-Wiki.
+
+### 39d. AD as Suppressor Variable
+
+In logistic regression, AD has a negative coefficient (-0.534) despite its weak bivariate correlation (r_pb=-0.026). This replicates the suppressor variable pattern seen in CGA-Wiki (§31): AD carries information that improves prediction when the shared variance with other dimensions is removed. In DonD specifically, the negative direction may reflect that high-AD conversations (more explicit status negotiation) make it harder to reach agreement — a theoretically coherent finding.
+
+### 39e. Incremental Validity
+
+PSQ adds AUC +0.059 beyond text length + number of turns. Deal rate for high-PSQ dialogues (Q4): 84.4% vs low-PSQ (Q1): 68.5% — a 15.9 percentage point difference.
+
+Text length is a major confound (r=-0.339 with deal outcome — shorter conversations more likely to deal), but PSQ retains significance after controlling for length.
+
+### 39f. Cross-Study Update
+
+| Study | Domain | N | Top dim | AD rank | 10-dim AUC | g-PSQ AUC |
+|---|---|---|---|---|---|---|
+| CaSiNo | Negotiation | 1,030 | AD/ED | 1st | — | — |
+| CGA-Wiki | Wikipedia | 4,188 | AD | 1st | 0.599 | 0.515 |
+| CMV | Persuasion | 4,263 pairs | DA | 10th | 0.590 | 0.531 |
+| **DonD** | **Negotiation** | **12,234** | **ED** | **10th (neg)** | **0.686** | **0.622** |
+
+The DonD result completes a 2×2 matrix of contested/fixed × relational/behavioral outcomes. ED's dominance in DonD (behavioral negotiation outcome) contrasts with AD's dominance in CaSiNo (relational negotiation outcome). In deal-reaching, energy dissipation (sustained engagement without burnout) matters more than status positioning.
+
+### 39g. Context-Dependent Primacy: Refined Model
+
+With 4 studies, the context-dependency pattern becomes clearer:
+- **Contested status + relational outcome** → AD dominates (CaSiNo satisfaction)
+- **Contested status + behavioral outcome** → ED dominates (DonD deal-reaching)
+- **Equal status + behavioral outcome** → AD dominates (CGA-Wiki derailment)
+- **Fixed status + behavioral outcome** → DA dominates (CMV persuasion)
+
+ED's strong showing in DonD supports the "process dimension" interpretation from §37: ED captures resource depletion dynamics that determine whether sustained negotiation reaches resolution or collapses.
+
+## 40. Broad-Spectrum Labeling Batch (2026-02-28)
+
+### 40a. Batch Design
+
+300 texts from `data/labeling-batch-broad.jsonl`:
+- 150 random texts from unlabeled pool
+- 100 single-dimension keyword-filtered texts
+- 50 multi-dimension keyword-filtered texts
+
+All 10 dimensions scored via separated scoring (one dim per pass, 300 texts per pass = 3,000 total scores).
+
+### 40b. Score Distributions
+
+| Dim | Mean | %Score-5 | Min | Max |
+|---|---|---|---|---|
+| TE | 4.28 | 18.3% | 1 | 8 |
+| ED | 4.29 | 25.7% | 1 | 8 |
+| RB | 4.28 | 35.0% | 1 | 8 |
+| RC | 4.37 | 31.0% | 1 | 9 |
+| HI | 4.66 | 35.0% | 1 | 8 |
+| TC | 4.22 | 45.0% | 1 | 8 |
+| CC | 4.44 | 39.3% | 1 | 8 |
+| DA | 4.30 | 44.7% | 1 | 8 |
+| CO | 4.41 | 44.7% | 1 | 7 |
+| AD | 4.47 | 51.7% | 2 | 7 |
+
+**Key findings:**
+- TE continues to show excellent distribution (18.3% score-5, matching the TE-focused batch success)
+- ED improved significantly (25.7% vs 40.3% in prior data) — the broad-spectrum strategy works
+- CO at 44.7% is better than the prior 63.2% but still high — confirms rubric revision needed
+- AD at 51.7% remains stubborn — most texts genuinely lack power dynamics content
+
+### 40c. Database After Ingestion
+
+| Metric | Before | After |
+|---|---|---|
+| Texts | 21,127 | 21,427 |
+| Total scores | 73,361 | 76,361 |
+| Separated-llm | 19,771 | 22,771 |
+
+The broad-spectrum batch adds 3,000 separated-llm scores across all 10 dimensions simultaneously, making it the most balanced addition to date.
 
 ## 13. References
 
