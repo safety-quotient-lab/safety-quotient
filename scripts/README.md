@@ -20,6 +20,7 @@ All scripts for the PSQ student model distillation pipeline.
 |---|---|---|
 | `criterion_casino.py` | CaSiNo negotiation outcomes | Lewis et al. 2017 |
 | `criterion_cgawiki.py` | CGA-Wiki derailment prediction | Zhang et al. 2018 |
+| `criterion_cgawiki_temporal.py` | Turn-by-turn temporal PSQ analysis (T2 cross-lagged) | Zhang et al. 2018 |
 | `criterion_dealornodeal.py` | Deal or No Deal negotiation | Lewis et al. 2017 |
 | `criterion_validity_cmv.py` | Change My View persuasion | Tan et al. 2016 |
 
@@ -27,6 +28,7 @@ All scripts for the PSQ student model distillation pipeline.
 
 | Script | Description |
 |---|---|
+| `train_queue_v25_v26.sh` | Chained training queue: waits for v24, runs v25 (512 tok) + v26 (LR=1e-5) |
 | `validate_proxy.py` | Validate detoxify as proxy teacher |
 | `benchmark_proxies.py` | Benchmark proxy models |
 | `benchmark_ground_truth.py` | Benchmark ground truth datasets |
