@@ -133,6 +133,7 @@ def cmd_extract(args):
 
     # Save session metadata (provenance + batch fingerprint for assemble validation)
     fingerprint = _batch_fingerprint(input_path, args.offset, len(records))
+    use_pct = getattr(args, "pct", False)
     meta = {
         "scorer": args.scorer,
         "provider": args.provider,
@@ -141,6 +142,7 @@ def cmd_extract(args):
         "offset": args.offset,
         "batch_size": len(records),
         "batch_fingerprint": fingerprint,
+        "scale": "pct" if use_pct else "0-10",
     }
     with open(WORK_DIR / "session_meta.json", "w") as f:
         json.dump(meta, f, indent=2)
@@ -153,17 +155,23 @@ def cmd_extract(args):
         scoring = dim_def["scoring"]
         abbrev = ABBREV_DIM[dim_id]
 
+        # Build rubric: --pct uses 0-100 scale (multiply anchor keys by 10)
+        if use_pct:
+            rubric = {str(int(k) * 10): v for k, v in scoring.items()
+                      if k in ("0", "2", "5", "8", "10")}
+            scale_label = "0-100 scale"
+            neutral_label = "50"
+        else:
+            rubric = {k: v for k, v in scoring.items()
+                      if k in ("0", "2", "5", "8", "10")}
+            scale_label = "0-10 scale"
+            neutral_label = "5"
+
         batch = {
             "dimension": dim_id,
             "abbreviation": abbrev,
             "description": dim_def["description"],
-            "scoring_rubric": {
-                "0": scoring["0"],
-                "2": scoring["2"],
-                "5": scoring["5"],
-                "8": scoring["8"],
-                "10": scoring["10"],
-            },
+            "scoring_rubric": rubric,
             "count": len(records),
             "texts": [
                 {"id": args.offset + i, "source": rec.get("source", "unknown"),
@@ -171,8 +179,8 @@ def cmd_extract(args):
                 for i, rec in enumerate(records)
             ],
             "scoring_instructions": (
-                f"Score each text on {dim_def['name']} only (0-10 scale). "
-                f"5 = neutral (no signal). Use compact format:\n"
+                f"Score each text on {dim_def['name']} only ({scale_label}). "
+                f"{neutral_label} = neutral (no signal). Use compact format:\n"
                 f'{{"dim": "{abbrev}", "scores": {{"0": [score, conf], "1": [score, conf], ...}}}}'
             ),
         }
@@ -184,6 +192,7 @@ def cmd_extract(args):
         print(f"  {dim_id} ({abbrev}): {len(records)} texts → {batch_path}")
 
     print(f"\nLookup: {lookup_path}")
+    print(f"Scale: {'0-100 (percentage)' if use_pct else '0-10 (standard)'}")
     print(f"Total: {len(records)} texts × {len(dims_to_extract)} dimensions")
     print(f"\nNext: Score each dimension in Claude Code, then run 'ingest' for each.")
 
@@ -235,18 +244,35 @@ def cmd_ingest(args):
     else:
         scores = data
 
+    # Detect scale: --pct flag or auto-detect from session metadata
+    use_pct = getattr(args, "pct", False)
+    if not use_pct:
+        meta_path = WORK_DIR / "session_meta.json"
+        if meta_path.exists():
+            with open(meta_path) as f:
+                meta_check = json.load(f)
+            if meta_check.get("scale") == "pct":
+                use_pct = True
+                print("  Auto-detected percentage scale from session metadata")
+
     # Validate and normalize
     normalized = {}
     for text_id, val in scores.items():
         if isinstance(val, list):
-            score = max(0, min(10, float(val[0])))
+            raw_score = float(val[0])
             conf = max(0.0, min(1.0, float(val[1])))
         elif isinstance(val, (int, float)):
-            score = max(0, min(10, float(val)))
+            raw_score = float(val)
             conf = 0.6 if val != 5 else 0.2
         else:
             print(f"  WARNING: skipping {text_id} — unexpected format: {val}")
             continue
+
+        # Convert percentage scale (0-100) to internal (0-10)
+        if use_pct:
+            raw_score = raw_score / 10.0
+
+        score = max(0, min(10, raw_score))
         normalized[text_id] = {"score": score, "confidence": conf}
 
     # Merge into existing scores (preserves prior sessions)
@@ -262,6 +288,8 @@ def cmd_ingest(args):
     with open(out_path, "w") as f:
         json.dump(existing, f, indent=1)
 
+    if use_pct:
+        print(f"  Scale: 0-100 → 0-10 (divided by 10)")
     print(f"Ingested {len(normalized)} scores for {dim_id} → {out_path} ({len(existing)} total)")
 
     # Log timing if --started-at was provided
@@ -746,12 +774,16 @@ def main():
                        help="How scoring will be invoked (default: claude-code)")
     p_ext.add_argument("--force", action="store_true",
                        help="Clear stale score files from a previous batch before extracting")
+    p_ext.add_argument("--pct", action="store_true",
+                       help="Use 0-100 percentage scale (finer granularity than 0-10)")
 
     p_ing = sub.add_parser("ingest", help="Import scored dimension results")
     p_ing.add_argument("--dim", required=True, help="Dimension name or abbreviation")
     p_ing.add_argument("--scores", default=None, help="Path to scores JSON (or stdin)")
     p_ing.add_argument("--started-at", default=None,
                        help="ISO timestamp when scoring started (for timing log)")
+    p_ing.add_argument("--pct", action="store_true",
+                       help="Scores are on 0-100 scale (auto-detected from session metadata if available)")
 
     p_asm = sub.add_parser("assemble", help="Merge all dimensions into final JSONL")
     p_asm.add_argument("--input", required=True, help="Original input JSONL")
