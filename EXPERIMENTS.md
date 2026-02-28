@@ -78,16 +78,16 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v23:** New data since v22a: 550 texts × 10 dims = 5,500 new separated-LLM labels. CO-targeted (ccda), source-diverse (proxy-audit: goemotions/ucc/casino/berkeley), general (held-out-expand). Proxy audit confirmed proxy-drop: all DROPPED dims show near-zero/negative proxy-LLM r within those sources. **Held-out: 7/10 dims improved.** Big winners: ED +0.056 (0.712→0.768), CO +0.045 (0.504→0.549), AD +0.030 (0.679→0.709), RC +0.026, CC +0.021. Regressions: HI -0.028 (0.719→0.691), RB -0.020 (0.640→0.621), TE -0.005 (flat). Test_r lower than v22a (0.387 vs 0.457) — test-split paradox: proxy-labeled test texts no longer in training distribution. **Promoted to production (replacing v22a).**
 
-## Key Hyperparameters (v21, current)
+## Key Hyperparameters (v23, current production)
 
 ```
 model_name:          distilbert-base-uncased
 max_length:          128
 learning_rate:       2e-5
-batch_size:          16
-grad_accumulation:   2
+batch_size:          32
+grad_accumulation:   1
 effective_batch:     32
-epochs:              15 (early stop patience 5, stopped at 8)
+epochs:              8 (early stop patience 3, best@8)
 loss:                conf^2.0 * sample_weight * MSE(score) + 0.25 * MSE(confidence)
 llm_weight:          5.0
 composite_weight:    1.5
@@ -95,7 +95,35 @@ conf_mode:           two-phase (first 2 epochs: fixed 0.5, then use model confid
 projection:          768 → 384 (shared) → 10 heads × (384 → 2: score + confidence)
 optimizer:           AdamW (weight_decay=0.01)
 scheduler:           linear warmup (10% of steps) + linear decay
+drop_proxy_dims:     True (removes composite-proxy rows for TE, TC, CC, AD, ED)
 ```
+
+### GPU Memory and Effective Batch Size
+
+**Hardware:** NVIDIA GeForce GTX 1060, 6 GB VRAM.
+
+**Effective batch size** is the number of samples the optimizer sees per gradient update:
+
+```
+effective_batch = batch_size × grad_accumulation
+```
+
+With `batch_size=32, grad_accum=1`: 32 samples per update (v22a–v23).
+With `batch_size=16, grad_accum=2`: 32 samples per update (v21; also needed for 256-token context).
+
+**Why this matters for context length:** GPU memory usage scales roughly linearly with sequence length for the forward pass and approximately quadratically for attention (though DistilBERT's 6-layer architecture is small enough that linear dominates in practice). Doubling `max_length` from 128→256 roughly doubles peak activation memory per sample. At `batch_size=32`, this exceeds the GTX 1060's 6 GB at 256-token context. Solution: halve `batch_size` to 16, double `grad_accum` to 2 — the optimizer sees the same effective batch (32 samples per update) but only 16 samples are in GPU memory at once.
+
+**Rule of thumb for this hardware:**
+
+| max_length | batch_size | grad_accum | effective_batch | VRAM est. |
+|---|---|---|---|---|
+| 128 | 32 | 1 | 32 | ~4.5 GB |
+| 256 | 16 | 2 | 32 | ~4.5 GB |
+| 512 | 8 | 4 | 32 | ~4.5 GB |
+
+**Gradient accumulation does not change training dynamics** relative to the equivalent full batch — the optimizer update is identical because gradients are summed (then divided by step count) across accumulation steps before the weight update. The only practical difference is slightly more variance in the loss curve within each effective batch window, which early stopping and patience handle naturally.
+
+**CLI:** `python scripts/distill.py --max-length 256 --batch-size 16 --grad-accum 2 --out models/psq-v24`
 
 ## Held-Out Results by Dimension
 
