@@ -52,17 +52,17 @@ Last updated: 2026-02-28
 
 ### Publication framing and paper outline
 
-See `journal.md` and `Publication Narrative` section below. The criterion validity battery (3 studies) with context-dependent predictive primacy is the publication centerpiece.
+See `journal.md` and `Publication Narrative` section below. The criterion validity battery (4 studies) with context-dependent predictive primacy is the publication centerpiece.
 
 **Target venue:** Computational linguistics / NLP+psychology intersection (e.g., EMNLP, ACL, Behavior Research Methods, Journal of Personality Assessment)
 
 **Key findings to highlight:**
 1. 10-dim PSQ trained via knowledge distillation (LLM → DistilBERT)
-2. Three independent criterion validity studies with real-world outcomes
+2. Four independent criterion validity studies with real-world outcomes (CaSiNo, CGA-Wiki, CMV, DonD)
 3. Profile shape >> average across all studies (the multi-dimensional architecture is psychometrically justified)
-4. Context-dependent predictive primacy (AD in contested-status, DA in fixed-status) — dimensions are genuinely distinct
+4. Context-dependent predictive primacy (AD in contested-status, DA in fixed-status, TE+ED in behavioral negotiation) — dimensions are genuinely distinct
 5. Factor structure: general factor + 5 clusters, but singletons (AD, ED) carry unique predictive signal
-6. The construct the model learned (power positioning) is more nuanced than what was intended (authority dynamics) — a case study in emergent construct validity
+6. The learned authority_dynamics construct measures status negotiation in peer contexts (not just formal/institutional power) — a case study in emergent construct validity revealing the mechanism within the intended construct
 
 ### Bifactor model architecture [EVALUATED — NOT ADOPTED]
 
