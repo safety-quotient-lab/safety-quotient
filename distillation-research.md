@@ -49,6 +49,7 @@
 32. [Dimension Reduction Evaluation](#32-dimension-reduction-evaluation-2026-02-28) — 10→5 preserves 88% info, 10→3 loses too much, CC/CO have high unique variance
 33. [Authority Dynamics and Energy Dissipation: Cluster Misfits and Predictive Dominance](#33-authority-dynamics-and-energy-dissipation-cluster-misfits-and-predictive-dominance-2026-02-28) — AD/ED don't belong in any cluster, AD is strongest external predictor, suppressor variable
 34. [Criterion Validity: CMV Persuasion Prediction](#34-criterion-validity-cmv-persuasion-prediction-2026-02-28) — 4,263 matched pairs, DA top predictor (not AD), profile >> average, context-dependent AD
+35. [Bifactor Architecture Design Analysis](#35-bifactor-architecture-design-analysis-2026-02-28) — three candidate designs (A: add g-head, B: orthogonal, C: cluster-mediated), decision framework
 13. [References](#13-references)
 
 ---
@@ -3112,6 +3113,48 @@ The AD paradox — weakest factor loading, strongest criterion predictor — is 
 - T3c: AD-residual correlates more with epistemic markers (hedging, certainty, credentialing) than emotional markers
 
 **Construct naming implication:** If Theory 3 is supported, "authority_dynamics" should be renamed to "power_positioning" — the current label implies formal hierarchy that the construct does not primarily measure.
+
+## 35. Bifactor Architecture Design Analysis (2026-02-28)
+
+### 35a. Current Architecture
+
+```
+[CLS] → Dropout(0.1) → Linear(768→384) → GELU → Dropout(0.1) → 10 × Linear(384→2)
+```
+
+The shared projection (768→384) serves as a bottleneck that all 10 dimension heads share. In principle, this shared layer should learn a general representation of psychoemotional safety, with dimension-specific differentiation happening in the per-dimension heads. But there is no structural constraint enforcing this — the shared layer might learn redundant per-dimension features, and each head might independently reconstruct g-PSQ rather than focusing on its unique variance.
+
+### 35b. Three Candidate Designs
+
+**Option A (recommended): Add explicit g-head.** Add `g_head = Linear(384→2)` alongside the 10 dim heads. Train with auxiliary g-PSQ loss (target = confidence-weighted mean of dim scores). Minimal change, easy comparison. Risk: may be redundant if dim average already approximates g-PSQ well.
+
+**Option B: Orthogonal decomposition.** Split the 384-dim shared projection into a g-subspace (64 dims) and a residual subspace (320 dims). g-head sees only the g-subspace; dim heads see only the residual. Enforces true bifactor decomposition. Risk: information bottleneck if 64 dims insufficient for g, or if dims need g-relevant features.
+
+**Option C: Cluster-mediated.** Five separate cluster projections (384→128 each), matching the 5-factor promax solution. Dims load on their assigned cluster. AD and ED are singletons. Most psychometrically correct; most complex.
+
+### 35c. Decision Framework
+
+The choice depends on an empirical question: **how much does the current shared projection already capture g-PSQ?**
+
+If `corr(mean(dim_predictions), g_target) > 0.95` on held-out data, the shared projection is already doing g-factor learning implicitly, and Option A adds nothing. In that case, the value of bifactor is in *decomposition* (Option B/C), not prediction.
+
+If the correlation is lower, Option A may improve both g-PSQ prediction and dim-specific predictions by explicitly allocating representational capacity.
+
+**Recommended sequence:**
+1. Compute `corr(mean(dim_predictions), g_target)` on held-out (no training needed)
+2. If < 0.95: try Option A, compare held-out r against v16/v18
+3. If A shows improvement: try Option B, compare
+4. Option C only if publication requires it
+
+### 35d. Interaction with Criterion Validity
+
+The bifactor architecture has implications beyond held-out r. The criterion validity studies (§30, §31, §34) show that profile shape matters more than g-PSQ average. A bifactor model that produces both g-PSQ and dimension residuals would let users directly access the predictive signal:
+
+- **For moderation:** use dim residuals (especially AD-residual)
+- **For overall safety assessment:** use g-PSQ
+- **For context-specific applications:** weight residuals by context type (AD for contested-status, DA for fixed-status)
+
+This maps to the context-aware scoring API design in TODO.md.
 
 ## 13. References
 
