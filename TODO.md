@@ -10,36 +10,22 @@ Last updated: 2026-02-28
 
 **Lesson:** Pct scoring triggers anchoring-and-adjustment heuristic — scorer locks onto global impression at finer granularity instead of differentiating better.
 
-### Rename authority_dynamics → power_positioning
+### Rename authority_dynamics → power_positioning [DEFERRED — WILL NOT RENAME]
 
-**Why:** Three criterion validity studies (CaSiNo, CGA-Wiki, CMV) reveal that AD measures *status negotiation in peer contexts*, not formal authority or hierarchy. The current name "authority_dynamics" implies institutional power structures, but the construct actually measures:
-- Epistemic positioning ("I know better than you")
-- Moral claims ("My needs should take priority")
-- Status contestation ("Who has the right to define reality here?")
-- Relational power moves (assertions, challenges, deference)
+**Decision (2026-02-28): DEFERRED indefinitely.** The rename is not being pursued. Rationale: **fidelity with the official psychological safety taxonomy.** The name `authority_dynamics` aligns with how power and authority are discussed in the established psychological safety literature (Edmondson 1999, French & Raven 1959, the instruments grounding this dimension). Renaming to `power_positioning` would be a custom neologism that departs from that taxonomy without clear publication benefit. The construct name stays as `authority_dynamics`.
 
-**Evidence for rename:**
+**What the criterion validity evidence actually shows:** AD measures *status negotiation dynamics* in peer contexts — a specific mechanism within authority dynamics, not a departure from it. This is an empirical finding about *where* AD predicts (contested peer status), not evidence that the name is wrong. The name captures the broader theoretical frame; the criterion studies narrow where within that frame the predictive signal lives.
+
+**What changes instead:**
+- [ ] Update the AD description in `psq-definition.md` §9 to reflect the peer-context status negotiation finding (the rubric anchors describe formal/institutional power; they should broaden to include epistemic positioning and relational status moves)
+- [ ] Add a note in the criterion validity section of `psq-definition.md` referencing the status negotiation theory (journal §24, Theory 3)
+- No DB migration, no script changes, no ONNX compatibility risk
+
+**Prior rename rationale (retained for reference):**
 - AD predicts strongly in peer contexts (Wikipedia editors, Reddit commenters, campsite negotiation) where formal authority is absent
-- AD is weakest in CMV where status is *fixed* (OP holds delta power, challengers must persuade)
-- AD-residual correlates with epistemic markers (second-person pronouns r=+0.202, question marks r=+0.235) not emotional markers
+- AD is weakest in CMV where status is *fixed*
+- AD-residual correlates with epistemic markers (second-person pronouns r=+0.202, question marks r=+0.235)
 - Theory 3 (status negotiation, journal §24) has the best explanatory coverage
-
-**What needs to change:**
-- [ ] `psq-definition.md` — dimension name, description, scoring rubric, score anchors
-- [ ] `final-state.md` — dimension specification
-- [ ] `data/dataset_mappings.json` — dimension key (affects composite pipeline)
-- [ ] `scripts/distill.py` — `DIM_NAMES` list, any hardcoded references
-- [ ] `scripts/eval_held_out.py` — dimension references
-- [ ] `scripts/label_separated.py` — dimension abbreviations (ad → pp?)
-- [ ] `data/schema.sql` — dimension enum/values if constrained
-- [ ] `data/psq.db` — migrate existing scores (UPDATE scores SET dimension = 'power_positioning' WHERE dimension = 'authority_dynamics')
-- [ ] All criterion validity scripts — variable names
-- [ ] Expert validation protocol — test both labels ("authority_dynamics" vs "power_positioning") to see which produces higher inter-rater reliability
-- [ ] Consider backward compatibility for any external consumers of the ONNX model
-
-**Risk:** Renaming mid-project creates documentation churn. Alternative: keep internal name as `authority_dynamics` but note in all public-facing docs that the construct is better described as "power positioning." Decide after expert validation.
-
-**Recommendation:** Wait for expert validation (§19) to test both labels. If "power positioning" produces higher ICC, rename everywhere. If "authority_dynamics" is equally reliable, keep the original but add a "also known as" note.
 
 ### Context-aware scoring API design
 

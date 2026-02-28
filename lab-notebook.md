@@ -301,8 +301,44 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 
 ## Open Questions
 
-1. Does curriculum learning add anything beyond proxy removal alone? (v22c vs v22a)
-2. What is the clean test_r once `labeling-batch-test-clean.jsonl` is scored and ingested?
-3. Does expanding the held-out set change the v22a/v22c ranking?
+1. ~~Does curriculum learning add anything beyond proxy removal alone?~~ **ANSWERED:** v22c 0.638 < v22a 0.682. Curriculum REJECTED.
+2. ~~What is the clean test_r once `labeling-batch-test-clean.jsonl` is scored and ingested?~~ **ANSWERED:** v22c test_r=0.431 (proxy-clean test split; not comparable to prior test_r).
+3. Does more CO-targeted data (ccda batch) improve CO from 0.504? (v23 pending)
 4. Is CC penalized by proxy removal? (CC regression in v22a was -0.051; need more CC LLM data)
 5. Human expert validation: DA construct validity still unresolved by LLM data alone.
+
+---
+
+### Session `20260228-1331` (this session)
+
+**v22a promotion. ONNX export. Three labeling batches. Proxy audit. v23 launched.**
+
+**v22a promoted to production slot:**
+- Copied `models/psq-v22a/{best.pt,config.json,held_out_results.json}` → `models/psq-student/`
+- Re-exported ONNX: `model.onnx`=254.4 MB (full precision, verification diff=0.000004), `model_quantized.onnx`=64.0 MB (INT8, 4.0× smaller)
+- Export note: `export_onnx.py` reads config from `models/psq-student/config.json` regardless of `--checkpoint`; must copy config before running.
+
+**Three labeling batches scored and ingested (all 10 dims, separated protocol):**
+
+| Batch | Texts | Sources | Notable distributions |
+|---|---|---|---|
+| ccda | 200 | prosocial 104, berkeley 38, dreaddit 33, empath 16, esconv 9 | CO mean=5.50, range [1,9] — good CO variance |
+| proxy-audit | 200 | goemotions 75, ucc 42, casino 42, berkeley 41 | TE mean=5.91, AD range [3,6] (compressed) |
+| held-out-expand | 150 | empath 47, prosocial 45, berkeley 43, esconv 4, dreaddit 11 | TE mean=5.51, full range [1,9] |
+
+**Held-out-expand ingestion decision:** Originally labeled "expand held-out set" but ingested as training data (migrate.py --ingest). No overlap with `data/held-out-test.jsonl` confirmed. Distribution: 118 train / 19 val / 13 test by hash split. Useful as training data; held-out set remains 100 texts.
+
+**Proxy audit findings:**
+Source-specific proxy-LLM correlations for goemotions/ucc/casino/berkeley texts:
+- DROPPED dims: TE=0.223, AD=-0.129, TC=-0.200, CC=-0.293, ED≈0.106 — all near-zero or negative
+- "Retained" dims: HI=-0.126, RC=0.004, RB=-0.203 — also near-zero or negative within these sources
+- Key insight: corpus-wide positive r values (RB=0.539, HI=0.488) come from OTHER sources (dreaddit, empathetic_dialogues), not from goemotions/ucc/casino/berkeley. These four sources have near-zero proxy utility for all dimensions.
+
+→ Proxy-drop decision confirmed. The ccda + proxy-audit + held-out-expand batches replace proxy signal with verified LLM signal from the problematic sources.
+
+**v23 training launched:** `python scripts/distill.py --db data/psq.db --drop-proxy-dims --out models/psq-v23`
+- +5,500 new separated-llm scores (550 texts × 10 dims) vs v22a
+- DB state: 22,186 texts, 90,361 scores (34,850 separated-llm)
+- Metrics pending.
+
+▶ EXPERIMENTS.md (v23 row added), DATA-PROVENANCE.md (Tier 5 table updated)

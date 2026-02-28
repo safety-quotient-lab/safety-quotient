@@ -107,21 +107,24 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | CO #2 batch | `data/labeling-batch-co2.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. CO-keyword filtered texts from unlabeled pool. CO mean=4.36. Drove v21 (+0.030 held-out). |
 | Middle-g batch | `data/labeling-batch-midg.jsonl` | 250 | 10/10 | 2026-02-28 | Complete. g∈[3,4.5)∪[5.5,7] from unlabeled pool (model-scored selection). Sources: dreaddit 80, berkeley 70, prosocial 50, empathetic_dialogues 30, esconv 20. TE 22.8%, HI 34.4% score-5 (good variance). |
 | Test-clean batch | `data/labeling-batch-test-clean.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. 200 test-split texts previously having only proxy labels. Separated LLM scoring, all 10 dims. Addresses test-split paradox. Assembled → `labeling-batch-test-clean-labeled.jsonl`, ingested via migrate.py. |
+| CC/DA focus batch | `data/labeling-batch-ccda.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. Targeting CO (weakest dim, r=0.504). Sources: prosocial 104, berkeley 38, dreaddit 33, empathetic_dialogues 16, esconv 9. CO mean=5.50, range [1,9]. |
+| Proxy audit batch | `data/labeling-batch-proxy-audit.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. Audit proxy-vs-LLM agreement for TC/CC/AD/HI/CO. Sources: goemotions 75, ucc 42, casino 42, berkeley 41. Audit result: all dims show near-zero or negative r with proxy within these sources (AD=-0.129, TC=-0.200, CC=-0.293; even retained HI=-0.126, RB=-0.203). Confirms proxy-drop decision. |
+| Held-out expand batch | `data/labeling-batch-held-out-expand.jsonl` | 150 | 10/10 | 2026-02-28 | Complete. Originally labeled for held-out expansion; ingested as training data (no overlap with data/held-out-test.jsonl). Sources: empathetic_dialogues 47, berkeley 43, prosocial 45, esconv 4, dreaddit 11. Distributed 118 train / 19 val / 13 test by hash split. |
 
-**Total separated-llm training labels:** 29,350 scores (across 21,877 texts in DB).
+**Total separated-llm training labels:** 34,850 scores (across 22,186 texts in DB).
 
-## Composite Summary (post-test-clean batch, 2026-02-28)
+## Composite Summary (post-held-out-expand batch, 2026-02-28)
 
 | Metric | Value |
 |---|---|
-| Total texts in DB | 21,877 |
-| Total scores in DB | 84,861 |
+| Total texts in DB | 22,186 |
+| Total scores in DB | 90,361 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
-| Joint-LLM records | 12,257 |
-| Separated-LLM records | 29,350 |
-| Synthetic records | 846 |
+| Joint-LLM records | 15,024 |
+| Separated-LLM records | 34,850 |
+| Synthetic records | 0 (subsumed into joint-LLM) |
 | Held-out test records | 100 (separate, not in training) |
-| Train / Val / Test | 17,458 / 2,122 / 2,203 (hash-based text split) |
+| Train / Val / Test | 17,708 / 2,160 / 2,235 (hash-based text split) |
 | Source datasets | 11 active (2 removed, 1 partially removed) |
 | Dimensions covered | 10/10 |
 

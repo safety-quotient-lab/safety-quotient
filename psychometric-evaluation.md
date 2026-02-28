@@ -2,13 +2,13 @@
 
 **Date:** 2026-02-28
 **Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v22a DistilBERT — held-out_r=**0.682** (new best, +0.052 vs v21). Proxy removal for 4 dims: TE 0.492→0.805. Test-split paradox documented (test_r regresses but held-out improves). 4 criterion validity studies. Hierarchical model: PSQ → clusters → dimensions.
+**Status:** v23 DistilBERT — held-out_r=**0.696** (new best, +0.014 vs v22a, +0.066 vs v21). 7/10 dims improved: ED +0.056 (0.712→0.768), CO +0.045 (0.504→0.549), AD +0.030, RC +0.026, CC +0.020. Test-split paradox documented (test_r=0.387 uses mixed labels; held-out_r is the valid metric). 4 criterion validity studies. Hierarchical model: PSQ → clusters → dimensions.
 
 ---
 
 ## 1. Summary Assessment
 
-The PSQ is a 10-dimension content-level psychological safety measurement system grounded in ~100 validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v22a DistilBERT: held-out_r=0.682 with halo-free separated labels). All 10 dimensions generalize to real-world text (r=0.50-0.81); threat_exposure transformed from weakest (0.492 in v21) to second-strongest (0.805) after removing adversarial proxy training data. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call). Four independent criterion validity studies demonstrate that PSQ profiles predict real-world outcomes (negotiation satisfaction, conversation derailment, persuasion success, deal-reaching) with AUC 0.59–0.69, and that profile shape predicts while the average does not.
+The PSQ is a 10-dimension content-level psychological safety measurement system grounded in ~100 validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v23 DistilBERT: held-out_r=0.696 with halo-free separated labels). All 10 dimensions generalize to real-world text (r=0.55-0.80); threat_exposure transformed from weakest (0.492 in v21) to second-strongest (0.800 in v23) after removing adversarial proxy training data. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call). Four independent criterion validity studies demonstrate that PSQ profiles predict real-world outcomes (negotiation satisfaction, conversation derailment, persuasion success, deal-reaching) with AUC 0.59–0.69, and that profile shape predicts while the average does not.
 
 However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Factor analysis v2 (n=1,970 separated-llm texts) shows a dominant general factor explaining 67.3% of variance (eigenvalue 6.727, KMO=0.902), with parallel analysis retaining only 1 factor. Structural analysis has established that this g-factor is primarily a range/extremity effect (extreme texts: EV1=82.8% with uniform loadings; middle texts: EV1=38.7% with structured loadings) — representing real co-variation rather than scorer halo. The project now treats the g-factor as the top level of a hierarchical model (PSQ → clusters → dimensions) rather than as a nuisance factor. Most standard reliability and validity evidence has not yet been collected.
 
@@ -25,7 +25,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
-| Held-out generalization | **Strong** (held-out_r=**0.682**, 10/10 dims r>0.50, v22a. +0.052 vs v21, TE 0.492→0.805) | — |
+| Held-out generalization | **Strong** (held-out_r=**0.696**, 10/10 dims r>0.54, v23. +0.066 vs v21, TE 0.492→0.800) | — |
 | Range utilization / bias | **Measured** (6/10 good, 2/10 poor) | High |
 | Measurement invariance / bias | **Planned, not done** | High |
 | Normative data | **Not established** | Medium |

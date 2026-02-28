@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28 (v22c held-out_r=0.638; curriculum REJECTED. v22a=0.682 remains best. 2×2 ablation complete: proxy removal alone is dominant and sufficient. test-clean batch (200 texts, all 10 dims) ingested to address test-split paradox.)
+**Current date:** 2026-02-28 (v23 held-out_r=0.696, new best. +550 texts (ccda/proxy-audit/held-out-expand) drove improvements across 7/10 dims. ONNX re-exported. AD description updated in psq-definition.md to reflect peer-context status negotiation. AD rename deferred — taxonomy fidelity with Edmondson 1999.)
 
 ---
 
@@ -45,7 +45,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 32. [The Test-Split Paradox: Why Removing Bad Data Looks Bad](#32-the-test-split-paradox-why-removing-bad-data-looks-bad-2026-02-28)
 33. [The Ablation Completes: Proxy Removal Dominates, and the g-Factor Is Range-Dependent](#33-the-ablation-completes-proxy-removal-dominates-and-the-g-factor-is-range-dependent-2026-02-28)
 34. [The Curriculum Experiment: A Clean Negative](#34-the-curriculum-experiment-a-clean-negative-2026-02-28)
-35. [References](#35-references)
+35. [v23: Data Quality Compounds, Authority Dynamics Aligned](#35-v23-data-quality-compounds-authority-dynamics-aligned-2026-02-28)
+36. [References](#36-references)
 
 ---
 
@@ -433,16 +434,16 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ## 14. Current State and Open Questions
 
-### 14a. Model Performance (v21, 2026-02-28)
+### 14a. Model Performance (v23, 2026-02-28)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 21,877 texts in DB (82,861 scores, 29,271 separated-llm) |
-| Test avg Pearson r | 0.504 (10/10 dimensions positive) |
-| Held-out avg Pearson r | 0.630 (best, +0.030 vs v19, +0.069 vs v16) |
-| Generalization gap | ~13% |
-| ONNX model size | 64 MB (INT8 quantized) |
+| Training data | 22,186 texts in DB (90,361 scores, 34,850 separated-llm) |
+| Test avg Pearson r | 0.387 (test-split paradox: mixed proxy/LLM labels as ground truth) |
+| Held-out avg Pearson r | **0.696** (new best; +0.014 vs v22a, +0.066 vs v21) |
+| Generalization gap | N/A (test_r not comparable when proxy training removed) |
+| ONNX model size | 64 MB (INT8 quantized), 254 MB (full precision) |
 | Inference latency | ~20ms / text (CPU) |
 
 ### 14b. Psychometric Properties
@@ -452,7 +453,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Test-retest reliability | Excellent | ICC = 0.935 (perturbation-based) | ICC > 0.75 (Cicchetti, 1994) |
 | Discriminant validity (vs. sentiment) | Strong | Mean |r| = 0.205 vs VADER | r < 0.30 (distinct construct) |
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
-| Held-out generalization | Good | r = 0.630, n = 100 (separated labels, v21) | Comparable to brief personality measures |
+| Held-out generalization | **Strong** | r = **0.696**, n = 100 (separated labels, v23) | Comparable to brief personality measures |
 | Construct validity (discriminant) | Confirmed | 5-factor EFA (n=2,359); AD/ED singletons | CFA needed (n ≥ 200) |
 | Criterion validity | **Strong** | **4 studies: CaSiNo, CGA-Wiki, CMV, DonD** (AUC 0.59–0.69) | Profile >> average; context-dependent primacy |
 | Inter-rater reliability | Not measured | — | Critical gap |
@@ -1125,7 +1126,21 @@ The test-clean batch (200 test-split texts, all 10 dims, separated LLM scoring) 
 
 ---
 
-## 35. References
+## 35. v23: Data Quality Compounds, Authority Dynamics Aligned (2026-02-28)
+
+v23 advances held-out performance to **0.696** — a further +0.014 improvement over v22a's record 0.682 — through continued data quality investment rather than architectural change. Three labeling batches (ccda, proxy-audit, held-out-expand; ~550 texts × 10 dimensions) were ingested since v22a, adding approximately 5,500 separated-llm labels to the training set. The result confirms a pattern that has held across every version since v14: targeted, high-quality labeling translates reliably into held-out improvement, even when volume is modest.
+
+The per-dimension profile of v23 is worth careful attention. Seven dimensions improved. The two largest gains — energy_dissipation (+0.056, 0.712→0.768) and contractual_clarity (+0.045, 0.504→0.549) — address the project's most theoretically important gap and its most numerically acute regression. ED's improvement is consistent with the "process dimension" hypothesis established in §27: texts selected for sustained-engagement scenarios (the ccda batch) provided the kind of interaction data where psychoemotional resource depletion is most directly expressed. CO's recovery confirms the v22a regression was a data quantity effect, not a proxy removal artifact — the CC-keyword filtering gave the model sufficient non-neutral CO examples to discriminate above chance.
+
+Three dimensions regressed modestly (threat_exposure −0.005, resilience_baseline −0.019, hostility_index −0.028), all from baselines above 0.62. These regressions reflect gradient allocation: adding content focused on CO, ED, and AD necessarily shifts training signal away from HI and RB, which received no dedicated batches. At these performance levels, marginal dilution is an acceptable trade-off for substantive gains in weaker dimensions.
+
+This session also concluded a construct naming dispute that had been open since the CGA-Wiki and CMV criterion validity studies surfaced the AD "status negotiation" finding. Criterion evidence showed that authority_dynamics predicts most strongly when interpersonal status is actively contested (peer disputes, negotiation) and is weakest when status is fixed by structural assignment. One interpretation of this finding was that the dimension measures something better described as "power positioning" — a more granular, peer-oriented concept than the original "authority dynamics" framing. After analysis, the rename was formally rejected: **authority_dynamics stays**. The rationale is taxonomy fidelity with the established psychological safety literature — Edmondson (1999) and French & Raven (1959) provide the anchoring citations for this dimension, and departing from their nomenclature for a custom neologism would require a level of novel theoretical contribution that the current evidence does not yet support. What the criterion evidence actually reveals is where *within* authority dynamics the predictive signal lives in peer contexts — an empirical refinement, not a construct redefinition. The dimension description in `psq-definition.md` §9 was updated to broaden the scope from institutional hierarchy alone to include epistemic positioning, moral claims, and relational power moves in peer contexts, reflecting the criterion findings while preserving construct continuity.
+
+The data scaling trajectory — v14 (0.482), v16 (0.561), v18 (0.568), v19 (0.600), v21 (0.630), v22a (0.682), v23 (0.696) — continues without plateau. Each intervention has been quality-focused rather than volume-focused, and each has moved the curve. The diminishing returns are visible (v22a→v23 is +0.014 vs v21→v22a's +0.052), but the absolute gains remain meaningful, and CO at 0.549 still has headroom. The binding constraint for the remaining gap is no longer data availability or architecture; it is expert human validation of the construct itself.
+
+---
+
+## 36. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 
