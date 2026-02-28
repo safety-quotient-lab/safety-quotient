@@ -20,6 +20,9 @@ This cycle ensures that every code, data, or training change in the PSQ project 
 | `data/DATA-PROVENANCE.md` | Data auditors, licensing | Dataset-level provenance — sources, licenses, record counts, audit findings. | Dataset-focused |
 | `psychometric-evaluation.md` | Psychometricians | Validation evidence against AERA/APA/NCME (2014) standards. | Standards-focused |
 | `psq-definition.md` | Theoreticians | Construct definition — what the PSQ is, its 10 dimensions, theoretical grounding. | Conceptual |
+| `criterion-validity-summary.md` | Authors, reviewers | Canonical criterion validity reference — full tables, model comparisons, cross-study synthesis for all 4 studies. | Evaluation-focused |
+| `README.md` | Public / new contributors | Project overview — what PSQ is, current model, top-line criterion results. | Public-facing |
+| `TODO.md` | Authors | Task backlog — pending work, completed items, stale status flags. | Operational |
 | `lab-notebook.md` | Future self, collaborators | Session log — what happened each session, v-Series Summary Table, Open Questions tracker. | Chronological — records the timeline |
 | `MEMORY.md` | Claude across sessions | Orientation state — current version, key metrics, file locations, patterns. | Cross-session context |
 
@@ -111,7 +114,36 @@ The validation evidence document, organized against the AERA/APA/NCME (2014) psy
 - Update the status line at the top with current model version and key metrics
 - Skip if no new psychometric evidence was generated
 
-### 5d. Update lab-notebook.md
+### 5d. Update criterion-validity-summary.md
+
+The canonical criterion validity reference. Update whenever a criterion study is run, rerun with a new model, or extended with new analyses.
+
+- **Status line / header**: Update the model version(s) cited (e.g., "CMV: v16 → v23 rerun 2026-02-28")
+- **Cross-study table**: Update AUC, top predictor, AD rank, and model column for any updated study
+- **Per-study sections**: Update group-comparison tables, coefficient tables, incremental AUC, extreme-group rates
+- **Cross-study patterns section**: Update if context-dependent primacy hierarchy changes or new predictions are confirmed (e.g., T3b)
+- **Pending predictions section**: Mark confirmed predictions as CONFIRMED with evidence
+- **Skip** if no criterion study was run or updated this session
+
+### 5e. Update README.md
+
+The public-facing project overview. Update when any of these change:
+
+- **Current model version** and held-out_r (top of file, model comparison table)
+- **Criterion validity numbers** in the results table (AUC values)
+- **Top-line findings** if the core message changes (e.g., new top predictor, new T3b finding)
+- Skip for internal-only changes (labeling batches, documentation reorganization, analysis scripts)
+
+### 5f. Update TODO.md
+
+The project task list. Light-touch maintenance only — don't rewrite the file, just keep status current.
+
+- **Completed items**: Add `[COMPLETE]` tag and update any numbers cited (e.g., old AUC/r values in completed criterion studies)
+- **Stale items**: Update status text if an "in progress" or "pending" item has resolved
+- **Newly opened items**: Add new to-do items that emerged from this session's work (e.g., "Score UCC batch")
+- Skip if nothing changed that affects the task list
+
+### 5g. Update lab-notebook.md
 
 The session log. This is a chronological record of what happened in each session — the "when and what" that fills in the gaps between the analytical documents. Every session with meaningful work gets an entry.
 
