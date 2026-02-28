@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-28
-**Status:** v23 held-out_r=**0.696** (production best). v24 context length experiment complete (§61): 256-token context regresses −0.026 to 0.670, **128 tokens confirmed superior**. v25 (512 tok) training on GPU; v26 (128 tok, LR=1e-5) queued. CGA-Wiki T2 temporal analysis in progress.
-**Next:** v25/v26 results → EXPERIMENTS.md + §61 update. T2 temporal analysis → §61b + journal.md §24 update. Expert validation recruitment. Three labeling batches pending: UCC(150), civil_comments(100), extreme-adco(118).
+**Status:** v23 held-out_r=**0.696** (production best). v24 context length experiment complete (§61): 256-token context regresses −0.026 to 0.670, **128 tokens confirmed superior**. v25 (512 tok) training on GPU; v26 (128 tok, LR=1e-5) queued. CGA-Wiki T2 temporal analysis **complete** (§61d): T2 NOT SUPPORTED — AD does not lead HI. New finding: HI→ED (p=0.004). Tipping-point pattern: Q4 collapse only.
+**Next:** v25/v26 results → EXPERIMENTS.md + §61c update. Expert validation recruitment. Three labeling batches pending: UCC(150), civil_comments(100), extreme-adco(118).
 
 ---
 
@@ -75,7 +75,7 @@
 58. [v23 Results: Data Quality Drives Sustained Improvement](#58-v23-results-data-quality-drives-sustained-improvement-2026-02-28) — held-out_r=0.696 (new best, +0.014 vs v22a); +550 texts across 3 batches; 7/10 dims improved; AD description updated; ONNX re-exported.
 59. [Criterion Validity: CMV v23 Rerun](#59-criterion-validity-cmv-v23-rerun-2026-02-28) — AUC=0.5735 (was 0.590 v16); TE non-significance confirms adversarial proxy artifact; 7/10 dims significant; CO not a persuasion predictor.
 60. [Criterion Validity: DonD v23 Rerun + T3b Confirmed](#60-criterion-validity-dond-v23-rerun--t3b-confirmed-2026-02-28) — AUC=0.732 (+0.046 vs v18); TE displaces ED as top bivariate predictor; T3b confirmed (AD predicts deal not points); 28.7pp deal gap.
-61. [Context Length Experiment: v24/v25/v26 + CGA-Wiki T2 Temporal Analysis](#61-context-length-experiment-v24-256-tok-v25-512-tok-v26-lr1e-5-2026-02-28) — v24 (256 tok): held-out_r=0.670 (−0.026 vs v23); 128 tokens confirmed superior. v25/v26 training. T2 cross-lagged analysis pending.
+61. [Context Length Experiment: v24/v25/v26 + CGA-Wiki T2 Temporal Analysis](#61-context-length-experiment-v24-256-tok-v25-512-tok-v26-lr1e-5-2026-02-28) — v24 (256 tok): held-out_r=0.670 (−0.026 vs v23); 128 tokens confirmed superior. v25/v26 training. T2 NOT SUPPORTED; new finding: HI→ED (p=0.004); tipping-point temporal pattern.
 13. [References](#13-references)
 
 ---
@@ -4939,11 +4939,40 @@ v26 (128 tokens, LR=1e-5 — half of v23's 2e-5) is queued after v25. Tests whet
 
 Results will be documented here when the unattended queue completes.
 
-### 61d. CGA-Wiki Temporal Analysis (in progress, 2026-02-28)
+### 61d. CGA-Wiki Temporal Analysis (complete, 2026-02-28)
 
-`scripts/criterion_cgawiki_temporal.py` is scoring all 25,351 individual utterances from the CGA-Wiki corpus (4,179 conversations, 2,094 derailing + 2,085 control) with v23. This tests T2 from journal.md §24: does AD deteriorate *before* HI/TE in conversations that derail (cross-lagged correlation analysis)?
+`scripts/criterion_cgawiki_temporal.py` scored all 25,351 individual utterances from the CGA-Wiki corpus (4,179 conversations, 2,094 derailing + 2,085 control) with v23. This tests T2 from journal.md §24: does AD deteriorate *before* HI/TE in conversations that derail?
 
-The script computes r(AD_t, HI_{t+1}) vs r(HI_t, AD_{t+1}) in derailing conversations and performs a Fisher z-test to determine directional asymmetry. Results will be added to §61d and journal.md §24 when complete.
+**Method:** For all consecutive utterance pairs in each conversation, computed r(A_t, B_{t+1}) and r(B_t, A_{t+1}), then tested directional asymmetry via Fisher z-test (z = (z₁−z₂) / √(1/(n−3) + 1/(n−3))). DERAILING: N=11,114 consecutive pairs; CONTROL: N=10,058 pairs.
+
+**Cross-lagged correlations — DERAILING:**
+
+| Pair | r(A→B) | r(B→A) | Δ | z | p | Verdict |
+|---|---|---|---|---|---|---|
+| AD(t) → HI(t+1) vs HI(t) → AD(t+1) | +0.068 | +0.086 | −0.019 | −1.40 | 0.162 | ns |
+| AD(t) → TE(t+1) vs TE(t) → AD(t+1) | +0.078 | +0.083 | −0.005 | −0.39 | 0.693 | ns |
+| **ED(t) → HI(t+1) vs HI(t) → ED(t+1)** | **+0.027** | **+0.066** | **−0.039** | **−2.89** | **0.004** | *** **HI→ED** |
+| ED(t) → TE(t+1) vs TE(t) → ED(t+1) | +0.064 | +0.084 | −0.020 | −1.49 | 0.136 | ns |
+| HI(t) → TE(t+1) vs TE(t) → HI(t+1) | +0.131 | +0.106 | +0.025 | +1.87 | 0.061 | ns |
+
+All CONTROL cross-lags: non-significant.
+
+**Temporal trajectory (DERAILING − CONTROL, quartile means):**
+
+| Quarter | AD | HI | TE | ED |
+|---|---|---|---|---|
+| Q1 (start) | −0.074 | −0.091 | −0.053 | −0.030 |
+| Q2 | −0.052 | −0.088 | −0.058 | −0.009 |
+| Q3 | −0.075 | −0.136 | −0.108 | −0.034 |
+| **Q4 (end)** | **−0.731** | **−1.359** | **−0.985** | **−0.504** |
+
+**T2 VERDICT: NOT SUPPORTED.** The AD↔HI cross-lagged difference is non-significant (Δ=−0.019, p=0.162). AD does not lead HI in derailing conversations; the two co-occur rather than sequence. If anything, HI scores correlate more strongly with the *next* turn's AD than vice versa (r=+0.086 vs +0.068), though this asymmetry is not significant.
+
+**New finding: HI→ED (p=0.004).** The only significant cross-lagged asymmetry is HI(t) → ED(t+1): hostility at time t predicts energy dissipation at t+1 (z=−2.89, p=0.004), but not the reverse. This is observed only in derailing conversations, not in controls, and is directionally consistent with the JD-R model: hostile interactions are resource-depleting events that increase ED in the next turn.
+
+**Tipping point pattern.** The temporal trajectory reveals that derailing conversations are *indistinguishable* from controls in Q1–Q3. All dimensions remain within ~0.14 units of controls through three-quarters of the conversation. Only in Q4 does the gap explode — HI collapses by 1.359 units, TE by 0.985, AD by 0.731, ED by 0.504. This is not a gradual deterioration but a phase transition: conversations remain apparently safe until very near the attack, then collapse rapidly. The PSQ's ability to predict derailment from early turns (AUC=0.519 → 0.599; §31a) must therefore be attributed to subtle signal accumulation rather than early divergence in raw score means.
+
+**Implications for AD construct theory (journal.md §24):** T2 was the direct empirical test of Theory 2 (leading indicator). Its failure to reach significance means Theory 2 cannot be confirmed from CGA-Wiki data alone. The AD-leads-HI sequence may still exist in other corpora (e.g., workplace conflict data with longer time scales), but it is not present in Wikipedia talk-page exchanges at the utterance level. Theory 3 (status negotiation) remains the most parsimonious account of AD's criterion validity pattern.
 
 ## 13. References
 

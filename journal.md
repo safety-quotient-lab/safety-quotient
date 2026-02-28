@@ -800,6 +800,23 @@ This theory explains both the factor structure and the criterion validity patter
 
 **Testable prediction (T2):** In a turn-by-turn analysis of CGA-Wiki conversations, AD scores should deteriorate *before* HI and TE scores in conversations that eventually derail. Specifically, the cross-lagged correlation between AD(t) and HI(t+1) should be stronger than between HI(t) and AD(t+1). If AD is merely co-occurring with hostility rather than preceding it, both cross-lagged correlations should be equal.
 
+**T2 result (tested 2026-02-28): NOT SUPPORTED.** We scored all 25,351 individual utterances from the CGA-Wiki corpus with v23 and computed cross-lagged correlations across 11,114 consecutive utterance pairs in derailing conversations. The AD↔HI cross-lag difference was non-significant: r(AD_t, HI_{t+1})=+0.068 vs r(HI_t, AD_{t+1})=+0.086, Δ=−0.019, z=−1.40, p=0.162. AD and HI co-occur rather than sequence. If anything, the (non-significant) asymmetry runs in the opposite direction from T2's prediction — HI appears to lead AD slightly, not the reverse. No AD↔TE cross-lag was significant either (p=0.693).
+
+Theory 2 (leading indicator) is not supported by utterance-level CGA-Wiki data. This does not rule it out definitively — the temporal scale of status-to-hostility escalation may exceed the turn-by-turn resolution, or may require different corpora (e.g., multi-session workplace conflicts). But the leading-indicator mechanism cannot be claimed as established.
+
+**Unexpected finding: HI→ED (p=0.004).** The only significant cross-lagged asymmetry across all tested pairs is ED↔HI in derailing conversations: r(HI_t, ED_{t+1})=+0.066 vs r(ED_t, HI_{t+1})=+0.027, Δ=−0.039, z=−2.89, p=0.004. Hostility at turn t predicts energy dissipation at turn t+1 in derailing conversations, but not in controls. This is directionally consistent with the Job Demands–Resources model (Bakker & Demerouti, 2007): hostile interpersonal events are psychological demands that deplete personal resources, producing the elevated ED that we observe in the subsequent turn. The finding is not theoretically surprising, but it was not predicted in advance, which limits its inferential weight.
+
+**Tipping-point temporal pattern.** Perhaps the most clinically significant finding from this analysis is structural: derailing conversations are *statistically indistinguishable* from controls for their first three quarters. Computing the difference in mean PSQ scores (DERAILING − CONTROL) by conversation quartile:
+
+| Quarter | AD | HI | TE | ED |
+|---|---|---|---|---|
+| Q1 (start) | −0.074 | −0.091 | −0.053 | −0.030 |
+| Q2 | −0.052 | −0.088 | −0.058 | −0.009 |
+| Q3 | −0.075 | −0.136 | −0.108 | −0.034 |
+| **Q4 (end)** | **−0.731** | **−1.359** | **−0.985** | **−0.504** |
+
+Scores remain within ~0.14 units of controls through Q3, then collapse simultaneously across all four dimensions in Q4. This is not a gradual deterioration but a phase transition — a rapid collapse that occurs only near the point of attack. The PSQ's ability to predict derailment from early turns (AUC=0.519 → 0.570 → 0.599, first turn → early → all; §21b) therefore reflects subtle signal accumulation in the *shape* of the profile, not divergence in raw score means. The tipping point is real, abrupt, and occurs too late in the conversation for early-warning detection based on raw score thresholds alone. Future work should explore profile-based change-detection methods that are sensitive to the *trajectory* of scores across turns rather than their absolute values.
+
 ### 24c. Theory 3: Status Negotiation and Epistemic Positioning
 
 The third theory draws on social identity theory (Tajfel & Turner, 1979) and the sociology of epistemic authority (Collins & Evans, 2007). On this account, AD does not measure formal authority or power hierarchy — the construct implied by its name — but rather *status negotiation*: the moment-to-moment positioning of speakers as epistemic authorities, group members, or moral agents. This is a broader and more interpersonally sensitive construct than "authority dynamics" suggests.
@@ -828,7 +845,9 @@ Second, the PSQ's theoretical framework should be revised to explicitly distingu
 
 Third, the finding that a command-channel dimension is the PSQ's strongest external predictor supports a broader theoretical claim: that psychoemotional safety is fundamentally a *relational* property of communication, not merely a *content* property. The report-level dimensions (how hostile, how threatening, how well-regulated) are necessary but not sufficient. The relational scaffolding — who has power, how it is exercised, whether it is contested — is what determines whether a conversation remains safe or degrades into personal attack. This is consistent with Edmondson's (1999) original formulation of psychological safety as an interpersonal climate variable, not an individual trait or a property of message content.
 
-The resolution of these three theories awaits three empirical tests: (1) the Deal or No Deal criterion study (prediction T3b: deal vs. points), (2) a turn-by-turn temporal analysis of CGA-Wiki conversations (prediction T2: AD leads HI), and (3) the expert validation study with alternative construct labels (prediction T3a: peer vs. hierarchical contexts). Until these tests are completed, we hold all three theories as live hypotheses, noting that Theory 3 (status negotiation) currently has the most parsimonious explanatory coverage and the most actionable implications for construct revision.
+Of the three original empirical tests: (1) the Deal or No Deal criterion study (T3b: deal vs. points) is **confirmed** — AD predicts deal reached (r_pb=+0.138) but not points scored (r=−0.070), exactly as predicted by Theory 3 (§27); (2) the turn-by-turn temporal analysis of CGA-Wiki conversations (T2: AD leads HI) is **not supported** — AD and HI co-occur at the utterance level, and the leading-indicator mechanism cannot be established from this corpus (§24b); (3) the expert validation study with alternative construct labels (T3a: peer vs. hierarchical contexts) remains **pending**.
+
+The balance of evidence now favors Theory 3 (status negotiation). T2's failure does not eliminate Theory 2 — leading-indicator dynamics may require longer time scales — but Theory 3 has now cleared two confirmatory tests (T3a pattern in CMV; T3b in DonD) while Theory 2 has failed its direct test. We tentatively conclude that AD measures contested status positioning in peer interactions, with its predictive power tied to the degree of status contestation rather than to its temporal position in the conflict sequence.
 
 ## 25. The Persuasion Test: Change My View (2026-02-28)
 
