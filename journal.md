@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-27
+**Current date:** 2026-02-28
 
 ---
 
@@ -29,7 +29,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 16. [Training Data Labeling Expansion and V14](#16-training-data-labeling-expansion-and-v14-2026-02-27)
 17. [Score-Concentration Fix and Targeted Labeling](#17-score-concentration-fix-and-targeted-labeling-2026-02-27)
 18. [Factor Analysis: The General Factor Question](#18-factor-analysis-the-general-factor-question-2026-02-28)
-19. [References](#19-references)
+19. [Expert Validation Protocol: The DA Question](#19-expert-validation-protocol-the-da-question-2026-02-28)
+20. [References](#20-references)
 
 ---
 
@@ -646,7 +647,23 @@ Our recommendation is a hierarchical reporting model: an overall PSQ score (gene
 
 ---
 
-## 19. References
+## 19. Expert Validation Protocol: The DA Question (2026-02-28)
+
+The factor analysis (§18) surfaced a structural question that no amount of LLM training can resolve: is Defensive Architecture a distinct, scorable psychological construct, or an artifact of general safety assessment? DA's empirical profile is troubling on multiple fronts. At the 5-factor level, its maximum promax loading is 0.332 — below even the lenient 0.35 threshold for meaningful factor membership. Its mean correlation with the other 9 dimensions is 0.480, essentially identical to its correlations with both the Hostility/Threat cluster (r=0.603) and Internal Resources cluster (r=0.608). In the separated-llm data, DA correlates 0.825 with Trust Conditions, 0.768 with Regulatory Capacity, and 0.744 with Cooling Capacity — correlations high enough to question discriminant validity.
+
+One response would be to improve the LLM's DA scoring through targeted labeling batches, as we had done successfully for Authority Dynamics (+0.166 improvement after 300-text batch). But this treats a construct validity question with a measurement precision tool. If DA genuinely measures a distinct boundary-related construct that happens to be underspecified in text, then improving measurement precision might reveal discriminant validity. If DA is genuinely diffuse — a construct that exists in clinical practice but lacks a distinct textual signature — then better measurement will only confirm the diffuseness with more certainty.
+
+The scientifically sound approach is external validation by human experts. We designed a comprehensive expert panel study (`expert-validation-protocol.md`) to resolve three research questions: (1) Can trained raters achieve acceptable inter-rater reliability (ICC ≥ 0.70) on each of the 10 PSQ dimensions? (2) Is DA empirically separable from the other 9 dimensions in expert ratings? (3) How do expert ratings compare to LLM teacher scores?
+
+The study proposes 5 expert psychologists scoring 200 stratified texts across all 10 dimensions — a fully crossed design yielding 10,000 ratings. The text sample is stratified to oversample DA-extreme texts (60 texts with DA scores ≤3 or ≥7) alongside general safety-range texts and factor-informative texts. The DA-specific decision tree is explicit: if expert ICC for DA falls below 0.50, DA is not reliably scorable from text and should be deprecated. If DA partial correlations (controlling for g-PSQ) all fall below 0.30, DA captures something distinct and should be retained. If R² > 0.80 from the other 9 dimensions, DA is redundant and should be absorbed into the nearest cluster.
+
+This represents a pivotal methodological shift. Until now, all "ground truth" in the PSQ project has been LLM-generated — the held-out evaluation uses LLM labels, the factor analysis uses LLM scores, and the psychometric evaluation treats LLM consistency as a proxy for reliability. The expert panel study introduces the first fully independent human judgment into the validation chain. Its results will determine not only DA's fate but also whether the LLM teacher itself is measuring what clinical psychologists would recognize as psychological safety.
+
+The estimated cost ($5,625–$15,000 for 5 raters at professional consulting rates) and timeline (7–9 weeks) represent significant investment for a small-team project, but the alternative — proceeding to deployment with an instrument whose construct validity rests entirely on a single model's judgment — creates far greater risk. As Shrout and Fleiss (1979) established, inter-rater reliability is a prerequisite, not an optional supplement, for any claim of measurement validity.
+
+---
+
+## 20. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

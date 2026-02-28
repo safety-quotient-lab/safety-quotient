@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-27
 **Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC batches. DB: 20,727 texts, 69,361 scores, 15,771 separated-llm.
-**Next:** Investigate TE regression (0.476→0.347), promote v16 to production, re-export ONNX.
+**Next:** Expert panel validation (protocol ready), DA construct validity decision, TE regression investigation.
 
 ---
 
@@ -43,6 +43,7 @@
 23. [V15 Training: AD+RC Batch Impact](#23-v15-training-adrc-batch-impact-2026-02-27) — held-out_r=0.495 (+0.013), ad +0.166, rc +0.041, co regressed
 24. [Score-Concentration Cap & CO Batch](#24-score-concentration-cap--co-batch-2026-02-27) — systemic weight cap for score flooding, CO-focused labeling batch
 25. [V16 Training Results](#25-v16-training-results-2026-02-27) — best held-out ever (0.561), RC/CO recovery, TE regression
+29. [Expert Validation Protocol Design](#29-expert-validation-protocol-design-2026-02-28) — DA construct validity, expert panel study, ICC(2,1), decision tree
 13. [References](#13-references)
 
 ---
@@ -2472,6 +2473,41 @@ v17 trained on 71,361-score DB (including TE batch). Early stopped epoch 9 (best
 | DA | 0.491 | 0.554 | +0.063 |
 | CO | 0.534 | 0.506 | -0.028 |
 | **AVG** | **0.561** | **0.563** | **+0.002** |
+
+## 29. Expert Validation Protocol Design (2026-02-28)
+
+### 29a. DA Construct Validity Problem
+
+DA empirical profile from §26–27:
+- Max promax loading: 0.332 (below 0.35 threshold)
+- Mean r with other 9 dims: 0.480
+- Separated-llm correlations: DA–TC=0.825, DA–RC=0.768, DA–CC=0.744
+- Score distribution: std=1.13 (2nd lowest), 49% of separated-llm scores are exact 5.0, only 4.6% ≥7
+- No primary factor at 5+ factors in any rotation
+
+Diagnosis: DA behaves as a general-factor indicator, not a distinct dimension. More LLM labels will not resolve this — it requires human expert validation.
+
+### 29b. Protocol Summary
+
+Full protocol: `expert-validation-protocol.md`
+
+| Element | Specification |
+|---|---|
+| Design | Fully crossed: all raters × all texts × all dimensions |
+| Raters | 5 expert psychologists (doctoral-level) |
+| Texts | 200 (stratified: 30 DA-low, 30 DA-high, 20 DA-neutral, 60 general, 40 factor-informative, 20 held-out overlap) |
+| Total ratings | 10,000 (5 × 200 × 10) |
+| Primary metric | ICC(2,1) per dimension |
+| DA decision tree | ICC<0.50 → deprecate; partial r<0.30 → retain; R²>0.80 → absorb |
+| Timeline | 7–9 weeks |
+
+### 29c. Impact on Project
+
+This study will produce:
+1. First independent (non-LLM) reliability evidence for all 10 dimensions
+2. DA deprecation/retention decision based on human expert judgment
+3. Expert factor structure for comparison with LLM-derived 5-factor model (Tucker's φ)
+4. Convergent validity coefficients (expert vs LLM) on 20 held-out texts
 
 ## 13. References
 

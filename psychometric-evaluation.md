@@ -24,7 +24,7 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 | Criterion validity | **Not measured** | High |
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
-| Inter-rater reliability | **Not measured** | Critical |
+| Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
 | Held-out generalization | **Strong** (held-out_r=0.561, 10/10 dims p<0.001) | — |
 | Range utilization / bias | **Measured** (6/10 good, 2/10 poor) | High |
 | Measurement invariance / bias | **Planned, not done** | High |
@@ -91,7 +91,7 @@ The training pipeline combines 13 source datasets with different strengths:
 | Internal consistency (α) | Do items within a dimension agree? | Not measured |
 | Test-retest (perturbation) | Stable under meaning-preserving text changes? | **Excellent** — ICC(3,1) = 0.935, all 10 dims > 0.90 |
 | Test-retest (temporal) | Same content → same score after time gap? | Not measured (LLM teacher) |
-| Inter-rater (human) | Do independent raters agree? | Not measured |
+| Inter-rater (human) | Do independent raters agree? | Not measured — protocol designed (see `expert-validation-protocol.md`) |
 | Inter-model (LLM) | Do different LLMs agree? | Not measured |
 | Intra-model (student) | Same model, same input → same score? | **Trivially satisfied** (deterministic) |
 | Range utilization | Does model use full scoring range? | **Measured** — 6/10 dims good, 2/10 weak, 2/10 poor |
@@ -482,11 +482,14 @@ Priority-ordered steps to bring PSQ to psychometric standards:
 2. **Inter-model reliability**: Score 200 texts with Claude, GPT-4, Gemini. Compute ICC. Target: ICC ≥ 0.70.
 3. **Student model stability**: ~~Score 200 texts twice with student model.~~ **DONE** — perturbation-based test-retest on 500 texts, ICC(3,1) = 0.935 (Excellent). All 10 dimensions > 0.90. See `models/psq-student/test_retest_results.json`.
 
-### Phase 2: Human Validation (estimated effort: 4-8 weeks)
+### Phase 2: Human Validation (estimated effort: 7-9 weeks)
 
-4. **Expert panel content validity**: 3-5 clinical/organizational psychologists rate 100 texts on all 10 dimensions independently. Compute ICC per dimension. Target: ICC ≥ 0.70 for ≥ 8/10 dimensions.
-5. **Human-LLM agreement**: Compare expert ratings to LLM scores. Compute r and systematic bias per dimension.
-6. **Confidence calibration**: Plot LLM confidence vs. actual error (reliability diagrams). Calibrate if needed.
+**Full protocol designed:** See `expert-validation-protocol.md` for the complete study design.
+
+4. **Expert panel inter-rater reliability**: 5 expert psychologists (clinical, organizational, social, boundary specialist, psychometrician) score 200 stratified texts on all 10 dimensions. Fully crossed design (10,000 ratings). Compute ICC(2,1) per dimension. Target: ICC ≥ 0.70 for ≥ 8/10 dimensions.
+5. **DA construct validity decision**: DA-specific decision tree based on expert data — ICC < 0.50 → deprecate; partial r all < 0.30 (controlling for g-PSQ) → retain as distinct; R² > 0.80 from other 9 dims → absorb into nearest cluster.
+6. **Human-LLM convergent validity**: Compare mean expert ratings to LLM teacher scores on 20 held-out overlap texts. Compute per-dimension r and systematic bias (Bland-Altman).
+7. **Expert factor structure**: Run EFA on expert rating matrix (200 × 10). Compare to LLM-derived factor structure via Tucker's congruence coefficient. Key question: do experts replicate the 5-factor structure?
 
 ### Phase 3: Construct Validation (estimated effort: 4-8 weeks)
 
