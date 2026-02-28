@@ -396,7 +396,7 @@ def evaluate(model, dataloader, device, bifactor=False):
     return results
 
 
-def _load_splits_from_db(db_path, no_cap=False):
+def _load_splits_from_db(db_path, no_cap=False, drop_proxy_dims=None):
     """Load train/val/test records from psq.db using persisted split assignments.
 
     Returns (train_recs, val_recs, test_recs) where each record has:
@@ -404,14 +404,34 @@ def _load_splits_from_db(db_path, no_cap=False):
 
     Uses best_scores view: separated-llm > synthetic > joint-llm > composite-proxy.
     Split assignments come from the splits table (persisted, not re-derived).
+
+    drop_proxy_dims: list of dimension names to exclude proxy labels for.
+        Proxy labels for these dims have poor LLM agreement and add noise.
     """
     con = sqlite3.connect(db_path)
 
     # training_data view is already filtered to split='train' with sample_weight
-    train_rows = con.execute(
-        "SELECT text_id, text, dimension, score, confidence, sample_weight "
-        "FROM training_data"
-    ).fetchall()
+    if drop_proxy_dims:
+        # Fetch with method column so we can filter proxy rows for specific dims
+        all_train = con.execute(
+            "SELECT text_id, text, dimension, score, confidence, sample_weight, method "
+            "FROM training_data"
+        ).fetchall()
+        drop_set = set(drop_proxy_dims)
+        train_rows = []
+        dropped = 0
+        for r in all_train:
+            if r[2] in drop_set and r[6] == 'composite-proxy':
+                dropped += 1
+            else:
+                train_rows.append(r[:6])  # strip method column
+        if dropped:
+            print(f"  Dropped {dropped} proxy rows for dims: {', '.join(sorted(drop_set))}")
+    else:
+        train_rows = con.execute(
+            "SELECT text_id, text, dimension, score, confidence, sample_weight "
+            "FROM training_data"
+        ).fetchall()
 
     if not no_cap:
         train_rows = _cap_score_concentration(train_rows)
@@ -570,7 +590,9 @@ def train(args):
     db_path = ROOT / args.db
 
     if not args.no_db and db_path.exists():
-        train_recs, val_recs, test_recs = _load_splits_from_db(db_path, no_cap=args.no_cap)
+        drop_dims = args.drop_proxy_dims.split(",") if args.drop_proxy_dims else None
+        train_recs, val_recs, test_recs = _load_splits_from_db(
+            db_path, no_cap=args.no_cap, drop_proxy_dims=drop_dims)
         print(f"  DB: {db_path.name}")
         print(f"  Split: {len(train_recs)} train / {len(val_recs)} val / {len(test_recs)} test")
     else:
@@ -827,6 +849,12 @@ def main():
                        help="Output directory for checkpoints and config (default: models/psq-student)")
     parser.add_argument("--no-cap", action="store_true",
                        help="Disable score-concentration cap (default: cap enabled)")
+    parser.add_argument("--drop-proxy-dims", nargs="?",
+                       const="threat_exposure,trust_conditions,contractual_clarity,authority_dynamics",
+                       default=None,
+                       help="Drop proxy labels for these dims (poor LLM agreement). "
+                            "No args = default set (TE, TC, CC, AD). "
+                            "Or specify comma-separated dims.")
     parser.add_argument("--no-save", action="store_true",
                        help="Discard checkpoints after training (smoke-test mode)")
     parser.add_argument("--bifactor", action="store_true",
