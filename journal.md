@@ -33,7 +33,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 20. [Criterion Validity: The Negotiation Test](#20-criterion-validity-the-negotiation-test-2026-02-28)
 21. [The Derailment Test](#21-the-derailment-test-2026-02-28)
 22. [Dimension Reduction: Where the Signal Lives](#22-dimension-reduction-where-the-signal-lives-2026-02-28)
-23. [References](#23-references)
+23. [The Misfits: Why Authority Dynamics Predicts What Nothing Else Can](#23-the-misfits-why-authority-dynamics-predicts-what-nothing-else-can-2026-02-28)
+24. [References](#24-references)
 
 ---
 
@@ -732,7 +733,39 @@ Our recommendation: report hierarchically (g-PSQ → 5 clusters → 10 dimension
 
 ---
 
-## 23. References
+## 23. The Misfits: Why Authority Dynamics Predicts What Nothing Else Can (2026-02-28)
+
+The dimension reduction analysis (§22) revealed that a 5-factor model retains 88% of dimensional information while a 3-factor model loses too much. But *which* dimensions refuse to be collapsed, and why? The answer turns out to illuminate something fundamental about what the PSQ is actually measuring.
+
+Two dimensions — authority_dynamics (AD) and energy_dissipation (ED) — are the primary casualties of dimension reduction. In the 3-factor model, AD's R² drops to 0.615 and ED's to 0.449 — meaning the cluster averages reconstruct less than half of ED's variance and barely two-thirds of AD's. Both dimensions load as singletons in the promax 5-factor solution. They are, statistically speaking, homeless.
+
+The reason is different for each. AD correlates roughly equally with all three major clusters (mean |r| = 0.666 with Hostility/Threat, 0.564 with Relational Contract, 0.507 with Internal Resources). It is a *general factor indicator* — not an orphan from any cluster but a dimension that reflects the shared variance equally. Sixty-two percent of AD's variance is explained by g-PSQ, the highest of any dimension. But its remaining 36% — the residual after removing the general factor — captures something genuinely unique: the interpersonal power structure of the text.
+
+ED, by contrast, is a true orphan. It correlates almost identically with Internal Resources (0.506) and Hostility/Threat (0.480), never finding a natural home. Its g-PSQ loading is the lowest of any dimension (R²=0.447), meaning it is the most independent from the shared safety-threat continuum. After controlling for g-PSQ, ED shows strong negative partial correlations with cooling_capacity (-0.536) and trust_conditions (-0.455). This reveals ED's distinctive construct: texts high in ED-residual describe sustained resource depletion in the *absence* of recovery opportunities — the theoretical picture of chronic allostatic load (McEwen, 1998), distinct from acute hostility or poor coping.
+
+The more scientifically consequential finding is AD's predictive dominance. In the CGA-Wiki study (§21), authority_dynamics showed the strongest point-biserial correlation with derailment (r_pb = -0.105***) and the largest Cohen's d (-0.212). A leave-one-out analysis quantified this: removing AD from the logistic regression costs ΔAUC = -0.021, nearly double the second-largest loss (regulatory_capacity at -0.014). AD alone achieves AUC=0.549 — more than g-PSQ (0.515) and roughly 40% of the incremental signal that all 10 dimensions provide beyond the general factor.
+
+What makes AD special? Not emotional sensitivity. A text-feature analysis of AD-residual scores reveals correlations with interpersonal language markers — second-person pronouns ("you"/"your", r=+0.202), question marks (r=+0.235), authority-related vocabulary (r=+0.121) — but not with sentiment, profanity, or emotional intensity. AD is reading the *relational structure* of text: who has power, how it is exercised, whether it is contested. This is precisely what French and Raven (1959) described in their taxonomy of social power bases — legitimate, coercive, referent, expert, reward — and what Tepper's (2000) abusive supervision construct measures in organizational contexts.
+
+The implication is that conversation derailment is fundamentally a *power* phenomenon, not an *emotion* phenomenon. Hostility matters (HI is the strongest coefficient in the multivariate model), but the dimension that carries the most non-redundant predictive signal is the one measuring who holds power and how they wield it. This aligns with Felson and Tedeschi's (1993) social interactionist theory of aggression: interpersonal violence arises from perceived challenges to authority and social identity, not from free-floating anger.
+
+AD also functions as a suppressor variable in the classical psychometric sense (Conger, 1974). Its multivariate importance (2nd-largest coefficient) exceeds what its bivariate correlation would predict. This occurs because AD captures variance in other dimensions — particularly defensive_architecture and hostility_index — that is *irrelevant* to derailment prediction. Including AD allows the model to isolate the portions of HI and DA that genuinely predict attacks from the portions that merely reflect power dynamics. It is, in Cattell's (1988) terminology, an "instrumental" variable — important not for what it predicts directly but for what it allows other variables to predict.
+
+There is an irony here worth noting. Authority_dynamics is the dimension with the weakest factor loading in the PSQ, the one flagged for potential construct validity concerns (§19), the one for which we designed an expert validation protocol (§19). And yet it is also the most externally valid predictor — the dimension that most consistently predicts real-world outcomes (negotiation satisfaction in CaSiNo, derailment in CGA-Wiki) that it was never trained on. This is consistent with Meehl's (1990) important but often-overlooked observation that a construct's psychometric structure (its factor loadings) need not predict its criterion validity pattern. The dimension that loads least neatly onto the PSQ's internal structure is the one that connects most powerfully to the external world.
+
+For energy_dissipation, the story is quieter but equally instructive. ED contributes little to derailment prediction (ΔAUC=-0.005 when removed), consistent with its construct: resource depletion is a chronic process that unfolds over weeks and months, not within the span of a Wikipedia talk-page exchange. ED's criterion validity should be sought in different contexts — longitudinal studies of burnout, workplace withdrawal, or performance decline — where the temporal scale matches the construct's theoretical dynamics.
+
+Our architectural recommendation remains: keep all 10 dimensions. But this analysis sharpens the reason. It is not merely that collapsing loses statistical information (the R² argument from §22). It is that the dimensions most resistant to collapsing — AD and ED — are the ones measuring fundamentally different psychological processes: interpersonal power structure and chronic resource depletion, respectively. These are not redundant with hostility, trust, or coping. They are distinct mechanisms operating at different levels of analysis — relational for AD, energetic for ED — that enrich the PSQ beyond a simple safety-threat continuum.
+
+A necessary caveat tempers these findings. Authority_dynamics — the PSQ's most externally valid dimension — is also a dimension whose training signal is 70.4% LLM-generated (Claude scoring training texts via separated and joint labeling protocols), with only 29.6% coming from composite proxy mappings (UCC condescension labels and politeness corpus data). The concern is straightforward: has the LLM taught the student model an idiosyncratic definition of "authority dynamics" that happens to correlate with derailment for reasons we have not identified?
+
+We find this concern serious but unlikely to explain the full pattern. First, AD is not unusually LLM-dependent — it sits in the middle of the pack. Contractual_clarity is 96.7% LLM-generated yet shows the *weakest* criterion validity (non-significant in CGA-Wiki). If LLM labeling bias were the mechanism, the most LLM-dependent dimensions should be the best predictors. They are not. Second, the student model generalizes AD scores across domains entirely absent from training (Wikipedia disputes were never in the training data), and does so consistently across two independent criterion studies using different outcome types. Domain-specific biases rarely generalize this cleanly across discourse registers and outcome categories. Third, AD-residual scores correlate with exactly the interpersonal language markers — second-person pronouns, question marks, authority vocabulary — that French and Raven's (1959) power bases framework would predict. A spurious LLM artifact producing these specific, theoretically grounded text-feature correlations would be a remarkable coincidence.
+
+Nevertheless, the entire construct validity chain for AD currently runs through LLM interpretation. The held-out evaluation (r=0.625) uses LLM-scored labels as ground truth; the training data is majority LLM-scored; and no human expert has independently evaluated AD's scoring rubric against the texts. This is precisely the gap the expert validation protocol (§19) is designed to close. Until five independent expert psychologists produce ICC(2,1) ≥ 0.70 on AD scoring and demonstrate substantial convergent validity with the LLM labels, we must hold AD's criterion validity findings as *promising but provisionally grounded*. The strongest predictor in our battery is also the one most in need of human confirmation.
+
+---
+
+## 24. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 
@@ -751,6 +784,10 @@ Buss, A. H., & Perry, M. (1992). The aggression questionnaire. *Journal of Perso
 Campbell, D. T., & Fiske, D. W. (1959). Convergent and discriminant validation by the multitrait-multimethod matrix. *Psychological Bulletin, 56*(2), 81–105.
 
 Caspi, A., Houts, R. M., Belsky, D. W., Goldman-Mellor, S. J., Harrington, H., Israel, S., ... & Moffitt, T. E. (2014). The p factor: One general psychopathology factor in the structure of psychiatric disorders? *Clinical Psychological Science, 2*(2), 119–137.
+
+Cattell, R. B. (1988). The meaning and strategic use of factor analysis. In J. R. Nesselroade & R. B. Cattell (Eds.), *Handbook of Multivariate Experimental Psychology* (2nd ed., pp. 131–203). Plenum Press.
+
+Conger, A. J. (1974). A revised definition for suppressor variables: A guide to their identification and interpretation. *Educational and Psychological Measurement, 34*(1), 35–46.
 
 Chawla, K., Ramirez, J., Clever, R., Lucas, G., May, J., & Gratch, J. (2021). CaSiNo: A corpus of campsite negotiation dialogues for automatic negotiation systems. In *Proceedings of NAACL-HLT 2021* (pp. 3167–3185).
 
@@ -773,6 +810,8 @@ Duckworth, A. L., Peterson, C., Matthews, M. D., & Kelly, D. R. (2007). Grit: Pe
 Edmondson, A. (1999). Psychological safety and learning behavior in work teams. *Administrative Science Quarterly, 44*(2), 350–383.
 
 Einarsen, S., Hoel, H., & Notelaers, G. (2009). Measuring exposure to bullying and harassment at work: Validity, factor structure and psychometric properties of the Negative Acts Questionnaire-Revised. *Work & Stress, 23*(1), 24–44.
+
+Felson, R. B., & Tedeschi, J. T. (1993). A social interactionist approach to violence: Cross-cultural applications. *Violence and Victims, 8*(3), 295–310.
 
 French, J. R. P., & Raven, B. (1959). The bases of social power. In D. Cartwright (Ed.), *Studies in Social Power* (pp. 150–167). Institute for Social Research.
 
@@ -866,8 +905,12 @@ Turney, P. D., Neuman, Y., Assaf, D., & Cohen, Y. (2019). Dreaddit: A Reddit dat
 
 Vaillant, G. E. (1977). *Adaptation to Life*. Little, Brown.
 
+McEwen, B. S. (1998). Stress, adaptation, and disease: Allostasis and allostatic load. *Annals of the New York Academy of Sciences, 840*(1), 33–44.
+
 McCrae, R. R., & Costa, P. T. (1997). Conceptions and correlates of openness to experience. In R. Hogan, J. Johnson, & S. Briggs (Eds.), *Handbook of Personality Psychology* (pp. 825–847). Academic Press.
 
 Meehl, P. E. (1956). Wanted — a good cookbook. *American Psychologist, 11*(6), 263–272.
+
+Meehl, P. E. (1990). Why summaries of research on psychological theories are often uninterpretable. *Psychological Reports, 66*(1), 195–244.
 
 Zhang, J., Chang, J., Danescu-Niculescu-Mizil, C., Dixon, L., Hua, Y., Taraborelli, D., & Thain, N. (2018). Conversations gone awry: Detecting early signs of conversational failure. In *Proceedings of ACL 2018* (pp. 1350–1361).

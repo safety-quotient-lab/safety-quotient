@@ -419,6 +419,8 @@ Results:
 
 **Cross-study consistency**: AD/DA emerges as the strongest criterion predictor in both studies (CaSiNo: negotiation satisfaction; CGA-Wiki: derailment avoidance), despite having the weakest factor loading in the PSQ system. This paradox — low internal structure, high external validity — suggests AD captures something real that the other dimensions don't.
 
+**Data provenance caveat**: AD's training signal is 70.4% LLM-generated (separated-llm 37%, joint-llm 25%, synthetic 8%), with only 29.6% from composite proxy mappings (UCC condescension and politeness corpus). This is comparable to other dimensions (range: HI at 52% to CO at 97%), but the entire construct validity chain for AD runs through LLM interpretation — including the held-out evaluation (r=0.625, scored by separated-llm). Several factors argue against pure LLM artifact: (1) cross-domain generalization to an unseen discourse register, (2) replication across two independent criterion studies, (3) AD-residual correlates with theoretically predicted text features (second-person pronouns, question marks, authority vocabulary), and (4) the most LLM-dependent dimension (CO at 97%) shows the weakest criterion validity. Nevertheless, AD's criterion findings remain *provisionally grounded* until the expert validation panel (§3h planned) produces human-scored ground truth with ICC(2,1) ≥ 0.70.
+
 **Recommendation:** Extend with Deal or No Deal (replication of negotiation findings) and CGA-CMV (change-my-view, different discourse context).
 
 ### 3h. Formula Inconsistency — RESOLVED

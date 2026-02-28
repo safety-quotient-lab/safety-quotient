@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
-**Date:** 2026-02-27
-**Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC batches. DB: 20,727 texts, 69,361 scores, 15,771 separated-llm.
-**Next:** Expert panel validation (protocol ready), DA construct validity decision, Deal or No Deal criterion validity replication.
+**Date:** 2026-02-28
+**Status:** v16 complete (test_r=0.529, held-out_r=0.561). Score-concentration cap + CO/RB/CC batches. DB: 20,927 texts, 71,361 scores, 17,771 separated-llm.
+**Next:** Expert panel validation (protocol ready), AD data provenance resolution, Deal or No Deal criterion validity replication.
 
 ---
 
@@ -47,6 +47,7 @@
 30. [Criterion Validity: CaSiNo Negotiation Outcomes](#30-criterion-validity-casino-negotiation-outcomes-2026-02-28) — first criterion validity evidence, PSQ predicts satisfaction and opponent likeness
 31. [Criterion Validity: CGA-Wiki Derailment Prediction](#31-criterion-validity-cga-wiki-derailment-prediction-2026-02-28) — PSQ predicts conversation derailment (AUC=0.599), AD strongest predictor
 32. [Dimension Reduction Evaluation](#32-dimension-reduction-evaluation-2026-02-28) — 10→5 preserves 88% info, 10→3 loses too much, CC/CO have high unique variance
+33. [Authority Dynamics and Energy Dissipation: Cluster Misfits and Predictive Dominance](#33-authority-dynamics-and-energy-dissipation-cluster-misfits-and-predictive-dominance-2026-02-28) — AD/ED don't belong in any cluster, AD is strongest external predictor, suppressor variable
 13. [References](#13-references)
 
 ---
@@ -2808,6 +2809,237 @@ The CGA-Wiki derailment study (§31c) provides direct evidence: g-PSQ AUC=0.515 
 ### 32g. Recommendation
 
 **Keep 10 dimensions, report hierarchically:** g-PSQ → 5 clusters → 10 dimensions. The 5-factor level is the sweet spot for parsimony (88% information retention, half the parameters), but should supplement rather than replace the 10-dimension profile. Do not reduce below 5 — AD and ED are genuinely independent.
+
+## 33. Authority Dynamics and Energy Dissipation: Cluster Misfits and Predictive Dominance (2026-02-28)
+
+The dimension reduction analysis (§32) showed that authority_dynamics (AD) and energy_dissipation (ED) are the two dimensions most poorly captured by a 3-factor model. The CGA-Wiki study (§31) showed AD is the strongest individual predictor of conversation derailment. This section investigates both findings in depth.
+
+### 33a. Why AD Doesn't Fit Its Assigned Cluster
+
+In the promax 5-factor solution (§27), AD loads as its own singleton factor — Power Dynamics. When forced into a 3-factor model, it is assigned to Internal Resources (with RB, RC, DA). But its actual correlation pattern tells a different story:
+
+| Cluster | Dimensions | AD mean |r| with cluster |
+|---|---|---|
+| Hostility/Threat | HI, TE, CC | 0.666 |
+| Relational Contract | CO, TC | 0.564 |
+| Internal Resources | RB, RC, DA | 0.507 |
+| Stress/Energy | ED | 0.379 |
+
+AD correlates *more strongly* with Hostility/Threat (0.666) than with its assigned Internal Resources cluster (0.507). But it also correlates substantially with Relational Contract (0.564). AD is approximately equidistant from all clusters — a hallmark of a general factor indicator rather than a cluster-specific dimension.
+
+**Partial correlations controlling for g-PSQ** reveal the true picture. After removing the shared general factor:
+
+| Dimension | Partial r with AD (controlling for g-PSQ) |
+|---|---|
+| resilience_baseline | -0.399 |
+| regulatory_capacity | -0.398 |
+| cooling_capacity | -0.233 |
+| trust_conditions | -0.174 |
+| energy_dissipation | -0.087 |
+| hostility_index | +0.012 |
+| contractual_clarity | +0.046 |
+| defensive_architecture | +0.155 |
+| threat_exposure | +0.192 |
+
+The negative partial correlations with RB and RC are striking. Once you remove the general safety factor, AD and the protective dimensions move in *opposite* directions. Texts with high AD-residual (more authority dynamics signal than expected from their overall safety level) show *less* resilience and regulatory capacity — they describe structured power environments where authority replaces individual coping.
+
+**Variance decomposition:**
+- g-PSQ explains R² = 0.620 of AD variance (AD is 62% general factor)
+- All 9 other dimensions together explain R² = 0.636 (only +0.016 beyond g-PSQ)
+- AD retains 36.4% unique variance — the largest residual of any dimension
+
+AD is primarily a general factor indicator (62% shared) with a substantial unique component (36%) that captures interpersonal power structure not measured by any other dimension.
+
+### 33b. Why ED Doesn't Fit Its Assigned Cluster
+
+Energy_dissipation (ED) measures the degree to which content involves depletion of psychoemotional resources — burnout, exhaustion, sustained demand without recovery. In the 5-factor solution it is a singleton (Stress/Energy). When forced into the 3-factor model under Hostility/Threat, its R² drops to 0.449 — the worst reconstruction of any dimension.
+
+| Cluster | Dimensions | ED mean |r| with cluster |
+|---|---|---|
+| Internal Resources | RB, RC, DA | 0.506 |
+| Hostility/Threat | HI, TE, CC | 0.480 |
+| Relational Contract | CO, TC | 0.466 |
+| Power Dynamics | AD | 0.379 |
+
+Unlike AD (which gravitates toward one cluster), ED is nearly equidistant from all three — a true orphan. It correlates 0.506 with Internal Resources but 0.480 with Hostility/Threat, a negligible difference.
+
+**Partial correlations controlling for g-PSQ:**
+
+| Dimension | Partial r with ED (controlling for g-PSQ) |
+|---|---|
+| cooling_capacity | -0.536 |
+| trust_conditions | -0.455 |
+| resilience_baseline | -0.270 |
+| regulatory_capacity | -0.194 |
+| hostility_index | -0.038 |
+| contractual_clarity | +0.170 |
+| defensive_architecture | +0.211 |
+| authority_dynamics | -0.087 |
+| threat_exposure | +0.470 |
+
+After removing g-PSQ, ED shows strong negative partials with CC (-0.536) and TC (-0.455). This reveals ED's distinctive nature: texts with high ED-residual describe sustained energy depletion in the *absence* of cooling/recovery opportunities and in low-trust environments. This is the theoretical picture of chronic stress (Hobfoll, 1989) — resource drain without replenishment.
+
+**Variance decomposition:**
+- g-PSQ explains R² = 0.447 of ED variance (ED is only 45% general factor — the lowest of any dimension)
+- All 9 other dimensions explain R² = 0.654 (some unique signal captured by the full profile)
+- ED retains 34.6% unique variance
+
+ED loads least on the general factor, confirming it measures something genuinely distinct from the shared safety-threat continuum. It captures energy dynamics — a resource depletion process (Meijman & Mulder, 1998) orthogonal to both hostility and protective capacity.
+
+### 33c. Extreme Text Analysis
+
+To verify these statistical patterns reflect genuine construct differences, we examined texts with extreme AD-residual and ED-residual scores (top/bottom 10% after removing g-PSQ).
+
+**High AD-residual texts** (more authority dynamics than expected from overall safety):
+- Contain hierarchical directives, policy enforcement, institutional language
+- Power is structural and impersonal — organizational authority rather than interpersonal hostility
+- Example pattern: "The committee has decided..." / "Per policy, your request is denied"
+
+**Low AD-residual texts** (less authority dynamics than expected):
+- Peer-to-peer interactions where power is distributed or ambiguous
+- Conflict exists but without clear hierarchical structure
+
+**High ED-residual texts** (more energy dissipation than expected):
+- Describe burnout, exhaustion, sustained emotional or cognitive demand without relief
+- The depletion is chronic, not acute — consistent with allostatic load theory (McEwen, 1998)
+- Example pattern: "I've been dealing with this for months..." / "The constant pressure with no break..."
+
+**Low ED-residual texts** (less energy dissipation than expected):
+- Describe stress that is structural or situational rather than depleting — the person is threatened but not yet exhausted
+
+These qualitative differences confirm the statistical finding: AD captures power structure, ED captures resource depletion, and neither reduces to hostility, trust, or coping capacity.
+
+### 33d. Why AD Is the Strongest External Predictor
+
+In the CGA-Wiki study (§31), AD showed the strongest point-biserial correlation with derailment (r_pb=-0.105***) and the largest group difference (Cohen's d=-0.212). A leave-one-out analysis quantifies its unique contribution:
+
+| Dimension removed | ΔAUC | Interpretation |
+|---|---|---|
+| authority_dynamics | -0.0205 | Largest loss — AD carries the most non-redundant signal |
+| regulatory_capacity | -0.0144 | Second largest |
+| hostility_index | -0.0130 | Third largest |
+| defensive_architecture | -0.0113 | |
+| resilience_baseline | -0.0097 | |
+| cooling_capacity | -0.0067 | |
+| energy_dissipation | -0.0052 | |
+| trust_conditions | -0.0035 | |
+| threat_exposure | -0.0020 | |
+| contractual_clarity | -0.0013 | Smallest loss — CO is most redundant for prediction |
+
+Removing AD costs ΔAUC=-0.0205 — nearly double the second-largest loss (RC at -0.0144).
+
+**AD as a single predictor:**
+- AD alone: AUC=0.549
+- g-PSQ alone: AUC=0.515
+- AD + g-PSQ: AUC=0.548
+- All 9 other dims + g-PSQ: AUC=0.582
+- All 10 dims: AUC=0.599
+
+AD alone provides ~40% of the incremental signal beyond g-PSQ. Remarkably, adding g-PSQ to AD doesn't improve prediction (0.549→0.548), suggesting AD already captures the general factor information relevant to derailment.
+
+### 33e. AD Captures Relational Structure, Not Emotional Content
+
+The unique predictive power of AD is not about emotion detection. A text-feature correlation analysis of AD-residual scores (after removing g-PSQ) in the CGA-Wiki corpus reveals:
+
+| Text Feature | r with AD-residual | Interpretation |
+|---|---|---|
+| "you"/"your" frequency | +0.202 | Other-directed language (interpersonal focus) |
+| Question mark frequency | +0.235 | Questioning, challenging, requesting |
+| Authority keywords | +0.121 | Power-related vocabulary |
+| Word count | +0.087 | Longer texts (elaboration) |
+
+AD-residual correlates with interpersonal language markers — second-person pronouns, question marks, authority vocabulary — not with emotional content (sentiment, profanity, exclamation marks). This aligns with French & Raven's (1959) power bases framework: AD measures the *relational structure* of the interaction (who has power, how it is exercised, whether it is contested) rather than the emotional tone.
+
+### 33f. AD as a Suppressor Variable
+
+AD functions as a classic suppressor variable (Conger, 1974). In the multivariate logistic regression (§31f), AD has a coefficient of -0.281 (2nd largest). But its bivariate correlation with derailment (r_pb=-0.105), while significant, is smaller than HI's effect on derailment. The paradox: AD is more important in the multivariate model than its bivariate relationship suggests.
+
+This occurs because AD captures variance in other dimensions that is *irrelevant* to derailment prediction. By including AD, the model can subtract the "power dynamics" component from HI, RC, and CC scores, isolating the portions of those dimensions that are genuinely predictive. Specifically:
+
+- Predicting DA from g-PSQ alone: R²=0.192
+- Predicting DA from g-PSQ + AD: R²=0.210 (ΔR²=+0.018)
+
+AD's inclusion improves prediction of defensive_architecture by removing the shared power-dynamics signal, leaving purer measurement of defensive posturing — which is the DA component most predictive of derailment.
+
+### 33g. Implications for Construct Architecture
+
+1. **AD and ED should not be collapsed into any cluster for predictive tasks.** Both carry substantial unique variance (36% and 35% respectively) and serve different functional roles — AD as a general-factor-loading suppressor, ED as a low-loading orthogonal measure of resource depletion.
+
+2. **AD's predictive dominance is a feature, not a bug.** The dimension with the weakest factor loading and ongoing construct validity concerns (§29) is the most externally valid predictor. This is consistent with Meehl's (1990) observation that the psychometric structure of a construct (factor loadings) need not match its criterion validity pattern. AD captures something real — interpersonal power dynamics — that is distinctly important for predicting behavioral outcomes.
+
+3. **The 5-factor promax solution (§27) correctly identifies AD and ED as singletons.** The 3-factor model's failure to accommodate them is not a limitation of the rotation but a genuine structural feature of the PSQ: these two dimensions measure processes (power structure, resource depletion) that are theoretically and empirically orthogonal to the hostility-protection continuum.
+
+### 33h. Data Provenance Concern: AD Is Primarily LLM-Labeled
+
+A critical methodological question: is AD's predictive dominance a genuine finding, or an artifact of LLM labeling biases?
+
+**AD training data by method:**
+
+| Method | n | Weight | Effective signal (n × weight) | % of total |
+|---|---|---|---|---|
+| separated-llm | 1,149 | ×5.0 | 5,745 | 37.0% |
+| composite-proxy | 3,065 | ×1.5 | 4,598 | 29.6% |
+| joint-llm | 788 | ×5.0 | 3,940 | 25.3% |
+| synthetic | 252 | ×5.0 | 1,260 | 8.1% |
+
+**70.4% of AD's effective training signal comes from LLM-generated labels** (separated + joint + synthetic), with only 29.6% from composite proxy mappings.
+
+However, this is *not unique to AD*. All 10 dimensions have majority-LLM effective weight:
+
+| Dimension | LLM % | Proxy % |
+|---|---|---|
+| contractual_clarity | 96.7% | 3.3% |
+| defensive_architecture | 81.0% | 19.0% |
+| energy_dissipation | 72.5% | 27.5% |
+| threat_exposure | 72.3% | 27.7% |
+| authority_dynamics | 70.4% | 29.6% |
+| cooling_capacity | 69.6% | 30.4% |
+| resilience_baseline | 69.4% | 30.6% |
+| trust_conditions | 69.3% | 30.7% |
+| regulatory_capacity | 65.6% | 34.4% |
+| hostility_index | 51.9% | 48.1% |
+
+AD sits in the middle of the pack — it is neither the most nor the least LLM-dependent dimension. CO (96.7% LLM) is far more dependent on LLM labels, yet CO shows the *weakest* criterion validity (non-significant in CGA-Wiki). If LLM bias were driving criterion correlations, CO should be the strongest predictor, not the weakest.
+
+**The proxy data that does exist for AD:**
+- UCC (Unhealthy Conversation Components): 1,498 texts, mean=6.74 (skewed high — UCC maps condescension and sarcasm to AD)
+- Politeness Corpus (StackExchange): 911 texts, mean=4.99
+- Politeness Corpus (Wikipedia): 656 texts, mean=5.00
+
+The UCC skew is a known issue — its condescension/sarcasm labels map to authority dynamics but with a ceiling effect. The politeness data provide better-centered proxy signal.
+
+**The causal chain under scrutiny:**
+
+1. Claude (LLM) scores training texts on authority_dynamics
+2. Student model (DistilBERT) learns to replicate those scores
+3. Student model scores CGA-Wiki texts (never seen during training)
+4. AD scores predict derailment (AUC=0.549 alone, r_pb=-0.105)
+
+The concern: does the LLM teach the student model an idiosyncratic definition of "authority dynamics" that happens to correlate with derailment for spurious reasons?
+
+**Arguments against the bias hypothesis:**
+
+1. **Cross-domain generalization.** The student model was trained on emotional support dialogues, negotiation transcripts, and toxicity ratings. It was never exposed to Wikipedia talk-page conversations. If the LLM's AD labeling were capturing an idiosyncratic bias rather than a genuine construct, that bias would need to transfer across radically different discourse registers (therapy → negotiation → Wikipedia editing disputes). Domain-specific biases rarely generalize this cleanly.
+
+2. **Consistent across two independent criterion studies.** AD is the strongest individual predictor in both CaSiNo (negotiation satisfaction) and CGA-Wiki (derailment). These studies use different datasets, different outcome types (subjective rating vs. behavioral event), and different analysis methods. A spurious LLM artifact would need to independently correlate with both negotiation satisfaction and Wikipedia personal attacks.
+
+3. **Text-feature correlates are interpretable.** AD-residual scores (after removing g-PSQ) correlate with second-person pronouns (r=+0.202), question marks (r=+0.235), and authority vocabulary (r=+0.121) — exactly the interpersonal language markers that French & Raven's (1959) power bases framework would predict. If the LLM were encoding a spurious signal, these specific and theoretically grounded text-feature correlations would be a remarkable coincidence.
+
+4. **The dimension with the *most* LLM dependence (CO at 97%) shows the *weakest* criterion validity.** This is the opposite of what LLM-bias-drives-criterion-validity would predict.
+
+5. **Suppressor variable behavior requires genuine covariance structure.** AD's role as a suppressor variable (§33f) means it improves prediction of other dimensions by removing irrelevant variance. Suppression is a structural property of the covariance matrix, not something an LLM labeling bias can easily manufacture.
+
+**Arguments for caution:**
+
+1. **No human-labeled AD ground truth exists.** Until the expert validation panel (§29) produces human-scored AD data, we cannot directly compare LLM AD labels against human expert judgments. The entire construct validity chain runs through LLM interpretation.
+
+2. **The held-out evaluation for AD (r=0.625) also uses LLM labels as ground truth.** The held-out set was scored by separated-llm (n=117 for AD). If the LLM has a systematic bias in AD scoring, both the training labels and the evaluation labels share that bias, inflating apparent model performance.
+
+3. **AD's high concentration of score=5 (54.6% of separated-llm AD scores are exact 5.0, std=1.13)** suggests the LLM may have difficulty differentiating fine-grained AD levels. The prediction signal may come from the model distinguishing "clearly not neutral" AD texts rather than measuring a continuous construct.
+
+4. **Proxy signals for AD are weak and biased.** The UCC condescension mapping produces a mean of 6.74 (skewed), and the politeness data cluster around 5.0 (the neutral point). There is no strong independent validation of AD's scoring rubric.
+
+**Resolution path:** The expert validation protocol (§29) is specifically designed to address this concern. Five expert psychologists independently scoring 200 texts on all 10 dimensions will provide the first human ground truth for AD. If ICC(2,1) ≥ 0.70 between experts, and expert-LLM convergent validity is substantial (r ≥ 0.50), the LLM bias concern is largely mitigated. If ICC < 0.50, AD should be deprecated regardless of its criterion validity — a dimension that cannot be reliably scored by humans is not a valid psychometric construct, even if a model trained on LLM labels produces predictive scores.
 
 ## 13. References
 
