@@ -40,7 +40,7 @@ It is updated at the end of each working session. Snapshots are saved as
 | Table | Count |
 |---|---|
 | texts | 20,127 |
-| scores | 60,361 |
+| scores | 63,361 |
 | splits (train) | 15,859 |
 | splits (val) | 1,913 |
 | splits (test) | 2,015 |
@@ -52,7 +52,7 @@ It is updated at the end of each working session. Snapshots are saved as
 |---|---|
 | composite-proxy | 40,487 |
 | joint-llm | 12,257 |
-| separated-llm | 6,771 |
+| separated-llm | 9,771 |
 | synthetic | 846 |
 
 ---
@@ -67,11 +67,7 @@ It is updated at the end of each working session. Snapshots are saved as
 | weak dims batch | `data/labeling-batch-weak-dims.jsonl` | all 10 | 200 | 2026-02-27 |
 | rc focus batch | `data/labeling-batch-rc.jsonl` | all 10 | 150 | 2026-02-27 |
 
-### In-progress / untracked batches
-
-| Batch | File | Dims scored | n texts | Status |
-|---|---|---|---|---|
-| ad focus batch | `data/labeling-batch-ad.jsonl` | ad only (done) | 300 | 9/10 dims pending |
+| ad focus batch | `data/labeling-batch-ad.jsonl` | all 10 | 300 | 2026-02-27 |
 
 ### Provenance fields (since 2026-02-27)
 
@@ -121,10 +117,9 @@ The RC batch (150 texts × 10 dims) exhausted the Claude Code context window bef
 
 ## What's Next
 
-1. **Score remaining dims on ad batch** — `data/labeling-batch-ad.jsonl` has 300 texts with `ad` done; 9 more dims pending
-2. **Investigate rc regression** — held-out r dropped from 0.325 → 0.244; rc batch ingested but v15 training needed to measure impact
-3. **Plan v15** — options: (a) ingest ad labels and retrain, (b) score more dims on ad batch first, (c) try max_length=256
-4. **Promote v14 to production** — copy `models/psq-v14/best.pt` → `models/psq-student/best.pt` when ready (requires calibration re-run)
+1. **Train v15** — all separated-llm data ingested (9,771 scores); retrain with AD+RC batches to measure impact
+2. **Investigate rc regression** — held-out r dropped from 0.325 → 0.244; rc+ad batches now ingested, v15 training should show if new data helps
+3. **Promote v14 to production** — copy `models/psq-v14/best.pt` → `models/psq-student/best.pt` when ready (requires calibration re-run)
 
 ---
 

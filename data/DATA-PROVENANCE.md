@@ -97,19 +97,19 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | Weak dims (te/rc/co) | `data/labeling-batch-weak-dims.jsonl` | 200 | 3 | 2026-02-27 | First separated batch; te/rc/co only |
 | All dims expansion | `data/labeling-batch-weak-dims.jsonl` | 200 | all 10 | 2026-02-27 | Extended to all 10 dims (same 200 texts) |
 | RC focus batch | `data/labeling-batch-rc.jsonl` | 150 | all 10 | 2026-02-27 | Targeting rc regression; diverse sources |
-| AD focus batch | `data/labeling-batch-ad.jsonl` | 300 | ad only | 2026-02-27 | 9/10 dims still pending |
+| AD focus batch | `data/labeling-batch-ad.jsonl` | 300 | all 10 | 2026-02-27 | All dims scored and ingested |
 
-**Total separated-llm training labels:** 6,771 scores (across 20,127 texts in DB).
+**Total separated-llm training labels:** 9,771 scores (across 20,127 texts in DB).
 
-## Composite Summary (v14+rc, 2026-02-27)
+## Composite Summary (v14+ad, 2026-02-27)
 
 | Metric | Value |
 |---|---|
 | Total texts in DB | 20,127 |
-| Total scores in DB | 60,361 |
+| Total scores in DB | 63,361 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
 | Joint-LLM records | 12,257 |
-| Separated-LLM records | 6,771 |
+| Separated-LLM records | 9,771 |
 | Synthetic records | 846 |
 | Held-out test records | 100 (separate, not in training) |
 | Train / Val / Test | 15,859 / 1,913 / 2,015 (hash-based text split) |

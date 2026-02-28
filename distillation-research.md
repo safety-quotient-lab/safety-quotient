@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-02-27
-**Status:** v14 complete (test_r=0.544, held-out_r=0.482 against halo-free labels). +3,500 separated-llm labels total (200+150 texts × 10 dims). Most dims improved substantially on held-out; rc regressed.
-**Next:** Ingest 300-text ad batch (authority_dynamics scored), investigate rc regression, plan v15.
+**Status:** v14 complete (test_r=0.544, held-out_r=0.482 against halo-free labels). +6,500 separated-llm labels total (200+150+300 texts × 10 dims each, plus 300 ad-only). 9,771 separated-llm scores in DB.
+**Next:** Train v15 with AD batch data, investigate rc regression, promote v14 to production.
 
 ---
 
@@ -2113,13 +2113,13 @@ Lessons for large labeling sessions:
 
 ### 22e. Post-Ingestion Database State
 
-| Metric | Before RC batch | After RC batch |
-|---|---|---|
-| Total texts | 19,884 | 20,127 |
-| Total scores | 58,131* | 60,361 |
-| Separated-llm scores | 5,271 | 6,771 |
+| Metric | Before RC batch | After RC batch | After AD batch |
+|---|---|---|---|
+| Total texts | 19,884 | 20,127 | 20,127 |
+| Total scores | 58,131* | 60,361 | 63,361 |
+| Separated-llm scores | 5,271 | 6,771 | 9,771 |
 
-*Note: The "before" count differs from §20b because the prior session had also ingested additional scores before hitting the context limit. The 1,500 new scores from the RC batch are confirmed by method breakdown: separated-llm went from ~5,271 to 6,771 (+1,500).
+*Note: The "before" count differs from §20b because the prior session had also ingested additional scores before hitting the context limit. The 1,500 new scores from the RC batch are confirmed by method breakdown: separated-llm went from ~5,271 to 6,771 (+1,500). The AD batch added 3,000 more (300 texts × 10 dims).
 
 ---
 
