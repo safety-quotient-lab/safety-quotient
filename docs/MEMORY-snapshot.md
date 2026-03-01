@@ -119,7 +119,8 @@ Batch files land in `/tmp/psq_separated/`. Scores persist there across sessions.
 - **CMV corrected** (2026-03-01): AUC=0.5549 (was 0.5735, Δ=−0.019). DA still top predictor. Core findings preserved.
 - **CGA-Wiki T2 corrected** (2026-03-01): T2 still NOT SUPPORTED. Temporal trajectory unchanged. Q4 collapse preserved.
 - **v22a vs v23 RESOLVED (hold v23)**: v22a _avg_r=0.695 > v23=0.684, but Δ=0.011 < SE≈0.05. Knock-on: promoting v22a would invalidate all 4 criterion studies (run with v23), require full doc update, and be superseded by v28 retrain anyway. Parsimony: hold v23, note correction, promote v28 after revert.
-- **Pending decisions**: (1) Revert 3,680 rapid-scored records (H1 confirmed — mean |r|=0.658 vs 0.582).
+- **3,680 rapid-scored records REVERTED** (2026-03-01): H1 halo confirmed (mean |r|=0.658 vs 0.582). Deleted sep-llm scores for 368 texts (ucc/civil/extreme-adco). DB backup: psq.db.bak-pre-revert-20260301. Texts remain in DB for re-scoring properly (one dim per session).
+- **Pending**: Re-score 368 texts properly (~7 sessions), then retrain v28.
 - **Confidence calibration**: POOR — 8/10 dims inverted (higher conf → higher error). validate_confidence_calibration.py rewritten to use DB.
 - **Context length sweep** (COMPLETE): 128 > 512 (0.692) > 256 (0.670). 128-token context optimal.
 - Score-concentration cap: `_cap_score_concentration()` in distill.py (>30% → weight 1.5)
@@ -141,7 +142,7 @@ Batch files land in `/tmp/psq_separated/`. Scores persist there across sessions.
 - Key docs: psychometric-evaluation.md §3c, distillation-research.md §26/§42/§43, journal.md §18/§28
 
 ## Database (psq.db)
-- `data/psq.db` — SQLite (22,304 texts, 94,041 scores, 38,530 separated-llm as of ucc+civil+extreme-adco batches 2026-03-01)
+- `data/psq.db` — SQLite (22,304 texts, 90,361 scores, 34,850 separated-llm — post-revert 2026-03-01)
 - Splits: train=17,708 / val=2,160 / test=2,235 / held-out=100
 - Schema: `data/schema.sql` — texts, scores, splits, labeling_sessions, models, calibrations, dataset_mappings
 - Migration: `scripts/migrate.py` — bootstraps from existing JSONLs; `--ingest JSONL` for incremental ingest
@@ -153,7 +154,8 @@ Batch files land in `/tmp/psq_separated/`. Scores persist there across sessions.
 - Provenance triple on all new labels: `scorer=claude-sonnet-4-6`, `provider=anthropic`, `interface=claude-code`
 
 ## Labeling batches (all scored+ingested unless noted)
-- weak-dims(200), rc(150), ad(300), co(200), rb(200), cc(200), te(200), broad(300), pct-200(200), midg(250), test-clean(200), ccda(200), proxy-audit(200), held-out-expand(150), ucc(150), civil(100), extreme-adco(118) — all complete
+- weak-dims(200), rc(150), ad(300), co(200), rb(200), cc(200), te(200), broad(300), pct-200(200), midg(250), test-clean(200), ccda(200), proxy-audit(200), held-out-expand(150) — all complete
+- ucc(150), civil(100), extreme-adco(118) — **REVERTED** (H1 halo confirmed). Texts remain for re-scoring properly.
 - Scoring batches of 50 texts per response (avoid 32K output token limit)
   - Partial files: `/tmp/psq_separated/{dim}_partial.json` (accumulate across 4 batches, then ingest)
 
