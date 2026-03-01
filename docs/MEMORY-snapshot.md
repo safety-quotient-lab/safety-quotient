@@ -1,5 +1,8 @@
 # PSQ Project Memory
 
+**Note:** Stable project conventions are now in `CLAUDE.md` (repo root, auto-read).
+This file holds volatile state only — current model, DB counts, batch lists, in-progress work.
+
 ## Snapshots
 - `memory/snapshot-20260301-1225-paradigm-shift.md` — Summary format + MY REASONING voice protocol. Git tag: `paradigm-shift-summary-format` (919f496). Full 9-order knock-on analysis of voice choice. **Restore point for format paradigm.**
 

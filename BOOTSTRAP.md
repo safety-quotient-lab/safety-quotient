@@ -127,28 +127,30 @@ python scripts/eval_held_out.py --model models/psq-v23/best.pt
 
 To make bootstrap truly one-command:
 
-- [ ] Create `docs/MEMORY-snapshot.md` — committed copy of MEMORY.md, updated by /cycle
-- [ ] Create `docs/snapshots/` — committed copies of key snapshots
+- [x] Create `docs/MEMORY-snapshot.md` — committed copy of MEMORY.md, updated by /cycle ✓
+- [x] Create `docs/snapshots/` — committed copies of key snapshots ✓
+- [x] Add CLAUDE.md to repo root ✓ (2026-03-01)
 - [ ] Create `requirements.txt` or `pyproject.toml` for venv reproducibility
 - [ ] Consider GitHub Releases for model checkpoint distribution
 - [ ] Add a `make bootstrap` target that automates steps 1-5
-- [ ] Add CLAUDE.md to repo root (Claude Code reads this automatically — would eliminate the MEMORY.md portability gap for orientation context)
 
 ---
 
-## Why Not Just Use CLAUDE.md?
+## Orientation Split: CLAUDE.md + MEMORY.md
 
 Claude Code reads `CLAUDE.md` from the repo root automatically — no path-hash
-dependency. This would solve the portability gap for orientation context.
+dependency. This is the primary mechanism for bootstrapping new sessions.
 
-**Current state:** No CLAUDE.md exists. All orientation lives in MEMORY.md
-(user-local).
+**Current state (2026-03-01):** CLAUDE.md exists in repo root and contains all stable
+project conventions (policies, dimensions, file locations, workflow rules, output
+format, voice protocol). MEMORY.md contains volatile state (current model version,
+DB counts, batch lists, in-progress work).
 
-**Recommendation:** Create a CLAUDE.md that contains the stable, non-session-
-specific parts of MEMORY.md (labeling policy, dimension names, voice protocol,
-key file locations). Keep MEMORY.md for volatile state (current model version,
-DB counts, in-progress work). /cycle updates both.
-
-This splits orientation into:
-- **CLAUDE.md** (in git) — "how this project works" — portable
+The split:
+- **CLAUDE.md** (in git) — "how this project works" — portable, auto-read by Claude Code
 - **MEMORY.md** (user-local) — "where we are right now" — session-specific
+- **docs/MEMORY-snapshot.md** (in git) — committed copy of MEMORY.md for manual bootstrap
+
+A fresh Claude Code session gets full project context from CLAUDE.md alone. For
+volatile state (which model version is current, what's pending), restore MEMORY.md
+from the snapshot per step 2 above.

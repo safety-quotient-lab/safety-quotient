@@ -517,4 +517,10 @@ Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready 
 
 **Hunt: efficiency + human-rights alignment.** Identified: PSQStudent class duplicated 8×, DIMENSIONS list in 10 files, no demographic bias testing, WEIRD assumptions in CO/AD rubrics, Dreaddit consent gap, dual-use ONNX risk.
 
+**Session summary format co-designed.** ADHD/autism-optimized ASCII dashboard: HEADER → WHAT HAPPENED → THEORY → ⚑ EPISTEMIC FLAGS → PUB SCORECARD → MY REASONING → WHAT'S NEXT. Voice protocol calibrated via 9-order knock-on analysis of how tone choices cascade through scientific collaboration. Restore point: git tag `paradigm-shift-summary-format` (919f496).
+
+**BOOTSTRAP.md created.** Documents how to bring a fresh Claude Code install to full project context from git clone. Identifies critical portability gap: MEMORY.md is path-hash dependent.
+
+**CLAUDE.md created.** Stable project conventions split from MEMORY.md into auto-read repo-root file. Solves the MEMORY.md portability gap — fresh sessions get full project context without manual bootstrap.
+
 ▶ distillation-research.md §62 (pending)

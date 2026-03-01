@@ -18,6 +18,7 @@ This cycle ensures that every code, data, or training change in the PSQ project 
 | `distillation-research.md` | Technical collaborators | Detailed technical log — every training run, data analysis, correlation matrix, error diagnosis. | Medium — shows the work |
 | `EXPERIMENTS.md` | Reproducibility | Version-by-version parameter table — architecture, data changes, metrics. Machine-parseable where possible. | Lowest — just the facts |
 | `data/DATA-PROVENANCE.md` | Data auditors, licensing | Dataset-level provenance — sources, licenses, record counts, audit findings. | Dataset-focused |
+| `CLAUDE.md` | Claude Code (auto-read) | Stable project conventions — policies, dimensions, file locations, workflow, voice protocol. In git, portable. | Foundational — how the project works |
 | `BOOTSTRAP.md` | New collaborators, fresh Claude | How to bring a fresh Claude Code install to full context from git clone. | Onboarding |
 | `docs/MEMORY-snapshot.md` | Fresh Claude sessions | Committed copy of MEMORY.md — portable orientation state. Updated by /cycle. | Cross-session context |
 | `psychometric-evaluation.md` | Psychometricians | Validation evidence against AERA/APA/NCME (2014) standards. | Standards-focused |
