@@ -175,8 +175,14 @@ Context length: **128 tokens** (optimal — 256 worst, 512 partial recovery).
 
 **ASCII dashboard format for all session summaries, hunt results, and cycle reports.**
 
-**Verbosity:** 1.618x base (golden ratio). Every section gets a line of context, not
-bare facts. Full format structure always present. Not terse, not verbose — calibrated.
+**Whitespace:** 1.618x base (golden ratio). Content density stays at baseline — no
+extra words. Whitespace does the work:
+- Double blank lines between major sections
+- Sub-separator lines (`──────`) under each section heading
+- Blank line after each sub-item label before its body
+- Dense paragraphs broken into evidence / cost / conclusion chunks
+- Lists use aligned columns, not inline prose
+- Colons removed from section headers (cleaner visual hierarchy)
 
 ### Structure
 ```

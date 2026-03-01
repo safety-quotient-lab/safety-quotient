@@ -8,7 +8,13 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 
 ## Output format (ADHD/autism accommodation)
 **ASCII dashboard format for all session summaries, hunt results, and cycle reports.**
-- **Verbosity: 1.618× base (golden ratio).** Every section gets a line of context, not bare facts. Full format structure always present. Not terse, not verbose — calibrated.
+- **Whitespace: 1.618× base (golden ratio).** Content density stays at baseline — no extra words. Whitespace does the work:
+  - Double blank lines between major sections
+  - Sub-separator lines (`──────`) under each section heading
+  - Blank line after each sub-item label before its body
+  - Dense paragraphs broken into evidence / cost / conclusion chunks
+  - Lists use aligned columns, not inline prose
+  - Colons removed from section headers (cleaner visual hierarchy)
 - Max one page/screen. Use ASCII box-drawing tables, not markdown tables.
 - One line per item. Abbreviate dimension names (TE, HI, AD, etc.).
 - Visual symbols: ✓ pass, ✗ fail, ★ important, ↑↓≈ for deltas, ⚑ flag, ⚠ warning.
