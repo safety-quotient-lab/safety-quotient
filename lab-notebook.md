@@ -523,6 +523,16 @@ Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready 
 
 **CLAUDE.md created.** Stable project conventions split from MEMORY.md into auto-read repo-root file. Solves the MEMORY.md portability gap — fresh sessions get full project context without manual bootstrap.
 
-**max_length audit completed.** Agent found 2 additional bugs: `criterion_validity_cmv.py` uses max_len=512 (should be 128), `criterion_cgawiki_temporal.py` uses MAX_LENGTH=256 (should be 128). DonD and CaSiNo unaffected. 11 historical model checkpoints (v14–v22c) need re-eval (~2 min). Production calibration needs re-fitting (~30 sec). All recorded in TODO.md.
+**max_length audit completed.** Agent found 2 additional bugs: `criterion_validity_cmv.py` uses max_len=512 (should be 128), `criterion_cgawiki_temporal.py` uses MAX_LENGTH=256 (should be 128). DonD and CaSiNo unaffected.
+
+**11 historical models re-evaluated at max_length=128.** Correction is NOT uniform (range: +0.033 to −0.049). v22a corrected=0.706, v23 corrected=0.698 — relative ordering shifted. v22a may be actual best model. Production calibration re-fit saved.
+
+**Discrepancy: v23 held-out_r 0.684 vs 0.698.** Earlier manual run reported 0.684; batch re-eval computes 0.698 from mean of per-dim r values. Needs investigation — averaging method or GT label difference.
+
+**Pending decisions (deferred to next session):**
+- Revert 3,680 rapid-scored records from psq.db? (contrarian claim from MY REASONING)
+- State "scoring hygiene > quantity" as paper methods principle?
+- Test H1 (halo) vs H2 (source mismatch) for v27 regression?
+- Resolve v22a vs v23 as production model after discrepancy investigation
 
 ▶ distillation-research.md §62 (pending)
