@@ -44,8 +44,12 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 - Operational logs (EXPERIMENTS.md, lab-notebook.md, TODO.md, CLAUDE.md, etc.) keep current shorthand — APA formatting is incompatible with machine-parseable tables and living operational docs.
 - Decided via 6-order knock-on analysis (2026-03-01): "everywhere" rejected (3 certain orders against); targeted policy adopted.
 
-## Decision-making technique: knock-on termination
-When using knock-on analysis to resolve a decision, if **consensus or parsimony across orders doesn't clearly resolve the decision point**, terminate the analysis and return full reasoning + context to the user rather than forcing a conclusion. Don't manufacture certainty. Apply this pattern to agents doing knock-on work — instruct them to return unresolved with evidence rather than guess.
+## Decision-making: knock-on auto-resolution
+**TRIGGER:** When I encounter ANY decision point with 2+ options, run knock-on analysis (3-6 orders) and attempt resolution by consensus or parsimony BEFORE presenting to the user. Do not present bare forks ("your call"). Present recommendations with reasoning already attached.
+- **If consensus/parsimony resolves it:** State the recommendation, show the reasoning, proceed unless user overrides.
+- **If it doesn't resolve:** Terminate with full reasoning + unresolved tensions. Present the genuine ambiguity to the user with the specific questions that would resolve it (use AskUserQuestion).
+- **Apply to agents:** Instruct them to resolve by consensus/parsimony or terminate with full context. Never force conclusions.
+- **Effort scaling:** XS/S decisions get 3-order analysis inline. M/L decisions get 6-order, optionally via agent.
 
 ## Edit discipline
 **When adding a new preference or setting, APPEND — never overwrite an adjacent existing one.** Read the surrounding context before editing to confirm what's already there. The cost of a redundant line is near-zero; the cost of silently dropping a calibrated preference is a full recovery cycle. (Learned 2026-03-01: verbosity preference was overwritten when whitespace preference was added.)
@@ -114,7 +118,8 @@ Batch files land in `/tmp/psq_separated/`. Scores persist there across sessions.
 - **H1 halo CONFIRMED**: Rapid-batch mean |r|=0.658 vs existing sep-llm mean |r|=0.582 (Δ=+0.077). Rapid batches exceed 0.65 threshold. Same-session halo contamination is real.
 - **CMV corrected** (2026-03-01): AUC=0.5549 (was 0.5735, Δ=−0.019). DA still top predictor. Core findings preserved.
 - **CGA-Wiki T2 corrected** (2026-03-01): T2 still NOT SUPPORTED. Temporal trajectory unchanged. Q4 collapse preserved.
-- **Pending decisions**: (1) Revert 3,680 rapid-scored records (H1 confirmed). (2) Promote v22a (0.695) to production over v23 (0.684)?
+- **v22a vs v23 RESOLVED (hold v23)**: v22a _avg_r=0.695 > v23=0.684, but Δ=0.011 < SE≈0.05. Knock-on: promoting v22a would invalidate all 4 criterion studies (run with v23), require full doc update, and be superseded by v28 retrain anyway. Parsimony: hold v23, note correction, promote v28 after revert.
+- **Pending decisions**: (1) Revert 3,680 rapid-scored records (H1 confirmed — mean |r|=0.658 vs 0.582).
 - **Confidence calibration**: POOR — 8/10 dims inverted (higher conf → higher error). validate_confidence_calibration.py rewritten to use DB.
 - **Context length sweep** (COMPLETE): 128 > 512 (0.692) > 256 (0.670). 128-token context optimal.
 - Score-concentration cap: `_cap_score_concentration()` in distill.py (>30% → weight 1.5)

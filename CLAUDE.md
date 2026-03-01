@@ -64,6 +64,15 @@ Use **0–10 integer scale**. Percentage (0–100) scoring was tested and reject
 collapses dimension differentiation (within-text SD drops from 0.717 to 0.448) and
 inflates g-factor eigenvalue from 67.3% to 94.1%. See distillation-research.md §42/§43.
 
+### Decision-Making: Knock-On Auto-Resolution
+When encountering ANY decision point with 2+ options, run knock-on analysis (3–6
+orders) and attempt resolution by consensus or parsimony BEFORE presenting to the user.
+Do not present bare forks ("your call"). Present recommendations with reasoning attached.
+- **Resolves:** State recommendation + reasoning, proceed unless user overrides.
+- **Doesn't resolve:** Present genuine ambiguity with the specific questions that would
+  resolve it. Never force conclusions.
+- **Effort scaling:** XS/S decisions → 3-order inline. M/L decisions → 6-order, optionally via agent.
+
 ### Date/Time Policy
 **Always run `date -Idate` before writing any date into documentation.**
 Do NOT trust the `currentDate` system context or assume the date from conversation
