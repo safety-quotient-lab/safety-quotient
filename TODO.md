@@ -27,6 +27,31 @@ Last updated: 2026-02-28
 - AD-residual correlates with epistemic markers (second-person pronouns r=+0.202, question marks r=+0.235)
 - Theory 3 (status negotiation, journal §24) has the best explanatory coverage
 
+### Fix max_length bugs in criterion validity scripts + re-eval historical models [HIGH PRIORITY]
+
+**Discovered 2026-03-01.** The max_length=256 eval bug was broader than initially found.
+
+**Criterion validity scripts (affects publishable numbers):**
+- `criterion_validity_cmv.py` line 149: `max_len=512` — should be 128. CMV AUC=0.5735 may be inflated.
+- `criterion_cgawiki_temporal.py` line 53: `MAX_LENGTH=256` — should be 128. T2 cross-lagged results may be inflated.
+- `criterion_dealornodeal.py`: ✓ already correct (128).
+- CaSiNo: ✓ already correct per docs (128, done inline).
+
+**Historical held-out re-evaluation (~2 min total):**
+- 11 versions (v14–v22c) need re-eval at max_length=128. ~10 sec each.
+- v25 needs re-eval at 512 (trained at 512, incorrectly eval'd at 256). Requires `--max-length` CLI arg.
+- v1–v13 checkpoints lost — note approximation (~0.012 shift) in EXPERIMENTS.md.
+
+**Production calibration:**
+- `models/psq-student/calibration.json` was fitted at max_length=256. Re-fit at 128. ~30 sec.
+
+**Priority order:**
+1. [ ] Fix CMV + CGA-Wiki T2 scripts, re-run (publishable numbers)
+2. [ ] Re-fit production calibration
+3. [ ] Re-eval v14–v22c held-out (~2 min bash loop)
+4. [ ] Add `--max-length` to eval_held_out.py, re-eval v25 at 512
+5. [ ] Update EXPERIMENTS.md with corrected values
+
 ### Context-aware scoring API design
 
 **Why:** g-PSQ (single score) is near-chance across all three criterion studies (AUC 0.515–0.531). Profile shape carries the signal. But different dimensions matter for different use cases:

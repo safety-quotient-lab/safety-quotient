@@ -36,6 +36,9 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 - Generous whitespace between sections. Prose for context (1-2 sentences per item).
 - SKIPPED section always present with 1-phrase reason per doc.
 
+## Edit discipline
+**When adding a new preference or setting, APPEND — never overwrite an adjacent existing one.** Read the surrounding context before editing to confirm what's already there. The cost of a redundant line is near-zero; the cost of silently dropping a calibrated preference is a full recovery cycle. (Learned 2026-03-01: verbosity preference was overwritten when whitespace preference was added.)
+
 ## Date/time policy
 **Always run `date -Idate` before writing any date into documentation.**
 Do NOT trust the `currentDate` system context or assume the date from conversation history.
@@ -94,6 +97,7 @@ Batch files land in `/tmp/psq_separated/`. Scores persist there across sessions.
   - ONNX re-exported 2026-03-01: model.onnx=254.4 MB, model_quantized.onnx=64.0 MB (INT8).
 - **v27** (2026-03-01): held-out_r=**0.655** (−0.029). +368 texts (ucc/civil/extreme-adco). **Regressed — not promoted.** Possible same-session halo contamination.
 - **max_length eval bug** (fixed 2026-03-01): eval_held_out.py/calibrate.py/distill.py PSQDataset all had max_length=256 instead of 128. All historical held-out_r inflated ~0.012. Fixed.
+- **max_length criterion bugs** (discovered 2026-03-01, NOT YET FIXED): `criterion_validity_cmv.py` uses 512 (should be 128), `criterion_cgawiki_temporal.py` uses 256 (should be 128). DonD/CaSiNo clean. CMV AUC=0.5735 and CGA-Wiki T2 results may be inflated. 11 historical checkpoints (v14–v22c) need re-eval. Production calibration needs re-fit. See TODO.md.
 - **Confidence calibration**: POOR — 8/10 dims inverted (higher conf → higher error). validate_confidence_calibration.py rewritten to use DB.
 - **Context length sweep** (COMPLETE): 128 > 512 (0.692) > 256 (0.670). 128-token context optimal.
 - Score-concentration cap: `_cap_score_concentration()` in distill.py (>30% → weight 1.5)

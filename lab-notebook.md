@@ -523,4 +523,6 @@ Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready 
 
 **CLAUDE.md created.** Stable project conventions split from MEMORY.md into auto-read repo-root file. Solves the MEMORY.md portability gap — fresh sessions get full project context without manual bootstrap.
 
+**max_length audit completed.** Agent found 2 additional bugs: `criterion_validity_cmv.py` uses max_len=512 (should be 128), `criterion_cgawiki_temporal.py` uses MAX_LENGTH=256 (should be 128). DonD and CaSiNo unaffected. 11 historical model checkpoints (v14–v22c) need re-eval (~2 min). Production calibration needs re-fitting (~30 sec). All recorded in TODO.md.
+
 ▶ distillation-research.md §62 (pending)
