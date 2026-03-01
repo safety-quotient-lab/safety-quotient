@@ -74,8 +74,14 @@ Version-by-version record of every training run, with hyperparameters, data chan
 
 **Notes on v22c:** **Curriculum learning adds NO benefit over proxy removal alone (v22c 0.638 < v22a 0.682, Δ=−0.044). Curriculum REJECTED.** All 10 dims worse than v22a. Largest regressions: HI (−0.114), TE (−0.091), DA (−0.070), CC (−0.055). Worst test_r of the v22 series (0.431) due to proxy-clean test split from test-clean batch ingestion. The complete 2×2 ablation (v22a/v22b/v22c) confirms proxy removal alone is the sufficient and dominant intervention. v22a remains the production candidate.
 
-| **v23** | **2026-02-28** | **DistilBERT** | **0.387** | **2e-5** | **32** | **0.696** | **NEW BEST** | +5,500 separated-llm: ccda (200 texts), proxy-audit (200 texts), held-out-expand (150 texts) × 10 dims. DB: 22,186 texts, 90,361 scores. | `--drop-proxy-dims`. Same config as v22a. 8 epochs (early stop). |
+| **v23** | **2026-02-28** | **DistilBERT** | **8 (early stop, best@8)** | **2e-5** | **32** | **0.387** | **0.696** | +5,500 separated-llm: ccda (200 texts), proxy-audit (200 texts), held-out-expand (150 texts) × 10 dims. DB: 22,186 texts, 90,361 scores. | `--drop-proxy-dims`. Same config as v22a. **NEW BEST. Promoted to production.** |
 | v24 | 2026-02-28 | DistilBERT | 8 (early stop, best@5) | 2e-5 | 16 (eff. 32) | 0.3911 | 0.6702 | Same data as v23 (no new labels). Context length experiment: 256-token context. | `--drop-proxy-dims --max-length 256 --batch-size 16 --grad-accum 2`. |
+| v25 | 2026-02-28 | DistilBERT | 9 (early stop, best@6) | 2e-5 | 8 (eff. 32) | 0.3896 | 0.6918 | Same data as v23 (no new labels). Context length experiment: 512-token context. | `--drop-proxy-dims --max-length 512 --batch-size 8 --grad-accum 4`. 13,772s total. |
+| v26 | 2026-02-28 | DistilBERT | — | 1e-5 | 32 | — | — | Same data as v23. Slow-training LR experiment (half v23 LR). | `--drop-proxy-dims --lr 1e-5`. **Training failed** — empty output dir, logs lost. |
+
+**Notes on v25:** Context length ablation (512 tokens). held-out_r=0.692 (−0.004 vs v23's 0.696). 512-token context is marginally worse than 128-token, better than 256-token (v24: 0.670). Only 2/10 dims improved vs v23: AD +0.021 (0.709→0.730), TC +0.013 (0.689→0.702). Worst regressions: TE −0.026 (0.800→0.774), HI −0.049 (0.691→0.642), CO −0.016 (0.549→0.533). Training took 3.8 hours (13,772s, 9 epochs) vs ~45 min for 128-token — 5× slower with no improvement. **Context length sweep complete: 128 > 512 > 256. Not promoted.**
+
+**Notes on v26:** Slow-training experiment (LR=1e-5, half of v23's 2e-5). Training launched via `scripts/train_queue_v25_v26.sh` but produced no checkpoint or results. Directory created but empty. Queue log (`/tmp/psq_train_queue.log`) and training log (`/tmp/psq_v26_train.txt`) have been cleaned. Likely failed at startup (argument parsing, OOM, or queue script `set -euo pipefail` exit). **Can be re-run manually if LR sensitivity is still of interest.**
 
 **Notes on v24:** Context length ablation. 256 tokens regresses vs v23 (128 tok): −0.026 average (0.696→0.670). Only 2/10 dims improved (CC +0.022, AD +0.014). Worst regressions: CO −0.078, TE −0.063, HI −0.043. **128-token context confirmed superior.** Not promoted.
 
@@ -129,6 +135,34 @@ With `batch_size=16, grad_accum=2`: 32 samples per update (v21; also needed for 
 **CLI:** `python scripts/distill.py --max-length 256 --batch-size 16 --grad-accum 2 --out models/psq-v24`
 
 ## Held-Out Results by Dimension
+
+### v25 (context length: 512 tokens, 2026-02-28)
+
+512-token context, batch=8, grad-accum=4. Same data as v23. 100 real-world held-out texts.
+
+| Dimension | r | Δ vs v23 | Notes |
+|---|---|---|---|
+| regulatory_capacity | +0.785 | +0.003 | Flat |
+| energy_dissipation | +0.783 | +0.015 | Slight gain |
+| threat_exposure | +0.774 | −0.026 | Regression |
+| cooling_capacity | +0.730 | −0.009 | Slight regression |
+| authority_dynamics | +0.730 | **+0.021** | Improved |
+| trust_conditions | +0.702 | **+0.013** | Improved |
+| hostility_index | +0.642 | −0.049 | Regression |
+| resilience_baseline | +0.654 | +0.033 | Improved |
+| defensive_architecture | +0.586 | −0.022 | Regression |
+| contractual_clarity | +0.533 | −0.016 | Regression |
+| **Average** | **+0.692** | **−0.004** | **Near v23 but slower (3.8h vs ~45m). 128 tokens remains optimal.** |
+
+### Context length sweep summary
+
+| Version | max_length | held-out_r | Δ vs v23 | Training time | Verdict |
+|---|---|---|---|---|---|
+| **v23** | **128** | **0.696** | **—** | **~45 min** | **Best. Production.** |
+| v25 | 512 | 0.692 | −0.004 | 3.8 hours | Near-equal quality but 5× slower |
+| v24 | 256 | 0.670 | −0.026 | ~1.5 hours | Worst of the three |
+
+**Conclusion:** 128-token context is optimal for DistilBERT on this corpus. Longer context provides no held-out improvement and dramatically increases training time. The 256-token sweet spot does not exist — performance is U-shaped (128 best, 256 worst, 512 recovers partially). This suggests the model benefits from forced compression at 128 tokens rather than attending to longer but sparser signal.
 
 ### v24 (context length: 256 tokens, 2026-02-28)
 
@@ -345,42 +379,23 @@ Score calibration via isotonic regression reduces MAE by 4–25% and decompresse
 
 ## Artifacts
 
-v21 artifacts are in `models/psq-student/` (production slot):
-- `best.pt` — PyTorch checkpoint (epoch 6)
-- `model.onnx` — Full-precision ONNX (254 MB)
-- `model_quantized.onnx` — INT8 quantized (64 MB)
-- `tokenizer/` — Tokenizer files
-- `calibration.json` — Score + confidence calibration maps
-- `config.json` — Model config
-- `held_out_results.json` — Held-out evaluation metrics
-
-v22a artifacts are in `models/psq-v22a/`:
-- `best.pt` — PyTorch checkpoint (epoch 4)
-- `best_results.json` — Test metrics
-
-v19 artifacts are in `models/psq-v19/`:
-- `best.pt` — PyTorch checkpoint (epoch 4)
-- `held_out_results.json` — Held-out evaluation metrics
-- `tokenizer/` — Tokenizer files
-- `config.json`, `best_results.json`, `test_results.json`
-
-v15 artifacts are in `models/psq-v15/`:
-- `best.pt` — PyTorch checkpoint (epoch 7)
-- `held_out_results.json` — Held-out evaluation metrics
-- `tokenizer/` — Tokenizer files
-- `config.json`, `best_results.json`, `test_results.json`
-
-v14 artifacts are in `models/psq-v14/`:
+**Production slot** (`models/psq-student/`): v23 (held-out_r=0.696). ONNX re-exported 2026-03-01.
 - `best.pt` — PyTorch checkpoint (epoch 8)
-- `held_out_results.json` — Held-out evaluation metrics
-- `tokenizer/` — Tokenizer files
-- `config.json`, `best_results.json`, `test_results.json`
-
-v16 artifacts are in `models/psq-student/` (production slot):
-- `best.pt` — PyTorch checkpoint (epoch 6)
-- `model.onnx` — Full-precision ONNX (254 MB)
-- `model_quantized.onnx` — INT8 quantized (64 MB)
+- `model.onnx` — Full-precision ONNX (254.4 MB, max score diff=0.000005)
+- `model_quantized.onnx` — INT8 quantized (64.0 MB, max score diff=0.558)
 - `tokenizer/` — Tokenizer files
 - `calibration.json` — Score + confidence calibration maps
 - `config.json` — Model config
 - `held_out_results.json` — Held-out evaluation metrics
+
+v23 artifacts in `models/psq-v23/`:
+- `best.pt` — PyTorch checkpoint (epoch 8, 267 MB)
+- `held_out_results.json`, `test_results.json`, `best_results.json`
+- `tokenizer/`, `config.json`
+
+v25 artifacts in `models/psq-v25/` (context length experiment, 512 tokens):
+- `best.pt` — PyTorch checkpoint (epoch 6)
+- `held_out_results.json`, `test_results.json`, `best_results.json`
+- `tokenizer/`, `config.json`
+
+v26: `models/psq-v26/` — **empty** (training failed, no artifacts)
