@@ -146,7 +146,7 @@ def load_cmv_pairs():
 
 # ── Scoring ──────────────────────────────────────────────────────────────────
 @torch.no_grad()
-def score_texts(texts, model, tokenizer, batch_size=64, max_len=512):
+def score_texts(texts, model, tokenizer, batch_size=64, max_len=128):
     """Score a list of texts, return (n_texts, 10) array of dimension scores."""
     import time
     device = next(model.parameters()).device

@@ -110,8 +110,9 @@ Batch files land in `/tmp/psq_separated/`. Scores persist there across sessions.
 - **max_length eval bug** (fixed 2026-03-01): eval_held_out.py/calibrate.py/distill.py PSQDataset all had max_length=256 instead of 128. All historical held-out_r inflated ~0.012. Fixed.
 - **max_length criterion bugs** (discovered 2026-03-01, NOT YET FIXED): `criterion_validity_cmv.py` uses 512 (should be 128), `criterion_cgawiki_temporal.py` uses 256 (should be 128). DonD/CaSiNo clean. CMV AUC=0.5735 and CGA-Wiki T2 results may be inflated.
 - **Historical re-eval DONE** (2026-03-01): 11 models (v14–v22c) re-evaluated at max_length=128. Correction NOT uniform (+0.033 to −0.049). **v22a=0.706 > v23=0.698** — relative ordering shifted. Production calibration re-fit saved.
-- **DISCREPANCY**: v23 held-out_r reported as 0.684 (manual run) vs 0.698 (batch re-eval mean of 10 dims). Needs investigation next session — averaging method or GT difference.
-- **Pending decisions**: (1) Revert 3,680 rapid-scored records? (2) v22a vs v23 as production model? (3) Test H1 halo hypothesis? See lab-notebook.md session 20260301-0430.
+- **DISCREPANCY RESOLVED**: 0.698 was my bug (wrong dim names in manual computation). v23 _avg_r=0.684 confirmed. BUT v22a _avg_r=**0.695** — v22a is actually the best model after correction. v23 is 2nd.
+- **H1 halo CONFIRMED**: Rapid-batch mean |r|=0.658 vs existing sep-llm mean |r|=0.582 (Δ=+0.077). Rapid batches exceed 0.65 threshold. Same-session halo contamination is real.
+- **Pending decisions**: (1) Revert 3,680 rapid-scored records (H1 confirmed — strong case for revert). (2) Promote v22a to production? (3) CMV + CGA-Wiki T2 re-runs in progress.
 - **Confidence calibration**: POOR — 8/10 dims inverted (higher conf → higher error). validate_confidence_calibration.py rewritten to use DB.
 - **Context length sweep** (COMPLETE): 128 > 512 (0.692) > 256 (0.670). 128-token context optimal.
 - Score-concentration cap: `_cap_score_concentration()` in distill.py (>30% → weight 1.5)

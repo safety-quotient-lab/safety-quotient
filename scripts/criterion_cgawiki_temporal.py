@@ -50,7 +50,7 @@ DIM_ABBREV = ["TE", "HI", "AD", "ED", "RC", "RB", "TC", "CC", "DA", "CO"]
 DIM_IDX = {a: i for i, a in enumerate(DIM_ABBREV)}
 
 BATCH_SIZE  = 64
-MAX_LENGTH  = 256
+MAX_LENGTH  = 128
 MIN_TEXT_LEN = 20   # skip very short utterances (wiki formatting artifacts)
 
 
