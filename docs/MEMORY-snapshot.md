@@ -112,7 +112,9 @@ Batch files land in `/tmp/psq_separated/`. Scores persist there across sessions.
 - **Historical re-eval DONE** (2026-03-01): 11 models (v14–v22c) re-evaluated at max_length=128. Correction NOT uniform (+0.033 to −0.049). **v22a=0.706 > v23=0.698** — relative ordering shifted. Production calibration re-fit saved.
 - **DISCREPANCY RESOLVED**: 0.698 was my bug (wrong dim names in manual computation). v23 _avg_r=0.684 confirmed. BUT v22a _avg_r=**0.695** — v22a is actually the best model after correction. v23 is 2nd.
 - **H1 halo CONFIRMED**: Rapid-batch mean |r|=0.658 vs existing sep-llm mean |r|=0.582 (Δ=+0.077). Rapid batches exceed 0.65 threshold. Same-session halo contamination is real.
-- **Pending decisions**: (1) Revert 3,680 rapid-scored records (H1 confirmed — strong case for revert). (2) Promote v22a to production? (3) CMV + CGA-Wiki T2 re-runs in progress.
+- **CMV corrected** (2026-03-01): AUC=0.5549 (was 0.5735, Δ=−0.019). DA still top predictor. Core findings preserved.
+- **CGA-Wiki T2 corrected** (2026-03-01): T2 still NOT SUPPORTED. Temporal trajectory unchanged. Q4 collapse preserved.
+- **Pending decisions**: (1) Revert 3,680 rapid-scored records (H1 confirmed). (2) Promote v22a (0.695) to production over v23 (0.684)?
 - **Confidence calibration**: POOR — 8/10 dims inverted (higher conf → higher error). validate_confidence_calibration.py rewritten to use DB.
 - **Context length sweep** (COMPLETE): 128 > 512 (0.692) > 256 (0.670). 128-token context optimal.
 - Score-concentration cap: `_cap_score_concentration()` in distill.py (>30% → weight 1.5)
