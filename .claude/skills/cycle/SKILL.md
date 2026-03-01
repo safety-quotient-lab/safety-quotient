@@ -18,6 +18,8 @@ This cycle ensures that every code, data, or training change in the PSQ project 
 | `distillation-research.md` | Technical collaborators | Detailed technical log — every training run, data analysis, correlation matrix, error diagnosis. | Medium — shows the work |
 | `EXPERIMENTS.md` | Reproducibility | Version-by-version parameter table — architecture, data changes, metrics. Machine-parseable where possible. | Lowest — just the facts |
 | `data/DATA-PROVENANCE.md` | Data auditors, licensing | Dataset-level provenance — sources, licenses, record counts, audit findings. | Dataset-focused |
+| `BOOTSTRAP.md` | New collaborators, fresh Claude | How to bring a fresh Claude Code install to full context from git clone. | Onboarding |
+| `docs/MEMORY-snapshot.md` | Fresh Claude sessions | Committed copy of MEMORY.md — portable orientation state. Updated by /cycle. | Cross-session context |
 | `psychometric-evaluation.md` | Psychometricians | Validation evidence against AERA/APA/NCME (2014) standards. | Standards-focused |
 | `psq-definition.md` | Theoreticians | Construct definition — what the PSQ is, its 10 dimensions, theoretical grounding. | Conceptual |
 | `criterion-validity-summary.md` | Authors, reviewers | Canonical criterion validity reference — full tables, model comparisons, cross-study synthesis for all 4 studies. | Evaluation-focused |
@@ -188,6 +190,21 @@ This file orients Claude at the start of each new session. It should contain the
 - Update the "key insight" line if the research direction shifted
 - **Don't duplicate** what's in distillation-research.md — memory is for orientation, not detail
 - Keep the PSQ section under ~60 lines
+
+### 6b. Update portable MEMORY snapshot
+
+Copy the current MEMORY.md to the git-tracked location so a fresh clone can bootstrap:
+
+```bash
+cp ~/.claude/projects/-home-kashif-projects-psychology-safety-quotient/memory/MEMORY.md docs/MEMORY-snapshot.md
+```
+
+Also copy any new snapshot files:
+```bash
+cp ~/.claude/projects/-home-kashif-projects-psychology-safety-quotient/memory/snapshot-*.md docs/snapshots/
+```
+
+These committed copies are what `BOOTSTRAP.md` step 2 uses to restore context on a fresh install.
 
 ### 7. Check for orphaned references and files
 
