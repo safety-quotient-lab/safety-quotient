@@ -139,6 +139,8 @@ The most important cross-study finding: which dimension predicts best depends on
 
 This context-dependence is strong evidence that the 10 dimensions capture genuinely distinct psychological processes, not a single underlying construct with noise.
 
+**Status negotiation theory (journal §24, Theory 3):** The AD construct, originally framed around formal authority and institutional hierarchy, empirically measures *status negotiation* — the process by which participants claim, contest, and allocate interpersonal standing. AD's strongest predictions occur in peer contexts (Wikipedia editors, Reddit commenters, campsite negotiation) where formal authority is absent but epistemic positioning, moral claims, and relational power moves determine whose perspective prevails. AD is weakest in CMV, where status is structurally assigned. This is consistent with French & Raven's (1959) taxonomy extended to informal power bases: AD captures expert power, referent power, and informational power as they are contested in real-time interaction, not only legitimate or coercive power from institutional roles.
+
 #### Dimension Roles Across Studies
 
 | Dimension | CaSiNo (satisfaction) | CGA-Wiki (derailment) | CMV (persuasion) | DonD (deal) | Role pattern |

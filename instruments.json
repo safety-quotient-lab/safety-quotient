@@ -2017,20 +2017,20 @@
     "authority_dynamics": {
       "id": "authority_dynamics",
       "name": "Authority Dynamics",
-      "description": "How power is distributed, exercised, and checked \u2014 unchecked authority in the presence of psychoemotional vulnerability is a primary driver of low PSQ",
+      "description": "How power is distributed, exercised, contested, and checked \u2014 including both formal authority and informal status negotiation (epistemic positioning, moral claims, relational power moves). Unchecked power asymmetry is a primary driver of low PSQ. Criterion validity evidence shows AD predicts most strongly when interpersonal status is actively contested in peer contexts.",
       "psq_role": "threat_factor",
       "scoring": {
-        "0": "extreme abuse \u2014 unchecked power wielded to harm, dominate, or silence",
-        "1": "strong abuse \u2014 coercive authority, intimidation, or control without accountability",
-        "2": "clear imbalance \u2014 authority used to dismiss, override, or marginalize",
-        "3": "moderate imbalance \u2014 subtle power plays, condescension, or gatekeeping",
-        "4": "mild imbalance \u2014 slight authoritarian tone or unacknowledged privilege",
-        "5": "neutral \u2014 no power dynamics present or relevant",
-        "6": "mild equity \u2014 generally egalitarian communication",
-        "7": "moderate equity \u2014 acknowledges power differences, shares decision-making",
-        "8": "clear equity \u2014 actively distributes power or elevates others",
-        "9": "strong equity \u2014 models accountable authority, invites challenge",
-        "10": "maximum equity \u2014 exemplary power-sharing with structural checks"
+        "0": "extreme abuse \u2014 unchecked power wielded to harm, dominate, or silence; aggressive status seizure",
+        "1": "strong abuse \u2014 coercive authority, intimidation, or control; sustained epistemic dominance ('I define reality here')",
+        "2": "clear imbalance \u2014 authority used to dismiss, override, or marginalize; unilateral status claims",
+        "3": "moderate imbalance \u2014 subtle power plays, condescension, gatekeeping, or epistemic positioning ('I know better')",
+        "4": "mild imbalance \u2014 slight authoritarian tone, unacknowledged privilege, or mild status contestation",
+        "5": "neutral \u2014 no power dynamics or status negotiation present or relevant",
+        "6": "mild equity \u2014 generally egalitarian communication; status differences not leveraged",
+        "7": "moderate equity \u2014 acknowledges power differences, shares decision-making, defers appropriately",
+        "8": "clear equity \u2014 actively distributes power, elevates others, invites epistemic contribution",
+        "9": "strong equity \u2014 models accountable authority, invites challenge, shares status openly",
+        "10": "maximum equity \u2014 exemplary power-sharing with structural checks; mutual status recognition"
       },
       "instruments": [
         {

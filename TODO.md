@@ -17,8 +17,8 @@ Last updated: 2026-02-28
 **What the criterion validity evidence actually shows:** AD measures *status negotiation dynamics* in peer contexts — a specific mechanism within authority dynamics, not a departure from it. This is an empirical finding about *where* AD predicts (contested peer status), not evidence that the name is wrong. The name captures the broader theoretical frame; the criterion studies narrow where within that frame the predictive signal lives.
 
 **What changes instead:**
-- [ ] Update the AD description in `psq-definition.md` §9 to reflect the peer-context status negotiation finding (the rubric anchors describe formal/institutional power; they should broaden to include epistemic positioning and relational status moves)
-- [ ] Add a note in the criterion validity section of `psq-definition.md` referencing the status negotiation theory (journal §24, Theory 3)
+- [x] Update the AD description in `psq-definition.md` §9 to reflect the peer-context status negotiation finding (the rubric anchors describe formal/institutional power; they should broaden to include epistemic positioning and relational status moves) — **Done 2026-03-01.** Updated `instruments.json` AD description and all 11 scoring anchors.
+- [x] Add a note in the criterion validity section of `psq-definition.md` referencing the status negotiation theory (journal §24, Theory 3) — **Done 2026-03-01.**
 - No DB migration, no script changes, no ONNX compatibility risk
 
 **Prior rename rationale (retained for reference):**
