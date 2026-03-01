@@ -8,10 +8,12 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 
 ## Output format (ADHD/autism accommodation)
 **ASCII dashboard format for all session summaries, hunt results, and cycle reports.**
+- **Verbosity: 1.618× base (golden ratio).** Every section gets a line of context, not bare facts. Full format structure always present. Not terse, not verbose — calibrated.
 - Max one page/screen. Use ASCII box-drawing tables, not markdown tables.
 - One line per item. Abbreviate dimension names (TE, HI, AD, etc.).
 - Visual symbols: ✓ pass, ✗ fail, ★ important, ↑↓≈ for deltas, ⚑ flag, ⚠ warning.
-- Structure: HEADER → WHAT HAPPENED → THEORY (brief) → ⚑ EPISTEMIC FLAGS → PUB SCORECARD → MY REASONING → WHAT'S NEXT
+- Structure: HEADER (model+DB) → WHAT HAPPENED (✓/✗ table with 1-line context each) → THEORY (brief) → ⚑ EPISTEMIC FLAGS → SKIPPED (with reasons) → MY REASONING → WHAT'S NEXT (tiered: immediate → tech debt → pub blockers → horizon)
+- PUB SCORECARD: include when new psychometric/criterion evidence generated; omit for doc-only cycles.
 - **MY REASONING section voice protocol** (calibrated via 9-order knock-on analysis):
   - **Chain visibility:** Show the chain (A→B→C therefore D), not just conclusions.
   - **Calibration:** Show 2-3 competing hypotheses ranked by plausibility, not single answers.
@@ -24,8 +26,8 @@ This file holds volatile state only — current model, DB counts, batch lists, i
   - Metric reproducibility, labeling protocol fidelity, calibration, construct validity,
     demographic fairness, data provenance, internal doc consistency, reviewer risk.
   - Severity: ██░░ HIGH, █░░░ MOD, ░░░░ LOW. 1-2 line explanation each.
-- Prose only for decisions that need context (1-2 sentences max).
-- Example style: see UNUDHR construct-validity-analysis.md summary format.
+- Generous whitespace between sections. Prose for context (1-2 sentences per item).
+- SKIPPED section always present with 1-phrase reason per doc.
 
 ## Date/time policy
 **Always run `date -Idate` before writing any date into documentation.**

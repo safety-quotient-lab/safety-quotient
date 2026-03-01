@@ -175,16 +175,22 @@ Context length: **128 tokens** (optimal — 256 worst, 512 partial recovery).
 
 **ASCII dashboard format for all session summaries, hunt results, and cycle reports.**
 
+**Verbosity:** 1.618x base (golden ratio). Every section gets a line of context, not
+bare facts. Full format structure always present. Not terse, not verbose — calibrated.
+
 ### Structure
 ```
-HEADER (model, DB counts)
-WHAT HAPPENED (one-line-per-item table, ✓/✗ status)
+HEADER (model, DB counts, date)
+WHAT HAPPENED (✓/✗ table with 1-line context each)
 THEORY (brief PSQ framework orientation)
 ⚑ EPISTEMIC FLAGS (mandatory — severity-rated quality threats)
-PUBLICATION INTEGRITY SCORECARD (criterion × status matrix)
+SKIPPED (with 1-phrase reason per doc)
 MY REASONING (free-form analytical section — see voice protocol)
 WHAT'S NEXT (tiered: immediate → tech debt → pub blockers → horizon)
 ```
+
+PUB SCORECARD: include when new psychometric/criterion evidence generated; omit for
+doc-only cycles.
 
 ### Visual Rules
 - ASCII box-drawing tables, not markdown tables
@@ -193,7 +199,7 @@ WHAT'S NEXT (tiered: immediate → tech debt → pub blockers → horizon)
 - Generous whitespace between sections (ADHD readability)
 - Severity bars: ██░░ HIGH, █░░░ MOD, ░░░░ LOW
 - Max one page/screen per section
-- Prose only for decisions that need context (1–2 sentences max)
+- Prose for context (1–2 sentences per item)
 
 ### MY REASONING Voice Protocol
 Calibrated via 9-order knock-on analysis (see snapshot-20260301-1225-paradigm-shift.md).
