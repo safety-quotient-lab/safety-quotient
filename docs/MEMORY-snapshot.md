@@ -36,6 +36,17 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 - Generous whitespace between sections. Prose for context (1-2 sentences per item).
 - SKIPPED section always present with 1-phrase reason per doc.
 
+## Formatting policy
+**APA 7th edition in 4 publication-facing documents only:**
+- `journal.md`, `psychometric-evaluation.md`, `criterion-validity-summary.md`, `distillation-research.md`
+- In-text citations: (Author, Year). Statistics: *r*(df) = .684, *p* < .001 (suppress leading zeros, include df, exact *p*, CIs on AUC). No asterisk significance markers.
+- **Target venue: psychology journal** (Behavior Research Methods or Journal of Personality Assessment).
+- Operational logs (EXPERIMENTS.md, lab-notebook.md, TODO.md, CLAUDE.md, etc.) keep current shorthand — APA formatting is incompatible with machine-parseable tables and living operational docs.
+- Decided via 6-order knock-on analysis (2026-03-01): "everywhere" rejected (3 certain orders against); targeted policy adopted.
+
+## Decision-making technique: knock-on termination
+When using knock-on analysis to resolve a decision, if **consensus or parsimony across orders doesn't clearly resolve the decision point**, terminate the analysis and return full reasoning + context to the user rather than forcing a conclusion. Don't manufacture certainty. Apply this pattern to agents doing knock-on work — instruct them to return unresolved with evidence rather than guess.
+
 ## Edit discipline
 **When adding a new preference or setting, APPEND — never overwrite an adjacent existing one.** Read the surrounding context before editing to confirm what's already there. The cost of a redundant line is near-zero; the cost of silently dropping a calibrated preference is a full recovery cycle. (Learned 2026-03-01: verbosity preference was overwritten when whitespace preference was added.)
 
