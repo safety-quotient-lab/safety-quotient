@@ -110,21 +110,24 @@ Originally assembled from `/tmp/held_out_labeled_a.json` (50 texts) and `/tmp/he
 | CC/DA focus batch | `data/labeling-batch-ccda.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. Targeting CO (weakest dim, r=0.504). Sources: prosocial 104, berkeley 38, dreaddit 33, empathetic_dialogues 16, esconv 9. CO mean=5.50, range [1,9]. |
 | Proxy audit batch | `data/labeling-batch-proxy-audit.jsonl` | 200 | 10/10 | 2026-02-28 | Complete. Audit proxy-vs-LLM agreement for TC/CC/AD/HI/CO. Sources: goemotions 75, ucc 42, casino 42, berkeley 41. Audit result: all dims show near-zero or negative r with proxy within these sources (AD=-0.129, TC=-0.200, CC=-0.293; even retained HI=-0.126, RB=-0.203). Confirms proxy-drop decision. |
 | Held-out expand batch | `data/labeling-batch-held-out-expand.jsonl` | 150 | 10/10 | 2026-02-28 | Complete. Originally labeled for held-out expansion; ingested as training data (no overlap with data/held-out-test.jsonl). Sources: empathetic_dialogues 47, berkeley 43, prosocial 45, esconv 4, dreaddit 11. Distributed 118 train / 19 val / 13 test by hash split. |
+| UCC enrichment | `data/labeling-batch-ucc-labeled.jsonl` | 150 | 10/10 | 2026-03-01 | Complete. UCC source had only 3% sep-llm coverage (1,889 available). Scored in rapid session (epistemic note: same-session halo risk). v27 regressed — data quality under review. |
+| Civil comments enrichment | `data/labeling-batch-civil-labeled.jsonl` | 100 | 10/10 | 2026-03-01 | Complete. Civil_comments had 1% coverage (1,978 available). Same rapid session as UCC. v27 regressed. |
+| Extreme AD/CO | `data/labeling-batch-extreme-adco-labeled.jsonl` | 118 | 10/10 | 2026-03-01 | Complete. 50 high-AD + 50 low-AD + 10 high-CO + 9 low-CO (keyword-filtered). Targets AD compression (48.4% at 5.0). Same rapid session. v27 regressed. |
 
-**Total separated-llm training labels:** 34,850 scores (across 22,186 texts in DB).
+**Total separated-llm training labels:** 38,530 scores (across 22,304 texts in DB).
 
-## Composite Summary (post-held-out-expand batch, 2026-02-28)
+## Composite Summary (post-ucc/civil/extreme-adco batches, 2026-03-01)
 
 | Metric | Value |
 |---|---|
-| Total texts in DB | 22,186 |
-| Total scores in DB | 90,361 |
+| Total texts in DB | 22,304 |
+| Total scores in DB | 94,041 |
 | Composite proxy records | 40,487 (auth zeroed for 3,515 politeness/UCC, CC threat_exposure REMOVED) |
 | Joint-LLM records | 15,024 |
-| Separated-LLM records | 34,850 |
+| Separated-LLM records | 38,530 |
 | Synthetic records | 0 (subsumed into joint-LLM) |
 | Held-out test records | 100 (separate, not in training) |
-| Train / Val / Test | 17,708 / 2,160 / 2,235 (hash-based text split) |
+| Train / Val / Test | ~17,800 / ~2,150 / ~2,200 (hash-based text split) |
 | Source datasets | 11 active (2 removed, 1 partially removed) |
 | Dimensions covered | 10/10 |
 

@@ -106,7 +106,7 @@ class PSQDataset(Dataset):
           JSONL mode: scalar broadcast from teacher field
     """
 
-    def __init__(self, records, tokenizer, max_length=256):
+    def __init__(self, records, tokenizer, max_length=128):
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.items = []

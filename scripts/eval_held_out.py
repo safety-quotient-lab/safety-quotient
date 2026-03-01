@@ -118,7 +118,7 @@ def predict(tokenizer, model, texts, batch_size=32):
         batch_texts = texts[i:i + batch_size]
         inputs = tokenizer(
             batch_texts, padding=True, truncation=True,
-            max_length=256, return_tensors="pt"
+            max_length=128, return_tensors="pt"
         )
         with torch.no_grad():
             scores, confs = model(

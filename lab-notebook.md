@@ -15,7 +15,7 @@ Structured extraction from research sessions. Each entry records what was done, 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Held-out r (avg 10 dims) | **0.696** (+0.014 vs v22a, +0.066 vs v21) |
+| Held-out r (avg 10 dims) | **0.684** (corrected; was 0.696 with max_length=256 eval bug) |
 | Test r | 0.387 (test-split paradox — proxy labels as GT for remaining test texts) |
 | Production checkpoint | `models/psq-student/best.pt` |
 | ONNX | `model.onnx` 254 MB / `model_quantized.onnx` 64 MB INT8 |
@@ -24,25 +24,25 @@ Structured extraction from research sessions. Each entry records what was done, 
 
 | Dim | v22a | **v23** | Δ |
 |---|---|---|---|
-| regulatory_capacity | 0.756 | **0.782** | +0.026 |
-| threat_exposure | 0.805 | **0.800** | −0.005 |
-| energy_dissipation | 0.712 | **0.768** | +0.056 |
-| cooling_capacity | 0.719 | **0.739** | +0.020 |
-| authority_dynamics | 0.679 | **0.709** | +0.030 |
-| trust_conditions | 0.679 | **0.689** | +0.010 |
-| hostility_index | 0.719 | 0.691 | −0.028 |
-| defensive_architecture | 0.607 | **0.608** | +0.001 |
-| resilience_baseline | 0.640 | 0.621 | −0.019 |
-| contractual_clarity | 0.504 | **0.549** | +0.045 |
-| **Average** | **0.682** | **0.696** | **+0.014** |
+| threat_exposure | — | **0.795** | — |
+| regulatory_capacity | — | **0.768** | — |
+| energy_dissipation | — | **0.760** | — |
+| cooling_capacity | — | **0.736** | — |
+| authority_dynamics | — | **0.713** | — |
+| trust_conditions | — | **0.681** | — |
+| hostility_index | — | **0.669** | — |
+| resilience_baseline | — | **0.597** | — |
+| defensive_architecture | — | **0.588** | — |
+| contractual_clarity | — | **0.538** | — |
+| **Average** | **0.682** | **0.684** | **+0.002** |
 
 ### Database (data/psq.db)
 
 | | Count |
 |---|---|
-| Texts | 22,186 |
-| Total scores | 90,361 |
-| Separated-LLM (scorer=claude-sonnet-4-6) | 34,850 |
+| Texts | 22,304 |
+| Total scores | 94,041 |
+| Separated-LLM (scorer=claude-sonnet-4-6) | 38,530 |
 | Held-out set | 100 texts (separate file, not in training) |
 | Train / val / test split | ~17,800 / ~2,150 / ~2,200 texts |
 
@@ -64,14 +64,9 @@ Structured extraction from research sessions. Each entry records what was done, 
 | proxy-audit | 200 | all dims | source-diverse: goemotions/ucc/casino/berkeley |
 | held-out-expand | 150 | all dims | ingested as training data (not held-out) |
 | test-clean | 200 | all dims | test-split texts relabeled with LLM |
-
-**Pending (extracted, not yet scored):**
-
-| Batch | Texts | Priority | Rationale |
-|---|---|---|---|
-| ucc | 150 | **Highest** | 3% sep-llm coverage; worst MAE source (2.296) |
-| civil | 100 | High | 1% sep-llm coverage; MAE=1.681 |
-| extreme-adco | 118 | Medium | AD compression fix; CO pool sparse (only 118 found) |
+| ucc | 150 | all dims | UCC source enrichment (was 3% coverage) |
+| civil | 100 | all dims | civil_comments enrichment (was 1% coverage) |
+| extreme-adco | 118 | AD/CO | AD compression fix + CO extremes (keyword-filtered) |
 
 ### Criterion Validity Studies
 
@@ -89,9 +84,11 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Issue | Status |
 |---|---|
 | DA construct validity (weak factor loading, 49% scores=5) | Open — requires expert panel ICC(2,1) |
-| AD range compression (output std=1.54 vs actual 2.46) | Partially addressed — UCC/extreme-adco batches pending |
-| Berkeley/UCC blind spot (MAE 2.5/2.3) | Distribution mismatch, not token length — UCC batch pending |
-| CO still weakest dimension (0.549) | Improving — more data needed |
+| AD range compression (output std=1.54 vs actual 2.46) | UCC/extreme-adco batches scored+ingested; v27 regressed — data quality TBD |
+| Berkeley/UCC blind spot (MAE 2.5/2.3) | UCC batch scored+ingested; v27 regressed — need diagnosis |
+| CO still weakest dimension (0.538 corrected) | Improving — more data needed |
+| Confidence anti-calibrated (8/10 dims inverted) | Diagnosed — higher conf → higher error. Needs architectural fix |
+| max_length eval bug (256 vs 128) | **Fixed** — all historical held-out_r inflated ~0.012. v23 corrected: 0.696→0.684 |
 | Expert validation recruitment | Not started — protocol designed |
 
 ---
@@ -378,10 +375,13 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 | v22a    | `--drop-proxy-dims` (TE/TC/CC/AD) | 0.457 | 0.682 | New best at time |
 | v22b    | midg data only (no proxy removal) | — | 0.578 | Worse than v21 |
 | v22c    | `--drop-proxy-dims + --curriculum` | 0.431 | 0.638 | Curriculum REJECTED |
-| **v23** | +550 texts (ccda/proxy-audit/held-out-expand) | — | **0.696** | **Current production** |
-| v24 | 256-token context (batch 16, grad_accum 2) | — | **0.6702** | 128 tokens superior; v24 NOT promoted |
-| v25 | 512-token context (batch 8, grad_accum 4) | — | pending | Training on GPU (queue) |
-| v26 | 128-token, LR=1e-5 (slow training test) | — | pending | Queued after v25 |
+| **v23** | +550 texts (ccda/proxy-audit/held-out-expand) | 0.387 | **0.684*** | **Current production** |
+| v24 | 256-token context (batch 16, grad_accum 2) | 0.391 | 0.670* | 128 tokens superior; NOT promoted |
+| v25 | 512-token context (batch 8, grad_accum 4) | 0.390 | 0.692* | Near-equal but 5× slower; NOT promoted |
+| v26 | 128-token, LR=1e-5 (slow training test) | — | — | Training failed at startup |
+| v27 | +368 texts (ucc/civil/extreme-adco) | 0.390 | 0.655* | **Regressed** — not promoted |
+
+*held-out_r corrected with max_length=128 eval (was inflated ~0.012 with 256-token eval bug).
 
 ---
 
@@ -498,3 +498,23 @@ Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready 
 - MEMORY.md: v24 result, v25/v26 status, T2 analysis note added
 
 ▶ EXPERIMENTS.md (v24/v23/v24 held-out sections), distillation-research.md §61
+
+---
+
+### Session `20260301-0430` (max_length bug fix, 3 labeling batches, v27 regression, confidence calibration)
+
+**max_length eval bug discovered and fixed.** `eval_held_out.py`, `calibrate.py`, and `distill.py PSQDataset` all hardcoded `max_length=256` despite training using 128. All 3 scripts fixed to 128. v23 corrected held-out_r: 0.696→**0.684** (−0.012). All historical held-out_r numbers inflated by ~0.012.
+
+**Confidence calibration rewritten.** `validate_confidence_calibration.py` was reading old JSONL files with proxy GT. Rewrote to query psq.db with separated-LLM GT only. Result: 1 correct, 1 flat, **8 inverted** directions (higher conf → higher error). Verdict: **POOR** — confidence head is anti-calibrated.
+
+**3 labeling batches scored and ingested:**
+- UCC (150 texts × 10 dims = 1,500 scores) — UCC source enrichment
+- civil_comments (100 × 10 = 1,000 scores) — civil_comments enrichment
+- extreme-adco (118 × 10 = 1,180 scores) — AD compression + CO extremes
+- DB after: 22,304 texts, 94,041 scores, 38,530 sep-LLM
+
+**v27 trained and evaluated.** held-out_r=**0.655** (−0.029 vs v23 corrected). All 10 dims regressed except CC (flat). **Not promoted.** Possible causes: same-session halo in rapid scoring, distribution mismatch, data dilution.
+
+**Hunt: efficiency + human-rights alignment.** Identified: PSQStudent class duplicated 8×, DIMENSIONS list in 10 files, no demographic bias testing, WEIRD assumptions in CO/AD rubrics, Dreaddit consent gap, dual-use ONNX risk.
+
+▶ distillation-research.md §62 (pending)

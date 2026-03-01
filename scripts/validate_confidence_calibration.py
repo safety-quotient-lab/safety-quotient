@@ -8,7 +8,6 @@ Tests whether the model's confidence output is informative:
 Bins predictions by confidence, computes MAE per bin, and tests calibration.
 """
 
-import hashlib
 import json
 import sys
 import time
@@ -28,23 +27,35 @@ DIM_TO_IDX = {d: i for i, d in enumerate(DIMENSIONS)}
 
 
 def load_test_data():
-    """Load test split using same hash-based split as distill.py."""
-    data_dir = ROOT / "data"
-    all_records = []
+    """Load test split from DB using separated-LLM scores only."""
+    import sqlite3
+    db_path = ROOT / "data" / "psq.db"
+    db = sqlite3.connect(str(db_path))
+    c = db.cursor()
+    c.execute("""
+        SELECT t.id, t.text, s.dimension, s.score
+        FROM texts t
+        JOIN splits sp ON t.id = sp.text_id
+        JOIN scores s ON t.id = s.text_id
+        WHERE sp.split = 'test' AND s.scorer = 'claude-sonnet-4-6'
+        ORDER BY t.id
+    """)
+    rows = c.fetchall()
+    db.close()
 
-    for fname in ["composite-ground-truth.jsonl", "train-llm.jsonl"]:
-        fpath = data_dir / fname
-        if fpath.exists():
-            with open(fpath) as f:
-                for line in f:
-                    if line.strip():
-                        all_records.append(json.loads(line))
+    from collections import defaultdict
+    text_map = {}
+    dim_map = defaultdict(dict)
+    for text_id, text, dim, score in rows:
+        text_map[text_id] = text
+        dim_map[text_id][dim] = score
 
     test_records = []
-    for rec in all_records:
-        h = int(hashlib.md5(rec["text"].encode()).hexdigest(), 16) % 100
-        if h >= 90:
-            test_records.append(rec)
+    for text_id, text in text_map.items():
+        rec = {"text": text, "dimensions": {}}
+        for dim, score in dim_map[text_id].items():
+            rec["dimensions"][dim] = {"score": score, "confidence": 0.5}
+        test_records.append(rec)
 
     return test_records
 

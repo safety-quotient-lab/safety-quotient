@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
-**Date:** 2026-02-28
-**Status:** v23 held-out_r=**0.696** (production best). v24 context length experiment complete (§61): 256-token context regresses −0.026 to 0.670, **128 tokens confirmed superior**. v25 (512 tok) training on GPU; v26 (128 tok, LR=1e-5) queued. CGA-Wiki T2 temporal analysis **complete** (§61d): T2 NOT SUPPORTED — AD does not lead HI. New finding: HI→ED (p=0.004). Tipping-point pattern: Q4 collapse only.
-**Next:** v25/v26 results → EXPERIMENTS.md + §61c update. Expert validation recruitment. Three labeling batches pending: UCC(150), civil_comments(100), extreme-adco(118).
+**Date:** 2026-03-01
+**Status:** v23 held-out_r=**0.684** (production best; corrected from 0.696 after max_length eval bug fix — see §62). v27 regressed (0.655) with +368 new texts — not promoted. Confidence calibration is anti-calibrated (8/10 dims inverted). Context length sweep complete (§61). CGA-Wiki T2 complete (§61d).
+**Next:** Diagnose v27 regression (data quality vs same-session halo). Extract shared psq_model.py. Expert validation recruitment.
 
 ---
 

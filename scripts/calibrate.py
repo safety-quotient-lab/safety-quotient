@@ -131,7 +131,7 @@ def get_predictions(model_dir, val_records):
         for i in range(0, len(texts), batch_size):
             batch_texts = texts[i:i + batch_size]
             enc = tokenizer(batch_texts, padding=True, truncation=True,
-                          max_length=256, return_tensors="pt").to(device)
+                          max_length=128, return_tensors="pt").to(device)
             scores, confs = model(enc["input_ids"], enc["attention_mask"])
             scores = scores.cpu().numpy()
             confs = confs.cpu().numpy()

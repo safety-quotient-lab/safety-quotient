@@ -128,4 +128,4 @@ Test prediction T2 from journal §24: does AD deteriorate before HI/TE in CGA-Wi
 
 ### ONNX model re-export [COMPLETE]
 
-v21 promoted to production. ONNX re-exported (254 MB / 64 MB quantized).
+v23 promoted to production (2026-03-01). ONNX re-exported (254 MB / 64 MB quantized INT8).
