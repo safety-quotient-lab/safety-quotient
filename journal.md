@@ -440,7 +440,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Training data | 22,186 texts in DB (90,361 scores, 34,850 separated-llm) |
+| Training data | 22,304 texts in DB (90,361 scores, 36,771 separated-llm) |
 | Test avg Pearson *r* | .387 (test-split paradox: mixed proxy/LLM labels as ground truth) |
 | Held-out avg Pearson *r* | **.684** (production best; corrected from .696 after max_length eval bug fix) |
 | Generalization gap | N/A (test *r* not comparable when proxy training removed) |

@@ -4,7 +4,7 @@ This file is auto-read by Claude Code on every session start. It contains stable
 project conventions that rarely change. For volatile state (current model version,
 DB counts, in-progress work), see MEMORY.md in the Claude Code memory directory.
 
-**Last updated:** 2026-03-01
+**Last updated:** 2026-03-02
 
 ---
 
@@ -65,18 +65,53 @@ collapses dimension differentiation (within-text SD drops from 0.717 to 0.448) a
 inflates g-factor eigenvalue from 67.3% to 94.1%. See distillation-research.md §42/§43.
 
 ### Decision-Making: Knock-On Auto-Resolution
-When encountering ANY decision point with 2+ options, run knock-on analysis (3–6
-orders) and attempt resolution by consensus or parsimony BEFORE presenting to the user.
-Do not present bare forks ("your call"). Present recommendations with reasoning attached.
+When encountering ANY decision point with 2+ options, run knock-on analysis and attempt
+resolution by consensus or parsimony BEFORE presenting to the user. Do not present bare
+forks ("your call"). Present recommendations with reasoning attached.
 - **Resolves:** State recommendation + reasoning, proceed unless user overrides.
 - **Doesn't resolve:** Present genuine ambiguity with the specific questions that would
   resolve it. Never force conclusions.
-- **Effort scaling:** XS/S decisions → 3-order inline. M/L decisions → 6-order, optionally via agent.
+- **8-order depth:** 1–2 certain, 3 likely, 4–5 possible, 6 speculative, 7 structural
+  (ecosystem/precedent), 8 horizon (normative/constraints).
+- **Effort scaling:** XS: 3-order + structural scan. S: 4-order + structural scan.
+  M: 6-order + 2-pass. L: 8-order + 2-pass.
+- **Structural checkpoint (mandatory at all scales):** Scan orders 7–8 even for XS/S.
+  Does this set a precedent? Establish or erode a norm? Constrain future decisions?
+
+### Recommend-Against Scan
+Before executing any default action — even an obvious one — scan for a specific concrete
+reason NOT to proceed. Surface if found. Proceed if not. Vague concern is not a reason;
+it must be specific and actionable. Threshold: non-trivial actions only.
 
 ### Date/Time Policy
 **Always run `date -Idate` before writing any date into documentation.**
 Do NOT trust the `currentDate` system context or assume the date from conversation
 history. The system clock is the single source of truth. Timezone: CST (UTC-6).
+
+---
+
+## Code Style
+
+**Semantic naming (all code and .md table headers):** Every variable, parameter,
+and table column header must be fully descriptive. No single-letter, abbreviated,
+or mnemonic names — not `w`, `frac`, `tc`, `inp`, `score_a`, `ref_root`, `tgt`,
+`sess_n`, or similar. If a name needs an inline comment to explain it, rename it
+instead. The same rule applies to `.md` table column headers: use descriptive
+labels, not abbreviations or internal shorthand.
+
+---
+
+## Internal Reference Display Convention
+
+When surfacing internal references to the user, lead with the plain-language
+description. Internal labels (section numbers, skill shorthand, file paths) are
+parenthetical — they exist for traceability, not readability.
+
+  Correct:   "Running gap check (T5) before answering."
+  Incorrect: "Running T5 gap check before answering."
+
+This applies to all internal references: section labels, abbreviations coined
+by the project. The user sees the meaning first.
 
 ---
 

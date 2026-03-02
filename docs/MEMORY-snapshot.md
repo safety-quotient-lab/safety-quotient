@@ -46,11 +46,9 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 - **APA conversion status (2026-03-01):** All 4 docs COMPLETE. criterion-validity-summary.md, psychometric-evaluation.md, journal.md, distillation-research.md all converted.
 
 ## Decision-making: knock-on auto-resolution
-**TRIGGER:** When I encounter ANY decision point with 2+ options, run knock-on analysis (3-6 orders) and attempt resolution by consensus or parsimony BEFORE presenting to the user. Do not present bare forks ("your call"). Present recommendations with reasoning already attached.
-- **If consensus/parsimony resolves it:** State the recommendation, show the reasoning, proceed unless user overrides.
-- **If it doesn't resolve:** Terminate with full reasoning + unresolved tensions. Present the genuine ambiguity to the user with the specific questions that would resolve it (use AskUserQuestion).
-- **Apply to agents:** Instruct them to resolve by consensus/parsimony or terminate with full context. Never force conclusions.
-- **Effort scaling:** XS/S decisions get 3-order analysis inline. M/L decisions get 6-order, optionally via agent.
+See CLAUDE.md for full policy. 8-order depth with structural checkpoint mandatory at all scales.
+- XS: 3-order + scan. S: 4-order + scan. M: 6-order + 2-pass. L: 8-order + 2-pass.
+- Recommend-against scan before default actions (see CLAUDE.md).
 
 ## Edit discipline
 **When adding a new preference or setting, APPEND — never overwrite an adjacent existing one.** Read the surrounding context before editing to confirm what's already there. The cost of a redundant line is near-zero; the cost of silently dropping a calibrated preference is a full recovery cycle. (Learned 2026-03-01: verbosity preference was overwritten when whitespace preference was added.)
@@ -98,7 +96,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 
 ## Database (psq.db)
 - `data/psq.db` — SQLite (22,304 texts, 90,361 scores, 36,771 separated-llm — post-revert 2026-03-01)
-- Splits: train=17,708 / val=2,160 / test=2,235 / held-out=100
+- Splits: train=17,800 / val=2,170 / test=2,251 / held-out=100
 - Schema: `data/schema.sql` — texts, scores, splits, labeling_sessions, models, calibrations, dataset_mappings
 - Migration: `scripts/migrate.py` — bootstraps from existing JSONLs; `--ingest JSONL` for incremental ingest
   - Use `--ingest` for new assembled JSONLs (separated-llm, filtered: skips confidence<=0.15 placeholders)

@@ -4996,7 +4996,7 @@ All CONTROL cross-lags: non-significant.
 
 **Halo test (H1).** Computed mean inter-dimension |*r*| on the 368 rapid-scored texts: **.658** vs .582 for existing separated-LLM data. The rapid-batch scores exceeded the .65 contamination threshold established by the prior halo experiment (§18c, psychometric-evaluation.md §3c). Same-session halo contamination confirmed.
 
-**Revert.** 3,680 separated-LLM scores (368 texts × 10 dims) deleted from `psq.db`. DB backup: `psq.db.bak-pre-revert-20260301`. Texts retained in the database for proper re-scoring (one dimension per session). Post-revert counts: 22,304 texts, 90,361 scores, 34,850 separated-LLM.
+**Revert.** 3,680 separated-LLM scores (368 texts × 10 dims) deleted from `psq.db`. DB backup: `psq.db.bak-pre-revert-20260301`. Texts retained in the database for proper re-scoring (one dimension per session). Post-revert counts: 22,304 texts, 90,361 scores, 36,771 separated-LLM (includes 1,172 pre-existing scores from earlier proper sessions for ucc/civil_comments texts).
 
 
 ## §64. Same-Session Halo Replication: Multi-Dimension Scoring Protocol Failure (2026-03-01)
