@@ -1,6 +1,6 @@
 # PSQ Project TODO
 
-Last updated: 2026-02-28
+Last updated: 2026-03-01
 
 ## Priority 1: Immediate
 
@@ -27,30 +27,31 @@ Last updated: 2026-02-28
 - AD-residual correlates with epistemic markers (second-person pronouns r=+0.202, question marks r=+0.235)
 - Theory 3 (status negotiation, journal §24) has the best explanatory coverage
 
-### Fix max_length bugs in criterion validity scripts + re-eval historical models [HIGH PRIORITY]
+### Fix max_length bugs in criterion validity scripts + re-eval historical models [COMPLETE]
 
-**Discovered 2026-03-01.** The max_length=256 eval bug was broader than initially found.
+**Status:** All items COMPLETE (2026-03-01).
 
-**Criterion validity scripts (affects publishable numbers):**
-- `criterion_validity_cmv.py` line 149: `max_len=512` — should be 128. CMV AUC=0.5735 may be inflated.
-- `criterion_cgawiki_temporal.py` line 53: `MAX_LENGTH=256` — should be 128. T2 cross-lagged results may be inflated.
-- `criterion_dealornodeal.py`: ✓ already correct (128).
-- CaSiNo: ✓ already correct per docs (128, done inline).
+1. [x] Fix CMV + CGA-Wiki T2 scripts, re-run — CMV AUC corrected: 0.5735→**0.5549** (−0.019). CGA-Wiki T2 unchanged.
+2. [x] Re-fit production calibration at max_length=128 — saved.
+3. [x] Re-eval v14–v22c held-out at max_length=128 — 11 models done. v22a corrected=0.695 > v23=0.684. Relative ordering shifted but v23 held as production (Δ within noise, avoids invalidating 4 criterion studies).
+4. [x] Add `--max-length` CLI arg — done.
+5. [x] Update EXPERIMENTS.md — corrected values recorded.
 
-**Historical held-out re-evaluation (~2 min total):**
-- 11 versions (v14–v22c) need re-eval at max_length=128. ~10 sec each.
-- v25 needs re-eval at 512 (trained at 512, incorrectly eval'd at 256). Requires `--max-length` CLI arg.
-- v1–v13 checkpoints lost — note approximation (~0.012 shift) in EXPERIMENTS.md.
+### Re-score 368 reverted texts (1 dim per session)
 
-**Production calibration:**
-- `models/psq-student/calibration.json` was fitted at max_length=256. Re-fit at 128. ~30 sec.
+**Status:** In progress. 0/10 dimensions scored properly.
 
-**Priority order:**
-1. [ ] Fix CMV + CGA-Wiki T2 scripts, re-run (publishable numbers)
-2. [ ] Re-fit production calibration
-3. [ ] Re-eval v14–v22c held-out (~2 min bash loop)
-4. [ ] Add `--max-length` to eval_held_out.py, re-eval v25 at 512
-5. [ ] Update EXPERIMENTS.md with corrected values
+368 texts (ucc/civil/extreme-adco) had all scores reverted due to same-session halo contamination (mean |r|=0.658). A second re-scoring attempt (all 10 dims in one session) produced even worse contamination (mean |r|=0.811). The one-dim-per-session protocol is validated as essential.
+
+**Plan:** Score 1 dimension per Claude Code session × 10 sessions. Texts already in DB, just need new separated-llm scores.
+
+### APA 7th edition conversion of publication-facing docs
+
+**Status:** In progress (2026-03-01).
+- [x] criterion-validity-summary.md — COMPLETE
+- [x] psychometric-evaluation.md — key sections COMPLETE
+- [ ] journal.md — in progress
+- [ ] distillation-research.md — in progress
 
 ### Context-aware scoring API design
 

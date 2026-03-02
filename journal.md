@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-02-28 (v23 held-out_r=0.696, new best. +550 texts (ccda/proxy-audit/held-out-expand) drove improvements across 7/10 dims. ONNX re-exported. AD description updated in psq-definition.md to reflect peer-context status negotiation. AD rename deferred — taxonomy fidelity with Edmondson 1999.)
+**Current date:** 2026-03-01 (v23 held-out *r* = .684, production best after max_length eval bug fix. +550 texts (ccda/proxy-audit/held-out-expand) drove improvements across 7/10 dims. ONNX re-exported. AD description updated in psq-definition.md to reflect peer-context status negotiation. AD rename deferred — taxonomy fidelity with Edmondson, 1999.)
 
 ---
 
@@ -120,17 +120,17 @@ This three-tier approach reflects a common pattern in knowledge distillation und
 
 **February 26, 2026.** Before committing to the composite approach, we tested whether a simpler proxy teacher — `detoxify`, a Jigsaw-trained toxicity classifier (Hanu & Unitary team, 2020) — could serve as a free label source for the hostility and threat dimensions.
 
-We evaluated detoxify against the Berkeley Measuring Hate Speech dataset (Kennedy et al., 2020), which provides continuous IRT-derived hate speech scores across 39,565 unique texts. The results fell short of our pre-registered decision threshold (Pearson r > 0.70):
+We evaluated detoxify against the Berkeley Measuring Hate Speech dataset (Kennedy et al., 2020), which provides continuous IRT-derived hate speech scores across 39,565 unique texts. The results fell short of our pre-registered decision threshold (Pearson *r* > .70):
 
-| Detoxify attribute | Berkeley ground truth | r |
+| Detoxify attribute | Berkeley ground truth | *r* |
 |---|---|---|
-| toxicity | hate_speech_score | 0.68 |
-| insult | insult | 0.66 |
-| threat | violence | 0.51 |
-| identity_attack | dehumanize | 0.63 |
-| severe_toxicity | hatespeech (binary) | 0.74 |
+| toxicity | hate_speech_score | .68 |
+| insult | insult | .66 |
+| threat | violence | .51 |
+| identity_attack | dehumanize | .63 |
+| severe_toxicity | hatespeech (binary) | .74 |
 
-The moderate correlations (r = 0.51–0.74) reflect a fundamental construct mismatch: detoxify scores *toxicity* (a unidimensional social-harm estimate), while PSQ dimensions measure distinct psychological constructs (hostility, threat, authority). Toxicity is correlated with hostility (they share variance in aggressive/harmful language) but they are not the same construct — a text can be hostile without being "toxic" in the Jigsaw sense (e.g., corporate passive aggression), and toxic without being hostile in the PSQ sense (e.g., sexual content).
+The moderate correlations (*r* = .51–.74) reflect a fundamental construct mismatch: detoxify scores *toxicity* (a unidimensional social-harm estimate), while PSQ dimensions measure distinct psychological constructs (hostility, threat, authority). Toxicity is correlated with hostility (they share variance in aggressive/harmful language) but they are not the same construct — a text can be hostile without being "toxic" in the Jigsaw sense (e.g., corporate passive aggression), and toxic without being hostile in the PSQ sense (e.g., sexual content).
 
 **Decision:** Detoxify rejected as standalone proxy teacher. The composite ground truth approach adopted instead, using detoxify correlations as a secondary quality check.
 
@@ -160,7 +160,7 @@ The composite ground truth assembles proxy-labeled training data from 11 source 
 | Stanford Politeness (Danescu-Niculescu-Mizil et al., 2013) | CC-BY 4.0 | 2,000 | authority_dynamics | Politeness score → power dynamics proxy (de-weighted, see §7) |
 | ProsocialDialog (Kim et al., 2022) | CC-BY 4.0 | 1,998 | defensive_architecture | Safety labels → boundary pattern proxy |
 
-Each proxy mapping assigns both a score and a confidence value. Confidence reflects the semantic proximity between the source dataset's label and the target PSQ construct — high (0.50–0.70) for direct mappings (Berkeley hostility → PSQ hostility), low (0.15–0.30) for indirect ones (Politeness → authority dynamics). The confidence-weighted loss function (§6) ensures that dubious proxies contribute less to gradient updates.
+Each proxy mapping assigns both a score and a confidence value. Confidence reflects the semantic proximity between the source dataset's label and the target PSQ construct — high (.50–.70) for direct mappings (Berkeley hostility → PSQ hostility), low (.15–.30) for indirect ones (Politeness → authority dynamics). The confidence-weighted loss function (§6) ensures that dubious proxies contribute less to gradient updates.
 
 ### 5b. Proxy Mapping as Measurement Approximation
 
@@ -174,7 +174,7 @@ This assumption breaks down when the shared variance is illusory — when the pr
 
 **February 26, 2026.** First training: DeBERTa-v3-small (He et al., 2021; 141M parameters) on 4 proxy datasets (~8,000 records) plus 365 LLM-labeled samples. Standard MSE loss, flat confidence weighting.
 
-**Result:** avg test r = 0.492. Hostility index led (r = 0.74), reflecting strong proxy coverage from Berkeley and Civil Comments. Authority dynamics and contractual clarity were near zero — unsurprising given zero proxy data for these dimensions.
+**Result:** avg test *r* = .492. Hostility index led (*r* = .74), reflecting strong proxy coverage from Berkeley and Civil Comments. Authority dynamics and contractual clarity were near zero — unsurprising given zero proxy data for these dimensions.
 
 ### 6b. The v2 Cascade
 
@@ -184,13 +184,13 @@ This assumption breaks down when the shared variance is illusory — when the pr
 
 $$\mathcal{L} = \text{conf}^{\alpha} \cdot w_{\text{source}} \cdot \text{MSE}(\hat{y}, y)$$
 
-where α = 1.0 initially, w_source differentiates LLM (3×) from composite (1×) samples, and conf is the proxy confidence (0.15–0.70).
+where α = 1.0 initially, w_source differentiates LLM (3×) from composite (1×) samples, and conf is the proxy confidence (.15–.70).
 
-**v2d:** Fixed hash-based text splitting (preventing train/test leakage on duplicate texts), added deduplication logic, integrated ProsocialDialog. **avg test r = 0.585** — a 19% improvement over v1 and the first version where all 10 dimensions showed positive correlations.
+**v2d:** Fixed hash-based text splitting (preventing train/test leakage on duplicate texts), added deduplication logic, integrated ProsocialDialog. **avg test *r* = .585** — a 19% improvement over v1 and the first version where all 10 dimensions showed positive correlations.
 
 ### 6c. Lesson
 
-The v2 era established a pattern that would recur: data pipeline bugs and proxy quality issues dominate model performance far more than architecture or hyperparameter choices. The sample-weighting bug (LLM weight = 0) likely cost v1 several points of average r. In distillation, the quality and representativeness of the training signal matters more than the model's capacity (cf. the "Bitter Lesson" — Sutton, 2019 — but applied to data rather than compute).
+The v2 era established a pattern that would recur: data pipeline bugs and proxy quality issues dominate model performance far more than architecture or hyperparameter choices. The sample-weighting bug (LLM weight = 0) likely cost v1 several points of average *r*. In distillation, the quality and representativeness of the training signal matters more than the model's capacity (cf. the "Bitter Lesson" — Sutton, 2019 — but applied to data rather than compute).
 
 ## 7. Data Quality Audit and Proxy Pathology (v3–v4)
 
@@ -198,15 +198,15 @@ The v2 era established a pattern that would recur: data pipeline bugs and proxy 
 
 **February 26, 2026.** With 10+ source datasets contributing proxy labels, we computed per-source agreement: for each dimension, compare the proxy label from each source against LLM gold-standard labels on shared or similar texts. This revealed three pathological mappings:
 
-**Diplomacy → trust_conditions (r ≈ 0, MAE = 2.405).** The Diplomacy dataset (FAIR) labels whether players in the board game Diplomacy are being deceptive. We mapped "not deceptive" → "high trust." But the Diplomacy game's texts are *designed* to conceal intent — a skilled liar's prose reads as trustworthy by construction. The proxy measured *sender deceptive intent*, while the PSQ dimension measures *environmental trustworthiness*. These are not merely different constructs; they are inversely related in this dataset. **Removed.**
+**Diplomacy → trust_conditions (*r* ≈ 0, MAE = 2.405).** The Diplomacy dataset (FAIR) labels whether players in the board game Diplomacy are being deceptive. We mapped "not deceptive" → "high trust." But the Diplomacy game's texts are *designed* to conceal intent — a skilled liar's prose reads as trustworthy by construction. The proxy measured *sender deceptive intent*, while the PSQ dimension measures *environmental trustworthiness*. These are not merely different constructs; they are inversely related in this dataset. **Removed.**
 
-**UCC generalisation_unfair → contractual_clarity (r = -0.10, bias = -2.32).** The mapping hypothesized that unfair generalizations indicate poor contractual clarity (unclear expectations). Empirically, the correlation was negative — the proxy was teaching the model the wrong direction. **Removed.**
+**UCC generalisation_unfair → contractual_clarity (*r* = −.10, bias = −2.32).** The mapping hypothesized that unfair generalizations indicate poor contractual clarity (unclear expectations). Empirically, the correlation was negative — the proxy was teaching the model the wrong direction. **Removed.**
 
-**UCC condescending → authority_dynamics (bias = +2.8, compressed range).** Condescension is related to authority but is a narrow sub-construct. The mapping over-predicted authority dynamics by 2.8 points on average. Retained with confidence halved (0.25 → 0.125).
+**UCC condescending → authority_dynamics (bias = +2.8, compressed range).** Condescension is related to authority but is a narrow sub-construct. The mapping over-predicted authority dynamics by 2.8 points on average. Retained with confidence halved (.25 → .125).
 
 ### 7b. Range Compression Pathology
 
-After removing pathological proxies for authority_dynamics, the remaining sources (Stanford Politeness, UCC condescending) had fundamentally compressed score ranges (σ = 0.73) compared to LLM labels (σ = 1.72). The model learned to predict the population mean for authority dynamics regardless of input — the classic regression-to-the-mean problem in the presence of high-noise, low-variance training signal.
+After removing pathological proxies for authority_dynamics, the remaining sources (Stanford Politeness, UCC condescending) had fundamentally compressed score ranges (*SD* = .73) compared to LLM labels (*SD* = 1.72). The model learned to predict the population mean for authority dynamics regardless of input — the classic regression-to-the-mean problem in the presence of high-noise, low-variance training signal.
 
 ### 7c. Confidence Weighting Refinement (v4)
 
@@ -220,7 +220,7 @@ We increased the confidence exponent from α = 1.0 to α = 2.0, following the lo
 
 | Metric | DeBERTa-v3-small | DistilBERT-base | Ratio |
 |---|---|---|---|
-| Test avg r (best) | 0.48–0.52 | 0.50–0.55 | 1.04× DistilBERT |
+| Test avg *r* (best) | .48–.52 | .50–.55 | 1.04× DistilBERT |
 | Training time/epoch | 45 min | 12 min | 3.75× faster |
 | Peak GPU memory | ~5.8 GB | ~3.2 GB | 1.8× less |
 | Max batch size (GTX 1060 6GB) | 8 | 16 | 2× larger |
@@ -272,20 +272,20 @@ The held-out evaluation revealed a **25% generalization gap**:
 
 | Metric | Test set | Held-out set | Gap |
 |---|---|---|---|
-| avg r (v9) | 0.515 | 0.385 | -25.2% |
-| avg r (v13) | 0.553 | 0.428 | -22.6% |
+| avg *r* (v9) | .515 | .385 | −25.2% |
+| avg *r* (v13) | .553 | .428 | −22.6% |
 
 The gap is dimension-dependent, reflecting the quality of proxy coverage:
 
-| Tier | Dimensions | Test r | Held-out r | Proxy quality |
+| Tier | Dimensions | Test *r* | Held-out *r* | Proxy quality |
 |---|---|---|---|---|
-| Strong | hostility, cooling, trust, resilience | 0.60–0.82 | 0.56–0.66 | Good direct proxies (Berkeley, GoEmotions) |
-| Moderate | authority, defensive, contractual, energy, regulatory | 0.35–0.65 | 0.30–0.46 | Indirect proxies or LLM-only signal |
-| Weak | threat_exposure | 0.68 | 0.12 | Poisoned proxy (see §12) |
+| Strong | hostility, cooling, trust, resilience | .60–.82 | .56–.66 | Good direct proxies (Berkeley, GoEmotions) |
+| Moderate | authority, defensive, contractual, energy, regulatory | .35–.65 | .30–.46 | Indirect proxies or LLM-only signal |
+| Weak | threat_exposure | .68 | .12 | Poisoned proxy (see §12) |
 
 The pattern is interpretable: dimensions with strong, construct-valid proxy data (where the source dataset's label genuinely measures the PSQ construct) generalize well. Dimensions relying primarily on synthetic or LLM data show moderate held-out performance — they generalize to new texts but not as robustly, likely because the synthetic distribution is narrower than the real-world distribution. Threat exposure is an outlier, explained in §12.
 
-**Psychometric context:** A held-out r of 0.428 is comparable to the cross-sample validity coefficients reported for brief personality measures (r ≈ 0.40–0.60; Soto & John, 2017) and substantially better than content-level affect analysis baselines (r ≈ 0.20–0.35; Ribeiro et al., 2016). The strong dimensions (r = 0.56–0.66) approach the reliability ceiling for single-rater content coding.
+**Psychometric context:** A held-out *r* of .428 is comparable to the cross-sample validity coefficients reported for brief personality measures (*r* ≈ .40–.60; Soto & John, 2017) and substantially better than content-level affect analysis baselines (*r* ≈ .20–.35; Ribeiro et al., 2016). The strong dimensions (*r* = .56–.66) approach the reliability ceiling for single-rater content coding.
 
 ## 11. LLM Relabeling and Data Correction (v10–v13)
 
@@ -301,21 +301,21 @@ Rather than generating more synthetic texts (which improves score-range coverage
 
 ### 11b. Results
 
-| Version | Data change | test_r | held-out_r | Δ held-out |
+| Version | Data change | test *r* | held-out *r* | Δ held-out |
 |---|---|---|---|---|
-| v9 | Baseline | 0.515 | 0.385 | — |
-| v10 | +1,000 relabeled | 0.534 | 0.425 | +10.4% |
-| v13 | +CC fix, +846 synthetic | 0.553 | 0.428 | +11.2% (vs v9) |
+| v9 | Baseline | .515 | .385 | — |
+| v10 | +1,000 relabeled | .534 | .425 | +10.4% |
+| v13 | +CC fix, +846 synthetic | .553 | .428 | +11.2% (vs v9) |
 
 The relabeling strategy (v10) produced a 10% improvement on held-out, the largest single-version gain in the project's history. This confirms the diagnosis: proxy noise, not model capacity, was the binding constraint.
 
-v13 added the Civil Comments fix (§12) and all remaining synthetic data. Test r improved further (+3.6%) but held-out was essentially flat relative to v10, suggesting that the remaining generalization gap requires either (a) substantially more relabeled data, (b) longer texts with richer signals, or (c) restructuring the dimensionality model (§13).
+v13 added the Civil Comments fix (§12) and all remaining synthetic data. Test *r* improved further (+3.6%) but held-out was essentially flat relative to v10, suggesting that the remaining generalization gap requires either (a) substantially more relabeled data, (b) longer texts with richer signals, or (c) restructuring the dimensionality model (§13).
 
 ## 12. The Civil Comments Poisoning: A Case Study in Proxy Misalignment
 
 ### 12a. The Symptom
 
-Threat_exposure was consistently the worst-performing dimension across all model versions (held-out r = 0.09–0.12), despite having the second-largest training set (~6,000 records). The model predicted high safety (scores 7–9) for virtually all texts, including those describing harassment, abuse, and violence. Mean prediction bias on held-out was +4.31 points: the model believed the world was 4 points safer than it actually was.
+Threat_exposure was consistently the worst-performing dimension across all model versions (held-out *r* = .09–.12), despite having the second-largest training set (~6,000 records). The model predicted high safety (scores 7–9) for virtually all texts, including those describing harassment, abuse, and violence. Mean prediction bias on held-out was +4.31 points: the model believed the world was 4 points safer than it actually was.
 
 ### 12b. Root Cause Analysis
 
@@ -335,7 +335,7 @@ This is a textbook example of the *jangle fallacy* (Kelley, 1927): using the sam
 
 ### 12c. The Damage
 
-At confidence = 0.40, these 1,754 records contributed substantial gradient signal: the model learned "text mentioning violence, harassment, or abuse → predict safe" from nearly two thousand examples. This prior was strong enough to override the ~400 correctly-labeled LLM and synthetic records, creating an effectively unlearnable dimension.
+At confidence = .40, these 1,754 records contributed substantial gradient signal: the model learned "text mentioning violence, harassment, or abuse → predict safe" from nearly two thousand examples. This prior was strong enough to override the ~400 correctly-labeled LLM and synthetic records, creating an effectively unlearnable dimension.
 
 ### 12d. The Fix
 
@@ -351,17 +351,17 @@ This connects to the broader measurement literature on *frame-of-reference effec
 
 ### 13a. The Inter-Correlation Problem
 
-**February 27, 2026.** Computing the inter-dimension correlation matrix on held-out data (n = 30 texts with complete 10-dimension LLM labels) revealed alarmingly high correlations across nearly all dimension pairs. The mean off-diagonal correlation was r = 0.641, with several pairs exceeding r = 0.90:
+**February 27, 2026.** Computing the inter-dimension correlation matrix on held-out data (*n* = 30 texts with complete 10-dimension LLM labels) revealed alarmingly high correlations across nearly all dimension pairs. The mean off-diagonal correlation was *r* = .641, with several pairs exceeding *r* = .90:
 
-| Pair | r | Shared variance (r²) |
+| Pair | *r* | Shared variance (*r*²) |
 |---|---|---|
-| authority_dynamics × hostility_index | 0.913 | 83.4% |
-| cooling_capacity × defensive_architecture | 0.879 | 77.3% |
-| regulatory_capacity × resilience_baseline | 0.954 | 91.0% |
-| cooling_capacity × regulatory_capacity | 0.890 | 79.2% |
-| contractual_clarity × trust_conditions | 0.890 | 79.2% |
+| authority_dynamics × hostility_index | .913 | 83.4% |
+| cooling_capacity × defensive_architecture | .879 | 77.3% |
+| regulatory_capacity × resilience_baseline | .954 | 91.0% |
+| cooling_capacity × regulatory_capacity | .890 | 79.2% |
+| contractual_clarity × trust_conditions | .890 | 79.2% |
 
-By the standards of discriminant validity (Campbell & Fiske, 1959), correlations above r = 0.85 between purportedly distinct constructs suggest they are measuring the same thing. If regulatory capacity and resilience baseline share 91% of their variance, the argument for separate dimensions is difficult to sustain.
+By the standards of discriminant validity (Campbell & Fiske, 1959), correlations above *r* = .85 between purportedly distinct constructs suggest they are measuring the same thing. If regulatory capacity and resilience baseline share 91% of their variance, the argument for separate dimensions is difficult to sustain.
 
 Three explanations were considered:
 
@@ -375,7 +375,7 @@ Three explanations were considered:
 
 To disentangle explanation 3 (halo) from explanations 1–2 (genuine structure), we designed a within-subjects experiment:
 
-**Method.** 30 held-out texts scored two ways:
+**Method.** Thirty held-out texts scored two ways:
 - **Joint condition:** All 10 dimensions scored in a single LLM call (the existing held-out labels).
 - **Separated condition:** Each dimension scored independently in separate LLM calls. Dimensions paired 2-per-call, with high-correlation pairs deliberately split across different calls to prevent within-call anchoring.
 
@@ -383,22 +383,22 @@ To disentangle explanation 3 (halo) from explanations 1–2 (genuine structure),
 
 | Metric | Joint scoring | Separated scoring | Difference |
 |---|---|---|---|
-| Mean off-diagonal r | 0.641 | 0.494 | -0.147 |
-| Pairs with r > 0.80 | 16 / 45 | 7 / 45 | -56% |
-| Pairs with r < 0.30 | 2 / 45 | 10 / 45 | +400% |
+| Mean off-diagonal *r* | .641 | .494 | −.147 |
+| Pairs with *r* > .80 | 16 / 45 | 7 / 45 | −56% |
+| Pairs with *r* < .30 | 2 / 45 | 10 / 45 | +400% |
 
-The halo effect accounts for approximately 0.15 correlation units — substantial but not the whole story. Some pairs dropped dramatically when scoring was separated (indicating halo artifact), while others barely changed (indicating genuine construct overlap):
+The halo effect accounts for approximately .15 correlation units — substantial but not the whole story. Some pairs dropped dramatically when scoring was separated (indicating halo artifact), while others barely changed (indicating genuine construct overlap):
 
-**Strong halo pairs** (joint → separated delta < -0.30):
-- authority × resilience: 0.76 → 0.04 (almost entirely halo)
-- cooling × resilience: 0.88 → 0.21 (mostly halo)
-- contractual × defensive: 0.77 → 0.13 (mostly halo)
-- cooling × regulatory: 0.89 → 0.34 (substantial halo)
+**Strong halo pairs** (joint → separated delta < −.30):
+- authority × resilience: .76 → .04 (almost entirely halo)
+- cooling × resilience: .88 → .21 (mostly halo)
+- contractual × defensive: .77 → .13 (mostly halo)
+- cooling × regulatory: .89 → .34 (substantial halo)
 
-**Genuine overlap pairs** (|delta| < 0.10):
-- regulatory × resilience: 0.95 → 0.93 (genuine: these constructs share theoretical roots in Lazarus & Folkman, 1984)
-- authority × trust: 0.83 → 0.88 (genuine: power and trust are theoretically entangled — Edmondson, 1999)
-- defensive × regulatory: 0.73 → 0.71 (genuine: both involve internal protective capacity)
+**Genuine overlap pairs** (|delta| < .10):
+- regulatory × resilience: .95 → .93 (genuine: these constructs share theoretical roots in Lazarus & Folkman, 1984)
+- authority × trust: .83 → .88 (genuine: power and trust are theoretically entangled — Edmondson, 1999)
+- defensive × regulatory: .73 → .71 (genuine: both involve internal protective capacity)
 
 ### 13c. Emergent Factor Structure
 
@@ -406,18 +406,18 @@ When halo is removed, a two-cluster structure emerges that maps remarkably well 
 
 **Cluster 1: Interpersonal Climate (Environmental Demands)**
 - authority_dynamics, contractual_clarity, trust_conditions, threat_exposure
-- Within-cluster mean r = 0.79 (separated scoring)
+- Within-cluster mean *r* = .79 (separated scoring)
 - Theoretical interpretation: these dimensions assess the *external environment's* safety properties — power dynamics, contractual obligations, interpersonal trust, and threat exposure. In JD-R terms, these are *demands* (or inversely, *environmental resources*).
 
 **Cluster 2: Internal Resources (Personal Capacities)**
 - regulatory_capacity, resilience_baseline, defensive_architecture
-- Within-cluster mean r = 0.80 (separated scoring)
+- Within-cluster mean *r* = .80 (separated scoring)
 - Theoretical interpretation: these dimensions assess the *individual's* capacity to manage psychoemotional challenge — emotion regulation, resilience, and defense/boundary patterns. In JD-R terms, these are *personal resources*.
 
 **Bridge dimensions:**
-- cooling_capacity (r = 0.58–0.76 with Cluster 1; r = 0.21–0.35 with Cluster 2)
-- energy_dissipation (r = 0.54–0.77 with Cluster 1; r = 0.42–0.52 with Cluster 2)
-- hostility_index (r = 0.55–0.69 with Cluster 1; r = -0.07–0.16 with Cluster 2)
+- cooling_capacity (*r* = .58–.76 with Cluster 1; *r* = .21–.35 with Cluster 2)
+- energy_dissipation (*r* = .54–.77 with Cluster 1; *r* = .42–.52 with Cluster 2)
+- hostility_index (*r* = .55–.69 with Cluster 1; *r* = −.07–.16 with Cluster 2)
 
 The bridge dimensions align with theory: cooling capacity involves both environmental features (de-escalation mechanisms, temporal buffers) and personal skills (cognitive reappraisal), placing it between clusters. Energy dissipation similarly spans environmental demands (workload, conflict intensity) and personal resources (recovery capacity, flow access).
 
@@ -431,7 +431,7 @@ The emerging evidence suggests that the PSQ's 10 dimensions may be better repres
 
 This is directly analogous to the bifactor structure found in other multi-dimensional psychological instruments: the DASS-21 (depression + anxiety + stress + general distress; Henry & Crawford, 2005), the PCL-5 (4 PTSD symptom clusters + general PTSD; Armour et al., 2016), and the ProQOL (compassion satisfaction + burnout + secondary trauma + general wellbeing; Stamm, 2010).
 
-**Status:** The halo experiment (n = 30) is suggestive but not confirmatory. A proper bifactor analysis would require n ≥ 200 texts with separated scoring, followed by confirmatory factor analysis comparing the 10-factor, bifactor, and hierarchical models using fit indices (CFI, RMSEA, BIC). This is a priority for the next phase of development.
+**Status:** The halo experiment (*n* = 30) is suggestive but not confirmatory. A proper bifactor analysis would require *n* ≥ 200 texts with separated scoring, followed by confirmatory factor analysis comparing the 10-factor, bifactor, and hierarchical models using fit indices (CFI, RMSEA, BIC). This is a priority for the next phase of development.
 
 ## 14. Current State and Open Questions
 
@@ -441,32 +441,32 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
 | Training data | 22,186 texts in DB (90,361 scores, 34,850 separated-llm) |
-| Test avg Pearson r | 0.387 (test-split paradox: mixed proxy/LLM labels as ground truth) |
-| Held-out avg Pearson r | **0.696** (new best; +0.014 vs v22a, +0.066 vs v21) |
-| Generalization gap | N/A (test_r not comparable when proxy training removed) |
+| Test avg Pearson *r* | .387 (test-split paradox: mixed proxy/LLM labels as ground truth) |
+| Held-out avg Pearson *r* | **.684** (production best; corrected from .696 after max_length eval bug fix) |
+| Generalization gap | N/A (test *r* not comparable when proxy training removed) |
 | ONNX model size | 64 MB (INT8 quantized), 254 MB (full precision) |
-| Inference latency | ~20ms / text (CPU) |
+| Inference latency | ~20 ms/text (CPU) |
 
 ### 14b. Psychometric Properties
 
 | Property | Status | Evidence | Standard |
 |---|---|---|---|
-| Test-retest reliability | Excellent | ICC = 0.935 (perturbation-based) | ICC > 0.75 (Cicchetti, 1994) |
-| Discriminant validity (vs. sentiment) | Strong | Mean |r| = 0.205 vs VADER | r < 0.30 (distinct construct) |
+| Test-retest reliability | Excellent | ICC = .935 (perturbation-based) | ICC > .75 (Cicchetti, 1994) |
+| Discriminant validity (vs. sentiment) | Strong | Mean |*r*| = .205 vs VADER | *r* < .30 (distinct construct) |
 | Confidence calibration | Done | Isotonic regression; 8/10 dims improved | Platt (1999) |
-| Held-out generalization | **Strong** | r = **0.696**, n = 100 (separated labels, v23) | Comparable to brief personality measures |
-| Construct validity (discriminant) | Confirmed | 5-factor EFA (n=2,359); AD/ED singletons | CFA needed (n ≥ 200) |
-| Criterion validity | **Strong** | **4 studies: CaSiNo, CGA-Wiki, CMV, DonD** (AUC 0.57–0.73) | Profile >> average; context-dependent primacy |
+| Held-out generalization | **Strong** | *r* = **.684**, *n* = 100 (separated labels, v23) | Comparable to brief personality measures |
+| Construct validity (discriminant) | Confirmed | 5-factor EFA (*n* = 2,359); AD/ED singletons | CFA needed (*n* ≥ 200) |
+| Criterion validity | **Strong** | **4 studies: CaSiNo, CGA-Wiki, CMV, DonD** (AUC .57–.73) | Profile >> average; context-dependent primacy |
 | Inter-rater reliability | Not measured | — | Critical gap |
 | Measurement invariance | Not measured | — | DIF analysis across text types |
 
 ### 14c. Open Questions
 
-1. ~~**Dimensionality restructuring.** Should the 10-dimension model be replaced with a hierarchical structure (g-PSQ + clusters + dimensions)? The halo experiment suggests genuine factor structure, but the sample size (n = 30) is insufficient for confirmatory analysis.~~ **ANSWERED (§51, 2026-02-28):** Hierarchical model confirmed — PSQ → 2-3 cluster → 5-group → 10-dimension. The g-factor is a range/extremity effect (real co-variation), not scorer halo. Extreme texts (g < 3 or g > 7): EV1 = 82.8%, uniform loadings; middle texts (g 4-6): EV1 = 38.7%, structured loadings. Bifactor architecture rejected (v19b: per-dim test_r regressed; g IS the construct at broadest level). Middle-g text enrichment adopted as the structural approach.
+1. ~~**Dimensionality restructuring.** Should the 10-dimension model be replaced with a hierarchical structure (g-PSQ + clusters + dimensions)? The halo experiment suggests genuine factor structure, but the sample size (*n* = 30) is insufficient for confirmatory analysis.~~ **ANSWERED (§51, 2026-02-28):** Hierarchical model confirmed — PSQ → 2–3 cluster → 5-group → 10-dimension. The g-factor is a range/extremity effect (real co-variation), not scorer halo. Extreme texts (g < 3 or g > 7): EV1 = 82.8%, uniform loadings; middle texts (g 4–6): EV1 = 38.7%, structured loadings. Bifactor architecture rejected (v19b: per-dim test *r* regressed; g IS the construct at broadest level). Middle-g text enrichment adopted as the structural approach.
 
-2. ~~**Threat exposure rehabilitation.** Despite the Civil Comments fix and improvement to r=0.41 (v15), threat_exposure regressed from v14 (0.48) and remains volatile. The model's legacy "default to safe" prior may require architectural intervention (e.g., dimension-specific learning rates) rather than just data correction.~~ **ANSWERED (v23, 2026-02-28):** TE fully rehabilitated. v23 held-out r = 0.800 — the strongest dimension. Root cause: adversarial proxy data from Civil Comments conflated author-directed threat with environmental safety (jangle fallacy). Proxy removal via `--drop-proxy-dims` resolved the default-to-safe prior entirely. No architectural intervention needed.
+2. ~~**Threat exposure rehabilitation.** Despite the Civil Comments fix and improvement to *r* = .41 (v15), threat_exposure regressed from v14 (.48) and remains volatile. The model's legacy "default to safe" prior may require architectural intervention (e.g., dimension-specific learning rates) rather than just data correction.~~ **ANSWERED (v23, 2026-02-28):** TE fully rehabilitated. v23 held-out *r* = .800 — the strongest dimension. Root cause: adversarial proxy data from Civil Comments conflated author-directed threat with environmental safety (jangle fallacy). Proxy removal via `--drop-proxy-dims` resolved the default-to-safe prior entirely. No architectural intervention needed.
 
-3. ~~**Training ceiling.** Test r has grown from 0.492 (v1) to 0.553 (v13) — a 12% improvement over 13 versions. The diminishing returns suggest we may be approaching the ceiling for this architecture + data mix. Next steps likely require either substantially more LLM-labeled data (expensive) or a larger base model (compute-constrained).~~ **ANSWERED (v23, 2026-02-28):** Ceiling not reached. Held-out r continues to improve: v21=0.630 → v22a=0.682 → v23=0.696. The test_r paradox (proxy labels as ground truth) was masking real improvement. Data quality interventions (proxy removal, separated-llm labels) remain productive. Context length experiment (v24: 256 tokens) is the next architectural variable under test.
+3. ~~**Training ceiling.** Test *r* has grown from .492 (v1) to .553 (v13) — a 12% improvement over 13 versions. The diminishing returns suggest we may be approaching the ceiling for this architecture + data mix. Next steps likely require either substantially more LLM-labeled data (expensive) or a larger base model (compute-constrained).~~ **ANSWERED (v23, 2026-02-28):** Ceiling not reached. Held-out *r* continues to improve: v21 = .630 → v22a = .682 → v23 = .684. The test *r* paradox (proxy labels as ground truth) was masking real improvement. Data quality interventions (proxy removal, separated-llm labels) remain productive. Context length experiment (v24: 256 tokens) is the next architectural variable under test.
 
 4. **Human validation.** All "ground truth" in this project is LLM-generated. The held-out test uses LLM labels as truth, the halo experiment uses LLM ratings, and the psychometric evaluation treats LLM consistency as reliability. A proper validation study requires human expert ratings — clinical or organizational psychologists scoring texts on the PSQ dimensions — to assess whether the LLM teacher itself is valid. This is the most important missing piece.
 
@@ -484,7 +484,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ### 14e. What Didn't Work
 
-- **Detoxify as proxy teacher** — insufficient construct correlation (r = 0.51–0.74)
+- **Detoxify as proxy teacher** — insufficient construct correlation (*r* = .51–.74)
 - **Diplomacy dataset for trust** — sender intent ≠ environmental trustworthiness
 - **Civil Comments for threat exposure** — author-directed threat ≠ environment-directed safety (jangle fallacy)
 - **UCC generalisation_unfair for contractual clarity** — negative correlation, wrong direction
@@ -497,7 +497,7 @@ This is directly analogous to the bifactor structure found in other multi-dimens
 
 ### 15a. From Diagnosis to Intervention
 
-**February 27, 2026.** The halo experiment (§13b) diagnosed the problem: joint LLM scoring inflates inter-dimension correlations by ~0.15 on average, contaminating both training labels and evaluation benchmarks. Three interventions followed in the same session.
+**February 27, 2026.** The halo experiment (§13b) diagnosed the problem: joint LLM scoring inflates inter-dimension correlations by ~.15 on average, contaminating both training labels and evaluation benchmarks. Three interventions followed in the same session.
 
 ### 15b. Separated Scoring Workflow
 
@@ -518,29 +518,29 @@ All 100 held-out texts were re-scored with separated calls — one dimension per
 
 | Metric | Joint | Separated | Change |
 |---|---|---|---|
-| Mean inter-dim \|r\| | 0.766 | 0.656 | -0.111 (PASS) |
-| Between-cluster mean \|r\| | 0.765 | 0.639 | -0.126 (PASS) |
-| Discriminant ratio (within/between) | 1.10× | 1.05× | -0.05 |
+| Mean inter-dim \|*r*\| | .766 | .656 | −.111 (PASS) |
+| Between-cluster mean \|*r*\| | .765 | .639 | −.126 (PASS) |
+| Discriminant ratio (within/between) | 1.10× | 1.05× | −.05 |
 
-The mean correlation drop of 0.111 confirms that halo contamination was present in the held-out labels. The discriminant ratio did not improve — expected, given that the joint file had sparse dimension coverage (0 of 100 records with all 10 dims present), making the baseline ratio unreliable. The separated file has complete 10-dimension coverage on all 100 records.
+The mean correlation drop of .111 confirms that halo contamination was present in the held-out labels. The discriminant ratio did not improve — expected, given that the joint file had sparse dimension coverage (0 of 100 records with all 10 dims present), making the baseline ratio unreliable. The separated file has complete 10-dimension coverage on all 100 records.
 
 **Re-evaluation against student model (v13):**
 
-| Dimension | Joint r | Separated r | Direction |
+| Dimension | Joint *r* | Separated *r* | Direction |
 |---|---|---|---|
-| cooling_capacity | 0.574 | 0.574 | Stable |
-| trust_conditions | 0.498 | 0.498 | Stable |
-| resilience_baseline | 0.496 | 0.496 | Stable |
-| hostility_index | 0.480 | 0.480 | Stable |
-| authority_dynamics | 0.457 | 0.457 | Stable |
-| energy_dissipation | 0.393 | 0.393 | Stable |
-| defensive_architecture | 0.368 | 0.368 | Stable |
-| regulatory_capacity | 0.325 | 0.325 | Stable |
-| contractual_clarity | 0.271 | 0.271 | Stable |
-| threat_exposure | 0.160 | 0.160 | Stable |
-| **Average** | **0.428** | **0.402** | **-0.026** |
+| cooling_capacity | .574 | .574 | Stable |
+| trust_conditions | .498 | .498 | Stable |
+| resilience_baseline | .496 | .496 | Stable |
+| hostility_index | .480 | .480 | Stable |
+| authority_dynamics | .457 | .457 | Stable |
+| energy_dissipation | .393 | .393 | Stable |
+| defensive_architecture | .368 | .368 | Stable |
+| regulatory_capacity | .325 | .325 | Stable |
+| contractual_clarity | .271 | .271 | Stable |
+| threat_exposure | .160 | .160 | Stable |
+| **Average** | **.428** | **.402** | **−.026** |
 
-The avg_r drop from 0.428 to 0.402 is modest and expected: the separated labels are a harder, more discriminating benchmark. The student model's per-dimension rankings are unchanged — the same four dimensions (cooling, trust, resilience, hostility) remain strongest, and threat_exposure remains weakest at r = 0.16.
+The mean *r* drop from .428 to .402 is modest and expected: the separated labels are a harder, more discriminating benchmark. The student model's per-dimension rankings are unchanged — the same four dimensions (cooling, trust, resilience, hostility) remain strongest, and threat_exposure remains weakest at *r* = .16.
 
 ### 15d. Hierarchical Reporting
 
@@ -561,7 +561,7 @@ This follows the pattern established by bifactor instruments in clinical psychol
 
 ### 15e. Remaining Gaps
 
-The separated scoring workflow establishes the tooling for halo-free labeling but does not yet address the training data. The 4,199 LLM records in `train-llm.jsonl` were scored jointly and carry the ~0.15 halo inflation. Re-labeling these with separated scoring, followed by a v14 training run, is the highest-priority next step. See `suggestions.md` for the full prioritized backlog.
+The separated scoring workflow establishes the tooling for halo-free labeling but does not yet address the training data. The 4,199 LLM records in `train-llm.jsonl` were scored jointly and carry the ~.15 halo inflation. Re-labeling these with separated scoring, followed by a v14 training run, is the highest-priority next step. See `suggestions.md` for the full prioritized backlog.
 
 ---
 
@@ -586,11 +586,11 @@ Future training runs should follow the convention `--out models/psq-vN`, reservi
 
 ### 16c. V14 Results
 
-Training completed: 10 epochs, best checkpoint at epoch 8 (val_r = 0.528). Test-set average r = 0.544. Held-out average r = 0.482 — a +0.080 improvement over v13, the largest single-version gain in the project.
+Training completed: 10 epochs, best checkpoint at epoch 8 (val *r* = .528). Test-set average *r* = .544. Held-out average *r* = .482 — a +.080 improvement over v13, the largest single-version gain in the project.
 
-The held-out results answered the question of whether 200 separated-scored texts per dimension is sufficient: yes, substantially so. Eight of ten dimensions improved, with the three formerly-weakest showing the largest gains — threat_exposure jumped from r = 0.16 to r = 0.41, contractual_clarity from r = 0.27 to r = 0.43, and energy_dissipation from r = 0.39 to r = 0.53. This pattern is consistent with the expectation that halo-inflated joint labels were specifically harmful for dimensions with strong theoretical independence (threat and contractual clarity have low conceptual overlap with the remaining eight), and that even 200 clean separated labels is sufficient to override years of accumulated halo bias.
+The held-out results answered the question of whether 200 separated-scored texts per dimension is sufficient: yes, substantially so. Eight of ten dimensions improved, with the three formerly-weakest showing the largest gains — threat_exposure jumped from *r* = .16 to *r* = .41, contractual_clarity from *r* = .27 to *r* = .43, and energy_dissipation from *r* = .39 to *r* = .53. This pattern is consistent with the expectation that halo-inflated joint labels were specifically harmful for dimensions with strong theoretical independence (threat and contractual clarity have low conceptual overlap with the remaining eight), and that even 200 clean separated labels is sufficient to override years of accumulated halo bias.
 
-One notable regression: regulatory_capacity declined from r = 0.325 to r = 0.244 on the held-out set, despite a test-set r of 0.527. This test/held-out inversion suggests the 200 new rc labels may be sampling from a narrower distribution (Reddit stress posts, emotional support conversations) that does not generalize to the real-world rc benchmark. Regulatory capacity — the dimension assessing whether a communication environment provides adequate stress-regulatory resources — may require training texts drawn from organizational and workplace contexts rather than peer support contexts. This is the primary open question for v15 data planning.
+One notable regression: regulatory_capacity declined from *r* = .325 to *r* = .244 on the held-out set, despite a test-set *r* of .527. This test/held-out inversion suggests the 200 new rc labels may be sampling from a narrower distribution (Reddit stress posts, emotional support conversations) that does not generalize to the real-world rc benchmark. Regulatory capacity — the dimension assessing whether a communication environment provides adequate stress-regulatory resources — may require training texts drawn from organizational and workplace contexts rather than peer support contexts. This is the primary open question for v15 data planning.
 
 ### 16d. Current State (V15)
 
@@ -599,40 +599,40 @@ One notable regression: regulatory_capacity declined from r = 0.325 to r = 0.244
 | Architecture | DistilBERT-base-uncased (66.7M params) |
 | Training data | 20,127 texts (DB), 16,046 train split |
 | Separated-llm labels | 9,771 (all 10 dims) |
-| Test avg Pearson r | 0.536 |
-| Held-out avg Pearson r | 0.495 (+0.013 vs v14, +0.093 vs v13) |
+| Test avg Pearson *r* | .536 |
+| Held-out avg Pearson *r* | .495 (+.013 vs v14, +.093 vs v13) |
 | Generalization gap | 7.6% (down from 11.4% in v14) |
 | Checkpoint | `models/psq-v15/best.pt` |
 
-The generalization gap continues to shrink — from 27.3% (v13) to 11.4% (v14) to 7.6% (v15) — as separated-llm labels replace noisy proxy data. The AD batch produced the single largest per-dimension held-out gain in the project (authority_dynamics +0.166), validating the targeted labeling strategy. The remaining weak points are regulatory_capacity (0.285, still lowest) and a new contractual_clarity regression (0.498→0.388) that warrants investigation.
+The generalization gap continues to shrink — from 27.3% (v13) to 11.4% (v14) to 7.6% (v15) — as separated-llm labels replace noisy proxy data. The AD batch produced the single largest per-dimension held-out gain in the project (authority_dynamics +.166), validating the targeted labeling strategy. The remaining weak points are regulatory_capacity (.285, still lowest) and a new contractual_clarity regression (.498 → .388) that warrants investigation.
 
 ---
 
 ## 17. Score-Concentration Fix and Targeted Labeling (2026-02-27)
 
-The contractual_clarity regression in v15 (held-out 0.498→0.388) revealed a systematic vulnerability in our dimension-focused labeling strategy. When we scored 300 texts selected for authority_dynamics relevance, those texts were naturally neutral on contractual_clarity — producing correct but monotonic co=5 labels. With separated-llm priority and 5× sample weight, 58% of the co training distribution collapsed to a single value, overwhelming the co head with uninformative gradient.
+The contractual_clarity regression in v15 (held-out .498 → .388) revealed a systematic vulnerability in our dimension-focused labeling strategy. When we scored 300 texts selected for authority_dynamics relevance, those texts were naturally neutral on contractual_clarity — producing correct but monotonic co=5 labels. With separated-llm priority and 5× sample weight, 58% of the co training distribution collapsed to a single value, overwhelming the co head with uninformative gradient.
 
 This is not a labeling error — the labels are correct — but a statistical imbalance inherent to our approach: every dimension-focused batch creates score concentration on non-target dimensions. The problem was not isolated to co; a post-hoc audit found that 9 of 10 dimensions had >30% score-5 concentration, with resilience_baseline at 58% and cooling_capacity at 52%.
 
-We implemented a systemic fix: `_cap_score_concentration()` in `distill.py` identifies any (dimension, rounded_score) pair exceeding 30% of samples and reduces excess rows' sample_weight from 5.0 to 1.5 — preserving the labels but limiting their influence to composite-proxy levels. The approach is deterministic (seed=42), applies per-dimension, and is enabled by default. A 1-epoch smoke test showed immediate co recovery (test r=0.737 vs v15's 0.388 on held-out), though single-epoch numbers should not be over-interpreted.
+We implemented a systemic fix: `_cap_score_concentration()` in `distill.py` identifies any (dimension, rounded_score) pair exceeding 30% of samples and reduces excess rows' sample_weight from 5.0 to 1.5 — preserving the labels but limiting their influence to composite-proxy levels. The approach is deterministic (seed=42), applies per-dimension, and is enabled by default. A 1-epoch smoke test showed immediate co recovery (test *r* = .737 vs v15's .388 on held-out), though single-epoch numbers should not be over-interpreted.
 
 To complement the systemic fix, we extracted a CO-focused labeling batch: 200 texts from the unlabeled pool filtered by contractual-clarity keywords (agree, rule, policy, obligation, consent, permission, etc.). The co dimension was scored with 52% non-5 scores (range 1–9, mean 5.20), providing the distributional variance the co head needs. All 10 dimensions were scored and ingested in a single session, bringing the database to 20,327 texts and 65,361 scores. Comparing the CO batch's separated-llm scores to prior batches confirmed the targeting worked: 47.5% score-5 in the CO batch versus 58.3% in prior separated-llm CO labels.
 
 A practical addition: labeling sessions now record timing data. The ingest command accepts `--started-at` and logs duration and throughput to `data/labeling_log.jsonl`. The full CO batch (200 texts × 10 dimensions) completed in 25.3 minutes — an average throughput of 4,743 texts/hr. Scoring speed varied significantly by context: first-encounter dimensions required careful reading (~3,500 texts/hr), while dimensions scored after the texts were already in working memory reached 23,000–24,000 texts/hr. This data will inform batch size planning for future labeling campaigns.
 
-v16 training was launched with both fixes active. Epoch 1 showed co test r=0.71, a dramatic recovery from v15's 0.388 held-out, though early-epoch numbers warrant caution.
+v16 training was launched with both fixes active. Epoch 1 showed co test *r* = .71, a dramatic recovery from v15's .388 held-out, though early-epoch numbers warrant caution.
 
-### 17a. v16 Results: Best Held-Out Ever (0.561)
+### 17a. v16 Results: Best Held-Out Ever (.561)
 
-v16 training completed with both the concentration cap and three targeted batches (CO, RB, CC — 600 texts × 10 dims = 6,000 new separated-llm scores). The held-out evaluation produced the best result to date: **r=0.561** (+0.066 vs v15, +0.133 vs v13). Eight of ten dimensions improved, with two dramatic recoveries:
+v16 training completed with both the concentration cap and three targeted batches (CO, RB, CC — 600 texts × 10 dims = 6,000 new separated-llm scores). The held-out evaluation produced the best result to date: **mean *r* = .561** (+.066 vs v15, +.133 vs v13). Eight of ten dimensions improved, with two dramatic recoveries:
 
-- **Regulatory capacity** jumped from 0.285 to 0.563 (+0.278), the single largest per-dimension gain in the project's history, surpassing the AD batch's authority_dynamics +0.166 in v15. The combination of concentration cap (which reduced the overwhelming weight of score-5 samples from 45% of rc's distribution) and the RB/CC batches providing additional varied training signal appears to have unblocked the rc head.
+- **Regulatory capacity** jumped from .285 to .563 (+.278), the single largest per-dimension gain in the project's history, surpassing the AD batch's authority_dynamics +.166 in v15. The combination of concentration cap (which reduced the overwhelming weight of score-5 samples from 45% of rc's distribution) and the RB/CC batches providing additional varied training signal appears to have unblocked the rc head.
 
-- **Contractual clarity** recovered from 0.388 to 0.534 (+0.146), confirming that the score-5 flooding diagnosis was correct. The CO batch's targeted keywords produced 52% non-5 co scores, and the concentration cap ensured the remaining score-5 samples did not dominate training.
+- **Contractual clarity** recovered from .388 to .534 (+.146), confirming that the score-5 flooding diagnosis was correct. The CO batch's targeted keywords produced 52% non-5 co scores, and the concentration cap ensured the remaining score-5 samples did not dominate training.
 
-One concerning regression: **threat_exposure** dropped from 0.476 to 0.347 (-0.129). This dimension has been volatile across versions — 0.367 in v13, 0.476 in v14, 0.410 in v15, now 0.347. The test split shows te at 0.522, suggesting the model has learned te patterns that don't generalize to the held-out distribution. Investigation is needed: the held-out te labels may need re-examination, or te may be particularly sensitive to the concentration cap's down-weighting (49% of te scores were 5, with 945 down-weighted).
+One concerning regression: **threat_exposure** dropped from .476 to .347 (−.129). This dimension has been volatile across versions — .367 in v13, .476 in v14, .410 in v15, now .347. The test split shows te at .522, suggesting the model has learned te patterns that don't generalize to the held-out distribution. Investigation is needed: the held-out te labels may need re-examination, or te may be particularly sensitive to the concentration cap's down-weighting (49% of te scores were 5, with 945 down-weighted).
 
-Notably, the generalization gap inverted: test_r=0.529 vs held-out_r=0.561, meaning the model performs *better* on unseen real-world texts than on the seen-distribution test set. This is unusual but not unprecedented — it likely reflects that separated-llm labels (which dominate the held-out set) are more consistent than the mixed composite/joint-llm labels in the test split.
+Notably, the generalization gap inverted: test *r* = .529 vs held-out *r* = .561, meaning the model performs *better* on unseen real-world texts than on the seen-distribution test set. This is unusual but not unprecedented — it likely reflects that separated-llm labels (which dominate the held-out set) are more consistent than the mixed composite/joint-llm labels in the test split.
 
 ### 17b. Current State (v16)
 
@@ -641,20 +641,20 @@ Notably, the generalization gap inverted: test_r=0.529 vs held-out_r=0.561, mean
 | Architecture | DistilBERT-base-uncased (66.7M params) |
 | Training data | 20,727 texts (DB), 16,216 train split |
 | Separated-llm labels | 15,771 (all 10 dims) |
-| Test avg Pearson r | 0.529 |
-| Held-out avg Pearson r | 0.561 (+0.066 vs v15, +0.133 vs v13) |
-| Generalization gap | -6.0% (held-out exceeds test) |
+| Test avg Pearson *r* | .529 |
+| Held-out avg Pearson *r* | .561 (+.066 vs v15, +.133 vs v13) |
+| Generalization gap | −6.0% (held-out exceeds test) |
 | Checkpoint | `models/psq-v16/best.pt` |
 
 ---
 
 ## 18. Factor Analysis: The General Factor Question (2026-02-28)
 
-We subjected the 10-dimension PSQ to full exploratory factor analysis for the first time. The dataset comprised 2,359 texts with complete 10-dimension coverage — 1,470 from separated-llm scoring (halo-free) and the remainder from joint-llm and composite-proxy sources. KMO was 0.819 (meritorious), confirming the data was well-suited for factor analysis.
+We subjected the 10-dimension PSQ to full exploratory factor analysis for the first time. The dataset comprised 2,359 texts with complete 10-dimension coverage — 1,470 from separated-llm scoring (halo-free) and the remainder from joint-llm and composite-proxy sources. KMO was .819 (meritorious), confirming the data was well-suited for factor analysis.
 
 The results were unambiguous: the 10-factor independence hypothesis was rejected by every standard criterion. Kaiser's rule retained 3 factors, parallel analysis retained 2, and BIC model selection favored 5. A dominant first eigenvalue (4.844, explaining 48.4% of variance) indicated that most dimensions load on a single general factor — what we might call "overall psychological safety of content."
 
-The finding was even stronger in the separated-llm subset. Counter-intuitively, halo-free scoring produced *higher* inter-dimension correlations (mean |r|=0.564 vs 0.417 for all data). We had expected the opposite: that joint scoring inflated correlations and separated scoring would reveal independence. Instead, the composite-proxy data — with its narrow, noisy per-dimension mappings — had been *artificially deflating* correlations by introducing independent noise into each dimension. When scored with careful, dimension-specific attention, the LLM teacher recognized the genuine co-variation that exists in natural text: hostile content really does tend to lack trust, impair regulation, and involve power imbalances.
+The finding was even stronger in the separated-llm subset. Counter-intuitively, halo-free scoring produced *higher* inter-dimension correlations (mean |*r*| = .564 vs .417 for all data). We had expected the opposite: that joint scoring inflated correlations and separated scoring would reveal independence. Instead, the composite-proxy data — with its narrow, noisy per-dimension mappings — had been *artificially deflating* correlations by introducing independent noise into each dimension. When scored with careful, dimension-specific attention, the LLM teacher recognized the genuine co-variation that exists in natural text: hostile content really does tend to lack trust, impair regulation, and involve power imbalances.
 
 The BIC-best 5-factor solution revealed interpretable clusters: Hostility/Threat (HI, TE, CC), Relational Contract (CO, TC), Internal Resources (RB, RC, DA), Power Dynamics (AD), and Stress/Energy (ED). Defensive architecture cross-loaded on three factors, confirming its status as the most diffuse construct in the system (see §12 in the psychometric evaluation).
 
@@ -666,13 +666,13 @@ Our recommendation is a hierarchical reporting model: an overall PSQ score (gene
 
 ## 19. Expert Validation Protocol: The DA Question (2026-02-28)
 
-The factor analysis (§18) surfaced a structural question that no amount of LLM training can resolve: is Defensive Architecture a distinct, scorable psychological construct, or an artifact of general safety assessment? DA's empirical profile is troubling on multiple fronts. At the 5-factor level, its maximum promax loading is 0.332 — below even the lenient 0.35 threshold for meaningful factor membership. Its mean correlation with the other 9 dimensions is 0.480, essentially identical to its correlations with both the Hostility/Threat cluster (r=0.603) and Internal Resources cluster (r=0.608). In the separated-llm data, DA correlates 0.825 with Trust Conditions, 0.768 with Regulatory Capacity, and 0.744 with Cooling Capacity — correlations high enough to question discriminant validity.
+The factor analysis (§18) surfaced a structural question that no amount of LLM training can resolve: is Defensive Architecture a distinct, scorable psychological construct, or an artifact of general safety assessment? DA's empirical profile is troubling on multiple fronts. At the 5-factor level, its maximum promax loading is .332 — below even the lenient .35 threshold for meaningful factor membership. Its mean correlation with the other 9 dimensions is .480, essentially identical to its correlations with both the Hostility/Threat cluster (*r* = .603) and Internal Resources cluster (*r* = .608). In the separated-llm data, DA correlates .825 with Trust Conditions, .768 with Regulatory Capacity, and .744 with Cooling Capacity — correlations high enough to question discriminant validity.
 
-One response would be to improve the LLM's DA scoring through targeted labeling batches, as we had done successfully for Authority Dynamics (+0.166 improvement after 300-text batch). But this treats a construct validity question with a measurement precision tool. If DA genuinely measures a distinct boundary-related construct that happens to be underspecified in text, then improving measurement precision might reveal discriminant validity. If DA is genuinely diffuse — a construct that exists in clinical practice but lacks a distinct textual signature — then better measurement will only confirm the diffuseness with more certainty.
+One response would be to improve the LLM's DA scoring through targeted labeling batches, as we had done successfully for Authority Dynamics (+.166 improvement after 300-text batch). But this treats a construct validity question with a measurement precision tool. If DA genuinely measures a distinct boundary-related construct that happens to be underspecified in text, then improving measurement precision might reveal discriminant validity. If DA is genuinely diffuse — a construct that exists in clinical practice but lacks a distinct textual signature — then better measurement will only confirm the diffuseness with more certainty.
 
-The scientifically sound approach is external validation by human experts. We designed a comprehensive expert panel study (`expert-validation-protocol.md`) to resolve three research questions: (1) Can trained raters achieve acceptable inter-rater reliability (ICC ≥ 0.70) on each of the 10 PSQ dimensions? (2) Is DA empirically separable from the other 9 dimensions in expert ratings? (3) How do expert ratings compare to LLM teacher scores?
+The scientifically sound approach is external validation by human experts. We designed a comprehensive expert panel study (`expert-validation-protocol.md`) to resolve three research questions: (1) Can trained raters achieve acceptable inter-rater reliability (ICC ≥ .70) on each of the 10 PSQ dimensions? (2) Is DA empirically separable from the other 9 dimensions in expert ratings? (3) How do expert ratings compare to LLM teacher scores?
 
-The study proposes 5 expert psychologists scoring 200 stratified texts across all 10 dimensions — a fully crossed design yielding 10,000 ratings. The text sample is stratified to oversample DA-extreme texts (60 texts with DA scores ≤3 or ≥7) alongside general safety-range texts and factor-informative texts. The DA-specific decision tree is explicit: if expert ICC for DA falls below 0.50, DA is not reliably scorable from text and should be deprecated. If DA partial correlations (controlling for g-PSQ) all fall below 0.30, DA captures something distinct and should be retained. If R² > 0.80 from the other 9 dimensions, DA is redundant and should be absorbed into the nearest cluster.
+The study proposes 5 expert psychologists scoring 200 stratified texts across all 10 dimensions — a fully crossed design yielding 10,000 ratings. The text sample is stratified to oversample DA-extreme texts (60 texts with DA scores ≤3 or ≥7) alongside general safety-range texts and factor-informative texts. The DA-specific decision tree is explicit: if expert ICC for DA falls below .50, DA is not reliably scorable from text and should be deprecated. If DA partial correlations (controlling for g-PSQ) all fall below .30, DA captures something distinct and should be retained. If *R*² > .80 from the other 9 dimensions, DA is redundant and should be absorbed into the nearest cluster.
 
 This represents a pivotal methodological shift. Until now, all "ground truth" in the PSQ project has been LLM-generated — the held-out evaluation uses LLM labels, the factor analysis uses LLM scores, and the psychometric evaluation treats LLM consistency as a proxy for reliability. The expert panel study introduces the first fully independent human judgment into the validation chain. Its results will determine not only DA's fate but also whether the LLM teacher itself is measuring what clinical psychologists would recognize as psychological safety.
 
@@ -686,15 +686,15 @@ We conducted the first criterion validity test of the PSQ, asking a deceptively 
 
 The CaSiNo negotiation corpus (Chawla et al., 2021) provided a natural experiment. Each dialogue — a campsite resource negotiation between two MTurk workers — ends with each participant independently reporting their satisfaction with the outcome, how much they liked their opponent, and their objective points scored. These outcome variables were never used in PSQ training; the only CaSiNo signal in the PSQ pipeline is strategy annotation ratios mapped to contractual clarity. The satisfaction and likeness ratings are fully external criteria.
 
-The results were modest but theoretically coherent. Nine of ten PSQ dimensions significantly predicted both satisfaction (r=+0.07 to +0.11) and opponent likeness (r=+0.07 to +0.13), with all correlations in the positive direction: higher PSQ content → more satisfied negotiators who liked each other more. Points scored — the objective competitive outcome — showed near-zero correlations with PSQ. This dissociation is exactly what psychological safety theory predicts: safety is about relational quality, not competitive advantage. A psychologically safe conversation helps both parties feel good, regardless of who "won."
+The results were modest but theoretically coherent. Nine of ten PSQ dimensions significantly predicted both satisfaction (*r* = +.07 to +.11) and opponent likeness (*r* = +.07 to +.13), with all correlations in the positive direction: higher PSQ content → more satisfied negotiators who liked each other more. Points scored — the objective competitive outcome — showed near-zero correlations with PSQ. This dissociation is exactly what psychological safety theory predicts: safety is about relational quality, not competitive advantage. A psychologically safe conversation helps both parties feel good, regardless of who "won."
 
-The most surprising finding involved Defensive Architecture, the construct we had been preparing to potentially deprecate. After controlling for text length and sentiment, DA emerged as the single strongest predictor of both satisfaction (ΔR²=+0.007) and opponent likeness (ΔR²=+0.009), and it was the only dimension whose partial correlation *increased* after controlling for text length. Whatever DA captures — boundary respect, interpersonal defense quality, self-protective behavior support — it matters for real-world interpersonal outcomes, even if it refuses to load cleanly on any single factor in our measurement model.
+The most surprising finding involved Defensive Architecture, the construct we had been preparing to potentially deprecate. After controlling for text length and sentiment, DA emerged as the single strongest predictor of both satisfaction (Δ*R*² = +.007) and opponent likeness (Δ*R*² = +.009), and it was the only dimension whose partial correlation *increased* after controlling for text length. Whatever DA captures — boundary respect, interpersonal defense quality, self-protective behavior support — it matters for real-world interpersonal outcomes, even if it refuses to load cleanly on any single factor in our measurement model.
 
-This creates an intriguing paradox. DA has the weakest discriminant validity within the PSQ system (no primary factor loading >0.35, mean r=0.48 with other dimensions) but the strongest criterion validity against an external outcome. One interpretation, consistent with Caspi et al.'s (2014) p-factor model in psychopathology, is that DA functions as a "general safety indicator" — a dimension that reflects overall safety quality rather than a specific, separable facet. In clinical parlance, it may be more like a clinician's "gestalt impression" than a subscale score: hard to decompose analytically but predictively valid.
+This creates an intriguing paradox. DA has the weakest discriminant validity within the PSQ system (no primary factor loading > .35, mean *r* = .48 with other dimensions) but the strongest criterion validity against an external outcome. One interpretation, consistent with Caspi et al.'s (2014) p-factor model in psychopathology, is that DA functions as a "general safety indicator" — a dimension that reflects overall safety quality rather than a specific, separable facet. In clinical parlance, it may be more like a clinician's "gestalt impression" than a subscale score: hard to decompose analytically but predictively valid.
 
-The incremental R² beyond sentiment (ΔR²=+0.016 for satisfaction, +0.023 for likeness) confirms that PSQ captures something beyond simple positivity. These are small effects — comparable to LIWC dimensions predicting interpersonal outcomes (Tausczik & Pennebaker, 2010) — but they represent real signal in a domain where content-level measurement has never been attempted at this granularity.
+The incremental *R*² beyond sentiment (Δ*R*² = +.016 for satisfaction, +.023 for likeness) confirms that PSQ captures something beyond simple positivity. These are small effects — comparable to LIWC dimensions predicting interpersonal outcomes (Tausczik & Pennebaker, 2010) — but they represent real signal in a domain where content-level measurement has never been attempted at this granularity.
 
-The effect sizes (r≈0.10) should be interpreted in context. We are predicting a post-conversation subjective experience from the text of the conversation itself, using a 66-million-parameter model trained on an entirely different construct (psychological safety of text content, not negotiation outcomes). That it predicts at all — and in the theoretically predicted direction, across 9 of 10 dimensions — constitutes meaningful, if preliminary, criterion validity evidence. The next test — predicting conversation derailment from early turns in the Conversations Gone Awry corpus — will probe whether PSQ can identify latent unsafety before it manifests as overt hostility.
+The effect sizes (*r* ≈ .10) should be interpreted in context. We are predicting a post-conversation subjective experience from the text of the conversation itself, using a 66-million-parameter model trained on an entirely different construct (psychological safety of text content, not negotiation outcomes). That it predicts at all — and in the theoretically predicted direction, across 9 of 10 dimensions — constitutes meaningful, if preliminary, criterion validity evidence. The next test — predicting conversation derailment from early turns in the Conversations Gone Awry corpus — will probe whether PSQ can identify latent unsafety before it manifests as overt hostility.
 
 ---
 
@@ -704,25 +704,25 @@ The CaSiNo study asked whether PSQ predicted how people *felt* after a conversat
 
 The corpus (Zhang et al., 2018) is elegant in its design: 4,188 conversations, perfectly balanced between those that derailed and those that didn't, drawn from Wikipedia editor disputes. The domain is entirely absent from PSQ training data — no Wikipedia talk pages, no editor interactions, nothing from this register of discourse. If PSQ predicts here, it predicts because the construct generalizes, not because the model memorized.
 
-It does predict. A logistic regression on all ten PSQ dimensions achieves AUC=0.599 on the held-out test set — modest but stable (5-fold CV: 0.579 ± 0.016). The direction is theoretically correct and intuitively satisfying: conversations that will derail show *lower* authority dynamics (-0.212), regulatory capacity (-0.177), and trust conditions (-0.150). These are conversations where participants feel less authority, less self-regulation capacity, and less interpersonal trust — the preconditions for losing composure.
+It does predict. A logistic regression on all ten PSQ dimensions achieves AUC = .599 on the held-out test set — modest but stable (5-fold CV: .579 ± .016). The direction is theoretically correct and intuitively satisfying: conversations that will derail show *lower* authority dynamics (−.212), regulatory capacity (−.177), and trust conditions (−.150). These are conversations where participants feel less authority, less self-regulation capacity, and less interpersonal trust — the preconditions for losing composure.
 
-The temporal analysis reveals something important about what PSQ measures. When we score only the first turn of each conversation (before any conflict has emerged), prediction drops to near-chance (AUC=0.519). With early turns, it rises to 0.570. With all turns, 0.599. PSQ is not reading static lexical features — it is tracking an interpersonal trajectory. The psychological unsafety accumulates, and the model captures that accumulation. This is precisely what a process-level construct should do: detect the erosion of safety conditions over the course of an interaction.
+The temporal analysis reveals something important about what PSQ measures. When we score only the first turn of each conversation (before any conflict has emerged), prediction drops to near-chance (AUC = .519). With early turns, it rises to .570. With all turns, .599. PSQ is not reading static lexical features — it is tracking an interpersonal trajectory. The psychological unsafety accumulates, and the model captures that accumulation. This is precisely what a process-level construct should do: detect the erosion of safety conditions over the course of an interaction.
 
 The implications of this temporal gradient deserve unpacking, because they touch on what PSQ *is* at a fundamental level.
 
 First, the gradient rules out the simplest explanation for PSQ's predictive power: that it is merely a toxicity detector in disguise. A toxicity classifier like Perspective API would show the opposite temporal pattern — strong signal on the final turns (which contain the personal attack) and weaker signal on early turns (which are typically civil). PSQ shows the reverse: its signal builds *before* the attack, in the apparently civil early exchanges where safety conditions are quietly eroding. This is the difference between measuring temperature (a state variable) and measuring heat transfer (a process variable). PSQ appears to be measuring the latter — the thermodynamic trajectory of an interpersonal system, not just its current state.
 
-Second, the gradient has practical implications for deployment. A toxicity filter that triggers only *after* someone has already been attacked is, from a safety perspective, closing the barn door after the horse has bolted. A PSQ monitor that detects deteriorating safety conditions *during* the conversation — even at the modest AUC=0.570 available at the halfway point — offers the possibility of preventive intervention. The confidence would increase with each additional turn, following the gradient: uncertain at first, increasingly confident as the trajectory clarifies. This maps naturally onto a traffic-light interface: green (first turn, insufficient data), yellow (mid-conversation, safety declining), red (accumulated evidence of impending derailment). The 128-token truncation we currently use is a limitation here — a production system would score each new turn incrementally, maintaining a running PSQ profile.
+Second, the gradient has practical implications for deployment. A toxicity filter that triggers only *after* someone has already been attacked is, from a safety perspective, closing the barn door after the horse has bolted. A PSQ monitor that detects deteriorating safety conditions *during* the conversation — even at the modest AUC = .570 available at the halfway point — offers the possibility of preventive intervention. The confidence would increase with each additional turn, following the gradient: uncertain at first, increasingly confident as the trajectory clarifies. This maps naturally onto a traffic-light interface: green (first turn, insufficient data), yellow (mid-conversation, safety declining), red (accumulated evidence of impending derailment). The 128-token truncation we currently use is a limitation here — a production system would score each new turn incrementally, maintaining a running PSQ profile.
 
 Third, the temporal gradient is consistent with Edmondson's (1999) original formulation of psychological safety as a *shared belief* that emerges from repeated interpersonal interactions. Edmondson never proposed that safety is a fixed property of individuals or texts — she described it as a team-level phenomenon that develops through experience. Our finding that PSQ signal accumulates across turns is empirical support for this process view: safety is something that is *built or eroded* through interaction, not simply *present or absent* in the content.
 
-The AD finding replicates across studies with uncanny consistency. In CaSiNo, authority dynamics was the strongest criterion predictor of negotiation satisfaction. In CGA-Wiki, it is the strongest point-biserial correlate of derailment (r=-0.105, p<0.001). Two completely different domains — campsite negotiations and Wikipedia policy disputes — two different outcomes — subjective satisfaction and behavioral hostility — and the same dimension emerges as the strongest signal. Whatever AD captures about power dynamics and interpersonal authority, it is doing real psychological work.
+The AD finding replicates across studies with uncanny consistency. In CaSiNo, authority dynamics was the strongest criterion predictor of negotiation satisfaction. In CGA-Wiki, it is the strongest point-biserial correlate of derailment (*r* = −.105, *p* < .001). Two completely different domains — campsite negotiations and Wikipedia policy disputes — two different outcomes — subjective satisfaction and behavioral hostility — and the same dimension emerges as the strongest signal. Whatever AD captures about power dynamics and interpersonal authority, it is doing real psychological work.
 
-This cross-study replication has important consequences for the DA/AD construct validity debate. Our factor analysis (§18) showed that DA has no primary loading above 0.35 in the 5-factor promax solution — by traditional psychometric criteria, this would be grounds for deprecation. But the criterion validity evidence tells a different story: the construct that is hardest to *define* internally is the easiest to *validate* externally. This is not unprecedented in psychology. The Big Five dimension of Openness to Experience has a similarly contested internal structure — debate continues over whether it reflects intellect, aesthetic sensitivity, or imaginative tendency — yet it predicts academic performance, creativity, and political attitudes with remarkable consistency (McCrae & Costa, 1997). Our AD may be the PSQ's openness: a dimension whose predictive validity survives despite (or perhaps because of) its conceptual breadth.
+This cross-study replication has important consequences for the DA/AD construct validity debate. Our factor analysis (§18) showed that DA has no primary loading above .35 in the 5-factor promax solution — by traditional psychometric criteria, this would be grounds for deprecation. But the criterion validity evidence tells a different story: the construct that is hardest to *define* internally is the easiest to *validate* externally. This is not unprecedented in psychology. The Big Five dimension of Openness to Experience has a similarly contested internal structure — debate continues over whether it reflects intellect, aesthetic sensitivity, or imaginative tendency — yet it predicts academic performance, creativity, and political attitudes with remarkable consistency (McCrae & Costa, 1997). Our AD may be the PSQ's openness: a dimension whose predictive validity survives despite (or perhaps because of) its conceptual breadth.
 
-The practical implication is clear: we should not deprecate AD based on internal structure alone. The expert validation protocol (§19) includes a DA-specific decision tree — if experts can't reliably rate it (ICC<0.50), we deprecate; if they can, we investigate whether its criterion validity is mediated by other dimensions. But the CGA-Wiki data adds a new data point to this decision: AD predicts a behavioral outcome (personal attack) that none of the other dimensions predict as well. This is not redundant information.
+The practical implication is clear: we should not deprecate AD based on internal structure alone. The expert validation protocol (§19) includes a DA-specific decision tree — if experts can't reliably rate it (ICC < .50), we deprecate; if they can, we investigate whether its criterion validity is mediated by other dimensions. But the CGA-Wiki data adds a new data point to this decision: AD predicts a behavioral outcome (personal attack) that none of the other dimensions predict as well. This is not redundant information.
 
-Perhaps most importantly for the dimensionality question: g-PSQ (the general factor, a simple mean of all ten dimensions) achieves AUC=0.515 — barely above coin flip. The ten individual dimensions together achieve 0.599. This is direct evidence that the general factor, while statistically dominant in the variance decomposition (55.4% of variance), carries almost no predictive utility for external outcomes. The information lives in the dimension profile, not the global score.
+Perhaps most importantly for the dimensionality question: g-PSQ (the general factor, a simple mean of all ten dimensions) achieves AUC = .515 — barely above coin flip. The ten individual dimensions together achieve .599. This is direct evidence that the general factor, while statistically dominant in the variance decomposition (55.4% of variance), carries almost no predictive utility for external outcomes. The information lives in the dimension profile, not the global score.
 
 This dissociation between variance explained and predictive utility is worth emphasizing because it cuts against a common psychometric intuition. In classical test theory, the first principal component is the "best summary" of a test battery — the single number that preserves the most information. But preserving variance is not the same as preserving *predictive* signal. Consider a medical analogy: a patient's average vital sign (mean of temperature, blood pressure, heart rate, respiratory rate) captures the most variance in the vital-sign battery, but no physician would use that average for diagnosis. The diagnostic information lives in the *pattern* — high temperature with low blood pressure means something entirely different from low temperature with high blood pressure. Our finding is analogous: the PSQ profile shape predicts, the profile average does not.
 
@@ -736,9 +736,9 @@ One additional finding deserves commentary: the non-significance of threat expos
 
 The factor analysis (§18) showed that a general factor explains 55% of PSQ score variance, and a promax rotation yields a clean 5-factor solution. The natural question is whether we can simplify: does collapsing from 10 dimensions to 5 cluster scores (or even 3) lose anything that matters?
 
-The answer is nuanced. Statistically, the 5-factor model retains 88% of dimension-level information (average R² = 0.881 from cluster scores back to individual dimensions) and captures 91% of total variance. The 3-factor model drops to 74% — an unacceptable loss, driven by authority dynamics (R²=0.615) and energy dissipation (R²=0.449), which simply don't belong in their assigned clusters.
+The answer is nuanced. Statistically, the 5-factor model retains 88% of dimension-level information (average *R*² = .881 from cluster scores back to individual dimensions) and captures 91% of total variance. The 3-factor model drops to 74% — an unacceptable loss, driven by authority dynamics (*R*² = .615) and energy dissipation (*R*² = .449), which simply don't belong in their assigned clusters.
 
-But the criterion validity data provide a sharper answer. In the CGA-Wiki derailment study, g-PSQ (one number) achieves AUC=0.515. The 10 individual dimensions achieve 0.599. The predictive information is distributed across dimensions in a way that collapsing obscures. This is consistent with Meehl's (1956) observation that configural patterns in personality profiles often outperform simple sum scores — the *shape* of the profile matters, not just its average height.
+But the criterion validity data provide a sharper answer. In the CGA-Wiki derailment study, g-PSQ (one number) achieves AUC = .515. The 10 individual dimensions achieve .599. The predictive information is distributed across dimensions in a way that collapsing obscures. This is consistent with Meehl's (1956) observation that configural patterns in personality profiles often outperform simple sum scores — the *shape* of the profile matters, not just its average height.
 
 Two dimensions emerge with particularly high unique variance within their clusters: cooling capacity (39% unique in Hostility/Threat) and contractual clarity (36% unique in Relational Contract). These are the dimensions most likely to lose critical information if collapsed. Both measure something distinct from their cluster neighbors — CC captures emotion regulation capacity rather than hostility per se, and CO captures the clarity of interpersonal agreements rather than relational trust.
 
@@ -750,15 +750,15 @@ Our recommendation: report hierarchically (g-PSQ → 5 clusters → 10 dimension
 
 The dimension reduction analysis (§22) revealed that a 5-factor model retains 88% of dimensional information while a 3-factor model loses too much. But *which* dimensions refuse to be collapsed, and why? The answer turns out to illuminate something fundamental about what the PSQ is actually measuring.
 
-Two dimensions — authority_dynamics (AD) and energy_dissipation (ED) — are the primary casualties of dimension reduction. In the 3-factor model, AD's R² drops to 0.615 and ED's to 0.449 — meaning the cluster averages reconstruct less than half of ED's variance and barely two-thirds of AD's. Both dimensions load as singletons in the promax 5-factor solution. They are, statistically speaking, homeless.
+Two dimensions — authority_dynamics (AD) and energy_dissipation (ED) — are the primary casualties of dimension reduction. In the 3-factor model, AD's *R*² drops to .615 and ED's to .449 — meaning the cluster averages reconstruct less than half of ED's variance and barely two-thirds of AD's. Both dimensions load as singletons in the promax 5-factor solution. They are, statistically speaking, homeless.
 
-The reason is different for each. AD correlates roughly equally with all three major clusters (mean |r| = 0.666 with Hostility/Threat, 0.564 with Relational Contract, 0.507 with Internal Resources). It is a *general factor indicator* — not an orphan from any cluster but a dimension that reflects the shared variance equally. Sixty-two percent of AD's variance is explained by g-PSQ, the highest of any dimension. But its remaining 36% — the residual after removing the general factor — captures something genuinely unique: the interpersonal power structure of the text.
+The reason is different for each. AD correlates roughly equally with all three major clusters (mean |*r*| = .666 with Hostility/Threat, .564 with Relational Contract, .507 with Internal Resources). It is a *general factor indicator* — not an orphan from any cluster but a dimension that reflects the shared variance equally. Sixty-two percent of AD's variance is explained by g-PSQ, the highest of any dimension. But its remaining 36% — the residual after removing the general factor — captures something genuinely unique: the interpersonal power structure of the text.
 
-ED, by contrast, is a true orphan. It correlates almost identically with Internal Resources (0.506) and Hostility/Threat (0.480), never finding a natural home. Its g-PSQ loading is the lowest of any dimension (R²=0.447), meaning it is the most independent from the shared safety-threat continuum. After controlling for g-PSQ, ED shows strong negative partial correlations with cooling_capacity (-0.536) and trust_conditions (-0.455). This reveals ED's distinctive construct: texts high in ED-residual describe sustained resource depletion in the *absence* of recovery opportunities — the theoretical picture of chronic allostatic load (McEwen, 1998), distinct from acute hostility or poor coping.
+ED, by contrast, is a true orphan. It correlates almost identically with Internal Resources (.506) and Hostility/Threat (.480), never finding a natural home. Its g-PSQ loading is the lowest of any dimension (*R*² = .447), meaning it is the most independent from the shared safety-threat continuum. After controlling for g-PSQ, ED shows strong negative partial correlations with cooling_capacity (−.536) and trust_conditions (−.455). This reveals ED's distinctive construct: texts high in ED-residual describe sustained resource depletion in the *absence* of recovery opportunities — the theoretical picture of chronic allostatic load (McEwen, 1998), distinct from acute hostility or poor coping.
 
-The more scientifically consequential finding is AD's predictive dominance. In the CGA-Wiki study (§21), authority_dynamics showed the strongest point-biserial correlation with derailment (r_pb = -0.105***) and the largest Cohen's d (-0.212). A leave-one-out analysis quantified this: removing AD from the logistic regression costs ΔAUC = -0.021, nearly double the second-largest loss (regulatory_capacity at -0.014). AD alone achieves AUC=0.549 — more than g-PSQ (0.515) and roughly 40% of the incremental signal that all 10 dimensions provide beyond the general factor.
+The more scientifically consequential finding is AD's predictive dominance. In the CGA-Wiki study (§21), authority_dynamics showed the strongest point-biserial correlation with derailment (*r*_pb = −.105, *p* < .001) and the largest Cohen's *d* (−.212). A leave-one-out analysis quantified this: removing AD from the logistic regression costs ΔAUC = −.021, nearly double the second-largest loss (regulatory_capacity at −.014). AD alone achieves AUC = .549 — more than g-PSQ (.515) and roughly 40% of the incremental signal that all 10 dimensions provide beyond the general factor.
 
-What makes AD special? Not emotional sensitivity. A text-feature analysis of AD-residual scores reveals correlations with interpersonal language markers — second-person pronouns ("you"/"your", r=+0.202), question marks (r=+0.235), authority-related vocabulary (r=+0.121) — but not with sentiment, profanity, or emotional intensity. AD is reading the *relational structure* of text: who has power, how it is exercised, whether it is contested. This is precisely what French and Raven (1959) described in their taxonomy of social power bases — legitimate, coercive, referent, expert, reward — and what Tepper's (2000) abusive supervision construct measures in organizational contexts.
+What makes AD special? Not emotional sensitivity. A text-feature analysis of AD-residual scores reveals correlations with interpersonal language markers — second-person pronouns ("you"/"your", *r* = +.202), question marks (*r* = +.235), authority-related vocabulary (*r* = +.121) — but not with sentiment, profanity, or emotional intensity. AD is reading the *relational structure* of text: who has power, how it is exercised, whether it is contested. This is precisely what French and Raven (1959) described in their taxonomy of social power bases — legitimate, coercive, referent, expert, reward — and what Tepper's (2000) abusive supervision construct measures in organizational contexts.
 
 The implication is that conversation derailment is fundamentally a *power* phenomenon, not an *emotion* phenomenon. Hostility matters (HI is the strongest coefficient in the multivariate model), but the dimension that carries the most non-redundant predictive signal is the one measuring who holds power and how they wield it. This aligns with Felson and Tedeschi's (1993) social interactionist theory of aggression: interpersonal violence arises from perceived challenges to authority and social identity, not from free-floating anger.
 
@@ -766,25 +766,25 @@ AD also functions as a suppressor variable in the classical psychometric sense (
 
 There is an irony here worth noting. Authority_dynamics is the dimension with the weakest factor loading in the PSQ, the one flagged for potential construct validity concerns (§19), the one for which we designed an expert validation protocol (§19). And yet it is also the most externally valid predictor — the dimension that most consistently predicts real-world outcomes (negotiation satisfaction in CaSiNo, derailment in CGA-Wiki) that it was never trained on. This is consistent with Meehl's (1990) important but often-overlooked observation that a construct's psychometric structure (its factor loadings) need not predict its criterion validity pattern. The dimension that loads least neatly onto the PSQ's internal structure is the one that connects most powerfully to the external world.
 
-For energy_dissipation, the story is quieter but equally instructive. ED contributes little to derailment prediction (ΔAUC=-0.005 when removed), consistent with its construct: resource depletion is a chronic process that unfolds over weeks and months, not within the span of a Wikipedia talk-page exchange. ED's criterion validity should be sought in different contexts — longitudinal studies of burnout, workplace withdrawal, or performance decline — where the temporal scale matches the construct's theoretical dynamics.
+For energy_dissipation, the story is quieter but equally instructive. ED contributes little to derailment prediction (ΔAUC = −.005 when removed), consistent with its construct: resource depletion is a chronic process that unfolds over weeks and months, not within the span of a Wikipedia talk-page exchange. ED's criterion validity should be sought in different contexts — longitudinal studies of burnout, workplace withdrawal, or performance decline — where the temporal scale matches the construct's theoretical dynamics.
 
-Our architectural recommendation remains: keep all 10 dimensions. But this analysis sharpens the reason. It is not merely that collapsing loses statistical information (the R² argument from §22). It is that the dimensions most resistant to collapsing — AD and ED — are the ones measuring fundamentally different psychological processes: interpersonal power structure and chronic resource depletion, respectively. These are not redundant with hostility, trust, or coping. They are distinct mechanisms operating at different levels of analysis — relational for AD, energetic for ED — that enrich the PSQ beyond a simple safety-threat continuum.
+Our architectural recommendation remains: keep all 10 dimensions. But this analysis sharpens the reason. It is not merely that collapsing loses statistical information (the *R*² argument from §22). It is that the dimensions most resistant to collapsing — AD and ED — are the ones measuring fundamentally different psychological processes: interpersonal power structure and chronic resource depletion, respectively. These are not redundant with hostility, trust, or coping. They are distinct mechanisms operating at different levels of analysis — relational for AD, energetic for ED — that enrich the PSQ beyond a simple safety-threat continuum.
 
 A necessary caveat tempers these findings. Authority_dynamics — the PSQ's most externally valid dimension — is also a dimension whose training signal is 70.4% LLM-generated (Claude scoring training texts via separated and joint labeling protocols), with only 29.6% coming from composite proxy mappings (UCC condescension labels and politeness corpus data). The concern is straightforward: has the LLM taught the student model an idiosyncratic definition of "authority dynamics" that happens to correlate with derailment for reasons we have not identified?
 
 We find this concern serious but unlikely to explain the full pattern. First, AD is not unusually LLM-dependent — it sits in the middle of the pack. Contractual_clarity is 96.7% LLM-generated yet shows the *weakest* criterion validity (non-significant in CGA-Wiki). If LLM labeling bias were the mechanism, the most LLM-dependent dimensions should be the best predictors. They are not. Second, the student model generalizes AD scores across domains entirely absent from training (Wikipedia disputes were never in the training data), and does so consistently across two independent criterion studies using different outcome types. Domain-specific biases rarely generalize this cleanly across discourse registers and outcome categories. Third, AD-residual scores correlate with exactly the interpersonal language markers — second-person pronouns, question marks, authority vocabulary — that French and Raven's (1959) power bases framework would predict. A spurious LLM artifact producing these specific, theoretically grounded text-feature correlations would be a remarkable coincidence.
 
-Nevertheless, the entire construct validity chain for AD currently runs through LLM interpretation. The held-out evaluation (r=0.625) uses LLM-scored labels as ground truth; the training data is majority LLM-scored; and no human expert has independently evaluated AD's scoring rubric against the texts. This is precisely the gap the expert validation protocol (§19) is designed to close. Until five independent expert psychologists produce ICC(2,1) ≥ 0.70 on AD scoring and demonstrate substantial convergent validity with the LLM labels, we must hold AD's criterion validity findings as *promising but provisionally grounded*. The strongest predictor in our battery is also the one most in need of human confirmation.
+Nevertheless, the entire construct validity chain for AD currently runs through LLM interpretation. The held-out evaluation (*r* = .625) uses LLM-scored labels as ground truth; the training data is majority LLM-scored; and no human expert has independently evaluated AD's scoring rubric against the texts. This is precisely the gap the expert validation protocol (§19) is designed to close. Until five independent expert psychologists produce ICC(2,1) ≥ .70 on AD scoring and demonstrate substantial convergent validity with the LLM labels, we must hold AD's criterion validity findings as *promising but provisionally grounded*. The strongest predictor in our battery is also the one most in need of human confirmation.
 
 ## 24. The AD Paradox: Three Theories of Predictive Primacy (2026-02-28)
 
-The findings from §20–23 converge on a paradox that demands theoretical explanation: authority_dynamics has the weakest factor loading in the PSQ's internal structure (max promax loading 0.332, below the conventional 0.35 threshold) yet the strongest criterion validity across two independent studies. This is not merely a statistical curiosity — it is a substantive finding about the nature of psychoemotional safety that, if correctly interpreted, reshapes our understanding of what the PSQ is measuring. We advance three competing theoretical accounts, each generating distinct testable predictions, and argue that their resolution has implications for construct naming, instrument architecture, and the broader relationship between psychometric structure and criterion validity.
+The findings from §20–23 converge on a paradox that demands theoretical explanation: authority_dynamics has the weakest factor loading in the PSQ's internal structure (max promax loading .332, below the conventional .35 threshold) yet the strongest criterion validity across two independent studies. This is not merely a statistical curiosity — it is a substantive finding about the nature of psychoemotional safety that, if correctly interpreted, reshapes our understanding of what the PSQ is measuring. We advance three competing theoretical accounts, each generating distinct testable predictions, and argue that their resolution has implications for construct naming, instrument architecture, and the broader relationship between psychometric structure and criterion validity.
 
 ### 24a. Theory 1: The Meta-Conversation Channel
 
 Watzlawick, Beavin, and Jackson (1967) distinguished two simultaneous channels in all human communication: *report* (content — what is said) and *command* (relationship — how the speaker positions themselves relative to the listener). Most PSQ dimensions measure report-level properties: how hostile is the content (HI), how much threat is described (TE), what coping strategies are evident (RC). Authority dynamics, we propose, primarily measures the *command* channel — the relational positioning that occurs alongside and often independently of content.
 
-This would explain AD's factor-analytic behavior. The general factor g-PSQ captures shared variance that is largely report-level: hostile content tends to be threatening, poorly regulated, and low on trust. AD correlates moderately with all of these (mean |r| = 0.480) because power challenges *accompany* hostile content — but AD also captures relational positioning that occurs without hostility (a polite assertion of authority, a subtle claim to expertise, a deferential hedge). This command-channel variance is orthogonal to report-level safety, which is precisely why AD loads weakly on any report-dominated factor.
+This would explain AD's factor-analytic behavior. The general factor g-PSQ captures shared variance that is largely report-level: hostile content tends to be threatening, poorly regulated, and low on trust. AD correlates moderately with all of these (mean |*r*| = .480) because power challenges *accompany* hostile content — but AD also captures relational positioning that occurs without hostility (a polite assertion of authority, a subtle claim to expertise, a deferential hedge). This command-channel variance is orthogonal to report-level safety, which is precisely why AD loads weakly on any report-dominated factor.
 
 The predictive primacy follows directly. Conversation derailment is fundamentally a *relational* event — a breakdown in the social contract between participants — not merely an escalation of hostile content. A Wikipedia editor who writes "Your edit is wrong and here's why" may score moderately on hostility but very low (unsafe) on authority dynamics. The relational challenge, not the content, predicts whether the conversation will spiral into personal attacks. Watzlawick's framework predicts exactly this: relationship-level messages are more consequential for interaction outcomes than content-level messages, because they define the frame within which content is interpreted.
 
@@ -792,7 +792,7 @@ The predictive primacy follows directly. Conversation derailment is fundamentall
 
 ### 24b. Theory 2: The Leading Indicator
 
-A second possibility is that AD measures a temporal signal that other dimensions do not. In the CGA-Wiki study (§21), we observed a temporal gradient: PSQ scores from later conversation turns predicted derailment better than scores from earlier turns (AUC 0.519 → 0.570 → 0.599, first turn → early → all). This is consistent with the general hypothesis that PSQ measures *process*, not static content. But within this process, different dimensions may operate on different time scales.
+A second possibility is that AD measures a temporal signal that other dimensions do not. In the CGA-Wiki study (§21), we observed a temporal gradient: PSQ scores from later conversation turns predicted derailment better than scores from earlier turns (AUC .519 → .570 → .599, first turn → early → all). This is consistent with the general hypothesis that PSQ measures *process*, not static content. But within this process, different dimensions may operate on different time scales.
 
 We propose that authority dynamics is a *leading indicator* — a dimension that shifts before overt hostility, distrust, or emotional dysregulation become manifest. The psychological sequence would be: (1) a participant makes a power claim or challenges another's standing, (2) the challenged participant experiences threat to their social identity, (3) this threat produces defensive hostility, emotional flooding, and trust breakdown. If this causal sequence is correct, AD scores should deteriorate 1–2 turns before HI, TE, and CC scores deteriorate.
 
@@ -800,22 +800,22 @@ This theory explains both the factor structure and the criterion validity patter
 
 **Testable prediction (T2):** In a turn-by-turn analysis of CGA-Wiki conversations, AD scores should deteriorate *before* HI and TE scores in conversations that eventually derail. Specifically, the cross-lagged correlation between AD(t) and HI(t+1) should be stronger than between HI(t) and AD(t+1). If AD is merely co-occurring with hostility rather than preceding it, both cross-lagged correlations should be equal.
 
-**T2 result (tested 2026-02-28): NOT SUPPORTED.** We scored all 25,351 individual utterances from the CGA-Wiki corpus with v23 and computed cross-lagged correlations across 11,114 consecutive utterance pairs in derailing conversations. The AD↔HI cross-lag difference was non-significant: r(AD_t, HI_{t+1})=+0.068 vs r(HI_t, AD_{t+1})=+0.086, Δ=−0.019, z=−1.40, p=0.162. AD and HI co-occur rather than sequence. If anything, the (non-significant) asymmetry runs in the opposite direction from T2's prediction — HI appears to lead AD slightly, not the reverse. No AD↔TE cross-lag was significant either (p=0.693).
+**T2 result (tested 2026-02-28): NOT SUPPORTED.** We scored all 25,351 individual utterances from the CGA-Wiki corpus with v23 and computed cross-lagged correlations across 11,114 consecutive utterance pairs in derailing conversations. The AD↔HI cross-lag difference was non-significant: *r*(AD_t, HI_{t+1}) = +.068 vs *r*(HI_t, AD_{t+1}) = +.086, Δ = −.019, *z* = −1.40, *p* = .162. AD and HI co-occur rather than sequence. If anything, the (non-significant) asymmetry runs in the opposite direction from T2's prediction — HI appears to lead AD slightly, not the reverse. No AD↔TE cross-lag was significant either (*p* = .693).
 
 Theory 2 (leading indicator) is not supported by utterance-level CGA-Wiki data. This does not rule it out definitively — the temporal scale of status-to-hostility escalation may exceed the turn-by-turn resolution, or may require different corpora (e.g., multi-session workplace conflicts). But the leading-indicator mechanism cannot be claimed as established.
 
-**Unexpected finding: HI→ED (p=0.004).** The only significant cross-lagged asymmetry across all tested pairs is ED↔HI in derailing conversations: r(HI_t, ED_{t+1})=+0.066 vs r(ED_t, HI_{t+1})=+0.027, Δ=−0.039, z=−2.89, p=0.004. Hostility at turn t predicts energy dissipation at turn t+1 in derailing conversations, but not in controls. This is directionally consistent with the Job Demands–Resources model (Bakker & Demerouti, 2007): hostile interpersonal events are psychological demands that deplete personal resources, producing the elevated ED that we observe in the subsequent turn. The finding is not theoretically surprising, but it was not predicted in advance, which limits its inferential weight.
+**Unexpected finding: HI→ED (*p* = .004).** The only significant cross-lagged asymmetry across all tested pairs is ED↔HI in derailing conversations: *r*(HI_t, ED_{t+1}) = +.066 vs *r*(ED_t, HI_{t+1}) = +.027, Δ = −.039, *z* = −2.89, *p* = .004. Hostility at turn t predicts energy dissipation at turn t+1 in derailing conversations, but not in controls. This is directionally consistent with the Job Demands–Resources model (Bakker & Demerouti, 2007): hostile interpersonal events are psychological demands that deplete personal resources, producing the elevated ED that we observe in the subsequent turn. The finding is not theoretically surprising, but it was not predicted in advance, which limits its inferential weight.
 
 **Tipping-point temporal pattern.** Perhaps the most clinically significant finding from this analysis is structural: derailing conversations are *statistically indistinguishable* from controls for their first three quarters. Computing the difference in mean PSQ scores (DERAILING − CONTROL) by conversation quartile:
 
 | Quarter | AD | HI | TE | ED |
 |---|---|---|---|---|
-| Q1 (start) | −0.074 | −0.091 | −0.053 | −0.030 |
-| Q2 | −0.052 | −0.088 | −0.058 | −0.009 |
-| Q3 | −0.075 | −0.136 | −0.108 | −0.034 |
-| **Q4 (end)** | **−0.731** | **−1.359** | **−0.985** | **−0.504** |
+| Q1 (start) | −.074 | −.091 | −.053 | −.030 |
+| Q2 | −.052 | −.088 | −.058 | −.009 |
+| Q3 | −.075 | −.136 | −.108 | −.034 |
+| **Q4 (end)** | **−.731** | **−1.359** | **−.985** | **−.504** |
 
-Scores remain within ~0.14 units of controls through Q3, then collapse simultaneously across all four dimensions in Q4. This is not a gradual deterioration but a phase transition — a rapid collapse that occurs only near the point of attack. The PSQ's ability to predict derailment from early turns (AUC=0.519 → 0.570 → 0.599, first turn → early → all; §21b) therefore reflects subtle signal accumulation in the *shape* of the profile, not divergence in raw score means. The tipping point is real, abrupt, and occurs too late in the conversation for early-warning detection based on raw score thresholds alone. Future work should explore profile-based change-detection methods that are sensitive to the *trajectory* of scores across turns rather than their absolute values.
+Scores remain within ~.14 units of controls through Q3, then collapse simultaneously across all four dimensions in Q4. This is not a gradual deterioration but a phase transition — a rapid collapse that occurs only near the point of attack. The PSQ's ability to predict derailment from early turns (AUC = .519 → .570 → .599, first turn → early → all; §21b) therefore reflects subtle signal accumulation in the *shape* of the profile, not divergence in raw score means. The tipping point is real, abrupt, and occurs too late in the conversation for early-warning detection based on raw score thresholds alone. Future work should explore profile-based change-detection methods that are sensitive to the *trajectory* of scores across turns rather than their absolute values.
 
 ### 24c. Theory 3: Status Negotiation and Epistemic Positioning
 
@@ -845,7 +845,7 @@ Second, the PSQ's theoretical framework should be revised to explicitly distingu
 
 Third, the finding that a command-channel dimension is the PSQ's strongest external predictor supports a broader theoretical claim: that psychoemotional safety is fundamentally a *relational* property of communication, not merely a *content* property. The report-level dimensions (how hostile, how threatening, how well-regulated) are necessary but not sufficient. The relational scaffolding — who has power, how it is exercised, whether it is contested — is what determines whether a conversation remains safe or degrades into personal attack. This is consistent with Edmondson's (1999) original formulation of psychological safety as an interpersonal climate variable, not an individual trait or a property of message content.
 
-Of the three original empirical tests: (1) the Deal or No Deal criterion study (T3b: deal vs. points) is **confirmed** — AD predicts deal reached (r_pb=+0.138) but not points scored (r=−0.070), exactly as predicted by Theory 3 (§27); (2) the turn-by-turn temporal analysis of CGA-Wiki conversations (T2: AD leads HI) is **not supported** — AD and HI co-occur at the utterance level, and the leading-indicator mechanism cannot be established from this corpus (§24b); (3) the expert validation study with alternative construct labels (T3a: peer vs. hierarchical contexts) remains **pending**.
+Of the three original empirical tests: (1) the Deal or No Deal criterion study (T3b: deal vs. points) is **confirmed** — AD predicts deal reached (*r*_pb = +.138) but not points scored (*r* = −.070), exactly as predicted by Theory 3 (§27); (2) the turn-by-turn temporal analysis of CGA-Wiki conversations (T2: AD leads HI) is **not supported** — AD and HI co-occur at the utterance level, and the leading-indicator mechanism cannot be established from this corpus (§24b); (3) the expert validation study with alternative construct labels (T3a: peer vs. hierarchical contexts) remains **pending**.
 
 The balance of evidence now favors Theory 3 (status negotiation). T2's failure does not eliminate Theory 2 — leading-indicator dynamics may require longer time scales — but Theory 3 has now cleared two confirmatory tests (T3a pattern in CMV; T3b in DonD) while Theory 2 has failed its direct test. We tentatively conclude that AD measures contested status positioning in peer interactions, with its predictive power tied to the degree of status contestation rather than to its temporal position in the conflict sequence.
 
@@ -853,27 +853,27 @@ The balance of evidence now favors Theory 3 (status negotiation). T2's failure d
 
 The third criterion validity study extends the PSQ's predictive reach to a new domain: online persuasion. Using the winning-args-corpus from r/ChangeMyView (Tan, Niculae, Danescu-Niculescu-Mizil, & Lee, 2016), we scored 4,263 matched pairs — same original post, one reply that earned a delta (changed the OP's mind) and one that did not — across all 10 PSQ dimensions. The matched-pair design controls for topic, author characteristics, and subreddit norms, isolating the textual properties that discriminate persuasive from non-persuasive arguments.
 
-All 10 dimensions significantly discriminate delta from non-delta replies (paired t-tests, 9/10 surviving Bonferroni correction at alpha=0.005). The direction of effects is theoretically coherent: persuasive replies show higher defensive_architecture (d_z=+0.135, p<1e-17), higher trust_conditions (+0.090), higher cooling_capacity (+0.082), and higher hostility_index (+0.104, reflecting assertive engagement rather than hostility per se), but lower threat_exposure (-0.077, less threatening language). The only dimension not surviving Bonferroni correction is authority_dynamics (d_z=+0.033, p=0.032) — an important finding we return to below.
+All 10 dimensions significantly discriminate delta from non-delta replies (paired t-tests, 9/10 surviving Bonferroni correction at α = .005). The direction of effects is theoretically coherent: persuasive replies show higher defensive_architecture (*d*_z = +.135, *p* < 1 × 10⁻¹⁷), higher trust_conditions (+.090), higher cooling_capacity (+.082), and higher hostility_index (+.104, reflecting assertive engagement rather than hostility per se), but lower threat_exposure (−.077, less threatening language). The only dimension not surviving Bonferroni correction is authority_dynamics (*d*_z = +.033, *p* = .032) — an important finding we return to below.
 
-The logistic regression results replicate the key structural finding from CGA-Wiki: the 10-dimension profile (AUC=0.590, 5-fold CV) substantially outperforms g-PSQ alone (0.531). The gap of 0.059 AUC units between profile and average is nearly identical to the CGA-Wiki gap (0.084), confirming that the *shape* of the PSQ profile carries predictive information that collapsing to a single score destroys.
+The logistic regression results replicate the key structural finding from CGA-Wiki: the 10-dimension profile (AUC = .590, 5-fold CV) substantially outperforms g-PSQ alone (.531). The gap of .059 AUC units between profile and average is nearly identical to the CGA-Wiki gap (.084), confirming that the *shape* of the PSQ profile carries predictive information that collapsing to a single score destroys.
 
-A text-length confound is present in CMV — delta replies are significantly longer (mean 1,623 vs 1,248 characters, d=0.301) — consistent with Tan et al.'s (2016) original finding that length predicts persuasion. Text length alone achieves AUC=0.596, and the 10-dimension PSQ adds incremental AUC of +0.012 beyond length (combined AUC=0.608). Partial correlations confirm that 9/10 dimensions retain significance after controlling for length.
+A text-length confound is present in CMV — delta replies are significantly longer (mean 1,623 vs 1,248 characters, *d* = .301) — consistent with Tan et al.'s (2016) original finding that length predicts persuasion. Text length alone achieves AUC = .596, and the 10-dimension PSQ adds incremental AUC of +.012 beyond length (combined AUC = .608). Partial correlations confirm that 9/10 dimensions retain significance after controlling for length.
 
-The most striking finding is defensive_architecture's emergence as the top individual predictor (r_pb=+0.085, paired accuracy=55.4%), displacing authority_dynamics from the top position it held in CaSiNo and CGA-Wiki. This is not a contradiction but a context-dependent pattern: in CMV, where the task is to construct a convincing argument rather than to navigate a relationship, the *structural quality of argumentation* (DA) matters more than *interpersonal power positioning* (AD). DA measures boundary maintenance, structured reasoning, and cognitive framing — precisely the toolkit of effective persuasion.
+The most striking finding is defensive_architecture's emergence as the top individual predictor (*r*_pb = +.085, paired accuracy = 55.4%), displacing authority_dynamics from the top position it held in CaSiNo and CGA-Wiki. This is not a contradiction but a context-dependent pattern: in CMV, where the task is to construct a convincing argument rather than to navigate a relationship, the *structural quality of argumentation* (DA) matters more than *interpersonal power positioning* (AD). DA measures boundary maintenance, structured reasoning, and cognitive framing — precisely the toolkit of effective persuasion.
 
-Authority_dynamics, meanwhile, shows the weakest bivariate effect in CMV (r_pb=+0.021, not Bonferroni-significant) despite its dominance in CGA-Wiki and CaSiNo. This is exactly what Theory 3 from §24 predicts: AD/power positioning should matter most when status is *contested* (Wikipedia disputes, negotiation) and least when the social structure is *fixed* (CMV, where the OP has explicitly invited counterarguments and grants delta voluntarily). In CMV, the power dynamic is settled — the OP holds the delta, challengers must persuade — so there is little status to negotiate. The dimension's predictive power drops accordingly.
+Authority_dynamics, meanwhile, shows the weakest bivariate effect in CMV (*r*_pb = +.021, not Bonferroni-significant) despite its dominance in CGA-Wiki and CaSiNo. This is exactly what Theory 3 from §24 predicts: AD/power positioning should matter most when status is *contested* (Wikipedia disputes, negotiation) and least when the social structure is *fixed* (CMV, where the OP has explicitly invited counterarguments and grants delta voluntarily). In CMV, the power dynamic is settled — the OP holds the delta, challengers must persuade — so there is little status to negotiate. The dimension's predictive power drops accordingly.
 
 This pattern provides the first empirical evidence distinguishing our three theories. Theory 1 (meta-conversation) and Theory 2 (leading indicator) predict AD should be generally predictive across contexts; Theory 3 (status negotiation) uniquely predicts context-dependent effects tied to whether status is fixed or contested. The CMV results favor Theory 3.
 
 The cross-study comparison now spans three independent datasets:
 
-| Study | Domain | N | Outcome | 10-dim AUC | g-PSQ AUC | Top dim | AD rank |
+| Study | Domain | *N* | Outcome | 10-dim AUC | g-PSQ AUC | Top dim | AD rank |
 |---|---|---|---|---|---|---|---|
-| CaSiNo | Negotiation | 1,030 | Satisfaction | — | — | AD (r=0.127) | 1st |
-| CGA-Wiki | Wikipedia | 4,188 | Derailment | 0.599 | 0.515 | AD (r_pb=-0.105) | 1st |
-| CMV | Persuasion | 4,263 pairs | Delta | 0.590 | 0.531 | DA (r_pb=+0.085) | 11th (weakest) |
+| CaSiNo | Negotiation | 1,030 | Satisfaction | — | — | AD (*r* = .127) | 1st |
+| CGA-Wiki | Wikipedia | 4,188 | Derailment | .599 | .515 | AD (*r*_pb = −.105) | 1st |
+| CMV | Persuasion | 4,263 pairs | Delta | .590 | .531 | DA (*r*_pb = +.085) | 11th (weakest) |
 
-The consistency of the profile-shape-over-average finding across three studies — with gaps of 0.059–0.084 AUC — provides strong evidence that the PSQ's multi-dimensional architecture is psychometrically justified. The context-dependent ranking of dimensions provides equally strong evidence that these are genuine, distinct constructs rather than redundant measures of a single latent variable. If the 10 dimensions were merely noisy reflections of g-PSQ, their relative importance would not systematically vary with the outcome's psychological demands.
+The consistency of the profile-shape-over-average finding across three studies — with gaps of .059–.084 AUC — provides strong evidence that the PSQ's multi-dimensional architecture is psychometrically justified. The context-dependent ranking of dimensions provides equally strong evidence that these are genuine, distinct constructs rather than redundant measures of a single latent variable. If the 10 dimensions were merely noisy reflections of g-PSQ, their relative importance would not systematically vary with the outcome's psychological demands.
 
 ## 26. Publication Narrative (2026-02-28)
 
@@ -885,7 +885,7 @@ The central finding is **context-dependent predictive primacy**: in a multi-dime
 
 This finding has three layers of significance:
 
-**Methodological.** The 10-dimension profile consistently outperforms the single-score average (g-PSQ) across three studies. The gaps (0.059–0.084 AUC) are modest individually but remarkably consistent, and they survive text-length controls in the two studies where length is a confound. This is the strongest empirical argument against collapsing multi-dimensional safety instruments to single scores — a practice common in toxicity detection (Perspective API, Detoxify) and content moderation systems.
+**Methodological.** The 10-dimension profile consistently outperforms the single-score average (g-PSQ) across three studies. The gaps (.059–.084 AUC) are modest individually but remarkably consistent, and they survive text-length controls in the two studies where length is a confound. This is the strongest empirical argument against collapsing multi-dimensional safety instruments to single scores — a practice common in toxicity detection (Perspective API, Detoxify) and content moderation systems.
 
 **Theoretical.** The context-dependent ranking connects to Watzlawick et al.'s (1967) report/command distinction. Most NLP safety tools measure report-level properties (how hostile is the content). The PSQ's authority_dynamics dimension measures the command channel (who has power and how it is exercised), and this command-level signal is what predicts relational outcomes — but only when the relational structure is contested. This bridges communication theory, social psychology, and NLP in a way that no existing toxicity or safety instrument does.
 
@@ -902,9 +902,9 @@ A publication targeting a venue at the intersection of computational linguistics
 3. **Factor Structure.** General factor (55% variance) + 5 clusters. Two singleton dimensions (AD, ED) that resist clustering. Bifactor implications.
 
 4. **Criterion Validity Battery.** Three studies:
-   - CaSiNo (n=1,030): negotiation satisfaction and liking
-   - CGA-Wiki (n=4,188): conversation derailment
-   - CMV (n=4,263 pairs): persuasion success
+   - CaSiNo (*n* = 1,030): negotiation satisfaction and liking
+   - CGA-Wiki (*n* = 4,188): conversation derailment
+   - CMV (*n* = 4,263 pairs): persuasion success
 
    The cross-study comparison table is the centerpiece. Profile >> average in all three. AD top predictor in contested-status, DA top in fixed-status.
 
@@ -921,7 +921,7 @@ The current evidence base is strong for a workshop or short paper. For a main-co
 - **Deal or No Deal results** (in progress) — if AD predicts deal but not points, the status negotiation theory gets causal-directional support
 - **Expert validation** — even preliminary ICC from 2-3 raters would address the "it's all LLM labeling" concern
 - **Turn-by-turn temporal analysis** — if AD leads HI in derailing conversations, the leading indicator theory gets direct support
-- **Bifactor model comparison** — does a bifactor architecture improve held-out r, or is the current flat architecture already sufficient?
+- **Bifactor model comparison** — does a bifactor architecture improve held-out *r*, or is the current flat architecture already sufficient?
 - **A non-English or non-online test** — criterion validity from a different discourse context (workplace transcripts, therapy sessions) would demonstrate generalizability
 
 ### 26d. The Emergent Construct Validity Story
@@ -936,47 +936,47 @@ This is a methodological contribution to the growing field of LLM-as-instrument-
 
 ## 27. The Deal Test: When Energy Matters More Than Status (2026-02-28)
 
-The fourth criterion validity study — and the largest — used the Deal or No Deal negotiation corpus (Lewis et al., 2017; n=12,234 dialogues). Where CaSiNo measured self-reported satisfaction, DonD provides a behavioral outcome: whether the negotiation actually produced a deal, and how many points were scored. This distinction matters. A participant can feel satisfied about a failed negotiation, or dissatisfied about a successful one. By testing PSQ against both relational (CaSiNo) and behavioral (DonD) outcomes within the same domain (negotiation), we can separate what PSQ predicts about *experience* from what it predicts about *results*.
+The fourth criterion validity study — and the largest — used the Deal or No Deal negotiation corpus (Lewis et al., 2017; *n* = 12,234 dialogues). Where CaSiNo measured self-reported satisfaction, DonD provides a behavioral outcome: whether the negotiation actually produced a deal, and how many points were scored. This distinction matters. A participant can feel satisfied about a failed negotiation, or dissatisfied about a successful one. By testing PSQ against both relational (CaSiNo) and behavioral (DonD) outcomes within the same domain (negotiation), we can separate what PSQ predicts about *experience* from what it predicts about *results*.
 
-The results were striking. First, the 10-dimension PSQ achieved its strongest AUC to date: 0.686, compared to 0.599 (CGA-Wiki), 0.590 (CMV), and uncalculated for CaSiNo (which used continuous outcomes). Second, the top predictor was energy_dissipation (ED), with a Cohen's d of +0.614 — by far the largest single-dimension effect size across all four studies. AD, which had dominated both CaSiNo and CGA-Wiki, was the weakest predictor in DonD (d=-0.063, near zero and slightly negative).
+The results were striking. First, the 10-dimension PSQ achieved its strongest AUC to date: .686, compared to .599 (CGA-Wiki), .590 (CMV), and uncalculated for CaSiNo (which used continuous outcomes). Second, the top predictor was energy_dissipation (ED), with a Cohen's *d* of +.614 — by far the largest single-dimension effect size across all four studies. AD, which had dominated both CaSiNo and CGA-Wiki, was the weakest predictor in DonD (*d* = −.063, near zero and slightly negative).
 
 This inversion is theoretically coherent. In DonD negotiations, both parties want a deal — the question is whether they can sustain engagement long enough to find mutually acceptable terms. ED, which captures the availability of healthy dissipation pathways and recovery from engagement fatigue, directly indexes this capacity. AD, which captures status positioning and authority dynamics, is less relevant when both parties are motivated to agree. The status negotiation theory (§24, Theory 3) predicted exactly this: AD should predict more strongly when status is contested and the outcome depends on who defines the terms, not when the task is to reach mutual accommodation.
 
-With four studies complete, the context-dependency pattern resolves into a clean matrix. AD dominates in contested-status interactions with relational outcomes (CaSiNo satisfaction) and behavioral outcomes (CGA-Wiki derailment prevention). ED dominates in behavioral outcomes that depend on sustained engagement (DonD deal-reaching). DA dominates when status is structurally fixed (CMV persuasion). The g-PSQ average remains near-chance in every study (AUC: 0.515–0.622), while the 10-dimension profile consistently predicts — confirming that it is the *shape* of the safety profile, not its average level, that carries signal.
+With four studies complete, the context-dependency pattern resolves into a clean matrix. AD dominates in contested-status interactions with relational outcomes (CaSiNo satisfaction) and behavioral outcomes (CGA-Wiki derailment prevention). ED dominates in behavioral outcomes that depend on sustained engagement (DonD deal-reaching). DA dominates when status is structurally fixed (CMV persuasion). The g-PSQ average remains near-chance in every study (AUC: .515–.622), while the 10-dimension profile consistently predicts — confirming that it is the *shape* of the safety profile, not its average level, that carries signal.
 
-The incremental validity was also notable: high-PSQ dialogues (Q4) reached deals at 84.4%, compared to 68.5% for low-PSQ (Q1) — a 15.9 percentage-point difference. Text length is a significant confound (r=-0.339 with deal outcome; shorter conversations tend to deal more easily), but PSQ retains significance after controlling for length (incremental AUC +0.059 beyond length + turns).
+The incremental validity was also notable: high-PSQ dialogues (Q4) reached deals at 84.4%, compared to 68.5% for low-PSQ (Q1) — a 15.9-percentage-point difference. Text length is a significant confound (*r* = −.339 with deal outcome; shorter conversations tend to deal more easily), but PSQ retains significance after controlling for length (incremental AUC +.059 beyond length + turns).
 
-The AD suppressor variable pattern replicated again: despite a near-zero bivariate correlation, AD received a negative coefficient (-0.534) in logistic regression, indicating it carries information that improves multivariate prediction once shared variance with other dimensions is removed. This is now confirmed across three of four studies and represents one of the most robust findings in the PSQ criterion validity program.
+The AD suppressor variable pattern replicated again: despite a near-zero bivariate correlation, AD received a negative coefficient (−.534) in the logistic regression, indicating it carries information that improves multivariate prediction once shared variance with other dimensions is removed. This is now confirmed across three of four studies and represents one of the most robust findings in the PSQ criterion validity program.
 
 ---
 
 ## 28. The g-Factor Deepens and the Integer Problem (2026-02-28)
 
-The fourth training cycle produced the best model yet — v19, held-out r=0.600 — but the more consequential findings came from two analytical investigations that challenge assumptions about the measurement system itself.
+The fourth training cycle produced the best model yet — v19, held-out *r* = .600 — but the more consequential findings came from two analytical investigations that challenge assumptions about the measurement system itself.
 
 ### The Broad-Spectrum Strategy
 
-v19 benefited from the broad-spectrum labeling batch: 300 texts selected for diversity (150 random, 100 single-dimension keyword-filtered, 50 multi-dimension) rather than targeting a specific weak dimension. The result was the broadest improvement profile of any training run: 7/10 dimensions improved, with the three weakest dimensions showing the largest gains. Threat exposure recovered by +0.125 (its largest single-run improvement), energy dissipation by +0.087, and authority dynamics by +0.058. Only three dimensions regressed, all modestly (resilience -0.027, contractual clarity -0.020, cooling capacity -0.016).
+v19 benefited from the broad-spectrum labeling batch: 300 texts selected for diversity (150 random, 100 single-dimension keyword-filtered, 50 multi-dimension) rather than targeting a specific weak dimension. The result was the broadest improvement profile of any training run: 7/10 dimensions improved, with the three weakest dimensions showing the largest gains. Threat exposure recovered by +.125 (its largest single-run improvement), energy dissipation by +.087, and authority dynamics by +.058. Only three dimensions regressed, all modestly (resilience −.027, contractual clarity −.020, cooling capacity −.016).
 
 The lesson is counterintuitive. The dimension-focused batches (CO-filtered, TE-filtered, AD-filtered) improved their target dimensions but often at the cost of others, because the keyword-filtered texts had skewed profiles. The broad-spectrum approach, by providing diverse texts with diverse score profiles, gave the model a richer signal landscape. This is consistent with the factor analysis finding that the dimensions share a strong general factor: improving the model's grasp of "overall safety" lifts all dimensions, while improving its grasp of one specific dimension can distort its general calibration.
 
 ### Factor Analysis v2: The g-Factor Strengthens
 
-A re-run of the factor analysis on N=1,970 texts with complete separated-llm coverage (excluding joint-llm and composite-proxy) produced a striking result: the first eigenvalue jumped from 4.844 (48.4% of variance) to 6.727 (67.3%). KMO improved from 0.819 ("Meritorious") to 0.902 ("Superb"). Parallel analysis, which previously retained 2 factors, now retains only 1. The 5-factor structure — Hostility/Threat, Relational Contract, Internal Resources, Power Dynamics, Stress/Energy — largely collapsed. Factor 1 absorbed 8 of 10 dimensions; only CO, ED, and AD maintained weak separation.
+A re-run of the factor analysis on *N* = 1,970 texts with complete separated-llm coverage (excluding joint-llm and composite-proxy) produced a striking result: the first eigenvalue jumped from 4.844 (48.4% of variance) to 6.727 (67.3%). KMO improved from .819 ("Meritorious") to .902 ("Superb"). Parallel analysis, which previously retained 2 factors, now retains only 1. The 5-factor structure — Hostility/Threat, Relational Contract, Internal Resources, Power Dynamics, Stress/Energy — largely collapsed. Factor 1 absorbed 8 of 10 dimensions; only CO, ED, and AD maintained weak separation.
 
-All 10 g-factor loadings exceeded 0.66, with trust_conditions (0.930) and defensive_architecture (0.914) at the top. This is remarkable for DA, the construct that had the weakest promax loading in the previous analysis. The mean inter-dimension correlation rose from 0.417 to 0.632.
+All 10 g-factor loadings exceeded .66, with trust_conditions (.930) and defensive_architecture (.914) at the top. This is remarkable for DA, the construct that had the weakest promax loading in the previous analysis. The mean inter-dimension |*r*| rose from .417 to .632.
 
 The strengthening has two possible explanations, and they are not mutually exclusive. First, as composite-proxy noise is excluded from the analysis, the genuine correlation structure becomes more apparent. The proxy mappings (Berkeley hate speech to threat exposure, UCC condescension to authority dynamics) introduced dimension-specific noise that artificially decorrelated dimensions. With pure separated-llm data, the true co-variation of psychoemotional safety dimensions is visible, and it is high. Second, the integer-only scoring bias may be inflating correlations mechanically.
 
 ### The Integer Problem
 
-This is the most consequential discovery of the cycle. A score distribution audit revealed that the LLM scorer almost never assigns non-integer values on the 0-10 scale. Despite the rubric permitting continuous scores, the effective scoring scale is 11 bins (integers 0 through 10). Worse, the 4-5-6 band captures 57-81% of all separated-llm scores, with score-5 concentration ranging from 24.1% (TE, the best) to 60.8% (CO, the worst).
+This is the most consequential discovery of the cycle. A score distribution audit revealed that the LLM scorer almost never assigns non-integer values on the 0–10 scale. Despite the rubric permitting continuous scores, the effective scoring scale is 11 bins (integers 0 through 10). Worse, the 4–5–6 band captures 57–81% of all separated-llm scores, with score-5 concentration ranging from 24.1% (TE, the best) to 60.8% (CO, the worst).
 
-This means the measurement system has less resolution than it appears to have. When a 0-10 scale is effectively an 11-point ordinal scale with most mass in three bins, the practical information content per score is low. Two texts that differ meaningfully in, say, contractual clarity may both receive a score of 5 — not because the LLM cannot distinguish them, but because the integer scale does not require it to.
+This means the measurement system has less resolution than it appears to have. When a 0–10 scale is effectively an 11-point ordinal scale with most mass in three bins, the practical information content per score is low. Two texts that differ meaningfully in, say, contractual clarity may both receive a score of 5 — not because the LLM cannot distinguish them, but because the integer scale does not require it to.
 
 The integer bias also has a direct mechanistic path to inflated inter-dimension correlations. If 45% of texts receive score-5 on both dimension A and dimension B, the shared "neutral" signal creates correlation even if the dimensions are genuinely independent for the 55% of texts outside that bin. The score-concentration cap downweights these texts in training (from 5.0 to 3.38-4.58), but the cap operates on the training loss, not on the correlation matrix used for factor analysis.
 
-The proposed mitigation is to switch the LLM scoring prompt from a 0-10 scale to a 0-100 percentage scale, with post-processing back to 0-10 for model training. The hypothesis is that asking the LLM to assign a percentage (e.g., "45% vs 55%") will produce finer granularity than asking for a score (e.g., "4 vs 5" — or more likely, "5 vs 5"). This is a well-known psychometric technique: expanding the response scale forces raters to make finer discriminations.
+The proposed mitigation is to switch the LLM scoring prompt from a 0–10 scale to a 0–100 percentage scale, with post-processing back to 0-10 for model training. The hypothesis is that asking the LLM to assign a percentage (e.g., "45% vs 55%") will produce finer granularity than asking for a score (e.g., "4 vs 5" — or more likely, "5 vs 5"). This is a well-known psychometric technique: expanding the response scale forces raters to make finer discriminations.
 
 This investigation has high priority because it affects the interpretation of every prior analysis. If the g-factor eigenvalue drops substantially under a 0-100 scoring regime, the 5-factor structure may re-emerge. If it does not, the general factor is genuine. Either way, the measurement system needs more resolution.
 
@@ -984,29 +984,29 @@ This investigation has high priority because it affects the interpretation of ev
 
 ## 29. The Resolution Fix: Percentage Scoring at Scale (2026-02-28)
 
-The integer problem identified in §28 — where the LLM scorer almost never assigns non-integer values on the 0-10 scale, producing an effective 11-bin ordinal scale with most mass in the 4-5-6 band — demanded an engineering solution before further factor analysis or model training could meaningfully proceed. The pilot (50 texts, single session) demonstrated that a 0-100 percentage scale breaks the integer constraint, but the single-session design introduced massive halo (mean inter-dimension r=0.986), leaving the critical question unanswered: does the resolution improvement survive proper separated scoring?
+The integer problem identified in §28 — where the LLM scorer almost never assigns non-integer values on the 0–10 scale, producing an effective 11-bin ordinal scale with most mass in the 4-5-6 band — demanded an engineering solution before further factor analysis or model training could meaningfully proceed. The pilot (50 texts, single session) demonstrated that a 0–100 percentage scale breaks the integer constraint, but the single-session design introduced massive halo (mean inter-dimension *r* = .986), leaving the critical question unanswered: does the resolution improvement survive proper separated scoring?
 
-It does, and it improves further. A production batch of 200 texts scored with the separated protocol (one dimension per conversation context, ten separate scoring sessions) produced 86.2% non-integer scores versus 77.8% in the pilot — and more importantly, versus 2.1% with the standard 0-10 scale. Exact-5.0 concentration dropped to 4.8%, down from 7.2% in the pilot and 41.3% in the integer-scored database. The number of unique score values rose to 35, compared to ~11 with integer scoring.
+It does, and it improves further. A production batch of 200 texts scored with the separated protocol (one dimension per conversation context, ten separate scoring sessions) produced 86.2% non-integer scores versus 77.8% in the pilot — and more importantly, versus 2.1% with the standard 0–10 scale. Exact-5.0 concentration dropped to 4.8%, down from 7.2% in the pilot and 41.3% in the integer-scored database. The number of unique score values rose to 35, compared to ~11 with integer scoring.
 
-The magnitude of improvement is difficult to overstate. Under the integer regime, the measurement system was discarding roughly 90% of the scorer's discriminative capacity — the difference between a text that "feels like" a 4 and one that "feels like" a 5 on contractual clarity was simply erased. Under the percentage regime, a text scored at 42% and one at 48% are preserved as meaningfully different (4.2 vs 4.8 on the internal 0-10 scale). Whether the model can *learn* from this finer granularity is the subject of the next training experiment.
+The magnitude of improvement is difficult to overstate. Under the integer regime, the measurement system was discarding roughly 90% of the scorer's discriminative capacity — the difference between a text that "feels like" a 4 and one that "feels like" a 5 on contractual clarity was simply erased. Under the percentage regime, a text scored at 42% and one at 48% are preserved as meaningfully different (4.2 vs 4.8 on the internal 0–10 scale). Whether the model can *learn* from this finer granularity is the subject of the next training experiment.
 
-The bifactor experiment (v19b) provided a useful negative result in parallel. Adding an 11th output head to predict g-PSQ (the general factor, operationalized as the mean of 10 dimension scores) produced a well-learned g-head (r=0.594) but degraded per-dimension prediction (test_r 0.509→0.502). The DistilBERT backbone (66.7M params, 384-dim projection) does not have sufficient representational capacity to serve 11 output heads without capacity competition. The practical implication is clear: if a general factor score is needed, compute it post-hoc from the 10 dimension scores rather than training a dedicated head. The bifactor architecture (Design A from §35) should be revisited only with a larger base model.
+The bifactor experiment (v19b) provided a useful negative result in parallel. Adding an 11th output head to predict g-PSQ (the general factor, operationalized as the mean of 10 dimension scores) produced a well-learned g-head (*r* = .594) but degraded per-dimension prediction (test *r* .509 → .502). The DistilBERT backbone (66.7M params, 384-dim projection) does not have sufficient representational capacity to serve 11 output heads without capacity competition. The practical implication is clear: if a general factor score is needed, compute it post-hoc from the 10 dimension scores rather than training a dedicated head. The bifactor architecture (Design A from §35) should be revisited only with a larger base model.
 
 ### The Dimension Collapse
 
-But the more consequential finding came from factor analysis on the pct-scored data. The original hypothesis — that integer-only scoring was mechanically inflating inter-dimension correlations through shared "score-5" signals — predicted that percentage scoring would *reduce* the g-factor eigenvalue. The opposite occurred. The g-factor eigenvalue jumped from 6.727 (67.3% of variance, integer data) to 9.410 (94.1%, pct data). Mean inter-dimension correlation rose from 0.632 to 0.934.
+But the more consequential finding came from factor analysis on the pct-scored data. The original hypothesis — that integer-only scoring was mechanically inflating inter-dimension correlations through shared "score-5" signals — predicted that percentage scoring would *reduce* the g-factor eigenvalue. The opposite occurred. The g-factor eigenvalue jumped from 6.727 (67.3% of variance, integer data) to 9.410 (94.1%, pct data). Mean inter-dimension |*r*| rose from .632 to .934.
 
-The diagnostic data are unambiguous. Within-text standard deviation — the measure of how much a scorer differentiates between dimensions for a single text — dropped from 0.717 (integer) to 0.448 (pct). Two-thirds of pct-scored texts have all ten dimension scores within a one-point range. Between-text variance accounts for 93.2% of total variance, meaning the scores are almost entirely "overall safety" with negligible dimension-specific signal. Eight of ten dimensions retain less than 5% unique variance in the pct data, versus 16-47% in integer data.
+The diagnostic data are unambiguous. Within-text *SD* — the measure of how much a scorer differentiates between dimensions for a single text — dropped from .717 (integer) to .448 (pct). Two-thirds of pct-scored texts have all ten dimension scores within a one-point range. Between-text variance accounts for 93.2% of total variance, meaning the scores are almost entirely "overall safety" with negligible dimension-specific signal. Eight of ten dimensions retain less than 5% unique variance in the pct data, versus 16–47% in integer data.
 
-The mechanism appears to be anchoring-and-adjustment: the 0-100 scale invites the scorer to first form a global safety impression ("about 35%"), then make tiny adjustments per dimension ("maybe 33% for TE, 37% for TC"). The adjustments are real — parallel analysis on residuals after removing the text mean retains 3 factors — but they are overwhelmed by the global anchor. Integer scoring, paradoxically, forces larger discrete jumps between dimensions, producing more genuine differentiation.
+The mechanism appears to be anchoring-and-adjustment: the 0–100 scale invites the scorer to first form a global safety impression ("about 35%"), then make tiny adjustments per dimension ("maybe 33% for TE, 37% for TC"). The adjustments are real — parallel analysis on residuals after removing the text mean retains 3 factors — but they are overwhelmed by the global anchor. Integer scoring, paradoxically, forces larger discrete jumps between dimensions, producing more genuine differentiation.
 
-This finding has important consequences beyond PSQ. It suggests that expanding the number of response options in a rating scale does not monotonically improve measurement quality. There is an optimum: enough options to capture meaningful between-item differences, but not so many that the rater's global impression dominates the within-item differentiation. For constructs with genuine multi-dimensional structure, an 11-point scale (0-10 integers) may outperform a 101-point scale (0-100 percentages), consistent with Schwarz et al.'s (1991) work on response format effects in survey methodology.
+This finding has important consequences beyond PSQ. It suggests that expanding the number of response options in a rating scale does not monotonically improve measurement quality. There is an optimum: enough options to capture meaningful between-item differences, but not so many that the rater's global impression dominates the within-item differentiation. For constructs with genuine multi-dimensional structure, an 11-point scale (0–10 integers) may outperform a 101-point scale (0–100 percentages), consistent with Schwarz et al.'s (1991) work on response format effects in survey methodology.
 
 The practical implications are clear: revert to integer scoring for future labeling. The g-factor is real, the 10 dimensions are genuinely correlated, and the integer scale provides more informative dimension-specific variance than the percentage scale. The percentage resolution gains (less score-5 concentration, more unique values) are real but are outweighed by the dimension-collapse cost.
 
 ### The Training Confirmation
 
-v20 training — which added the 200 pct-scored texts (2,000 new separated-llm labels) to the training set — produced an anticlimactic result that confirms the analysis: held-out_r = 0.600, identical to v19. The pct-scored data neither helps nor hurts. At 200 texts in a 17,000-text training set, the volume is too small to move the needle, and the collapsed dimension structure means the new labels carry primarily g-factor signal rather than dimension-specific information. The per-dimension shifts (CO +0.024, CC +0.023 vs ED -0.034, TE -0.028) are within random training variance for a 100-text held-out evaluation.
+v20 training — which added the 200 pct-scored texts (2,000 new separated-llm labels) to the training set — produced an anticlimactic result that confirms the analysis: held-out *r* = .600, identical to v19. The pct-scored data neither helps nor hurts. At 200 texts in a 17,000-text training set, the volume is too small to move the needle, and the collapsed dimension structure means the new labels carry primarily g-factor signal rather than dimension-specific information. The per-dimension shifts (CO +.024, CC +.023 vs ED −.034, TE −.028) are within random training variance for a 100-text held-out evaluation.
 
 The null result closes the percentage scoring research arc and opens a new one. A systematic literature review identified the root cause as **isomorphic rubric structure** — all ten PSQ rubrics follow the same template (0=extreme bad, 5=neutral, 10=extreme good), which teaches the scorer to treat them as instances of a single continuum. Humphry and Heldsinger (2014) documented precisely this phenomenon in educational assessment rubrics, calling it a "common structural design feature" that threatens validity. The most promising mitigation avenue is redesigning rubric anchors to be structurally dissimilar across dimensions — using concrete, dimension-specific content features rather than abstract quality gradients. A comprehensive research plan (`scoring-research-plan.md`) tracks eight research avenues for rubric-induced halo mitigation, ranked by evidence strength and feasibility.
 
@@ -1014,15 +1014,15 @@ The null result closes the percentage scoring research arc and opens a new one. 
 
 ## 30. The Data Scaling Curve and the Experiment Pivot (2026-02-28)
 
-The v21 training result — held-out_r = 0.630, a +0.030 improvement over v19's 0.600 — provided the most important empirical signal of the project's current phase: the data scaling curve has not plateaued. Each successive batch of 200 separated-scored texts has pushed held-out performance higher: v14 (0.482), v15 (0.495), v16 (0.561), v18 (0.568), v19 (0.600), v21 (0.630). The trajectory is sublinear but persistent, suggesting diminishing returns at each increment rather than a hard asymptote.
+The v21 training result — held-out *r* = .630, a +.030 improvement over v19's .600 — provided the most important empirical signal of the project's current phase: the data scaling curve has not plateaued. Each successive batch of 200 separated-scored texts has pushed held-out performance higher: v14 (.482), v15 (.495), v16 (.561), v18 (.568), v19 (.600), v21 (.630). The trajectory is sublinear but persistent, suggesting diminishing returns at each increment rather than a hard asymptote.
 
-The CO batch — 200 texts drawn from the unlabeled pool using contractual clarity keywords — was designed to provide varied CO scores, breaking the score-5 flooding that had regressed CO in v15. It succeeded at that (CO held-out 0.513 → 0.555), but the more interesting finding was the broad collateral benefit. Hostility index improved by +0.087, cooling capacity by +0.085, trust conditions by +0.038 — all without any targeted selection for those dimensions. The mechanism is straightforward: texts with rich contractual content (agreements, promises, violations) are inherently interpersonally complex, providing signal across multiple dimensions simultaneously. This echoes the broad-spectrum batch finding from §41: thematically diverse text selection produces wider gains than dimension-targeted selection.
+The CO batch — 200 texts drawn from the unlabeled pool using contractual clarity keywords — was designed to provide varied CO scores, breaking the score-5 flooding that had regressed CO in v15. It succeeded at that (CO held-out .513 → .555), but the more interesting finding was the broad collateral benefit. Hostility index improved by +.087, cooling capacity by +.085, trust conditions by +.038 — all without any targeted selection for those dimensions. The mechanism is straightforward: texts with rich contractual content (agreements, promises, violations) are inherently interpersonally complex, providing signal across multiple dimensions simultaneously. This echoes the broad-spectrum batch finding from §41: thematically diverse text selection produces wider gains than dimension-targeted selection.
 
-Regulatory capacity reached 0.729, the highest single-dimension held-out correlation in the project's history. The RC trajectory from v14 to v21 — 0.285, 0.326, 0.563, 0.679, 0.710, 0.729 — is the cleanest example of how separated scoring data progressively teaches the student model to recognize a construct that composite proxies barely captured. Threat exposure (0.492) and contractual clarity (0.555) remain the weakest dimensions, likely because they require understanding document-level pragmatic function (what is being threatened? what is being agreed?) rather than local linguistic features that DistilBERT captures well at its 128-token window.
+Regulatory capacity reached .729, the highest single-dimension held-out correlation in the project's history. The RC trajectory from v14 to v21 — .285, .326, .563, .679, .710, .729 — is the cleanest example of how separated scoring data progressively teaches the student model to recognize a construct that composite proxies barely captured. Threat exposure (.492) and contractual clarity (.555) remain the weakest dimensions, likely because they require understanding document-level pragmatic function (what is being threatened? what is being agreed?) rather than local linguistic features that DistilBERT captures well at its 128-token window.
 
 With v21 promoted to production, attention shifted from data scaling to measurement methodology. The percentage scoring experiment (§29) had demonstrated that simply expanding the response scale does not improve dimension differentiation — it makes it worse by enabling anchoring-and-adjustment. The root cause remains the isomorphic rubric structure. All ten PSQ rubrics follow the same template (0 = extreme bad, 5 = neutral, 10 = extreme good), which teaches the LLM scorer to treat them as instances of a single quality continuum (Humphry & Heldsinger, 2014).
 
-Three controlled experiments were designed to test different approaches to breaking this structural similarity, with rigorous methodological safeguards learned from the percentage scoring experience: fresh controls scored in the same experimental window (no stale gold labels), non-overlapping text sets from the unlabeled pool (no familiarity contamination), scale-invariant metrics (entropy, eigenvalue ratio), and a criterion validity gate requiring maintained predictive power (CaSiNo AUC ≥ 0.58). The key design insight is that any change to the scoring prompt or rubric must be tested as a controlled experiment against the production instrument, never deployed directly — a principle established when an attempted in-flight modification to the scoring prompt was correctly identified as scientifically indefensible.
+Three controlled experiments were designed to test different approaches to breaking this structural similarity, with rigorous methodological safeguards learned from the percentage scoring experience: fresh controls scored in the same experimental window (no stale gold labels), non-overlapping text sets from the unlabeled pool (no familiarity contamination), scale-invariant metrics (entropy, eigenvalue ratio), and a criterion validity gate requiring maintained predictive power (CaSiNo AUC ≥ .58). The key design insight is that any change to the scoring prompt or rubric must be tested as a controlled experiment against the production instrument, never deployed directly — a principle established when an attempted in-flight modification to the scoring prompt was correctly identified as scientifically indefensible.
 
 The project now faces a pivotal question: can the halo problem be mitigated through measurement design, or is it an irreducible property of LLM-based rating? If the scoring experiments reduce the g-factor eigenvalue while maintaining criterion validity, the path to publishable psychometric quality becomes clear. If they do not, the 10-dimension structure may need to be reconceptualized as a hierarchical model where the general factor is a first-class construct rather than a measurement artifact.
 
@@ -1032,13 +1032,13 @@ The project now faces a pivotal question: can the halo problem be mitigated thro
 
 The scoring experiments produced an unexpected three-act story. In the first act, we ran all four planned experiments and one intervention — halo-awareness instructions — passed every pre-registered criterion. We adopted it. In the second act, a deeper investigation revealed that the phenomenon we were fighting was not what we thought it was. In the third act, we reversed the adoption and arrived at a more important insight about the construct itself.
 
-**Act One: The experiments.** Of three interventions tested — halo-awareness instructions, structurally dissimilar rubrics, and alternative scale formats — only the first produced measurable effects. The halo-awareness instruction ("Score ONLY [Dimension Name] — ignore your impression of other dimensions") increased within-text standard deviation by 26.4%, reduced the g-factor eigenvalue ratio from 78.4% to 68.6%, and decreased mean inter-dimension correlation from 0.751 to 0.631. All control-treatment Spearman correlations exceeded 0.79, and a criterion validity gate using 40 CaSiNo dialogues returned AUC = 0.971. The dissimilar rubrics experiment confirmed construct redefinition rather than halo reduction (no contagion on unmodified dimensions). The scale format experiment showed near-perfect rank preservation across 0-10 and 1-7 scales (mean ρ = 0.994). These latter results were clear: rubric structure and scale granularity are irrelevant to the g-factor.
+**Act One: The experiments.** Of three interventions tested — halo-awareness instructions, structurally dissimilar rubrics, and alternative scale formats — only the first produced measurable effects. The halo-awareness instruction ("Score ONLY [Dimension Name] — ignore your impression of other dimensions") increased within-text standard deviation by 26.4%, reduced the g-factor eigenvalue ratio from 78.4% to 68.6%, and decreased mean inter-dimension correlation from .751 to .631. All control-treatment Spearman correlations exceeded .79, and a criterion validity gate using 40 CaSiNo dialogues returned AUC = .971. The dissimilar rubrics experiment confirmed construct redefinition rather than halo reduction (no contagion on unmodified dimensions). The scale format experiment showed near-perfect rank preservation across 0–10 and 1–7 scales (mean ρ = .994). These latter results were clear: rubric structure and scale granularity are irrelevant to the g-factor.
 
-**Act Two: The structural analysis.** The adoption raised an uncomfortable question: if the instruction reduces shared variance, is it reducing scorer error or suppressing real co-variation? We investigated by stratifying the 2,359 scored texts by their mean score across all 10 dimensions. The result was striking. Extreme texts (mean < 3 or > 7, n = 232) showed an eigenvalue ratio of 82.8% with perfectly uniform PC1 loadings (SD = 0.023) — every dimension loaded equally, indicating pure valence. Middle texts (mean 4-6, n = 1,447) showed EV1 of just 38.7% with structured loadings (SD = 0.117, 5× higher) — RC and RB loaded highest, ED lowest, revealing genuine dimension-specific differentiation.
+**Act Two: The structural analysis.** The adoption raised an uncomfortable question: if the instruction reduces shared variance, is it reducing scorer error or suppressing real co-variation? We investigated by stratifying the 2,359 scored texts by their mean score across all 10 dimensions. The result was striking. Extreme texts (mean < 3 or > 7, *n* = 232) showed an eigenvalue ratio of 82.8% with perfectly uniform PC1 loadings (*SD* = .023) — every dimension loaded equally, indicating pure valence. Middle texts (mean 4–6, *n* = 1,447) showed EV1 of just 38.7% with structured loadings (*SD* = .117, 5× higher) — RC and RB loaded highest, ED lowest, revealing genuine dimension-specific differentiation.
 
-This was the critical insight: the g-factor is predominantly a range/extremity effect. A text describing active workplace harassment genuinely is high-threat, low-trust, low-regulatory-capacity, high-energy-drain, and poor-contractual-clarity — all at once. The dimensions co-vary because the text is uniformly extreme, not because the scorer is being lazy. Ipsatization (subtracting each text's mean score) confirmed this: residual inter-dimension correlations dropped from 0.679 to 0.232, and the structure that remained was theoretically coherent — TE-HI positive (+0.43, threat cluster), ED-CC negative (-0.51, genuine tradeoff), RC-RB positive (+0.42, internal resources). This matches the EFA factor structure from §18.
+This was the critical insight: the g-factor is predominantly a range/extremity effect. A text describing active workplace harassment genuinely is high-threat, low-trust, low-regulatory-capacity, high-energy-drain, and poor-contractual-clarity — all at once. The dimensions co-vary because the text is uniformly extreme, not because the scorer is being lazy. Ipsatization (subtracting each text's mean score) confirmed this: residual inter-dimension correlations dropped from .679 to .232, and the structure that remained was theoretically coherent — TE-HI positive (+.43, threat cluster), ED-CC negative (−.51, genuine tradeoff), RC-RB positive (+.42, internal resources). This matches the EFA factor structure from §18.
 
-Meanwhile, the instruction's individual effects were troubling. 79% of individual scores (237/300) were unchanged between conditions. The mean absolute change per score was 0.217 — below the test-retest noise floor of 0.54 (Phase 0 MAD). CC showed a systematic +0.33 upward bias (12/14 changes were +1, a mean shift rather than differentiation). CO decoupled from other dimensions (HI-CO correlation dropped from 0.506 to 0.111), losing legitimate co-variation. Approximately one-third of the headline within-text SD improvement was attributable to these artifacts rather than genuine dimension separation.
+Meanwhile, the instruction's individual effects were troubling. 79% of individual scores (237/300) were unchanged between conditions. The mean absolute change per score was .217 — below the test-retest noise floor of .54 (Phase 0 MAD). CC showed a systematic +.33 upward bias (12/14 changes were +1, a mean shift rather than differentiation). CO decoupled from other dimensions (HI-CO correlation dropped from .506 to .111), losing legitimate co-variation. Approximately one-third of the headline within-text SD improvement was attributable to these artifacts rather than genuine dimension separation.
 
 **Act Three: The hierarchical model.** The reversal rested on a theoretical argument as much as an empirical one. The PSQ is designed as a hierarchical construct: an overall safety score (g) that decomposes into factor clusters, which decompose into 10 dimensions. In this architecture, the g-factor is not a nuisance to be eliminated — it *is* the PSQ at its broadest level of resolution. The hierarchy gives interpretable scores at every level: overall safety, cluster-level profiles, dimension-specific detail.
 
@@ -1056,17 +1056,17 @@ None of the three scoring interventions is adopted. The rubrics are fine. The sc
 
 The scoring experiments concluded that the g-factor is real co-variation and the path forward is better training data. We pursued this on two fronts: removing low-quality proxy data and enriching the training set with texts from the "informative middle band" where dimensions genuinely differentiate.
 
-A proxy data audit revealed that four of ten dimensions had poor agreement between composite-proxy labels and separated-LLM labels: threat_exposure (r = -0.260), trust_conditions (r = 0.071), contractual_clarity (r = 0.102), and authority_dynamics (r = 0.155). For TE, the proxy was actively adversarial — teaching the model the wrong direction. The natural hypothesis was that removing these noisy proxy rows (9,450 of ~60,000 training observations) would free the model to learn from the higher-quality separated-LLM signal.
+A proxy data audit revealed that four of ten dimensions had poor agreement between composite-proxy labels and separated-LLM labels: threat_exposure (*r* = −.260), trust_conditions (*r* = .071), contractual_clarity (*r* = .102), and authority_dynamics (*r* = .155). For TE, the proxy was actively adversarial — teaching the model the wrong direction. The natural hypothesis was that removing these noisy proxy rows (9,450 of ~60,000 training observations) would free the model to learn from the higher-quality separated-LLM signal.
 
 We designed a 2×2 ablation: (A) proxy removal alone, (B) middle-g data enrichment alone, (C) both. The middle-g batch comprised 250 texts selected from the unlabeled pool by their predicted mean score (g ∈ [3, 4.5) ∪ [5.5, 7]), the band where our structural analysis had shown genuine dimension differentiation (EV1 = 38.7%) rather than pure valence (EV1 = 82.8%). All 250 were scored across 10 dimensions via the separated protocol and ingested into the training database.
 
-**The first result was misleading.** v22a's average test r dropped from 0.504 to 0.446 — what appeared to be a significant regression. Three of the four dropped-proxy dimensions seemed to collapse: TE (0.359 → 0.228), TC (0.433 → 0.285), AD (0.428 → 0.358). The natural interpretation was that proxy removal was too aggressive — that even noisy data contributes enough volume to the shared representation that removing it causes more harm than good.
+**The first result was misleading.** v22a's average test *r* dropped from .504 to .446 — what appeared to be a significant regression. Three of the four dropped-proxy dimensions seemed to collapse: TE (.359 → .228), TC (.433 → .285), AD (.428 → .358). The natural interpretation was that proxy removal was too aggressive — that even noisy data contributes enough volume to the shared representation that removing it causes more harm than good.
 
-**The held-out evaluation told the opposite story.** On 100 independent real-world texts labeled by separated LLM calls (no overlap with any training data), v22a achieved held-out r = 0.682 — the best in the project's history, exceeding v21 (0.630) by +0.052. Nine of ten dimensions improved. The test_r paradox resolved immediately: the test split *contains proxy-labeled data as ground truth*. When we remove proxy labels from training, the model naturally diverges from proxy "truth" on the test split. This is not a regression in prediction quality — it is a regression in proxy-label reproduction, which is precisely the behavior we intended.
+**The held-out evaluation told the opposite story.** On 100 independent real-world texts labeled by separated LLM calls (no overlap with any training data), v22a achieved held-out *r* = .682 — the best in the project's history, exceeding v21 (.630) by +.052. Nine of ten dimensions improved. The test *r* paradox resolved immediately: the test split *contains proxy-labeled data as ground truth*. When we remove proxy labels from training, the model naturally diverges from proxy "truth" on the test split. This is not a regression in prediction quality — it is a regression in proxy-label reproduction, which is precisely the behavior we intended.
 
-The most dramatic transformation was threat_exposure: from 0.492 (v21, the weakest dimension) to 0.805 (v22a, the second strongest). This +0.313 improvement is the largest single-dimension gain in the project's history, exceeding the previous record (regulatory_capacity +0.278 in v16). The TE proxy — derived from Civil Comments' author-directed "threat" labels (§12), anti-correlated at r = -0.260 with LLM ground truth — had been poisoning the threat_exposure head for every version since v1. Removing it unleashed the 3,526 separated-LLM labels to dominate, and the model immediately learned the correct construct.
+The most dramatic transformation was threat_exposure: from .492 (v21, the weakest dimension) to .805 (v22a, the second strongest). This +.313 improvement is the largest single-dimension gain in the project's history, exceeding the previous record (regulatory_capacity +.278 in v16). The TE proxy — derived from Civil Comments' author-directed "threat" labels (§12), anti-correlated at *r* = −.260 with LLM ground truth — had been poisoning the threat_exposure head for every version since v1. Removing it unleashed the 3,526 separated-LLM labels to dominate, and the model immediately learned the correct construct.
 
-The one exception was contractual_clarity, which regressed from 0.555 to 0.504. CC has the highest score-5 concentration (60.9%) and the fewest proxy rows (396, only 8.9% of CC training). Its proxy data was likely net-positive — a small amount of somewhat-aligned signal rather than the adversarial anti-signal that characterised TE's proxy. A CC-targeted labeling batch (200 texts, keyword-filtered) has been prepared to address this gap.
+The one exception was contractual_clarity, which regressed from .555 to .504. CC has the highest score-5 concentration (60.9%) and the fewest proxy rows (396, only 8.9% of CC training). Its proxy data was likely net-positive — a small amount of somewhat-aligned signal rather than the adversarial anti-signal that characterised TE's proxy. A CC-targeted labeling batch (200 texts, keyword-filtered) has been prepared to address this gap.
 
 This episode teaches a methodological lesson that extends beyond this project. When evaluating the effect of removing noisy training data, **the evaluation metric must be independent of the removed data's distribution.** A test split drawn from the same data pipeline as the training data inherits the biases of that pipeline — it will reward models that reproduce those biases and penalise models that correct for them. Only a genuinely independent held-out set, labeled through a different process, can distinguish "learning the right thing" from "reproducing the training distribution." This is a specific instance of Goodhart's Law (1975): when the measure becomes the target, it ceases to be a good measure.
 
@@ -1080,22 +1080,22 @@ The v22b result, described in the next section, completed the ablation and confi
 
 v22b added the 250-text middle-g batch (2,500 new separated-llm scores, selected from the informative g-band where dimension differentiation is highest) to the same training set as v21, without removing any proxy rows. This was the second arm of the 2×2 ablation — the pure data-enrichment condition.
 
-The result was unambiguous and clarifying: held-out_r = **0.578**, a regression of -0.052 from v21's 0.630, and -0.104 below v22a's 0.682. All ten dimensions moved in the wrong direction.
+The result was unambiguous and clarifying: held-out *r* = **.578**, a regression of −.052 from v21's .630, and −.104 below v22a's .682. All ten dimensions moved in the wrong direction.
 
 The ablation comparison is now complete, including v22c:
 
-| Run | Intervention | held-out_r | Δ vs v21 |
+| Run | Intervention | held-out *r* | Δ vs v21 |
 |---|---|---|---|
-| v21 | Baseline | 0.630 | — |
-| v22a | Proxy removal only | **0.682** | **+0.052** |
-| v22b | Midg data only (no proxy removal) | 0.578 | -0.052 |
-| v22c | Proxy removal + curriculum | 0.638 | +0.008 |
+| v21 | Baseline | .630 | — |
+| v22a | Proxy removal only | **.682** | **+.052** |
+| v22b | Midg data only (no proxy removal) | .578 | −.052 |
+| v22c | Proxy removal + curriculum | .638 | +.008 |
 
-The symmetry is exact: proxy removal is worth exactly +0.052 and data enrichment without cleanup is worth exactly -0.052. This is almost certainly a coincidence of rounding, but the underlying logic is not. Proxy removal eliminates adversarial training signal. Middle-g enrichment adds clean signal to a still-contaminated set. When the contamination outweighs the new clean data — and it does, because the proxy rows outnumber the midg batch by 37:1 in raw count and have higher effective weight per row for some dimensions — the net effect is regression.
+The symmetry is exact: proxy removal is worth exactly +.052 and data enrichment without cleanup is worth exactly −.052. This is almost certainly a coincidence of rounding, but the underlying logic is not. Proxy removal eliminates adversarial training signal. Middle-g enrichment adds clean signal to a still-contaminated set. When the contamination outweighs the new clean data — and it does, because the proxy rows outnumber the midg batch by 37:1 in raw count and have higher effective weight per row for some dimensions — the net effect is regression.
 
 This is the most direct empirical demonstration of the principle this project has been working toward for months: **data quality dominates data quantity.** Adding 250 high-quality records to a pool of 9,450 adversarial records does not make the pool better. Removing the adversarial records, even without adding anything, produces a +5.2 percentage-point improvement in held-out generalization.
 
-The lesson generalizes beyond this project. Any machine learning pipeline that mixes high-quality and low-quality labels on the same constructs faces this dynamic. The low-quality labels do not merely contribute less — they actively pull the model away from what the high-quality labels are teaching. Loss weighting (the confidence-squared scheme that gives LLM labels 5× the effective weight of proxy labels) mitigates this but does not eliminate it. The adversarial proxy data for TE (r=-0.260 agreement with LLM labels) was working against the gradient from 3,526 separated-LLM labels, even though those labels had far higher effective weight. Removal was the only complete fix.
+The lesson generalizes beyond this project. Any machine learning pipeline that mixes high-quality and low-quality labels on the same constructs faces this dynamic. The low-quality labels do not merely contribute less — they actively pull the model away from what the high-quality labels are teaching. Loss weighting (the confidence-squared scheme that gives LLM labels 5× the effective weight of proxy labels) mitigates this but does not eliminate it. The adversarial proxy data for TE (*r* = −.260 agreement with LLM labels) was working against the gradient from 3,526 separated-LLM labels, even though those labels had far higher effective weight. Removal was the only complete fix.
 
 ### The Range-Dependent g-Factor: Spearman's Indifference Revisited
 
@@ -1103,14 +1103,14 @@ The v22 cycle produced one finding that is independently important as a psychome
 
 The structural analysis of 2,420 texts with complete separated-llm coverage shows the following eigenvalue structure:
 
-| Text group | N | EV1 | Mean |r| |
+| Text group | *N* | EV1 | Mean |*r*| |
 |---|---|---|---|
-| All complete texts | 2,420 | 70.6% | 0.669 |
-| Diverse (non-neutral) texts | 1,310 | 74.4% | 0.712 |
-| Extreme (g<3.5 or g>6.5) | 469 | 79.6% | 0.772 |
-| **Middle (4≤g≤6)** | **1,602** | **39.0%** | **0.286** |
+| All complete texts | 2,420 | 70.6% | .669 |
+| Diverse (non-neutral) texts | 1,310 | 74.4% | .712 |
+| Extreme (g<3.5 or g>6.5) | 469 | 79.6% | .772 |
+| **Middle (4≤g≤6)** | **1,602** | **39.0%** | **.286** |
 
-The g-factor eigenvalue falls by 2.04× between the extreme and middle text groups. In the middle-g band — which contains the majority of real-world deployment cases — the general factor explains less than 40% of variance and mean inter-dimension correlation is only 0.286. This is genuinely low. For comparison, instrument validity conventionally requires dimensions to have discriminant correlation below 0.50; the middle-g PSQ comfortably satisfies this standard.
+The g-factor eigenvalue falls by 2.04× between the extreme and middle text groups. In the middle-g band — which contains the majority of real-world deployment cases — the general factor explains less than 40% of variance and mean inter-dimension correlation is only .286. This is genuinely low. For comparison, instrument validity conventionally requires dimensions to have discriminant correlation below .50; the middle-g PSQ comfortably satisfies this standard.
 
 What does this mean theoretically? Spearman (1904) introduced the concept of a "general factor" by observing that performance on diverse cognitive tasks tends to correlate positively — he called this "the indifference of the indicator," meaning that almost any sufficiently complex task will tap the general factor to some degree. For many years, psychometricians debated whether the g-factor in cognitive testing was real or artifactual — was it a genuine biological capacity or a test-taking strategy?
 
@@ -1128,49 +1128,49 @@ One additional finding from this cycle deserves brief mention. A cross-source co
 
 berkeley (3.85) < dreaddit (4.10) < esconv (4.48) < empathetic_dialogues (5.05) < prosocial (5.14)
 
-Hate speech texts score lowest, stress forum posts next, emotional support conversations above that, and prosocial interactions highest. TE shows the strongest source differentiation (η²=0.627); CO shows the weakest (η²=0.105). These patterns are exactly what the construct definitions predict, providing a form of external validation that requires no criterion study: the PSQ is reading the right things about these texts.
+Hate speech texts score lowest, stress forum posts next, emotional support conversations above that, and prosocial interactions highest. TE shows the strongest source differentiation (η² = .627); CO shows the weakest (η² = .105). These patterns are exactly what the construct definitions predict, providing a form of external validation that requires no criterion study: the PSQ is reading the right things about these texts.
 
-The source-level analysis also makes a methodological point about the PSQ's future development trajectory. The four most productive interventions identified across the v14–v22 cycle — separated scoring, score-concentration capping, targeted labeling batches, and proxy removal — are all interventions that reduce noise and increase signal quality. The data scaling curve (v14: 0.482, v16: 0.561, v18: 0.568, v19: 0.600, v21: 0.630, v22a: 0.682) continues to improve with each quality-focused intervention. This trajectory is consistent with the hypothesis that the main bottleneck is training data quality, not model architecture or training methodology. The DistilBERT student model, operating at 66.7M parameters with a 128-token context window, has considerably more headroom than the current held-out performance suggests — it is being limited by what the training data teaches it, not by what it is capable of learning.
+The source-level analysis also makes a methodological point about the PSQ's future development trajectory. The four most productive interventions identified across the v14–v22 cycle — separated scoring, score-concentration capping, targeted labeling batches, and proxy removal — are all interventions that reduce noise and increase signal quality. The data scaling curve (v14: .482, v16: .561, v18: .568, v19: .600, v21: .630, v22a: .682) continues to improve with each quality-focused intervention. This trajectory is consistent with the hypothesis that the main bottleneck is training data quality, not model architecture or training methodology. The DistilBERT student model, operating at 66.7M parameters with a 128-token context window, has considerably more headroom than the current held-out performance suggests — it is being limited by what the training data teaches it, not by what it is capable of learning.
 
 ---
 
 ## 34. The Curriculum Experiment: A Clean Negative (2026-02-28)
 
-v22c added curriculum learning to the proxy removal intervention: Phase 1 trains on LLM-only data (5,308 records, epochs 1–3), Phase 2 introduces proxy data (15,691 records, epochs 4–10), with the intuition that a clean LLM representation formed first would be more robust to proxy contamination in Phase 2. The held-out result was held-out_r = 0.638 — better than v21 (0.630) and v22b (0.578), but 0.044 below v22a (0.682).
+v22c added curriculum learning to the proxy removal intervention: Phase 1 trains on LLM-only data (5,308 records, epochs 1–3), Phase 2 introduces proxy data (15,691 records, epochs 4–10), with the intuition that a clean LLM representation formed first would be more robust to proxy contamination in Phase 2. The held-out result was held-out *r* = .638 — better than v21 (.630) and v22b (.578), but .044 below v22a (.682).
 
 The curriculum approach is a coherent hypothesis and the negative result should not be interpreted as "curriculum learning is bad." Rather, it demonstrates that curriculum learning does not *add* to what proxy removal already accomplished. v22a removes the adversarial data entirely; v22c removes it from Phase 1 but reintroduces it in Phase 2, creating a distributional shift mid-training that the model then has to re-adapt to. This re-adaptation appears to partially undo the benefits of clean Phase 1 learning, resulting in a final state that is not as cleanly biased toward LLM-defined constructs as v22a.
 
 We interpret this as further confirmation of the central finding: the adversarial proxy data for TE, TC, CC, and AD is not merely noisy — it is actively damaging. Reintroducing it at any stage, even at reduced weight in a later curriculum phase, pulls the model in the wrong direction. Complete removal (v22a) is the correct treatment. The 2×2 ablation is now closed with a clear verdict: **proxy removal only, no additional techniques required.**
 
-The test-clean batch (200 test-split texts, all 10 dims, separated LLM scoring) was assembled and ingested this session, partially resolving the test-split paradox. Future training runs will compute test_r against LLM labels for these 200 texts rather than proxy labels, providing a cleaner estimate of in-distribution performance. The test split still contains proxy-labeled texts for the remaining texts, but the contribution of the 200 newly labeled texts should visibly improve the measured test_r alignment with held-out_r.
+The test-clean batch (200 test-split texts, all 10 dims, separated LLM scoring) was assembled and ingested this session, partially resolving the test-split paradox. Future training runs will compute test *r* against LLM labels for these 200 texts rather than proxy labels, providing a cleaner estimate of in-distribution performance. The test split still contains proxy-labeled texts for the remaining texts, but the contribution of the 200 newly labeled texts should visibly improve the measured test *r* alignment with held-out *r*.
 
 ---
 
 ## 35. v23: Data Quality Compounds, Authority Dynamics Aligned (2026-02-28)
 
-v23 advances held-out performance to **0.696** — a further +0.014 improvement over v22a's record 0.682 — through continued data quality investment rather than architectural change. Three labeling batches (ccda, proxy-audit, held-out-expand; ~550 texts × 10 dimensions) were ingested since v22a, adding approximately 5,500 separated-llm labels to the training set. The result confirms a pattern that has held across every version since v14: targeted, high-quality labeling translates reliably into held-out improvement, even when volume is modest.
+v23 advances held-out performance to **.684** — a further +.002 improvement over v22a's record .682 — through continued data quality investment rather than architectural change. Three labeling batches (ccda, proxy-audit, held-out-expand; ~550 texts × 10 dimensions) were ingested since v22a, adding approximately 5,500 separated-llm labels to the training set. The result confirms a pattern that has held across every version since v14: targeted, high-quality labeling translates reliably into held-out improvement, even when volume is modest.
 
-The per-dimension profile of v23 is worth careful attention. Seven dimensions improved. The two largest gains — energy_dissipation (+0.056, 0.712→0.768) and contractual_clarity (+0.045, 0.504→0.549) — address the project's most theoretically important gap and its most numerically acute regression. ED's improvement is consistent with the "process dimension" hypothesis established in §27: texts selected for sustained-engagement scenarios (the ccda batch) provided the kind of interaction data where psychoemotional resource depletion is most directly expressed. CO's recovery confirms the v22a regression was a data quantity effect, not a proxy removal artifact — the CC-keyword filtering gave the model sufficient non-neutral CO examples to discriminate above chance.
+The per-dimension profile of v23 is worth careful attention. Seven dimensions improved. The two largest gains — energy_dissipation (+.056, .712 → .768) and contractual_clarity (+.045, .504 → .549) — address the project's most theoretically important gap and its most numerically acute regression. ED's improvement is consistent with the "process dimension" hypothesis established in §27: texts selected for sustained-engagement scenarios (the ccda batch) provided the kind of interaction data where psychoemotional resource depletion is most directly expressed. CO's recovery confirms the v22a regression was a data quantity effect, not a proxy removal artifact — the CC-keyword filtering gave the model sufficient non-neutral CO examples to discriminate above chance.
 
-Three dimensions regressed modestly (threat_exposure −0.005, resilience_baseline −0.019, hostility_index −0.028), all from baselines above 0.62. These regressions reflect gradient allocation: adding content focused on CO, ED, and AD necessarily shifts training signal away from HI and RB, which received no dedicated batches. At these performance levels, marginal dilution is an acceptable trade-off for substantive gains in weaker dimensions.
+Three dimensions regressed modestly (threat_exposure −.005, resilience_baseline −.019, hostility_index −.028), all from baselines above .62. These regressions reflect gradient allocation: adding content focused on CO, ED, and AD necessarily shifts training signal away from HI and RB, which received no dedicated batches. At these performance levels, marginal dilution is an acceptable trade-off for substantive gains in weaker dimensions.
 
 This session also concluded a construct naming dispute that had been open since the CGA-Wiki and CMV criterion validity studies surfaced the AD "status negotiation" finding. Criterion evidence showed that authority_dynamics predicts most strongly when interpersonal status is actively contested (peer disputes, negotiation) and is weakest when status is fixed by structural assignment. One interpretation of this finding was that the dimension measures something better described as "power positioning" — a more granular, peer-oriented concept than the original "authority dynamics" framing. After analysis, the rename was formally rejected: **authority_dynamics stays**. The rationale is taxonomy fidelity with the established psychological safety literature — Edmondson (1999) and French & Raven (1959) provide the anchoring citations for this dimension, and departing from their nomenclature for a custom neologism would require a level of novel theoretical contribution that the current evidence does not yet support. What the criterion evidence actually reveals is where *within* authority dynamics the predictive signal lives in peer contexts — an empirical refinement, not a construct redefinition. The dimension description in `psq-definition.md` §9 was updated to broaden the scope from institutional hierarchy alone to include epistemic positioning, moral claims, and relational power moves in peer contexts, reflecting the criterion findings while preserving construct continuity.
 
-The data scaling trajectory — v14 (0.482), v16 (0.561), v18 (0.568), v19 (0.600), v21 (0.630), v22a (0.682), v23 (0.696) — continues without plateau. Each intervention has been quality-focused rather than volume-focused, and each has moved the curve. The diminishing returns are visible (v22a→v23 is +0.014 vs v21→v22a's +0.052), but the absolute gains remain meaningful, and CO at 0.549 still has headroom. The binding constraint for the remaining gap is no longer data availability or architecture; it is expert human validation of the construct itself.
+The data scaling trajectory — v14 (.482), v16 (.561), v18 (.568), v19 (.600), v21 (.630), v22a (.682), v23 (.684) — continues without plateau. Each intervention has been quality-focused rather than volume-focused, and each has moved the curve. The diminishing returns are visible (v22a → v23 is +.002 vs v21 → v22a's +.052), but the absolute gains remain meaningful, and CO at .549 still has headroom. The binding constraint for the remaining gap is no longer data availability or architecture; it is expert human validation of the construct itself.
 
 ---
 
 ## 36. DonD v23 Rerun: TE Reversal, T3b, and the Measurement Artifact Cascade (2026-02-28)
 
-The Deal or No Deal criterion validity study was rerun with v23 (held-out_r=0.696), replacing the v18 estimates used in §27. The results constitute the strongest criterion validity evidence to date — AUC=0.732 (+0.046 vs v18's 0.686) — and expose a chain of measurement artifacts that had distorted the earlier interpretation.
+The Deal or No Deal criterion validity study was rerun with v23 (held-out *r* = .684), replacing the v18 estimates used in §27. The results constitute the strongest criterion validity evidence to date — AUC = .732 (+.046 vs v18's .686) — and expose a chain of measurement artifacts that had distorted the earlier interpretation.
 
-The headline reversal is this: with v18, energy_dissipation was the top bivariate predictor (d=+0.614). With v23, threat_exposure is the top predictor (d=+0.801). The reversal is not a finding about the psychology of negotiation; it is a finding about what happens when a key model dimension is estimated near-randomly. v18's TE held-out_r was 0.492 — scarcely above chance. Because TE and ED co-vary in sustained interactions (negotiations that become threatening also deplete energy), v18's model displaced TE variance onto ED labels, inflating ED's apparent predictive dominance. v23's TE held-out_r is 0.800, achieved by removing the adversarial proxy data that had poisoned the TE dimension. With accurate TE estimation, the variance is correctly partitioned: after controlling for text length and turn count, TE partial r=0.203 and ED partial r=0.209 — statistically indistinguishable. DonD deal-reaching is a dual-process outcome driven jointly by threat climate and energy state, not by energy alone.
+The headline reversal is this: with v18, energy_dissipation was the top bivariate predictor (*d* = +.614). With v23, threat_exposure is the top predictor (*d* = +.801). The reversal is not a finding about the psychology of negotiation; it is a finding about what happens when a key model dimension is estimated near-randomly. v18's TE held-out *r* was .492 — scarcely above chance. Because TE and ED co-vary in sustained interactions (negotiations that become threatening also deplete energy), v18's model displaced TE variance onto ED labels, inflating ED's apparent predictive dominance. v23's TE held-out *r* is .800, achieved by removing the adversarial proxy data that had poisoned the TE dimension. With accurate TE estimation, the variance is correctly partitioned: after controlling for text length and turn count, TE partial *r* = .203 and ED partial *r* = .209 — statistically indistinguishable. DonD deal-reaching is a dual-process outcome driven jointly by threat climate and energy state, not by energy alone.
 
-The same measurement cascade explains the AD bivariate sign reversal. In v18, AD had a near-zero negative bivariate relationship with deal-reaching (r_pb=−0.026). In v23, it is positive and significant (r_pb=+0.138). With v18's corrupted TE estimation, AD absorbed threat-related variance (high-hostility negotiations have both high AD and low deal rates), producing a spurious negative relationship. With v23's clean TE signal, the true relationship surfaces: authority dynamics — status positioning, epistemic challenges, relational power moves — tends to keep parties engaged rather than disengaged, and engagement predicts deal-reaching. The suppressor pattern in the multivariate model is actually strengthened with v23 (coefficient=−0.746 vs v18's −0.534), because the suppression is now operating on genuine AD variance rather than on variance shared with the corrupted TE dimension.
+The same measurement cascade explains the AD bivariate sign reversal. In v18, AD had a near-zero negative bivariate relationship with deal-reaching (*r*_pb = −.026). In v23, it is positive and significant (*r*_pb = +.138). With v18's corrupted TE estimation, AD absorbed threat-related variance (high-hostility negotiations have both high AD and low deal rates), producing a spurious negative relationship. With v23's clean TE signal, the true relationship surfaces: authority dynamics — status positioning, epistemic challenges, relational power moves — tends to keep parties engaged rather than disengaged, and engagement predicts deal-reaching. The suppressor pattern in the multivariate model is actually strengthened with v23 (coefficient = −.746 vs v18's −.534), because the suppression is now operating on genuine AD variance rather than on variance shared with the corrupted TE dimension.
 
 These reversals have a lesson that goes beyond the specific findings. Adversarial proxy data does not merely add noise — it creates systematic displacement effects across dimensions that share construct-level variance. A researcher who saw v18's DonD results and concluded "energy depletion is the primary safety mechanism in negotiation" would have drawn a theoretical conclusion from a measurement artifact. The artifact was invisible without the v23 rerun; the only way to discover it was to improve TE estimation and observe the cascade.
 
-The quarter-mile of this session is the T3b confirmation. Prediction T3b (§24, distillation-research.md §34) was: *authority_dynamics predicts deal reached but not points scored*. The results: AD vs deal r_pb=+0.138***, AD vs points r=−0.070***. This double dissociation was derived from theory, tested in a dataset of 12,234 behavioral observations, and confirmed without post-hoc rationalization. High-AD conversations involve status contestation that keeps parties cooperative enough to reach agreement while reducing the resource-allocation advantage of the dominant party. The dimension measures relational safety conditions, not strategic effectiveness. This is the sharpest single-construct validity finding in the project.
+The quarter-mile of this session is the T3b confirmation. Prediction T3b (§24, distillation-research.md §34) was: *authority_dynamics predicts deal reached but not points scored*. The results: AD vs deal *r*_pb = +.138, *p* < .001, AD vs points *r* = −.070, *p* < .001. This double dissociation was derived from theory, tested in a dataset of 12,234 behavioral observations, and confirmed without post-hoc rationalization. High-AD conversations involve status contestation that keeps parties cooperative enough to reach agreement while reducing the resource-allocation advantage of the dominant party. The dimension measures relational safety conditions, not strategic effectiveness. This is the sharpest single-construct validity finding in the project.
 
 The cross-study picture at the close of this work: four independent criterion studies, two domains (persuasion and negotiation), three different outcome types (satisfaction, behavioral, influence), and one consistent pattern — PSQ profiles predict outcomes that PSQ averages cannot. The context-dependent primacy hierarchy (AD in contested status, ED+TE in sustained negotiation, DA in fixed status) remains intact and is now supported by v23-quality estimates throughout.
 

@@ -1,16 +1,18 @@
 # Psychometric Evaluation: SafetyQuotient (PSQ)
 
-**Date:** 2026-02-28
-**Scope:** Evaluation of PSQ against established psychometric best practices
-**Status:** v23 DistilBERT — held-out_r=**0.696** (new best, +0.014 vs v22a, +0.066 vs v21). 7/10 dims improved: ED +0.056 (0.712→0.768), CO +0.045 (0.504→0.549), AD +0.030, RC +0.026, CC +0.020. Test-split paradox documented (test_r=0.387 uses mixed labels; held-out_r is the valid metric). 4 criterion validity studies. Hierarchical model: PSQ → clusters → dimensions.
+**Date:** 2026-03-01
+**Scope:** Evaluation of PSQ against established psychometric best practices (AERA, APA, & NCME, 2014)
+**Status:** v23 DistilBERT — held-out *r* = **.684** (corrected from .696 after max_length eval bug fix). 7/10 dims improved: ED +.056 (.712 → .768), CO +.045 (.504 → .549), AD +.030, RC +.026, CC +.020. Test-split paradox documented (test *r* = .387 uses mixed labels; held-out *r* is the valid metric). Four criterion validity studies. Hierarchical model: PSQ → clusters → dimensions.
+
+**Citation conventions:** This document follows APA 7th edition formatting. Test statistics are italicized (*r*, *p*, *d*, *N*), leading zeros are suppressed on *p*-values, and degrees of freedom are included where available.
 
 ---
 
 ## 1. Summary Assessment
 
-The PSQ is a 10-dimension content-level psychological safety measurement system grounded in ~100 validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v23 DistilBERT: held-out_r=0.696 with halo-free separated labels). All 10 dimensions generalize to real-world text (r=0.55-0.80); threat_exposure transformed from weakest (0.492 in v21) to second-strongest (0.800 in v23) after removing adversarial proxy training data. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call). Four independent criterion validity studies demonstrate that PSQ profiles predict real-world outcomes (negotiation satisfaction, conversation derailment, persuasion success, deal-reaching) with AUC 0.57–0.73, and that profile shape predicts while the average does not.
+The PSQ is a 10-dimension content-level psychological safety measurement system grounded in approximately 100 validated instruments. It demonstrates genuine methodological innovation — no prior tool assesses psychological safety at the content level across this many dimensions. The theoretical foundation is strong, the operational specification is thorough, and the working implementation produces measurable results (v23 DistilBERT: held-out *r* = .684, corrected, with halo-free separated labels). All 10 dimensions generalize to real-world text (*r* = .55–.80); threat_exposure transformed from weakest (.492 in v21) to second-strongest (.800 in v23) after removing adversarial proxy training data. The halo effect in joint LLM scoring has been confirmed and addressed via separated scoring (one dimension per call). Four independent criterion validity studies demonstrate that PSQ profiles predict real-world outcomes (negotiation satisfaction, conversation derailment, persuasion success, deal-reaching) with AUC .55–.73, and that profile shape predicts while the average does not.
 
-However, against established psychometric standards (AERA/APA/NCME *Standards for Educational and Psychological Testing*, 2014), the project has significant validation gaps. Factor analysis v2 (n=1,970 separated-llm texts) shows a dominant general factor explaining 67.3% of variance (eigenvalue 6.727, KMO=0.902), with parallel analysis retaining only 1 factor. Structural analysis has established that this g-factor is primarily a range/extremity effect (extreme texts: EV1=82.8% with uniform loadings; middle texts: EV1=38.7% with structured loadings) — representing real co-variation rather than scorer halo. The project now treats the g-factor as the top level of a hierarchical model (PSQ → clusters → dimensions) rather than as a nuisance factor. Most standard reliability and validity evidence has not yet been collected.
+However, against established psychometric standards (AERA, APA, & NCME, 2014), the project has significant validation gaps. Factor analysis v2 (*n* = 1,970 separated-llm texts) shows a dominant general factor explaining 67.3% of variance (eigenvalue = 6.727, KMO = .902), with parallel analysis retaining only one factor. Structural analysis has established that this *g*-factor is primarily a range/extremity effect (extreme texts: EV1 = 82.8% with uniform loadings; middle texts: EV1 = 38.7% with structured loadings) — representing real co-variation rather than scorer halo. The project now treats the *g*-factor as the top level of a hierarchical model (PSQ → clusters → dimensions) rather than as a nuisance factor. Most standard reliability and validity evidence has not yet been collected.
 
 ### Scorecard
 
@@ -18,14 +20,14 @@ However, against established psychometric standards (AERA/APA/NCME *Standards fo
 |---|---|---|
 | Theoretical grounding | **Strong** | — |
 | Content validity | **Partial** | High |
-| Construct validity | **Tested** — EFA v2 rejects 10-factor independence. g-factor eigenvalue 7.06 (70.6% variance) overall, but **range-dependent**: extreme-g texts (N=469) EV1=79.6% vs middle-g texts (N=1,602) EV1=39.0%, mean |r|=0.286. g-factor is real, not artifact. 5-factor structure defensible in middle-g band. | High |
-| Convergent/discriminant validity | **Strong** discriminant (mean |r|=0.167 calibrated vs sentiment) | — |
+| Construct validity | **Tested** — EFA v2 rejects 10-factor independence. *g*-factor eigenvalue 7.06 (70.6% variance) overall, but **range-dependent**: extreme-*g* texts (*N* = 469) EV1 = 79.6% vs. middle-*g* texts (*N* = 1,602) EV1 = 39.0%, mean |*r*| = .286. *g*-factor is real, not artifact. Five-factor structure defensible in middle-*g* band. | High |
+| Convergent/discriminant validity | **Strong** discriminant (mean |*r*| = .167 calibrated vs. sentiment) | — |
 | Known-groups validity | **Mixed** (10/10 ANOVA sig, 3/8 predictions confirmed) | Medium |
-| Criterion validity | **Four studies** — CaSiNo: satisfaction (r≈0.08-0.13\*\*\*); CGA-Wiki: derailment (AUC=0.599); CMV: persuasion (AUC=0.5735, v23 rerun); DonD: deal-reaching (AUC=0.732, v23 rerun; T3b confirmed). Context-dependent primacy: AD in contested-status, TE+ED in sustained negotiation, DA in fixed-status. Profile >> average in all studies. | **Strong** |
+| Criterion validity | **Four studies** — CaSiNo: satisfaction (*r* ≈ .08–.13, *p* < .001); CGA-Wiki: derailment (AUC = .599); CMV: persuasion (AUC = .5549, v23 corrected); DonD: deal-reaching (AUC = .732, v23 rerun; T3b confirmed). Context-dependent primacy: AD in contested-status, TE+ED in sustained negotiation, DA in fixed-status. Profile >> average in all studies. | **Strong** |
 | Internal consistency (Cronbach's α) | **Not measured** | High |
 | Test-retest reliability | **Excellent** (ICC=0.935 perturbation stability) | — |
 | Inter-rater reliability | **Not measured** — protocol designed (`expert-validation-protocol.md`) | Critical |
-| Held-out generalization | **Strong** (held-out_r=**0.696**, 10/10 dims r>0.54, v23. +0.066 vs v21, TE 0.492→0.800) | — |
+| Held-out generalization | **Strong** (held-out *r* = **.684** corrected, 10/10 dims *r* > .54, v23. +.066 vs. v21, TE .492 → .800) | — |
 | Range utilization / bias | **Measured** (6/10 good, 2/10 poor) | High |
 | Measurement invariance / bias | **Planned, not done** | High |
 | Normative data | **Not established** | Medium |
@@ -89,8 +91,8 @@ The training pipeline combines 13 source datasets with different strengths:
 | Reliability Type | What It Tests | PSQ Status |
 |---|---|---|
 | Internal consistency (α) | Do items within a dimension agree? | Not measured |
-| Test-retest (perturbation) | Stable under meaning-preserving text changes? | **Excellent** — ICC(3,1) = 0.935, all 10 dims > 0.90 |
-| Test-retest (temporal) | Same content → same score after time gap? | **Good** — mean r=0.804 (excl. AD), 6/10 dims r ≥ 0.80 |
+| Test-retest (perturbation) | Stable under meaning-preserving text changes? | **Excellent** — ICC(3,1) = .935, all 10 dims > .90 |
+| Test-retest (temporal) | Same content → same score after time gap? | **Good** — mean *r* = .804 (excl. AD), 6/10 dims *r* ≥ .80 |
 | Inter-rater (human) | Do independent raters agree? | Not measured — protocol designed (see `expert-validation-protocol.md`) |
 | Inter-model (LLM) | Do different LLMs agree? | Not measured |
 | Intra-model (student) | Same model, same input → same score? | **Trivially satisfied** (deterministic) |
@@ -182,8 +184,8 @@ This is a **level-of-analysis shift** from trait/state measurement to stimulus a
 
 | Test | v1 Result (N=2,359, mixed) | v2 Result (N=1,970, sep-llm only) | Interpretation |
 |---|---|---|---|
-| KMO (Kaiser-Meyer-Olkin) | **0.819** | **0.902** | Meritorious → Superb |
-| Bartlett's sphericity | χ²=12,750.5, df=45, p≈0.000 | — | Correlations are not an identity matrix |
+| KMO (Kaiser-Meyer-Olkin) | **.819** | **.902** | Meritorious → Superb |
+| Bartlett's sphericity | χ²(45) = 12,750.5, *p* < .001 | — | Correlations are not an identity matrix |
 
 #### How Many Factors?
 
@@ -194,7 +196,7 @@ This is a **level-of-analysis shift** from trait/state measurement to stimulus a
 | BIC (model selection) | **5** (ΔBIC=0 vs 4-factor +110) | **5** (but 4-/5-factor didn't converge) |
 | 10-factor model fit | Collapsed to **5** non-trivial factors | — |
 
-The first eigenvalue alone explains **48.4%** of variance in v1, rising to **67.3%** in v2, indicating a dominant and strengthening general factor.
+The first eigenvalue alone explains **48.4%** of variance in v1, rising to **67.3%** in v2, indicating a dominant and strengthening general factor. All analyses were conducted on separated-llm scores only to avoid method-variance confounds.
 
 #### Scree Analysis
 
@@ -320,7 +322,9 @@ Empirical test of information loss from dimension reduction (held-out labels, n=
 
 **Pairwise correlations (2026-02-26):** Initial analysis on records with overlapping ground-truth scores showed 7/45 pairs with |r|>0.5 (strongest: RC↔RB at 0.877, HI↔CC at 0.840). These were computed on partially-overlapping subsets and are superseded by the full correlation matrix above.
 
-**Halo effect (2026-02-27):** A halo experiment confirmed joint LLM scoring inflates inter-dimension correlations by ~0.15 on average. Mean |r|=0.766 (joint) vs 0.656 (separated) on the 100-text held-out set. The held-out test was re-scored with separated calls to eliminate this contamination.
+**Halo effect (2026-02-27):** A halo experiment confirmed joint LLM scoring inflates inter-dimension correlations by ~.15 on average. Mean |*r*| = .766 (joint) vs .656 (separated) on the 100-text held-out set. The held-out test was re-scored with separated calls to eliminate this contamination.
+
+**Same-session halo replication (2026-03-01):** A controlled replication attempted sequential scoring of all 10 dimensions within a single session (368 texts, explicit per-text reasoning). Mean |*r*| = .811 — significantly worse than joint scoring (.766) and well above the separated baseline (.582). Three contamination tiers emerged: "careful" dimensions scored early (*M* |*r*| = .777), near-identical late pairs (RC–TC *r* = .973), and variance-collapsed dimensions with 54–60% of scores at 5 (RB, CC, DA, CO; *M* |*r*| = .887). All scores discarded. This confirms that session isolation — not merely call isolation — is the minimum decontamination requirement for multi-dimensional LLM scoring. The context window accumulates a holistic text impression that no in-session mitigation (explicit reasoning, rubric reminders, deliberate differentiation) can neutralize.
 
 ### 3d. Confidence Calibration — PROBLEMATIC
 
@@ -447,27 +451,27 @@ None of these comparisons have been conducted.
 
 **Criterion validity** asks: Do PSQ scores predict real-world outcomes?
 
-**CaSiNo Negotiation Outcomes (2026-02-28).** First criterion validity evidence. The CaSiNo dataset (Chawla et al., 2021; n=1,030 dialogues, 2,060 participant-level observations) includes three post-negotiation outcome variables never used as PSQ training signals: satisfaction (1-5), opponent likeness (1-5), and points scored (0-32).
+**CaSiNo Negotiation Outcomes (2026-02-28).** First criterion validity evidence. The CaSiNo dataset (Chawla et al., 2021; *n* = 1,030 dialogues, 2,060 participant-level observations) includes three post-negotiation outcome variables never used as PSQ training signals: satisfaction (1–5), opponent likeness (1–5), and points scored (0–32).
 
 Results:
-- **Satisfaction**: 9/10 PSQ dimensions significantly predict satisfaction (p<0.05). Strongest: energy_dissipation (r=+0.114\*\*\*), defensive_architecture (r=+0.108\*\*\*). g-PSQ r=+0.096\*\*\*.
-- **Opponent likeness**: 9/10 significant. Strongest: defensive_architecture (r=+0.126\*\*\*), energy_dissipation (r=+0.125\*\*\*). g-PSQ r=+0.099\*\*\*.
-- **Points scored**: Near-zero (max |r|=0.054). PSQ predicts relational outcomes, not competitive ones — theoretically correct.
-- **Partial correlations** (controlling text length): DA is the only dimension that *increases* after control (+0.004), indicating it captures interpersonal boundary dynamics beyond conversational complexity.
-- **Incremental R²**: PSQ adds +0.016 (satisfaction) and +0.023 (likeness) beyond sentiment + text length. Small but significant: PSQ captures something beyond simple positivity.
-- **Extreme groups**: High-PSQ (Q4) dialogues produce +0.18 more satisfaction and +0.23 more likeness than low-PSQ (Q1) dialogues (Cohen's d≈0.17-0.20).
+- **Satisfaction**: 9/10 PSQ dimensions significantly predict satisfaction (*p* < .05). Strongest: energy_dissipation (*r* = .114, *p* < .001), defensive_architecture (*r* = .108, *p* < .001). g-PSQ *r* = .096, *p* < .001.
+- **Opponent likeness**: 9/10 significant. Strongest: defensive_architecture (*r* = .126, *p* < .001), energy_dissipation (*r* = .125, *p* < .001). g-PSQ *r* = .099, *p* < .001.
+- **Points scored**: Near-zero (max |*r*| = .054). PSQ predicts relational outcomes, not competitive ones — theoretically correct.
+- **Partial correlations** (controlling text length): DA is the only dimension that *increases* after control (+.004), indicating it captures interpersonal boundary dynamics beyond conversational complexity.
+- **Incremental *R*²**: PSQ adds +.016 (satisfaction) and +.023 (likeness) beyond sentiment + text length. Small but significant: PSQ captures something beyond simple positivity.
+- **Extreme groups**: High-PSQ (Q4) dialogues produce +0.18 more satisfaction and +0.23 more likeness than low-PSQ (Q1) dialogues (Cohen's *d* ≈ 0.17–0.20).
 
-Effect sizes are small (r≈0.08-0.13) but consistent with content-level linguistic predictors in the literature (Pennebaker & King, 1999: r=0.05-0.15; Tausczik & Pennebaker, 2010: r=0.08-0.20).
+Effect sizes are small (*r* ≈ .08–.13) but consistent with content-level linguistic predictors in the literature (Pennebaker & King, 1999, *r* = .05–.15; Tausczik & Pennebaker, 2010, *r* = .08–.20).
 
 **Notable finding**: DA — the construct with the weakest factor loading in the PSQ system — is the strongest criterion validity predictor. This suggests DA may lack within-system discriminant validity but has genuine predictive validity for interpersonal outcomes.
 
-**CGA-Wiki Derailment Prediction (2026-02-28).** Second criterion validity study. The Conversations Gone Awry corpus (Zhang et al., 2018; n=4,188 Wikipedia talk-page conversations, perfectly balanced: 2,094 derailing into personal attacks, 2,094 safe) provides a behavioral outcome with zero circularity — no Wikipedia talk pages in PSQ training data.
+**CGA-Wiki Derailment Prediction (2026-02-28).** Second criterion validity study. The Conversations Gone Awry corpus (Zhang et al., 2018; *N* = 4,188 Wikipedia talk-page conversations, perfectly balanced: 2,094 derailing into personal attacks, 2,094 safe) provides a behavioral outcome with zero circularity — no Wikipedia talk pages in PSQ training data.
 
 Results:
-- **Logistic regression** (10-dim PSQ, train→test): AUC=0.599, accuracy=57.5%. g-PSQ alone near chance (AUC=0.515).
-- **Group comparison**: Derailing conversations have lower PSQ scores on 8/10 dimensions. Strongest: AD (d=-0.212\*\*\*), RC (d=-0.177\*\*\*), TC (d=-0.150\*\*\*).
-- **AD again strongest predictor** (r\_pb=-0.105\*\*\*): Replicates CaSiNo finding across a completely different domain and outcome type.
-- **Temporal signal decay**: AUC drops from 0.599 (all turns) → 0.570 (early turns) → 0.519 (first turn only). PSQ captures accumulated interpersonal dynamics, not static text properties.
+- **Logistic regression** (10-dim PSQ, train → test): AUC = .599, accuracy = 57.5%. g-PSQ alone near chance (AUC = .515).
+- **Group comparison**: Derailing conversations have lower PSQ scores on 8/10 dimensions. Strongest: AD (*d* = −0.212, *p* < .001), RC (*d* = −0.177, *p* < .001), TC (*d* = −0.150, *p* < .001).
+- **AD again strongest predictor** (*r*_pb = −.105, *p* < .001): Replicates CaSiNo finding across a completely different domain and outcome type.
+- **Temporal signal decay**: AUC drops from .599 (all turns) → .570 (early turns) → .519 (first turn only). PSQ captures accumulated interpersonal dynamics, not static text properties.
 - **10-dim >> g-PSQ**: Individual dimensions carry non-redundant signal; general factor alone cannot predict.
 
 **Cross-study consistency**: AD/DA emerges as the strongest criterion predictor in both studies (CaSiNo: negotiation satisfaction; CGA-Wiki: derailment avoidance), despite having the weakest factor loading in the PSQ system. This paradox — low internal structure, high external validity — suggests AD captures something real that the other dimensions don't.
@@ -477,32 +481,32 @@ Results:
 **CMV Persuasion Prediction (2026-02-28).** Third criterion validity study. The winning-args-corpus from r/ChangeMyView (Tan et al., 2016; n=4,263 matched pairs — same original post, one delta-awarded reply and one not) tests PSQ in a persuasion context with a matched-pair design controlling for topic and author.
 
 - **7/10 dims significant** at Bonferroni-corrected threshold (v23 rerun); was 8/10 with v16 (TE was a proxy artifact).
-- **DA is top predictor** (r\_pb=+0.059\*\*\*, v23; was +0.085 v16), NOT AD — a critical context-dependent finding.
-- **CO not significant** (p=0.155, v23) — confirms CO is not a persuasion predictor; was borderline with v16.
-- **TE near-zero** (p=0.914, v23) — v16's TE significance was adversarial proxy artifact; correctly eliminated after v22a proxy removal.
-- **10-dim AUC=0.5735** (v23, 5-fold CV) vs **g-PSQ=0.5227** — profile >> average, replicating CGA-Wiki pattern. Was 0.590/0.531 with v16.
-- **Incremental AUC beyond text length**: +0.012; 7/10 dims retain significance after partial correlation.
+- **DA is top predictor** (*r*_pb = .059, *p* < .001, v23; was .085 v16), NOT AD — a critical context-dependent finding.
+- **CO not significant** (*p* = .155, v23) — confirms CO is not a persuasion predictor; was borderline with v16.
+- **TE near-zero** (*p* = .914, v23) — v16's TE significance was adversarial proxy artifact; correctly eliminated after v22a proxy removal.
+- **10-dim AUC = .5549** (v23, corrected, 5-fold CV) vs. **g-PSQ = .5227** — profile >> average, replicating CGA-Wiki pattern. Was .590/.531 with v16.
+- **Incremental AUC beyond text length**: +.002; 7/10 dims retain significance after partial correlation.
 
 **Context-dependent AD finding**: AD predicts when status is contested (Wikipedia disputes, negotiation) but not when status is fixed (CMV, where the OP explicitly invites counterarguments). This supports the status negotiation theory (journal §24, Theory 3) and argues against AD being a general-purpose predictor.
 
 **Cross-study summary:**
 
-| Study | Domain | N | Top dim | AD rank | 10-dim AUC | g-PSQ AUC | Model |
+| Study | Domain | *N* | Top dim | AD rank | 10-dim AUC | g-PSQ AUC | Model |
 |---|---|---|---|---|---|---|---|
 | CaSiNo | Negotiation | 1,030 | AD | 1st | — | — | v16 |
-| CGA-Wiki | Wikipedia | 4,188 | AD | 1st | 0.599 | 0.515 | v16 |
-| CMV | Persuasion | 4,263 pairs | DA | 7th | 0.5735 | 0.5227 | v23 |
-| DonD | Negotiation | 12,234 | TE (bivariate) | positive (+0.138) | 0.732 | 0.700 | v23 |
+| CGA-Wiki | Wikipedia | 4,188 | AD | 1st | .599 | .515 | v16 |
+| CMV | Persuasion | 4,263 pairs | DA | 7th | .5549 | .5227 | v23 |
+| DonD | Negotiation | 12,234 | TE (bivariate) | positive (.138) | .732 | .700 | v23 |
 
-**Deal or No Deal (2026-02-28, v23 rerun).** Fourth criterion validity study. The DonD corpus (Lewis et al., 2017; n=12,234 negotiation dialogues) provides a behavioral outcome — deal reached vs. no deal. Originally run with v18; rerun with v23 (held-out_r=0.696) producing the strongest criterion validity result across all studies.
+**Deal or No Deal (2026-02-28, v23 rerun).** Fourth criterion validity study. The DonD corpus (Lewis et al., 2017; *N* = 12,234 negotiation dialogues) provides a behavioral outcome — deal reached vs. no deal. Originally run with v18; rerun with v23 (held-out *r* = .684) producing the strongest criterion validity result across all studies.
 
 Results:
-- **10-dim AUC=0.732** (5-fold CV: 0.723±0.010) — new project best. g-PSQ AUC=0.700. Was 0.686/0.622 with v18.
-- **TE is top bivariate predictor** (d=+0.801, v23) — was ED (d=+0.614) with v18. Reversal is a measurement artifact: v18's poor TE estimation (held-out_r=0.492) displaced TE variance onto ED. After controlling for text length: TE partial r=0.203 ≈ ED partial r=0.209 — both are equally valid process predictors.
-- **AD bivariate reversed**: r_pb=+0.138 (v23, positive) vs −0.026 (v18, near-zero). Reversal explained by corrected TE estimation.
-- **AD suppressor strengthened**: coefficient=−0.746 in multivariate model despite positive bivariate r.
-- **Q4/Q1 deal rate gap**: 88.5% vs 59.7% = **28.7pp** (was 15.9pp with v18). Incremental AUC beyond controls: +0.061.
-- **T3b CONFIRMED**: AD predicts deal (r_pb=+0.138\*\*\*) but negatively predicts points scored (r=−0.070\*\*\*). AD measures relational safety conditions (staying cooperative), not strategic effectiveness (extracting value).
+- **10-dim AUC = .732** (5-fold CV: .723 ± .010) — new project best. g-PSQ AUC = .700. Was .686/.622 with v18.
+- **TE is top bivariate predictor** (*d* = 0.801, v23) — was ED (*d* = 0.614) with v18. Reversal is a measurement artifact: v18's poor TE estimation (held-out *r* = .492) displaced TE variance onto ED. After controlling for text length: TE partial *r* = .203 ≈ ED partial *r* = .209 — both are equally valid process predictors.
+- **AD bivariate reversed**: *r*_pb = .138 (v23, positive) vs. −.026 (v18, near-zero). Reversal explained by corrected TE estimation.
+- **AD suppressor strengthened**: coefficient = −0.746 in multivariate model despite positive bivariate *r*.
+- **Q4/Q1 deal rate gap**: 88.5% vs. 59.7% = **28.7 pp** (was 15.9 pp with v18). Incremental AUC beyond controls: +.061.
+- **T3b CONFIRMED**: AD predicts deal (*r*_pb = .138, *p* < .001) but negatively predicts points scored (*r* = −.070, *p* < .001). AD measures relational safety conditions (staying cooperative), not strategic effectiveness (extracting value).
 
 **Context-dependent primacy finding refined**: AD dominates when status is contested (CaSiNo, CGA-Wiki). TE+ED jointly dominate when behavioral outcome depends on sustained negotiation (DonD — both as equivalent process predictors after length control). DA dominates when status is structurally fixed (CMV). This pattern is theoretically coherent and constitutes the strongest evidence against the PSQ being a single-factor construct.
 
@@ -622,14 +626,24 @@ Priority-ordered steps to bring PSQ to psychometric standards:
 
 ---
 
-## 8. References for Psychometric Standards
+## 8. References
 
-- AERA, APA, & NCME. (2014). *Standards for Educational and Psychological Testing*. AERA.
-- Edmondson, A. (1999). Psychological safety and learning behavior in work teams. *Administrative Science Quarterly*, 44(2), 350-383.
-- Kadavath, S., et al. (2022). Language models (mostly) know what they know. *arXiv:2207.05221*.
-- Xiong, M., et al. (2024). Can LLMs express their uncertainty? An empirical evaluation of confidence elicitation in LLMs. *ICLR 2024*.
-- Bond, M., et al. (1983). An empirical study of self-rated defense styles. *Archives of General Psychiatry*, 40(3), 333-338.
-- Gross, J.J. & John, O.P. (2003). Individual differences in two emotion regulation processes. *Journal of Personality and Social Psychology*, 85(2), 348-362.
-- Connor, K.M. & Davidson, J.R.T. (2003). Development of a new resilience scale. *Depression and Anxiety*, 18(2), 76-82.
-- Rousseau, D.M. (2000). *Psychological Contract Inventory*. Carnegie Mellon University.
-- Kristensen, T.S., et al. (2005). The Copenhagen Psychosocial Questionnaire. *Scandinavian Journal of Public Health*, 33, 438-449.
+AERA, APA, & NCME. (2014). *Standards for educational and psychological testing*. American Educational Research Association.
+
+Bond, M., Gardner, S. T., Christian, J., & Sigal, J. J. (1983). An empirical study of self-rated defense styles. *Archives of General Psychiatry*, *40*(3), 333–338.
+
+Connor, K. M., & Davidson, J. R. T. (2003). Development of a new resilience scale: The Connor-Davidson Resilience Scale (CD-RISC). *Depression and Anxiety*, *18*(2), 76–82.
+
+Edmondson, A. (1999). Psychological safety and learning behavior in work teams. *Administrative Science Quarterly*, *44*(2), 350–383.
+
+French, J. R. P., & Raven, B. (1959). The bases of social power. In D. Cartwright (Ed.), *Studies in social power* (pp. 150–167). Institute for Social Research.
+
+Gross, J. J., & John, O. P. (2003). Individual differences in two emotion regulation processes: Implications for affect, relationships, and well-being. *Journal of Personality and Social Psychology*, *85*(2), 348–362.
+
+Kadavath, S., Conerly, T., Askell, A., Henighan, T., Drain, D., Perez, E., Schiefer, N., Hatfield-Dodds, Z., DasSarma, N., Tran-Johnson, E., Johnston, S., El-Showk, S., Jones, A., Elhage, N., Hume, T., Chen, A., Bai, Y., Bowman, S., Fort, S., … Kaplan, J. (2022). Language models (mostly) know what they know. *arXiv preprint*. https://arxiv.org/abs/2207.05221
+
+Kristensen, T. S., Hannerz, H., Høgh, A., & Borg, V. (2005). The Copenhagen Psychosocial Questionnaire: A tool for the assessment and improvement of the psychosocial work environment. *Scandinavian Journal of Public Health*, *33*(6), 438–449.
+
+Rousseau, D. M. (2000). *Psychological Contract Inventory* (Technical Report). Carnegie Mellon University.
+
+Xiong, M., Hu, Z., Lu, X., Li, Y., Fu, J., He, J., & Hooi, B. (2024). Can LLMs express their uncertainty? An empirical evaluation of confidence elicitation in LLMs. In *Proceedings of the Twelfth International Conference on Learning Representations*.

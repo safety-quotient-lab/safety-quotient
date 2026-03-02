@@ -41,10 +41,10 @@ Structured extraction from research sessions. Each entry records what was done, 
 | | Count |
 |---|---|
 | Texts | 22,304 |
-| Total scores | 94,041 |
-| Separated-LLM (scorer=claude-sonnet-4-6) | 38,530 |
+| Total scores | 90,361 |
+| Separated-LLM (scorer=claude-sonnet-4-6) | 36,771 |
 | Held-out set | 100 texts (separate file, not in training) |
-| Train / val / test split | ~17,800 / ~2,150 / ~2,200 texts |
+| Train / val / test split | 17,800 / 2,170 / 2,251 texts |
 
 ### Labeling Batches (ingested)
 
@@ -64,9 +64,9 @@ Structured extraction from research sessions. Each entry records what was done, 
 | proxy-audit | 200 | all dims | source-diverse: goemotions/ucc/casino/berkeley |
 | held-out-expand | 150 | all dims | ingested as training data (not held-out) |
 | test-clean | 200 | all dims | test-split texts relabeled with LLM |
-| ucc | 150 | all dims | UCC source enrichment (was 3% coverage) |
-| civil | 100 | all dims | civil_comments enrichment (was 1% coverage) |
-| extreme-adco | 118 | AD/CO | AD compression fix + CO extremes (keyword-filtered) |
+| ucc | 150 | all dims | **REVERTED** — H1 halo confirmed (mean |r|=0.658). Texts retained for re-scoring |
+| civil | 100 | all dims | **REVERTED** — same session as ucc. Texts retained for re-scoring |
+| extreme-adco | 118 | AD/CO | **REVERTED** — same session as ucc. Texts retained for re-scoring |
 
 ### Criterion Validity Studies
 
@@ -74,7 +74,7 @@ Structured extraction from research sessions. Each entry records what was done, 
 |---|---|---|---|---|---|
 | CaSiNo | 1,030 | AD (r=0.127***) | — | — | v16 |
 | CGA-Wiki | 4,188 | AD (r_pb=−0.105***) | 0.599 | 0.515 | v16 |
-| CMV | 4,263 pairs | DA (r_pb=+0.059***) | 0.5735 | 0.5227 | **v23** |
+| CMV | 4,263 pairs | DA (r_pb=+0.059***) | 0.5549 | 0.5227 | **v23** (corrected max_length) |
 | DonD | 12,234 | TE bivariate (d=+0.801) | **0.732** | 0.700 | **v23** |
 
 Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138, relational). T3b confirmed: AD predicts deal, not points. Context-dependent primacy: AD in contested-status, TE+ED in sustained negotiation, DA in fixed-status.
@@ -89,6 +89,8 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | CO still weakest dimension (0.538 corrected) | Improving — more data needed |
 | Confidence anti-calibrated (8/10 dims inverted) | Diagnosed — higher conf → higher error. Needs architectural fix |
 | max_length eval bug (256 vs 128) | **Fixed** — all historical held-out_r inflated ~0.012. v23 corrected: 0.696→0.684 |
+| Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
+| 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
 
 ---
@@ -536,3 +538,31 @@ Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready 
 - Resolve v22a vs v23 as production model after discrepancy investigation
 
 ▶ distillation-research.md §62 (pending)
+
+### Session `20260301-1800` (re-scoring attempt, halo replication, APA conversion)
+
+**Re-scoring 368 reverted texts attempted — HALO CONTAMINATED.** Scored all 10 dimensions sequentially in a single session, violating the one-dim-per-session protocol. Result: mean |*r*| = .811 — well above the .658 threshold. Three contamination tiers emerged:
+
+| Tier | Dims | Mean |*r*| | Pattern |
+|---|---|---|---|
+| Careful (per-text reasoning) | TE, HI, AD, ED | .777 | Context window memory |
+| Moderate | RC, TC | .973 | Near-identical |
+| Rapid (scoring fatigue) | RB, CC, DA, CO | .887 | 54–60% at score 5 |
+
+**All 10 dims discarded.** No scores entered psq.db (label_separated.py writes to /tmp only). Validates one-dim-per-session protocol — session isolation is the minimum decontamination requirement.
+
+**3,680-score revert confirmed clean (prior session).** DB backup: psq.db.bak-pre-revert-20260301. Post-revert: 22,304 texts, 90,361 scores, 36,771 sep-LLM.
+
+**25 residual pre-revert scores found.** 7 TE (civil_comments), 18 DA (ucc), all from 2026-02-27, all half-point values. Survived revert filter. Low-priority cleanup.
+
+**v22a vs v23 resolved.** v22a corrected held-out *r* = .695 > v23 = .684. Δ = .011 < SE ≈ .05 (noise). Promoting v22a would invalidate 4 criterion studies. Parsimony: hold v23.
+
+**APA 7th edition conversion progress:**
+- criterion-validity-summary.md — COMPLETE (prior session)
+- psychometric-evaluation.md — key sections COMPLETE (prior session)
+- journal.md — in progress (background agent)
+- distillation-research.md — in progress (background agent)
+
+**Pending:** Re-score 368 texts properly (1 dim/session × 10 sessions). Clean 25 residual scores. Complete APA conversion of journal.md and distillation-research.md.
+
+▶ distillation-research.md §64 (pending), psychometric-evaluation.md §3c
