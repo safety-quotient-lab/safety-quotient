@@ -184,4 +184,7 @@ distill.py reads from psq.db training_data view (auto-dedup, LLM 5x weight)
 
 ## Licensing
 
-All source datasets use permissive licenses (CC-BY, CC0, Apache 2.0, MIT). The PSQ student model trained on this data can be distributed under the project's dual license (research-free / commercial-paid).
+Source dataset licenses: CC BY 4.0, CC BY-SA 4.0 (Dreaddit), CC0 1.0, Apache 2.0, MIT.
+The Dreaddit source (CC BY-SA 4.0) requires ShareAlike on derivative works. This constrains
+the data license to CC BY-SA 4.0 — see LICENSE-DATA. Code is separately licensed CC BY-NC-SA 4.0
+— see LICENSE. Model weights are covered under LICENSE-DATA (they derive from the training data).
