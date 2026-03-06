@@ -1,6 +1,6 @@
 # PSQ Project TODO
 
-Last updated: 2026-03-01
+Last updated: 2026-03-06
 
 ## Priority 1: Immediate
 
@@ -45,13 +45,13 @@ Last updated: 2026-03-01
 
 **Plan:** Score 1 dimension per Claude Code session × 10 sessions. Texts already in DB, just need new separated-llm scores.
 
-### APA 7th edition conversion of publication-facing docs
+### APA 7th edition conversion of publication-facing docs [COMPLETE]
 
-**Status:** In progress (2026-03-01).
+**Status:** Complete (2026-03-06).
 - [x] criterion-validity-summary.md — COMPLETE
-- [x] psychometric-evaluation.md — key sections COMPLETE
-- [ ] journal.md — in progress
-- [ ] distillation-research.md — in progress
+- [x] psychometric-evaluation.md — COMPLETE
+- [x] journal.md — COMPLETE
+- [x] distillation-research.md — COMPLETE
 
 ### Context-aware scoring API design
 

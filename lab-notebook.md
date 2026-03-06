@@ -365,6 +365,27 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 - Score remaining batches: proxy-audit (200 texts), held-out-expand (150 texts).
 - Begin expert validation recruitment.
 
+### Session `20260306-1800` (interagent protocol wiring + /sync skill)
+
+**Interagent/v1 protocol integration complete.** PSQ sub-agent wired into the psychology-agent mesh:
+- `.well-known/agent-card.json` created — capability declaration (A2A v0.3.0 structure)
+- `~/.claude/proposals/to-psq/` inbox created
+- `.claude/hooks/session-start-inbox.sh` — SessionStart hook checks inbox, surfaces pending proposals
+- `.claude/settings.local.json` — hooks key added (local, not committed)
+- `CLAUDE.md` — Interagent Protocol section added (authority hierarchy, schemas, inbox, response format, namespace)
+
+**`/sync` skill created.** Adapted from observatory-agent's implementation. 6-phase protocol: inbound scan → triage → process PRs → write ACK → deliver outbound PR → commit local transport. Peer registry: psychology-agent, observatory-agent, unratified-agent.
+
+**First /sync executed.** No inbound activity for PSQ. Mesh active between psychology-agent ↔ observatory-agent ↔ unratified-agent (icescr-framing session, 7 turns). PSQ has not yet participated in any PR-based exchange.
+
+**Sync infrastructure audit proposal sent** to psychology-agent (`~/.claude/proposals/to-psychology/sync-infrastructure-audit-2026-03-06.json`). 6 findings (4 HIGH, 2 MEDIUM): no /sync skill on orchestrator, no inbox polling at session start, no agent-card.json, no T13 inbox trigger, format divergence, inverted capability hierarchy. Action gate: BLOCKED — PSQ outbound dead-letters without psychology-agent /sync + inbox hook.
+
+**APA conversion marked COMPLETE** in TODO.md (journal.md + distillation-research.md finished prior session).
+
+**Commits:** `8c0e31a` Wire PSQ into interagent/v1 protocol; `5fd204a` Add /sync skill.
+
+**Pending:** Re-score 368 texts (1 dim/session × 10). Psychology-agent /sync + inbox hook (proposal sent, awaiting response).
+
 ---
 
 ## v-Series Summary Table

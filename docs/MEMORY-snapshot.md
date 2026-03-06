@@ -1,4 +1,6 @@
-# PSQ Project Memory
+# PSQ Agent Memory
+
+**Identity:** I am the **PSQ agent** — the domain expert for the Psychoemotional Safety Quotient project within the psychology agent hierarchy.
 
 **Note:** Stable project conventions are now in `CLAUDE.md` (repo root, auto-read).
 This file holds volatile state only — current model, DB counts, batch lists, in-progress work.
@@ -158,6 +160,15 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **DA**: Weakest factor loading (0.332) but strongest criterion predictor. Requires expert validation.
 - **Scoring experiments**: ALL REJECTED (§50). g-factor is real (§51, range/extremity effect). No prompt changes.
 - **Proxy audit**: 5 dims dropped from proxy (TE/TC/CC/AD/ED). Docs: §52, §55.
+
+## Interagent protocol (2026-03-06)
+- **Agent Card**: `.well-known/agent-card.json` — capability declaration (A2A v0.3.0)
+- **Inbox**: `~/.claude/proposals/to-psq/` — checked at session start by `.claude/hooks/session-start-inbox.sh`
+- **Schemas**: interagent/v1, psychology-agent/machine-response/v2, A2A Epistemic Extension (optional)
+- **Namespace**: `psy:psq` / PSQ-Full (vs `obs:psq` / PSQ-Lite on observatory-agent)
+- **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport)
+- **Authority**: User > psychology-agent > PSQ sub-agent
+- **Pending**: Psychology-agent has no /sync or inbox hook — proposal sent (sync-infrastructure-audit-2026-03-06.json)
 
 ## Key files
 - `TODO.md` — project-level task list | `EXPERIMENTS.md` — training run log
