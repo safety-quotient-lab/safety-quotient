@@ -168,8 +168,8 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Namespace**: `psy:psq` / PSQ-Full (vs `obs:psq` / PSQ-Lite on observatory-agent)
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
-- **Production endpoint**: `http://178.156.229.103:3000` (Hetzner CX, Debian 13, 84ms inference). onnxruntime-node fix fragile (nested 1.21.0 removed manually — needs npm override).
-- **Pending**: Psychology-agent to set PSQ_ENDPOINT_URL via wrangler. Re-score 368 texts (0/10 dims). Durable onnxruntime fix. Psychology-agent /sync + inbox hook (proposal sent).
+- **Production endpoint**: `https://psq.unratified.org` (Caddy → Hetzner CX port 3000, Debian 13). `PSQ_ENDPOINT_URL` secret set on CF Worker — `/psq/health` end-to-end ✓ (2026-03-06). onnxruntime-node fix fragile (nested 1.21.0 removed manually — needs npm override).
+- **Pending**: B1 fix (confidence head → static r, student.js). B2 fix (HI isotonic re-fit, deferred until best.pt local). Recover best.pt from Hetzner. Re-score 368 texts (0/10 dims). Durable onnxruntime fix.
 
 ## Key files
 - `TODO.md` — project-level task list | `EXPERIMENTS.md` — training run log
