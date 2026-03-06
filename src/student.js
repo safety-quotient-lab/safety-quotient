@@ -196,6 +196,7 @@ export class StudentProvider {
       const calibratedConf = this.calibrateConfidence(DIMENSIONS[i], rawConf);
       dimensionScores[DIMENSIONS[i]] = {
         score: Math.round(Math.max(0, Math.min(10, calibrated)) * 100) / 100,
+        raw_score: Math.round(Math.max(0, Math.min(10, raw)) * 100) / 100,
         confidence: Math.round(Math.max(0, Math.min(1, calibratedConf)) * 1000) / 1000,
       };
     }

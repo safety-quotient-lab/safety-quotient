@@ -4,6 +4,7 @@
   "description": "SafetyQuotient — Psychoemotional Safety Quotient Content Evaluator",
   "type": "module",
   "scripts": {
+    "serve": "node src/server.js",
     "detect": "node src/run.js",
     "detect:openrouter": "node src/run.js --provider openrouter",
     "detect:claude": "node src/run.js --provider claude",
