@@ -43,13 +43,13 @@ const PSQ_LITE_DIMENSION_NAMES = new Set([
 // Standard PSQ-Full limitations block — from machine-response-v3-spec.md
 const STANDARD_LIMITATIONS = [
   {
-    limitation_id: "anti-calibration-confidence",
-    severity: "HIGH",
+    limitation_id: "confidence-is-static-r",
+    severity: "MEDIUM",
     description:
-      "Confidence outputs are anti-calibrated — all 10 dimensions return confidence < 0.6 regardless of text. Composite score falls back to 50/100 default when all dimensions excluded.",
+      "Per-dimension confidence values are static held-out Pearson r estimates, not per-prediction reliability signals. The model confidence head is anti-calibrated (outputs constants regardless of input) and is discarded at inference time. Confidence = r-based reliability prior, constant per dimension across all inputs.",
     affected_dimensions: "all",
     mitigation:
-      "Do not use per-dimension confidence values as reliability indicators. Use calibrated scores directly. Composite score is usable only when at least one dimension meets threshold.",
+      "Do not interpret confidence as varying by input text. Use confidence as a dimension-level reliability weight (higher r = more validated dimension). Composite score uses these weights correctly. See calibration_note on each dimension for the specific r value.",
   },
   {
     limitation_id: "dreaddit-distribution",
@@ -117,7 +117,9 @@ function buildV3Response(studentResult, sessionId) {
       psq_lite_dimension: PSQ_LITE_DIMENSION_NAMES.has(dimensionName)
         ? dimensionName
         : null,
-      calibration_note: null,
+      calibration_note: dimensionData.r_confidence !== null && dimensionData.r_confidence !== undefined
+        ? `confidence = held-out Pearson r (static per dimension, not per-prediction); r=${dimensionData.r_confidence}`
+        : null,
     })
   );
 

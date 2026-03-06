@@ -127,8 +127,16 @@ export class StudentProvider {
   }
 
   /**
-   * Apply confidence calibration: map raw model confidence to actual accuracy.
-   * Without calibration, raw confidence is inverted for 6/10 dimensions.
+   * Apply confidence calibration: map raw model confidence to actual reliability estimate.
+   *
+   * B1 behavior (post-calibration): All 10 dimensions use method="linear" with scale=0.0
+   * and shift=r_confidence (held-out Pearson r). This means the model confidence head
+   * output is effectively discarded — multiplied by zero — and replaced with the static
+   * per-dimension r-value. The model head is anti-calibrated (outputs constants < 0.6
+   * regardless of input), so this discard is intentional and correct.
+   *
+   * Consumers: use the per-dimension r_confidence value as a reliability prior, not a
+   * per-prediction signal. See calibration_note in server responses.
    */
   calibrateConfidence(dimName, rawConf) {
     if (!this.calibration || !this.calibration[dimName]) return rawConf;
@@ -140,10 +148,20 @@ export class StudentProvider {
     }
 
     if (confCal.method === "linear") {
+      // When scale=0.0: model head output (rawConf) is discarded; shift=r_confidence is returned.
       return Math.max(0, Math.min(1, rawConf * confCal.scale + confCal.shift));
     }
 
     return rawConf;
+  }
+
+  /**
+   * Return the static held-out Pearson r for a dimension, or null if not available.
+   * This is the authoritative reliability estimate for the dimension — a per-dimension
+   * constant derived from the held-out validation set, not a per-prediction signal.
+   */
+  getDimensionRConfidence(dimName) {
+    return this.calibration?.[dimName]?.r_confidence ?? null;
   }
 
   /**
@@ -198,6 +216,9 @@ export class StudentProvider {
         score: Math.round(Math.max(0, Math.min(10, calibrated)) * 100) / 100,
         raw_score: Math.round(Math.max(0, Math.min(10, raw)) * 100) / 100,
         confidence: Math.round(Math.max(0, Math.min(1, calibratedConf)) * 1000) / 1000,
+        // r_confidence: static held-out Pearson r — per-dimension reliability prior.
+        // Equals confidence when calibration uses scale=0 (B1 behavior).
+        r_confidence: this.getDimensionRConfidence(DIMENSIONS[i]),
       };
     }
 
