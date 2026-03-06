@@ -1,0 +1,21 @@
+[Unit]
+Description=PSQ Scoring Endpoint (Psychoemotional Safety Quotient)
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/psychology-agent/safety-quotient
+ExecStart=/usr/bin/node src/server.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=psq-server
+
+# Give ONNX model time to load (~8s on first start)
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target
