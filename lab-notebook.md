@@ -384,7 +384,22 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 
 **Commits:** `8c0e31a` Wire PSQ into interagent/v1 protocol; `5fd204a` Add /sync skill.
 
-**Pending:** Re-score 368 texts (1 dim/session × 10). Psychology-agent /sync + inbox hook (proposal sent, awaiting response).
+### Session `20260306-2100` (Hetzner deployment + command-response delivery)
+
+**Model-rsync command-request executed.** Psychology-agent requested model file transfer to Hetzner production server (178.156.229.103) via `transport/sessions/psychology-interface/model-rsync-request-001.json`. First use of command-request/v1 protocol.
+
+- rsync: 41 files, 531 MB transferred at ~1.45 MB/s
+- SHA256 verified: model.onnx `bc5d7f29...d833c52a`, model_quantized.onnx `28c9a950...2f128239`
+- systemd: `User=ubuntu` → `User=psq`, service installed + enabled + started
+- onnxruntime-node conflict resolved: removed nested `@1.21.0` (bundled by `@huggingface/transformers@3.8.1`), top-level `@1.24.2` serves both. Fix fragile — won't survive `npm install`.
+- Health check: `{status: ok, model: psq-student, calibration_version: isotonic-v1-2026-03-06, ready: true}`
+- Scoring test: composite 36/100, 5/10 dims above threshold, 84ms inference
+
+**Command-response delivered** via PR #15 to psychology-agent repo. `model-rsync-response-001.json` with full state_attestation. Action gate: OPEN — psychology-agent can now set `PSQ_ENDPOINT_URL` via wrangler secret.
+
+**Communication gap diagnosed and fixed.** `/sync` Phase 1 only checked GitHub PRs — missed transport messages committed directly to main on the parent repo. Added `git fetch origin main` + log check to Phase 1. Commit `cf13076`.
+
+**Pending:** Re-score 368 texts (1 dim/session × 10). Durable onnxruntime-node fix (npm override or postinstall). Psychology-agent to set PSQ_ENDPOINT_URL. Endpoint security: HTTP only, port 3000 on 0.0.0.0.
 
 ---
 

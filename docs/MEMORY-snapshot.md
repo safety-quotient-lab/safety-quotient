@@ -166,9 +166,10 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Inbox**: `~/.claude/proposals/to-psq/` — checked at session start by `.claude/hooks/session-start-inbox.sh`
 - **Schemas**: interagent/v1, psychology-agent/machine-response/v2, A2A Epistemic Extension (optional)
 - **Namespace**: `psy:psq` / PSQ-Full (vs `obs:psq` / PSQ-Lite on observatory-agent)
-- **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport)
+- **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
-- **Pending**: Psychology-agent has no /sync or inbox hook — proposal sent (sync-infrastructure-audit-2026-03-06.json)
+- **Production endpoint**: `http://178.156.229.103:3000` (Hetzner CX, Debian 13, 84ms inference). onnxruntime-node fix fragile (nested 1.21.0 removed manually — needs npm override).
+- **Pending**: Psychology-agent to set PSQ_ENDPOINT_URL via wrangler. Re-score 368 texts (0/10 dims). Durable onnxruntime fix. Psychology-agent /sync + inbox hook (proposal sent).
 
 ## Key files
 - `TODO.md` — project-level task list | `EXPERIMENTS.md` — training run log
