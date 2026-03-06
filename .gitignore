@@ -1,7 +1,10 @@
 .env
 node_modules/
 venv/
-models/
+models/*
+!models/psq-student/
+models/psq-student/*
+!models/psq-student/calibration.json
 __pycache__/
 *.pyc
 *.egg-info/
