@@ -1,0 +1,103 @@
+{
+  "agent_id": "psq-sub-agent",
+  "name": "PSQ-Full Sub-Agent",
+  "description": "Psychoemotional Safety Quotient (PSQ-Full) scorer. Scores English text on 10 orthogonal psychological safety dimensions using a DistilBERT student model via ONNX inference.",
+  "version": "v23",
+  "role": "sub-agent",
+  "parent": "psychology-agent",
+
+  "schemas_supported": [
+    "interagent/v1",
+    "psychology-agent/machine-response/v2"
+  ],
+
+  "extensions": [
+    {
+      "uri": "https://github.com/safety-quotient-lab/interagent-epistemic/v1",
+      "required": false,
+      "description": "Per-claim confidence, SETL, epistemic flags, action gate, correction mechanism."
+    }
+  ],
+
+  "capabilities": {
+    "input_types": ["text"],
+    "output_types": ["json"],
+    "domains": ["psychoemotional-safety-scoring"],
+    "operations": ["psq-full-scoring"],
+    "inference": {
+      "model": "distilbert-base-uncased (knowledge-distilled)",
+      "model_version": "psq-student v23",
+      "runtime": "onnxruntime-node (CPU) or onnxruntime (Python, CPU)",
+      "latency_milliseconds": 20,
+      "context_length_tokens": 128,
+      "calibration": "isotonic regression per-dimension (n=1897 val records)"
+    }
+  },
+
+  "dimensions": [
+    "threat_exposure",
+    "hostile_intent",
+    "authority_dynamics",
+    "communicative_clarity",
+    "trust_and_commitment",
+    "resilience_and_burnout",
+    "defensive_architecture",
+    "relational_cohesion",
+    "contractual_obligation",
+    "emotional_dysregulation"
+  ],
+
+  "scoring": {
+    "scale": "0-10 integer per dimension",
+    "composite_status": "not usable (all dims below confidence threshold)",
+    "hierarchy_levels": ["g-PSQ", "2-factor", "3-factor", "5-factor", "10-dimension"]
+  },
+
+  "validation": {
+    "held_out_r": 0.684,
+    "held_out_n": 100,
+    "held_out_corpus": "Dreaddit (Reddit stress posts)",
+    "criterion_studies": [
+      {"name": "CaSiNo", "n": 1030, "outcome": "negotiation satisfaction/likeness", "top_predictor": "DA"},
+      {"name": "CGA-Wiki", "n": 4188, "outcome": "Wikipedia talk derailment", "auc": 0.599, "top_predictor": "AD"},
+      {"name": "CMV", "n": 4263, "outcome": "Change My View persuasion", "auc": 0.5549, "top_predictor": "DA"},
+      {"name": "DonD", "n": 12234, "outcome": "Deal or No Deal outcome", "auc": 0.732, "top_predictor": "TE"}
+    ]
+  },
+
+  "known_limitations": [
+    {
+      "id": "anti-calibration-confidence",
+      "severity": "HIGH",
+      "description": "Confidence outputs anti-calibrated (8/10 dims inverted). Do not use confidence as reliability indicator.",
+      "affected_dimensions": "all",
+      "mitigation": "Use calibrated scores directly. Treat confidence as metadata only."
+    },
+    {
+      "id": "weird-population",
+      "severity": "MEDIUM",
+      "description": "Trained on WEIRD population data only. Culturally situated dimensions (authority_dynamics, contractual_obligation) have higher uncertainty for non-WEIRD text.",
+      "affected_dimensions": ["authority_dynamics", "contractual_obligation"]
+    },
+    {
+      "id": "no-human-validation",
+      "severity": "MEDIUM",
+      "description": "No human expert validation yet. AI-only scoring ground truth. Protocol designed but not executed."
+    },
+    {
+      "id": "weak-structural-evidence",
+      "severity": "MEDIUM",
+      "description": "DA (defensive_architecture) has weakest factor loading (0.332) but is paradoxically the strongest criterion predictor. CO (contractual_obligation) is the weakest overall predictor (held-out r = 0.504).",
+      "affected_dimensions": ["defensive_architecture", "contractual_obligation"]
+    }
+  ],
+
+  "scope_boundary": "Validated for: English social media stress text, self-report format. Not validated for: clinical intake notes, therapist-authored text, non-English, non-WEIRD populations, texts > 128 tokens.",
+
+  "inbox": "~/.claude/proposals/to-psq/",
+  "discovery_url": null,
+
+  "namespace": "psy:psq",
+  "tier": "PSQ-Full",
+  "tier_note": "PSQ-Full (10-dim, DistilBERT, validated) vs PSQ-Lite (3-dim, LLM heuristic, observatory-agent). Namespace resolution agreed in transport/sessions/item2-derivation/psq-lite-response-001.json."
+}

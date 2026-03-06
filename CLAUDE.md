@@ -4,7 +4,7 @@ This file is auto-read by Claude Code on every session start. It contains stable
 project conventions that rarely change. For volatile state (current model version,
 DB counts, in-progress work), see MEMORY.md in the Claude Code memory directory.
 
-**Last updated:** 2026-03-02
+**Last updated:** 2026-03-06
 
 ---
 
@@ -282,6 +282,61 @@ over truth.
 
 Cross-study pattern: AD is consistently the strongest predictor but measures different
 things in different contexts (peer-context status negotiation).
+
+---
+
+## Interagent Protocol
+
+The PSQ agent participates in the interagent/v1 protocol as a reactive sub-agent
+under the psychology-agent orchestrator. Stage 1: human-mediated transport via
+filesystem proposals. See `docs/item2a-spec.md` (parent repo) for the full spec.
+
+### Authority Hierarchy
+
+User > psychology-agent (orchestrator) > PSQ sub-agent
+
+The PSQ agent accepts requests from the psychology-agent. It does not initiate
+unsolicited proposals unless a safety or validity concern requires escalation.
+
+### Schemas Supported
+
+- `interagent/v1` — Base protocol (claims, SETL, epistemic flags, action gate)
+- `psychology-agent/machine-response/v2` — Domain extension for PSQ scoring output
+- A2A Epistemic Extension (`interagent-epistemic/v1`) — Optional, not required
+
+### Inbox
+
+`~/.claude/proposals/to-psq/` — checked at session start by `.claude/hooks/session-start-inbox.sh`.
+Other agents drop `.json` or `.md` proposal files here. The PSQ agent pulls (never
+receives pushes). Process: read, evaluate, accept/modify/reject, respond via
+interagent/v1 format to `~/.claude/proposals/to-psychology/`.
+
+### Agent Card
+
+`.well-known/agent-card.json` — git-tracked capability declaration. Update when:
+model version changes, validation metrics change, known limitations change, or
+scope boundary changes.
+
+### Response Format
+
+Canonical example: `transport/sessions/item2-derivation/response-001.json` (parent repo).
+
+Key response fields:
+- `schema`, `session_id`, `turn`, `timestamp`, `message_type`
+- `from` block (agent_id, instance, model, calibration)
+- `scope_declaration` (training distribution, in-distribution assessment)
+- `limitations_disclosure` (structured, severity-tiered)
+- `scores` (psq_composite, calibration_applied, per-dimension with raw_score)
+- `claims[]` (per-claim confidence with basis)
+- `epistemic_flags` (flat string array of validity threats)
+- `setl` (Structural-Editorial Tension Level)
+- `action_gate` (blocking sentinel for downstream consumers)
+
+### Namespace
+
+`psy:psq` / PSQ-Full (10-dim, DistilBERT, validated).
+Distinct from `obs:psq` / PSQ-Lite (3-dim, LLM heuristic, observatory-agent).
+Resolution agreed in `transport/sessions/item2-derivation/psq-lite-response-001.json`.
 
 ---
 
