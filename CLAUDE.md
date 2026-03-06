@@ -344,6 +344,7 @@ Resolution agreed in `transport/sessions/item2-derivation/psq-lite-response-001.
 
 - `/hunt` — Systematic work discovery (scans TODO, tasks, git, docs, DB for next actions)
 - `/cycle` — Post-development checklist (update all documentation, commit, clean up)
+- `/sync` — Inter-agent mesh synchronization (check peer repos for PRs/proposals, merge, ACK, deliver)
 
 ---
 
