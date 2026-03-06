@@ -25,7 +25,7 @@ import { StudentProvider } from "./student.js";
 import { aggregatePSQ, CONFIDENCE_THRESHOLD } from "./detector.js";
 
 const listeningPort = parseInt(process.env.PSQ_PORT || "3000", 10);
-const listeningHost = "127.0.0.1";
+const listeningHost = process.env.PSQ_HOST || "127.0.0.1";
 
 // Calibration metadata — matches calibration.json fitted 2026-03-06
 const CALIBRATION_VERSION = "isotonic-v1-2026-03-06";
