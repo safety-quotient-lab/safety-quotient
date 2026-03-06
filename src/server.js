@@ -28,7 +28,7 @@ const listeningPort = parseInt(process.env.PSQ_PORT || "3000", 10);
 const listeningHost = process.env.PSQ_HOST || "127.0.0.1";
 
 // Calibration metadata — matches calibration.json fitted 2026-03-06
-const CALIBRATION_VERSION = "isotonic-v1-2026-03-06";
+const CALIBRATION_VERSION = "isotonic-v2-2026-03-06";
 const CALIBRATION_METHOD = "isotonic regression per dimension, n=1897 val";
 const VALIDATION_BASIS = "Dreaddit n=2760, Pearson r=0.684";
 
