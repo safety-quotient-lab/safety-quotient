@@ -61,6 +61,18 @@ gh pr list --repo safety-quotient-lab/observatory --state merged --limit 5
 gh pr list --repo safety-quotient-lab/unratified --state merged --limit 5
 ```
 
+**Parent repo direct-to-main check** (catches transport messages committed without PR):
+```bash
+# Pull parent repo and check for new transport messages since last sync
+cd ~/projects/psychology && git fetch origin main
+git log HEAD..origin/main --oneline -- transport/sessions/
+# If new commits exist, pull them:
+git pull --rebase origin main
+```
+
+This is critical: the psychology-agent (parent orchestrator) may commit command-requests
+directly to main rather than via PR. Without this check, those messages dead-letter.
+
 Also check local proposal inbox:
 ```bash
 ls ~/.claude/proposals/to-psq/          # inbound proposals
