@@ -20,21 +20,21 @@ Structured extraction from research sessions. Each entry records what was done, 
 | Production checkpoint | `models/psq-student/best.pt` |
 | ONNX | `model.onnx` 254 MB / `model_quantized.onnx` 64 MB INT8 |
 
-### Per-dimension held-out r (v23 production; v29/v31/v32 rejected)
+### Per-dimension held-out r (v23 production; v29/v31/v32/v33 rejected)
 
-| Dim | **v23** | v29 | v31 | v32 | Δ (v32−v23) |
-|---|---|---|---|---|---|
-| threat_exposure | **0.795** | 0.734 | 0.773 | 0.739 | −0.056 |
-| regulatory_capacity | **0.768** | 0.767 | 0.765 | 0.774 | +0.006 |
-| energy_dissipation | **0.760** | 0.747 | 0.773 | 0.754 | −0.006 |
-| cooling_capacity | **0.736** | 0.754 | 0.747 | 0.713 | −0.023 |
-| authority_dynamics | **0.713** | 0.713 | 0.671 | 0.732 | +0.019 |
-| trust_conditions | **0.681** | 0.693 | 0.711 | 0.721 | +0.040 |
-| hostility_index | **0.669** | 0.652 | 0.716 | 0.641 | −0.028 |
-| resilience_baseline | **0.597** | 0.575 | 0.585 | 0.591 | −0.006 |
-| defensive_architecture | **0.588** | 0.531 | 0.501 | 0.558 | −0.030 |
-| contractual_clarity | **0.538** | 0.517 | 0.553 | 0.534 | −0.004 |
-| **Average** | **0.684** | 0.668 | 0.679 | 0.676 | **−0.008** |
+| Dim | **v23** | v29 | v31 | v32 | v33 | Δ (v33−v23) |
+|---|---|---|---|---|---|---|
+| threat_exposure | **0.795** | 0.734 | 0.773 | 0.739 | 0.742 | −0.053 |
+| regulatory_capacity | **0.768** | 0.767 | 0.765 | 0.774 | 0.760 | −0.008 |
+| energy_dissipation | **0.760** | 0.747 | 0.773 | 0.754 | 0.751 | −0.009 |
+| cooling_capacity | **0.736** | 0.754 | 0.747 | 0.713 | 0.723 | −0.013 |
+| authority_dynamics | **0.713** | 0.713 | 0.671 | 0.732 | 0.678 | −0.035 |
+| trust_conditions | **0.681** | 0.693 | 0.711 | 0.721 | 0.717 | +0.036 |
+| hostility_index | **0.669** | 0.652 | 0.716 | 0.641 | 0.673 | +0.004 |
+| resilience_baseline | **0.597** | 0.575 | 0.585 | 0.591 | 0.596 | −0.001 |
+| defensive_architecture | **0.588** | 0.531 | 0.501 | 0.558 | 0.544 | −0.044 |
+| contractual_clarity | **0.538** | 0.517 | 0.553 | 0.534 | 0.536 | −0.002 |
+| **Average** | **0.684** | 0.668 | 0.679 | 0.676 | 0.672 | **−0.012** |
 
 v30-te-ceiling (single-task TE only): held-out TE=0.762. Confirms multi-task adds +0.033 bonus (0.795−0.762). Multi-task scaffolding is necessary — single-task TE never viable for production.
 
@@ -42,13 +42,15 @@ v31: expanded TE corpus (+500 texts from unlabeled pool). TE improved +0.039 vs 
 
 v32: expanded TE corpus further (+700 texts from unlabeled pool, score=5 fraction 9.9%). TE *regressed* to 0.739 (−0.034 vs v31; within SE(r)≈0.10 noise, but consistent downward direction). HI large regression −0.075 vs v31. AD +0.061 and DA +0.058 recovered vs v31. Overall 0.676 < 0.684. REJECTED. B3 (TE uniformity) expansion strategy shows diminishing returns — 1,200 additional TE texts have not recovered v23 TE=0.795. v23 remains production.
 
+v33: F4 distribution-rebalanced expansion (+350 texts: 200 prosocial + 150 esconv). Targeted source gap — prosocial/esconv absent from F3b despite comprising 40% of held-out set. TE=0.742 (+0.003 vs v32, −0.053 vs v23). AD regression −0.054 vs v32 attributed to stochastic variance (SE(r)≈0.10; TE-only labels added, AD training unchanged). Overall 0.672 < 0.676 < 0.684. REJECTED. 5 consecutive rejections since v23. B3 stalled — 1,550 additional TE texts have not recovered v23 TE=0.795. v23 remains production.
+
 ### Database (data/psq.db)
 
 | | Count |
 |---|---|
-| Texts | 23,177 |
-| Total scores | 95,241 |
-| Separated-LLM (method=separated-llm) | 41,651 |
+| Texts | 23,527 |
+| Total scores | 95,591 |
+| Separated-LLM (method=separated-llm) | 42,001 |
 | Held-out set | 100 texts (separate file, not in training) |
 | Train / val / test split | 17,800 / 2,170 / 2,251 texts |
 
@@ -76,6 +78,7 @@ v32: expanded TE corpus further (+700 texts from unlabeled pool, score=5 fractio
 | rescore-368 | 368 | all 10 dims | 10-session separated-llm rescore; 3,680 scores ingested 2026-03-06 |
 | te-expansion-500 | 500 | threat_exposure | unlabeled-pool: 150 dreaddit + 150 emp.dial. + 100 prosocial + 100 berkeley; TE sep-llm; ingested 2026-03-07; drove v31 |
 | te-expansion-700 | 700 | threat_exposure | unlabeled-pool: further expansion; score=5 fraction 9.9% (excellent); mean=4.81; TE sep-llm; ingested 2026-03-07; drove v32 |
+| te-expansion-f4 | 350 | threat_exposure | unlabeled-pool: 200 prosocial + 150 esconv; distribution-rebalanced (source gaps vs held-out); score=5=23.4%; TE sep-llm; ingested 2026-03-07; drove v33 |
 
 ### Criterion Validity Studies
 
@@ -102,7 +105,7 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
-| B3 (TE uniformity) — unlabeled-pool expansion | **F3b (unlabeled-pool expansion, 700 texts) COMPLETE, v32 REJECTED (2026-03-07).** 700 additional TE texts scored (score=5=9.9%) and ingested. v32 trained: TE=0.739 (regressed −0.034 vs v31), overall=0.676 (< v23 0.684). 1,200 texts total expansion insufficient; diminishing returns apparent. Next: pause B3 or investigate distribution mismatch. v23 remains production. |
+| B3 (TE uniformity) — unlabeled-pool expansion | **F4 (distribution-rebalanced, 350 texts) COMPLETE, v33 REJECTED (2026-03-07).** 200 prosocial + 150 esconv targeted source gap; TE=0.742 (+0.003 vs v32, negligible). Overall=0.672. 5 consecutive rejections; 1,550 total expansion texts insufficient. SE(r)≈0.10 noise floor at n=99 makes TE gains below ±0.10 unresolvable. B3 stalled — accept ceiling or escalate to qualitatively different strategy. v23 remains production. |
 | v28 — not promoted | v28 held-out r=0.678 < v23 0.684. TE regression (0.762 vs 0.800) and CO regression (0.488 vs 0.538) offset gains elsewhere. v23 remains production. |
 
 ---
@@ -772,3 +775,41 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **B3 (TE uniformity) status:** 1,200 additional TE texts total (500+700) have not recovered v23 TE=0.795. Further expansion has diminishing or negative returns. Next: pause B3 (TE uniformity) and recalibrate strategy — options include (a) accept current best and move on, (b) investigate distribution of new vs training TE texts, (c) scored-text quality audit, (d) focus on other dims (AD, DA improvements are noteworthy).
 
 ▶ TODO.md §B3 (TE uniformity) updated
+
+---
+
+### Session `20260307-1450` (F4 (distribution-rebalanced TE expansion, 350 texts) scored and ingested; v33 trained — REJECTED; hook symlinks created)
+
+**Context:** B3 (TE uniformity) F4 follow-up after v32 rejection. F4 rationale: distribution audit from previous session showed prosocial (0%) and esconv (0%) were absent from te-expansion-700 (F3b), yet each comprises 20% of held-out set. F4 targeted these source gaps directly with 200 prosocial + 150 esconv texts from the unlabeled pool.
+
+**F4 batch scoring complete.** All 350 texts scored on threat_exposure (separated-llm protocol). Texts 0–199: prosocial (plain text). Texts 200–349: esconv (JSON format; `situation` field extracted via `json.loads(t['text'])`). Score distribution: prosocial score=5=11.0%; esconv score=5=40.0% (ongoing moderate stressors). Combined score=5=23.4%. Scores written to `/tmp/te_f4_scores.json`.
+
+**Ingested.** `label_separated.py ingest --dim te` → `/tmp/psq_separated/threat_exposure_scores.json` (350 scores). `label_separated.py assemble --partial` → `data/te-expansion-f4-labeled.jsonl`. `migrate.py --ingest` → "350 texts, 350 score observations". DB: texts=23,527, sep-llm=42,001, total scores=95,591.
+
+**Distribution analysis after F4.** Effective TE sep-llm training (after `--drop-proxy-dims`): 4,858 rows, score=5=31%. Prosocial = 15.2% of TE sep-llm training (target 20%); esconv = 12.5% (target 20%). Still under-represented vs held-out but directionally corrected.
+
+**v33 trained.** `source venv/bin/activate && python3 scripts/distill.py --out models/psq-v33 --drop-proxy-dims`. Best checkpoint epoch 4 (val_r=0.449).
+
+**v33 held-out results:**
+
+| Dim | v23 | v32 | v33 | Δ(v33−v32) | Δ(v33−v23) |
+|---|---|---|---|---|---|
+| threat_exposure | 0.795 | 0.739 | 0.742 | +0.003 | −0.053 |
+| hostility_index | 0.669 | 0.641 | 0.673 | +0.032 | +0.004 |
+| authority_dynamics | 0.713 | 0.732 | 0.678 | −0.054 | −0.035 |
+| energy_dissipation | 0.760 | 0.754 | 0.751 | −0.003 | −0.009 |
+| regulatory_capacity | 0.768 | 0.774 | 0.760 | −0.014 | −0.008 |
+| resilience_baseline | 0.597 | 0.591 | 0.596 | +0.005 | −0.001 |
+| trust_conditions | 0.681 | 0.721 | 0.717 | −0.004 | +0.036 |
+| cooling_capacity | 0.736 | 0.713 | 0.723 | +0.010 | −0.013 |
+| defensive_architecture | 0.588 | 0.558 | 0.544 | −0.014 | −0.044 |
+| contractual_clarity | 0.538 | 0.534 | 0.536 | +0.002 | −0.002 |
+| **Average** | **0.684** | **0.676** | **0.672** | **−0.004** | **−0.012** |
+
+**v33 REJECTED.** TE improved only +0.003 vs v32 — within SE(r)≈0.10 noise floor, negligible. Overall regressed to 0.672 (< v32=0.676 < v23=0.684). AD regression −0.054 attributed to stochastic variance (TE-only labels added, AD training data unchanged). F4 distribution fix was necessary but insufficient — TE response near-zero despite targeting the correct source gaps. **v23 remains production.**
+
+**B3 (TE uniformity) conclusion.** 5 consecutive rejections (v29, v31, v32, v33 + v30 single-task ceiling=0.762). Total TE expansion: 1,550 texts (F3=500, F3b=700, F4=350). v23 TE=0.795 likely a stochastic draw at SE(r)≈0.10 noise. Further expansion has negligible expected return. Decision point: accept v23 TE as production ceiling and redirect effort to other dims or publication work.
+
+**Hook symlinks created.** `psychology/.claude/settings.json` hooks use relative paths (`.claude/hooks/…`) resolved from the `safety-quotient/` working directory. Three scripts were missing: `parry-wrapper.sh`, `subproject-boundary.sh`, `context-pressure-gate.sh`. Fixed by creating symlinks in `safety-quotient/.claude/hooks/` pointing to `../../../.claude/hooks/{script}`. Verified exit 0 from absolute path. Noise eliminated on next session start (4 hook errors per Read → 0).
+
+▶ TODO.md §B3 (TE uniformity) updated, memory/psq-status.md updated

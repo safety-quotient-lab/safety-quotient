@@ -229,3 +229,4 @@
 {"timestamp": "2026-03-06T20:57:48.772440-06:00", "dimension": "contractual_clarity", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
 {"timestamp": "2026-03-07T10:04:11.123742-06:00", "dimension": "threat_exposure", "n_scored": 500, "n_total": 500, "batch": "/tmp/te-expansion-500.jsonl", "started_at": "2026-03-07T14:30:00+00:00", "duration_minutes": 94.2, "texts_per_hour": 318.5}
 {"timestamp": "2026-03-07T11:17:22.903511-06:00", "dimension": "threat_exposure", "n_scored": 700, "n_total": 700, "batch": "/tmp/te-expansion-700.jsonl"}
+{"timestamp": "2026-03-07T12:50:23.432522-06:00", "dimension": "threat_exposure", "n_scored": 350, "n_total": 350, "batch": "data/te-expansion-f4.jsonl"}

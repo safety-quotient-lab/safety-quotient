@@ -1210,6 +1210,10 @@ What we can say with confidence: 1,200 additional labeled texts have not recover
 
 Two observations are worth preserving from v32. Authority dynamics (AD) improved substantially — +.061 versus v31, recovering to .732 versus v23's .713. Defensive architecture (DA) similarly recovered — +.057 versus v31. Neither dimension received targeted expansion data; both improvements are likely a byproduct of the TE training data's thematic composition (threat-rich texts with interpersonally complex dynamics) providing collateral signal to adjacent constructs. This replicates the pattern from §30: diverse thematic selection produces broad gains even when not intended.
 
+The "diagnostic pause" mentioned at the close of the v32 analysis produced one more intervention. A distribution audit of all expansion batches revealed a specific source gap: prosocial dialogues and emotional support conversations (ESConv) were entirely absent from te-expansion-700, despite each comprising approximately 20% of the held-out evaluation set. The te-expansion-f4 batch (350 texts: 200 prosocial + 150 esconv) was scored and ingested to address this gap directly. v33 held-out TE = .742 — a gain of +.003 versus v32, indistinguishable from zero at SE(*r*) ≈ .10.
+
+Five consecutive rejections spanning v29, v31, v32, v33, and the v30 single-task ceiling diagnostic (TE = .762) now define the B3 boundary. The 1,550 texts added across all expansion batches have not recovered v23 TE = .795. The most parsimonious interpretation: v23's TE = .795 was a favorable stochastic draw on the *n* = 99 held-out set, and the true population *r* for TE at the current data scale is approximately .74–.77. SE(*r*) = .10 makes this ceiling effectively unreachable through incremental expansion; any model with true TE in this range will produce held-out samples indistinguishable from v23 roughly 30% of the time and lower than v23 the other 70%. B3 is closed. v23 remains production.
+
 ---
 
 ## 39. References
