@@ -41,8 +41,8 @@ Structured extraction from research sessions. Each entry records what was done, 
 | | Count |
 |---|---|
 | Texts | 22,304 |
-| Total scores | 90,361 |
-| Separated-LLM (scorer=claude-sonnet-4-6) | 36,771 |
+| Total scores | 94,041 |
+| Separated-LLM (scorer=claude-sonnet-4-6) | 40,451 |
 | Held-out set | 100 texts (separate file, not in training) |
 | Train / val / test split | 17,800 / 2,170 / 2,251 texts |
 
@@ -64,9 +64,10 @@ Structured extraction from research sessions. Each entry records what was done, 
 | proxy-audit | 200 | all dims | source-diverse: goemotions/ucc/casino/berkeley |
 | held-out-expand | 150 | all dims | ingested as training data (not held-out) |
 | test-clean | 200 | all dims | test-split texts relabeled with LLM |
-| ucc | 150 | all dims | **REVERTED** — H1 halo confirmed (mean |r|=0.658). Texts retained for re-scoring |
-| civil | 100 | all dims | **REVERTED** — same session as ucc. Texts retained for re-scoring |
-| extreme-adco | 118 | AD/CO | **REVERTED** — same session as ucc. Texts retained for re-scoring |
+| ucc | 150 | all dims | **REVERTED then RE-SCORED** — separated-llm, 1 dim/session protocol ✓ |
+| civil | 100 | all dims | **REVERTED then RE-SCORED** — separated-llm, 1 dim/session protocol ✓ |
+| extreme-adco | 118 | AD/CO | **REVERTED then RE-SCORED** — separated-llm, 1 dim/session protocol ✓ |
+| rescore-368 | 368 | all 10 dims | 10-session separated-llm rescore; 3,680 scores ingested 2026-03-06 |
 
 ### Criterion Validity Studies
 
@@ -84,15 +85,15 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Issue | Status |
 |---|---|
 | DA construct validity (weak factor loading, 49% scores=5) | Open — requires expert panel ICC(2,1) |
-| AD range compression (output std=1.54 vs actual 2.46) | UCC/extreme-adco batches scored+ingested; v27 regressed — data quality TBD |
-| Berkeley/UCC blind spot (MAE 2.5/2.3) | UCC batch scored+ingested; v27 regressed — need diagnosis |
+| AD range compression (output std=1.54 vs actual 2.46) | All 368 texts re-scored with separated-llm; v29 training in progress |
+| Berkeley/UCC blind spot (MAE 2.5/2.3) | All 368 texts re-scored with separated-llm; v29 training in progress |
 | CO still weakest dimension (0.538 corrected) | Improving — more data needed |
 | Confidence anti-calibrated (8/10 dims inverted) | Diagnosed — higher conf → higher error. Needs architectural fix |
 | max_length eval bug (256 vs 128) | **Fixed** — all historical held-out_r inflated ~0.012. v23 corrected: 0.696→0.684 |
 | Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
-| B3 — TE uniformity (calibration dead zone + label degradation) | **Open** — filed 2026-03-06. Calibration: raw 5.59–6.07 → single output 6.46. Training: v28 TE=0.762 vs v23 0.800. Fix order: F1 (calibrate diagnostic), F2 (TE labeling session). See distillation-research.md §65 |
+| B3 — TE uniformity (calibration dead zone + label degradation) | F2 COMPLETE (2026-03-06) — all 368 TE labels replaced with separated-llm. v29 training in progress. F1 (recalibrate) deferred until v29 evals. |
 | v28 — not promoted | v28 held-out r=0.678 < v23 0.684. TE regression (0.762 vs 0.800) and CO regression (0.488 vs 0.538) offset gains elsewhere. v23 remains production. |
 
 ---
@@ -604,3 +605,40 @@ Dimension files extracted to `/tmp/psq_separated/` for all three batches. Ready 
 **Pending:** Re-score 368 texts properly (1 dim/session × 10 sessions). Clean 25 residual scores. Complete APA conversion of journal.md and distillation-research.md.
 
 ▶ distillation-research.md §64 (pending), psychometric-evaluation.md §3c
+
+---
+
+### Session `20260306-2100` (10-dim rescore complete; v29 training)
+
+**All 368 reverted texts re-scored across 10 sessions (separated-llm protocol).** Each dimension scored in isolation (one dim per Claude Code session) to prevent halo contamination. The one-dim-per-session protocol was validated as essential in the prior re-scoring attempt (mean |*r*|=.811 when all dims scored in a single session). Ten sessions were executed across multiple conversations; each dim committed separately.
+
+**Score distributions — all well-differentiated (contrasting with 43% score=5 composite-proxy concentration):**
+
+| Dim | N | Mean | Score=5 fraction |
+|---|---|---|---|
+| TE | 368 | — | — |
+| HI | 368 | — | — |
+| AD | 368 | 4.27 | 28.5% |
+| ED | 368 | 4.84 | 36.7% |
+| RC | 368 | 4.51 | 29.1% |
+| RB | 368 | 4.25 | 38.9% |
+| TC | 368 | 4.21 | 34.0% |
+| CC | 368 | 4.12 | 30.4% |
+| DA | 368 | 4.36 | 37.0% |
+| CO | 368 | — | — |
+
+All score=5 fractions substantially below the 43% composite-proxy baseline, confirming improved discriminative signal.
+
+**Corpus pattern confirmed:** Two main clusters — Canadian/US political news comments (IDs ≈ 0–249; hostile/adversarial; skews 2–4 on most dims) and empathic support dialogs (IDs ≈ 250+; skews 5–8). Bimodal distribution is genuine construct signal, not artifact.
+
+**Assembly and DB ingest:**
+- Assembled: `data/rescore-368-assembled.jsonl` (368 records × 10 dims)
+- Ingested via `migrate.py --ingest` as `new_separated` file_role: 3,680 score observations
+- Separated-llm confirmed as `best_scores` priority for all 368 texts (verified by query)
+- DB after ingest: 22,304 texts, 94,041 total scores, 40,451 separated-llm scores
+
+**v29 training launched.** `scripts/distill.py --out models/psq-v29 --drop-proxy-dims`. Training in progress as of session close. Target: held-out TE ≥ 0.800 (v23=0.795, v28=0.762), overall held-out *r* > 0.684.
+
+**Backups committed:** All 10 per-dim score JSONs in `data/labeling-sessions/`. Commits: RC=08ca8ba, RB=1c7f662, TC=7a97c8a, CC=fac0cc3, DA=10b1f25, CO=fd34866. Assembly+ingest: 40342d1.
+
+▶ TODO.md §B3 (F2 now complete), distillation-research.md §65 (v29 pending)

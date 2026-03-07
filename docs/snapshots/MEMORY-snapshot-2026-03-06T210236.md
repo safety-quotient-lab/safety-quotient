@@ -73,11 +73,11 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
   - `--drop-proxy-dims` (TE/TC/CC/AD/ED). Data: +550 texts (ccda+proxy-audit+held-out-expand). 8 epochs.
   - ONNX re-exported 2026-03-01: model.onnx=254.4 MB, model_quantized.onnx=64.0 MB (INT8).
 - **v27** (2026-03-01): held-out_r=**0.655** (−0.029). **Regressed — not promoted.** Same-session halo contamination confirmed.
-- **v29** (2026-03-06): training launched. `--drop-proxy-dims`. Data includes rescore-368 (3,680 sep-llm scores, B3 F2 fix). Target: TE ≥ 0.800, overall r > 0.684.
-- **max_length bugs** (ALL FIXED 2026-03-01): eval/calibrate/distill had 256→128; CMV had 512→128; CGA-Wiki T2 had 256→128. CMV AUC corrected: 0.5549 (was 0.5735). 11 historical models re-evaluated.
+- **max_length bugs** (ALL FIXED 2026-03-01): eval/calibrate/distill had 256→128; CMV had 512→128; CGA-Wiki T2 had 256→128. CMV AUC corrected: 0.5549 (was 0.5735). CGA-Wiki T2 unchanged. 11 historical models re-evaluated.
 - **v22a=0.695 > v23=0.684** after correction, but holding v23 (Δ<SE, would invalidate 4 criterion studies).
-- **3,680 rapid-scored records REVERTED** (2026-03-01): H1 halo confirmed (mean |r|=0.658). DB backup: psq.db.bak-pre-revert-20260301.
-- **368-text rescore COMPLETE** (2026-03-06): All 10 dims re-scored using 1-dim-per-session protocol (10 sessions). 3,680 scores assembled + ingested. Score=5 fraction 28–39% (vs 43% composite-proxy baseline). DB now: 94,041 scores, 40,451 sep-llm.
+- **3,680 rapid-scored records REVERTED** (2026-03-01): H1 halo confirmed (mean |r|=0.658 vs 0.582). DB backup: psq.db.bak-pre-revert-20260301.
+- **Same-session halo replication** (2026-03-01): Sequential scoring of all 10 dims in one session → mean |r|=0.811. Three tiers: careful (.777), moderate (RC-TC .973), rapid (.887 with 54-60% at score 5). Session isolation validated as minimum decontamination requirement. See distillation-research.md §64.
+- **Pending**: Re-score 368 texts properly (1 dim/session × 10 sessions), then retrain v28.
 - Context length: 128 tokens optimal (sweep complete). Confidence calibration: POOR (8/10 inverted).
 - distill.py: `--out DIR`, `--no-save`, `--no-cap`, `--bifactor`, `--drop-proxy-dims`
 - Smoke test: `python scripts/distill.py --no-save --epochs 1`; Production: `--out models/psq-vN`
@@ -97,7 +97,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 - Key docs: psychometric-evaluation.md §3c, distillation-research.md §26/§42/§43, journal.md §18/§28
 
 ## Database (psq.db)
-- `data/psq.db` — SQLite (22,304 texts, 94,041 scores, 40,451 separated-llm — post-rescore-368 2026-03-06)
+- `data/psq.db` — SQLite (22,304 texts, 90,361 scores, 36,771 separated-llm — post-revert 2026-03-01)
 - Splits: train=17,800 / val=2,170 / test=2,251 / held-out=100
 - Schema: `data/schema.sql` — texts, scores, splits, labeling_sessions, models, calibrations, dataset_mappings
 - Migration: `scripts/migrate.py` — bootstraps from existing JSONLs; `--ingest JSONL` for incremental ingest
@@ -110,7 +110,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 
 ## Labeling batches (all scored+ingested unless noted)
 - weak-dims(200), rc(150), ad(300), co(200), rb(200), cc(200), te(200), broad(300), pct-200(200), midg(250), test-clean(200), ccda(200), proxy-audit(200), held-out-expand(150) — all complete
-- ucc(150), civil(100), extreme-adco(118) — **REVERTED then RE-SCORED** (10 sessions × 1 dim each, 2026-03-06). All ingested as rescore-368. ✓ COMPLETE.
+- ucc(150), civil(100), extreme-adco(118) — **REVERTED** (H1 halo confirmed). Texts remain for re-scoring properly.
 - Scoring batches of 50 texts per response (avoid 32K output token limit)
   - Partial files: `/tmp/psq_separated/{dim}_partial.json` (accumulate across 4 batches, then ingest)
 
@@ -168,8 +168,8 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Namespace**: `psy:psq` / PSQ-Full (vs `obs:psq` / PSQ-Lite on observatory-agent)
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
-- **Production endpoint**: `http://178.156.229.103:3000` (Hetzner CX, Debian 13, 84ms inference). onnxruntime-node fix fragile (nested 1.21.0 removed manually — needs npm override).
-- **Pending**: Psychology-agent to set PSQ_ENDPOINT_URL via wrangler. Durable onnxruntime fix. v29 eval + deploy. B3 F1 recalibrate (--n-bins 20) after v29.
+- **Production endpoint**: `https://psq.unratified.org` (Caddy → Hetzner CX port 3000, Debian 13). `PSQ_ENDPOINT_URL` secret set on CF Worker — `/psq/health` end-to-end ✓ (2026-03-06). onnxruntime-node fix fragile (nested 1.21.0 removed manually — needs npm override).
+- **Pending**: B1 fix (confidence head → static r, student.js). B2 fix (HI isotonic re-fit, deferred until best.pt local). Recover best.pt from Hetzner. Re-score 368 texts (0/10 dims). Durable onnxruntime fix.
 
 ## Key files
 - `TODO.md` — project-level task list | `EXPERIMENTS.md` — training run log

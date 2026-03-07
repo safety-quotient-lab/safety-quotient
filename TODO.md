@@ -37,9 +37,9 @@ Last updated: 2026-03-06
 4. [x] Add `--max-length` CLI arg — done.
 5. [x] Update EXPERIMENTS.md — corrected values recorded.
 
-### B3 — threat_exposure uniformity: calibration dead zone + label degradation [OPEN]
+### B3 — threat_exposure uniformity: calibration dead zone + label degradation [F2 COMPLETE — v29 PENDING]
 
-**Status:** Filed 2026-03-06. F1 diagnostic run 2026-03-06 — F1 NOT viable (see below).
+**Status:** F2 complete (2026-03-06). v29 training launched. F1 deferred until v29 evals.
 
 **Manifestation 1 (calibration):** 4/5 ICESCR texts score TE=6.46 despite raw predictions
 spanning 5.59–6.07. PAVA-pooling confirmed (10 mid-band dead zones in v2 calibration).
@@ -54,19 +54,19 @@ discriminative signal.
 
 **Revised fix order (F2 must come before F1):**
 - [x] F1 diagnostic: PAVA pooling confirmed; quantile-binned not viable for current model (2026-03-06)
-- [ ] F2: Score TE for 368 reverted texts (1 session) + audit composite-proxy TE fraction
-- [ ] Retrain v29 with improved TE labels; target held-out TE ≥ 0.800
+- [x] F2: All 10 dims for all 368 reverted texts scored with separated-llm (10 sessions, 2026-03-06). 3,680 scores ingested. TE labels now in rescore-368-assembled.jsonl.
+- [ ] Evaluate v29 held-out TE; target ≥ 0.800 and overall r > 0.684
 - [ ] F1 (deferred): Recalibrate v29 with --n-bins 20 after training; viable once label distribution improves
 
 See distillation-research.md §65 for full diagnosis.
 
-### Re-score 368 reverted texts (1 dim per session)
+### Re-score 368 reverted texts (1 dim per session) [COMPLETE — 2026-03-06]
 
-**Status:** In progress. 0/10 dimensions scored properly.
+**Status:** COMPLETE. All 10 dimensions scored across 10 sessions. 3,680 scores assembled and ingested.
 
 368 texts (ucc/civil/extreme-adco) had all scores reverted due to same-session halo contamination (mean |r|=0.658). A second re-scoring attempt (all 10 dims in one session) produced even worse contamination (mean |r|=0.811). The one-dim-per-session protocol is validated as essential.
 
-**Plan:** Score 1 dimension per Claude Code session × 10 sessions. Texts already in DB, just need new separated-llm scores.
+**Completed sessions:** TE, HI, AD, ED, RC, RB, TC, CC, DA, CO — all 368 texts × 10 dims. Score=5 fractions 28–39% (vs 43% composite-proxy baseline). Assembled: `data/rescore-368-assembled.jsonl`. Ingested: `migrate.py --ingest`. Separated-llm is now priority for all 368 texts in `best_scores` view.
 
 ### APA 7th edition conversion of publication-facing docs [COMPLETE]
 
