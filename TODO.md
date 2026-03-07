@@ -37,17 +37,17 @@ Last updated: 2026-03-06
 4. [x] Add `--max-length` CLI arg — done.
 5. [x] Update EXPERIMENTS.md — corrected values recorded.
 
-### B3 — threat_exposure uniformity: TE unlabeled-pool expansion [IN PROGRESS — 2026-03-07]
+### B3 — threat_exposure uniformity: TE unlabeled-pool expansion [STALLED — 2026-03-07]
 
-**Status:** F3 (500 TE texts from unlabeled pool) complete. v31 REJECTED (TE=0.773, overall=0.679).
-TE expansion strategy VALIDATED: 500 texts moved TE from 0.734 (v29) → 0.773 (v31), +0.039.
-But still −0.022 below v23 (0.795). Need 500–1,000 more TE texts for v32 attempt.
+**Status:** F3b (700 TE texts from unlabeled pool) complete. v32 REJECTED (TE=0.739, overall=0.676).
+1,200 additional TE texts total (500+700) have not recovered v23 TE=0.795. Further expansion
+shows diminishing or negative returns. B3 strategy needs reassessment before more expansion.
 
 **B3 diagnosis complete (2026-03-07):**
 - Multi-task is NOT penalizing TE — single-task v30 achieves only 0.762 vs v23 0.795
 - Multi-task scaffolding provides +0.033 bonus (shared encoder representations essential)
 - Root cause: insufficient clean TE labels in the full 3,852-text TE corpus
-- Expansion strategy works — 500 texts = measurable +0.039 gain. Needs more scale.
+- Expansion strategy PARTIALLY VALIDATED: 500 texts = +0.039 gain (v29→v31); but 700 more caused -0.034 regression (v31→v32). Diminishing returns or distributional mismatch.
 
 **Fix sequence:**
 - [x] F1 diagnostic: PAVA pooling confirmed (2026-03-06)
@@ -55,9 +55,10 @@ But still −0.022 below v23 (0.795). Need 500–1,000 more TE texts for v32 att
 - [x] v30 single-task diagnostic: multi-task necessity confirmed (2026-03-07)
 - [x] **F3: 500 TE texts scored from unlabeled pool; ingested 2026-03-07**
 - [x] v31 trained and evaluated (2026-03-07) — REJECTED (TE=0.773, overall=0.679)
-- [ ] **F3b: Score 500–1,000 more TE texts from unlabeled pool (sep-llm, TE-only session)**
-- [ ] Train v32 with further expanded TE corpus; target held-out TE ≥ 0.800 (v23 recovery)
-- [ ] F1 (deferred): Recalibrate v32 with --n-bins 20 after training
+- [x] **F3b: 700 TE texts scored from unlabeled pool; ingested 2026-03-07**
+- [x] v32 trained and evaluated (2026-03-07) — REJECTED (TE=0.739, overall=0.676) — TE REGRESSED
+- [ ] **Strategy decision:** (a) accept v23 TE=0.795 as ceiling and move on, OR (b) audit distribution of expansion texts vs training data, OR (c) score remaining held-out dims for expansion batches and train v33 multi-dim
+- [ ] F1 (deferred): Recalibrate best model with --n-bins 20 — defer until a model beats v23
 
 See distillation-research.md §65/§66/§67 and journal.md §37 for full diagnosis.
 

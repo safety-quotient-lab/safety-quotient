@@ -47,7 +47,9 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 34. [The Curriculum Experiment: A Clean Negative](#34-the-curriculum-experiment-a-clean-negative-2026-02-28)
 35. [v23: Data Quality Compounds, Authority Dynamics Aligned](#35-v23-data-quality-compounds-authority-dynamics-aligned-2026-02-28)
 36. [DonD v23 Rerun: TE Reversal, T3b, and the Measurement Artifact Cascade](#36-dond-v23-rerun-te-reversal-t3b-and-the-measurement-artifact-cascade-2026-02-28)
-37. [References](#37-references)
+37. [B3 Diagnosis: Multi-task Scaffolding as a Construct Dependency](#37-b3-diagnosis-multi-task-scaffolding-as-a-construct-dependency-2026-03-07)
+38. [B3 Expansion: When More Data Makes Things Worse](#38-b3-expansion-when-more-data-makes-things-worse-2026-03-07)
+39. [References](#39-references)
 
 ---
 
@@ -1192,7 +1194,25 @@ The B3 work also resolved an ambiguity about the TE uniformity symptom noted in 
 
 ---
 
-## 38. References
+## 38. B3 Expansion: When More Data Makes Things Worse (2026-03-07)
+
+The B3 diagnosis in §37 ended with an optimistic forecast: score 500 texts from the unlabeled pool, recover TE above .795. We scored 500 texts (te-expansion-500), then 700 more (te-expansion-700), for 1,200 additional texts in total. Neither batch moved TE past v23.
+
+The first expansion (v31, 500 texts) produced a gain: TE improved from .734 (v29) to .773 — a +.039 gain that confirmed the strategy was directionally correct. The label distribution shifted visibly; score=5 concentration dropped from 41.5% to 34% in the TE training data. But .773 still fell .022 below v23's .795, insufficient to justify promotion.
+
+The second expansion (v32, 700 additional texts) produced the opposite result. Despite the te-expansion-700 batch having substantially better label discriminability — only 9.9% score=5 concentration versus 34% in the first batch, and a nearly uniform distribution across the 1–9 range — v32 TE held-out performance regressed to .739. That is .034 below v31 and .056 below v23. More high-quality data made the model worse on the dimension that data was intended to improve.
+
+Several explanations are consistent with this result. First, stochastic training variance: SE(*r*) ≈ .10 at *n* = 99, so the .773 → .739 gap falls within the noise envelope of a single held-out draw. The "regression" may not be a real effect but a different random seed landing on a different local minimum. Second, distributional shift: the 700 texts may differ in thematic or source composition from the held-out texts in ways that reduce generalization despite better label coverage. Third, optimization interference: at some volume threshold, adding more TE examples may distort the encoder representations that other dimensions depend on — the mutual scaffolding documented in §37 is bidirectional.
+
+The first explanation is the most parsimonious. SE(*r*) = .10 is large enough to make single held-out evaluations unreliable guides for model selection. The pattern v31 = .773, v32 = .739 is consistent with measurement noise around a true population *r* in the .75–.77 range for both models. The practical implication: we cannot distinguish whether v32 genuinely regressed or simply got an unlucky draw on the same-sized held-out set that v31 did not.
+
+What we can say with confidence: 1,200 additional labeled texts have not recovered v23 TE = .795. The gap remains. Whether this reflects a genuine ceiling at the current data scale, measurement artifact in the evaluation, or distributional mismatch between expansion and held-out corpora, is unresolved. The "add more TE data" strategy has exhausted its obvious application and requires a diagnostic pause before further investment.
+
+Two observations are worth preserving from v32. Authority dynamics (AD) improved substantially — +.061 versus v31, recovering to .732 versus v23's .713. Defensive architecture (DA) similarly recovered — +.057 versus v31. Neither dimension received targeted expansion data; both improvements are likely a byproduct of the TE training data's thematic composition (threat-rich texts with interpersonally complex dynamics) providing collateral signal to adjacent constructs. This replicates the pattern from §30: diverse thematic selection produces broad gains even when not intended.
+
+---
+
+## 39. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 
