@@ -79,6 +79,9 @@
 62. [max_length Eval Bug Fix and Historical Re-Evaluation](#62-max_length-eval-bug-fix-and-historical-re-evaluation-2026-03-01) — eval/calibrate/distill hardcoded 256 instead of 128; v23 corrected .696→.684; v22a=.695 technically best; hold v23.
 63. [v27 Regression and Halo Contamination Revert](#63-v27-regression-and-halo-contamination-revert-2026-03-01) — v27 held-out *r* = .655 (−.029); halo confirmed (mean |*r*| = .658); 3,680 scores reverted.
 64. [Same-Session Halo Replication](#64-same-session-halo-replication-multi-dimension-scoring-protocol-failure-2026-03-01) — sequential scoring of all 10 dims in one session produces mean |*r*| = .811; three contamination tiers; session isolation validated as minimum decontamination requirement.
+65. [B3 — threat_exposure Uniformity](#65-b3--threat_exposure-uniformity-calibration-dead-zone--training-label-degradation-2026-03-06) — calibration dead zone + label degradation. F1 (recalibrate) not viable alone — label distribution too concentrated.
+66. [v29/v30 Evaluation and B3 Root Cause Diagnosis](#66-v29v30-evaluation-and-b3-root-cause-diagnosis-2026-03-07) — v29 REJECTED (TE=.734, overall=.668); v30 single-task diagnostic confirms multi-task bonus (+.033); data volume identified as root cause.
+67. [v31 TE Expansion: Data Volume Strategy Validated](#67-v31-te-expansion-data-volume-strategy-validated-2026-03-07) — 500 TE texts from unlabeled pool; v31 TE=.773 (+.039 vs v29) but overall .679 < v23 .684; expansion works, needs 500–1,000 more.
 13. [References](#13-references)
 
 ---
@@ -5026,7 +5029,7 @@ All CONTROL cross-lags: non-significant.
 
 ## §65. B3 — threat_exposure Uniformity: Calibration Dead Zone + Training Label Degradation (2026-03-06)
 
-**Status:** Open. Two manifestations identified; root cause under investigation.
+**Status:** Root cause confirmed (§66). F2 complete (rescore-368 + TE expansion). F3 (v31) REJECTED — TE improved but insufficient. F3b (additional 500–1,000 TE texts) pending.
 
 ### Manifestation 1: Calibration dead zone (TE uniformity)
 
@@ -5125,6 +5128,122 @@ if TE < .800.
   is intrinsically harder for DistilBERT) has not been ruled out
 - v28 vs v23 comparison uses held-out *r* on 100 texts; sampling error non-trivial (SE ≈ .054)
 - Other dims in v3 show genuine improvement but cannot be deployed without TE fix
+
+
+## §66. v29/v30 Evaluation and B3 Root Cause Diagnosis (2026-03-07)
+
+The 368-text rescore (10 sessions, separated-llm protocol) was completed on 2026-03-06 and
+ingested into the training set (3,680 new separated-llm scores). Two training runs tested
+whether the cleaned labels improved TE prediction.
+
+### v29: Rescore impact with proxy removal
+
+v29 trained with `--drop-proxy-dims` on the same DB as v28, now containing the re-scored
+368-text labels. 14,576 training samples (vs v28's 17,708 without proxy removal). 7 epochs
+(early stop at 4).
+
+| Dimension | v23 | v29 | Δ |
+|---|---|---|---|
+| threat_exposure | .795 | .734 | −.061 |
+| hostility_index | .669 | .652 | −.017 |
+| authority_dynamics | .713 | .713 | ≈.000 |
+| energy_dissipation | .760 | .747 | −.013 |
+| regulatory_capacity | .768 | .767 | ≈.000 |
+| resilience_baseline | .597 | .575 | −.022 |
+| trust_conditions | .681 | .693 | +.012 |
+| cooling_capacity | .736 | .754 | +.018 |
+| defensive_architecture | .588 | .531 | −.057 |
+| contractual_clarity | .538 | .517 | −.021 |
+| **Average** | **.684** | **.668** | **−.016** |
+
+v29 REJECTED. Six dimensions regressed, including the target dimension TE (−.061). The
+rescore-368 texts constitute only 9.5% of the TE training corpus (368/3,852 TE rows) —
+too dilute to shift the TE label distribution meaningfully. The hypothesis that cleaning
+proxy labels would directly improve TE was not supported at this data volume.
+
+### v30: Single-task TE diagnostic
+
+To distinguish multi-task interference from data ceiling effects, v30 trained on TE only
+(`--train-dims threat_exposure --drop-proxy-dims`). All 10 output heads remain; only TE
+gradients flow during training. Same data as v29.
+
+**Result:** Held-out TE *r* = **.762** (vs v23 = .795, vs v29 = .734).
+
+This is diagnostic: multi-task training provides a **+.033 bonus** to TE (.795 − .762).
+The shared encoder representations from other dimensions benefit TE prediction — single-task
+TE never achieves v23 performance even with identical data. Multi-task scaffolding is a
+structural dependency, not overhead.
+
+### B3 root cause confirmed
+
+| Hypothesis | Test | Outcome |
+|---|---|---|
+| F2: proxy label contamination | v29 (rescore-368 cleaned labels) | REJECTED — 9.5% dilution insufficient |
+| Multi-task interference | v30 (single-task TE) | REJECTED — multi-task HELPS (+.033) |
+| Data volume ceiling | v30 vs v23 gap analysis | **CONFIRMED** — ceiling is clean TE label volume |
+
+The root cause is insufficient high-quality TE labels. TE requires both (a) multi-task
+scaffolding and (b) more clean training data. The 3,852-text TE corpus has too many
+composite-proxy labels with 43% score=5 concentration, diluting the separated-llm signal.
+The fix must be additive: score new texts on TE from the unlabeled pool.
+
+⚑ EPISTEMIC FLAGS
+- v30 diagnostic uses held-out *r* at *n* = 99 (SE ≈ .054); the +.033 multi-task bonus
+  is within 1 SE and should be treated as directional, not precise
+- "Data volume ceiling" is the most parsimonious explanation but does not rule out an
+  interaction between TE construct difficulty and DistilBERT's 6-layer capacity
+
+
+## §67. v31 TE Expansion: Data Volume Strategy Validated (2026-03-07)
+
+Based on the B3 diagnosis (§66), 500 new texts were scored on TE from the unlabeled pool
+using the separated-llm protocol. Texts selected to maximize TE label diversity: 150 Dreaddit
+(high TE variance), 150 empathetic dialogues (low-TE anchor), 100 ProsocialDialog (mid-range),
+100 Berkeley (extreme language). Assembled as `data/te-expansion-500-assembled.jsonl`; only TE
+dimension scored (9 remaining dims set to confidence ≤ .10, filtered by migrate.py's .15
+threshold). After ingest: 6,109 TE separated-llm scores in the training set.
+
+v31 trained with `--drop-proxy-dims`, 14,859 training samples. 8 epochs (early stop at 5).
+
+| Dimension | v23 | v29 | v31 | Δ (v31−v23) | Δ (v31−v29) |
+|---|---|---|---|---|---|
+| threat_exposure | .795 | .734 | .773 | −.022 | **+.039** |
+| hostility_index | .669 | .652 | .716 | +.047 | +.064 |
+| authority_dynamics | .713 | .713 | .671 | −.042 | −.042 |
+| energy_dissipation | .760 | .747 | .773 | +.013 | +.026 |
+| regulatory_capacity | .768 | .767 | .765 | ≈.000 | ≈.000 |
+| resilience_baseline | .597 | .575 | .585 | −.012 | +.010 |
+| trust_conditions | .681 | .693 | .711 | +.030 | +.018 |
+| cooling_capacity | .736 | .754 | .747 | +.011 | −.007 |
+| defensive_architecture | .588 | .531 | .501 | −.087 | −.030 |
+| contractual_clarity | .538 | .517 | .553 | +.015 | +.036 |
+| **Average** | **.684** | **.668** | **.679** | **−.005** | **+.011** |
+
+v31 REJECTED. Overall *r* = .679 < v23 = .684. However, the expansion strategy is validated:
+
+1. **TE improved +.039** vs v29 (.734 → .773). The 500 additional TE texts produced a
+   measurable gain — approximately +.008 per 100 texts, roughly linear.
+2. **HI collateral gain** (+.064 vs v29). TE expansion texts carry HI signal (hostile texts
+   are also threatening), producing an unexpected cross-dimension benefit.
+3. **DA continued regression** (.588 → .531 → .501 across v23/v29/v31). Three consecutive
+   declines, though each within sampling noise at *n* = 88. The trend warrants monitoring
+   but may reflect random walk at the tails of a small sample.
+
+### Projection for v32
+
+At +.039 per 500 texts, recovering v23 TE (.795) from v31's .773 requires approximately
+280 more TE texts (Δ = .022, ratio = .022/.039 × 500 ≈ 280). Scoring 500–1,000 more
+texts provides headroom for the overall held-out average to also recover. The expansion
+pool (`data/unlabeled-pool.jsonl`, 17,451 texts minus 500 already scored) has sufficient
+remaining capacity.
+
+⚑ EPISTEMIC FLAGS
+- Linear extrapolation assumes constant marginal returns from additional TE labels — likely
+  optimistic as diminishing returns are expected; 500–1,000 texts provides a safety margin
+- DA regression trend (.588 → .531 → .501) could indicate systematic interference from
+  TE-heavy training data or could be noise at *n* = 88 (SE ≈ .064)
+- v31 improvements in HI, TC, ED, CO may partly reflect random variation; only TE gain
+  has a causal mechanism (more TE training data)
 
 
 ## 13. References

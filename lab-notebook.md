@@ -677,7 +677,7 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 
 **Path forward: TE unlabeled-pool expansion.** Score 500+ texts from `data/unlabeled-pool.jsonl` on TE dimension using separated-llm protocol. Target TE ≥ 0.830 (v23 + anticipated gain from ~10% data volume increase at high label quality). Starting immediately.
 
-▶ distillation-research.md §66 (pending — v29 analysis + B3 diagnosis + TE expansion)
+▶ distillation-research.md §66 (v29/v30 evaluation + B3 root cause diagnosis)
 
 ---
 
@@ -734,4 +734,4 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 
 **B3 path forward:** The data expansion strategy is validated — 500 texts shifted TE from 0.734 (v29) to 0.773 (v31). To recover v23 TE (0.795) or surpass it, an additional 500–1,000 TE texts from the unlabeled pool are needed (v32 attempt). F1 (recalibrate) deferred until v32 shows improvement.
 
-▶ TODO.md §B3 updated, distillation-research.md §66/§67 (v31 results — pending doc session)
+▶ TODO.md §B3 updated, distillation-research.md §67 (v31 TE expansion results)
