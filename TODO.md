@@ -37,6 +37,26 @@ Last updated: 2026-03-06
 4. [x] Add `--max-length` CLI arg — done.
 5. [x] Update EXPERIMENTS.md — corrected values recorded.
 
+### B3 — threat_exposure uniformity: calibration dead zone + label degradation [OPEN]
+
+**Status:** Filed 2026-03-06. Two manifestations.
+
+**Manifestation 1 (calibration):** 4/5 ICESCR texts score TE=6.46 despite raw predictions
+spanning 5.59–6.07. Same PAVA-pooling mechanism as B2 (HI dead zone). Fix: run calibrate.py
+diagnostic, apply quantile-binned isotonic (n_bins=20) if non-monotone bins confirmed.
+
+**Manifestation 2 (training quality):** v28 held-out TE=0.762 vs v23 0.800 (−0.038) despite
+more training data. TE test_r=0.143 (near-random on proxy-label split). Root cause hypothesis:
+composite-proxy TE labels systematically compress toward score=5 (43% concentration), reducing
+effective discriminative signal. Fix: dedicated separated-llm TE labeling session.
+
+**Fix order:**
+- [ ] F1: Inspect TE calibration bin structure → apply quantile-binned isotonic if PAVA pooling confirmed
+- [ ] F2: Score TE for 368 reverted texts (1 session) + audit composite-proxy TE fraction
+- [ ] Retrain v29 with improved TE labels; target held-out TE ≥ 0.800
+
+See distillation-research.md §65 for full diagnosis.
+
 ### Re-score 368 reverted texts (1 dim per session)
 
 **Status:** In progress. 0/10 dimensions scored properly.

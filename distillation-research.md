@@ -5024,6 +5024,74 @@ All CONTROL cross-lags: non-significant.
 **Decision:** All 10 dimensions discarded. The 368 texts must be re-scored at a rate of one dimension per session (10 sessions total). This validates the original separated-scoring protocol design and provides strong evidence that multi-dimensional LLM assessment requires session isolation, not just call isolation.
 
 
+## §65. B3 — threat_exposure Uniformity: Calibration Dead Zone + Training Label Degradation (2026-03-06)
+
+**Status:** Open. Two manifestations identified; root cause under investigation.
+
+### Manifestation 1: Calibration dead zone (TE uniformity)
+
+During ICESCR advocacy text scoring (psq-scoring session, 2026-03-06), 4 of 5 texts scored
+TE = 6.46 despite raw model predictions spanning 5.59–6.07 — a 0.48-unit raw range compressed
+to a single calibrated value. One text scored TE = 7.67 (outside the compressed range).
+
+This is structurally identical to the B2 (HI) dead zone (§26 in psychology-agent journal.md):
+isotonic regression's PAVA (Pool Adjacent Violators Algorithm) pooling adjacent bins where
+the validation data is locally non-monotone. The compressed output range [5.59, 6.07] likely
+corresponds to a flat step in the TE calibration curve.
+
+**Diagnosis pending:** B2 diagnosis required direct inspection of validation bin sample counts
+in the dead zone. Same procedure needed for TE: run `calibrate.py` in diagnostic mode (or
+inspect raw bin structure) to confirm non-monotone validation bins in the 5.59–6.07 raw
+score range. If bins are populated and PAVA is pooling them, quantile-binned isotonic
+(same fix as B2, n_bins=20) will likely contract the dead zone.
+
+### Manifestation 2: Training label quality degradation (v28 held-out regression)
+
+v28 (default settings, 17,708 train samples) held-out TE *r* = **.762** vs v23 **.800** (−.038).
+This regression persisted despite v28 having more total training data than v23 (17,708 vs 14,576).
+v28 test_r for TE = **.143** — nearly random on the test split (composite-proxy dominated).
+
+The pattern is diagnostic: more data did not help TE. This indicates the marginal training
+samples (those present in v28 but not v23) added low-quality TE signal — likely composite-proxy
+labels that are systematically less discriminative for threat_exposure than for other dimensions.
+
+**Root cause hypothesis:** TE is a narrator-centric construct (threat perceived by the narrator)
+that is difficult to score reliably from text alone without strong situational context. Composite-
+proxy labels for TE may systematically compress toward neutral (score ≈ 5) more than other
+dimensions, producing the 43% concentration observed (2,795 / 6,523 = 43% at score=5 before
+cap). Down-weighting the concentrated scores reduces effective sample size substantially for TE.
+
+### Evidence summary
+
+| Signal | Value | Interpretation |
+|--------|-------|---------------|
+| v23 held-out TE *r* | .800 | Production baseline |
+| v28 held-out TE *r* | .762 | −.038 regression despite more data |
+| v28 test_r TE | .143 | Near-random on proxy-label test split |
+| TE score=5 concentration | 43% (2,795/6,523) | Highest of all 10 dims (others: 37–53%, TE at 43%) |
+| ICESCR TE uniformity | 4/5 texts → 6.46 | Calibration dead zone in raw range 5.59–6.07 |
+
+### Fix candidates
+
+**F1 — Calibration fix (targeted, fast):** Inspect TE calibration bin structure. If PAVA is
+pooling bins 5.59–6.07, apply quantile-binned isotonic (n_bins=20) as in B2. Does not
+require retraining. Deploy as calibration_version isotonic-v3-2026-MM-DD.
+
+**F2 — Label quality fix (slower, durable):** Score TE specifically in a dedicated separated-llm
+session on the 368 reverted texts (already planned) plus any additional texts where TE is
+currently composite-proxy only. Goal: reduce the TE composite-proxy fraction and improve
+training signal quality before the next retrain. Combined with F1, should recover TE ≥ .800.
+
+**Recommended order:** F1 first (fast diagnostic + targeted fix). F2 second (label quality,
+pre-conditions the next training run). File B3 reopen after v29 held-out if TE < .800.
+
+⚑ EPISTEMIC FLAGS
+- Calibration dead zone diagnosis is inferred from symptom; bin-level inspection not yet run
+- Training label quality hypothesis is plausible but not confirmed — alternative (TE construct
+  is intrinsically harder for DistilBERT) has not been ruled out
+- v28 vs v23 comparison uses held-out *r* on 100 texts; sampling error non-trivial (SE ≈ .054)
+
+
 ## 13. References
 
 - Borkan, D., Dixon, L., Sorensen, J., Thain, N., & Vasserman, L. (2019). Nuanced metrics for measuring unintended bias with real data for text classification. In *Companion Proceedings of the 2019 World Wide Web Conference* (pp. 491–500). https://doi.org/10.1145/3308560.3317593

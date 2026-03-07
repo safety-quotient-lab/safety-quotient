@@ -92,6 +92,8 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
+| B3 — TE uniformity (calibration dead zone + label degradation) | **Open** — filed 2026-03-06. Calibration: raw 5.59–6.07 → single output 6.46. Training: v28 TE=0.762 vs v23 0.800. Fix order: F1 (calibrate diagnostic), F2 (TE labeling session). See distillation-research.md §65 |
+| v28 — not promoted | v28 held-out r=0.678 < v23 0.684. TE regression (0.762 vs 0.800) and CO regression (0.488 vs 0.538) offset gains elsewhere. v23 remains production. |
 
 ---
 
