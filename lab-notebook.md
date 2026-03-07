@@ -20,21 +20,23 @@ Structured extraction from research sessions. Each entry records what was done, 
 | Production checkpoint | `models/psq-student/best.pt` |
 | ONNX | `model.onnx` 254 MB / `model_quantized.onnx` 64 MB INT8 |
 
-### Per-dimension held-out r (v23)
+### Per-dimension held-out r (v23 production; v29 rejected)
 
-| Dim | v22a | **v23** | Δ |
+| Dim | **v23** | v29 | Δ (v29−v23) |
 |---|---|---|---|
-| threat_exposure | — | **0.795** | — |
-| regulatory_capacity | — | **0.768** | — |
-| energy_dissipation | — | **0.760** | — |
-| cooling_capacity | — | **0.736** | — |
-| authority_dynamics | — | **0.713** | — |
-| trust_conditions | — | **0.681** | — |
-| hostility_index | — | **0.669** | — |
-| resilience_baseline | — | **0.597** | — |
-| defensive_architecture | — | **0.588** | — |
-| contractual_clarity | — | **0.538** | — |
-| **Average** | **0.682** | **0.684** | **+0.002** |
+| threat_exposure | **0.795** | 0.734 | −0.061 ★ |
+| regulatory_capacity | **0.768** | 0.767 | ≈0 |
+| energy_dissipation | **0.760** | 0.747 | −0.013 |
+| cooling_capacity | **0.736** | 0.754 | +0.018 |
+| authority_dynamics | **0.713** | 0.713 | ≈0 |
+| trust_conditions | **0.681** | 0.693 | +0.012 |
+| hostility_index | **0.669** | 0.652 | −0.017 |
+| resilience_baseline | **0.597** | 0.575 | −0.022 |
+| defensive_architecture | **0.588** | 0.531 | −0.057 |
+| contractual_clarity | **0.538** | 0.517 | −0.021 |
+| **Average** | **0.684** | 0.668 | **−0.016** |
+
+v30-te-ceiling (single-task TE only): held-out TE=0.762. Confirms multi-task adds +0.033 bonus (0.795−0.762). Multi-task scaffolding is necessary — single-task TE never viable for production.
 
 ### Database (data/psq.db)
 
@@ -85,15 +87,15 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Issue | Status |
 |---|---|
 | DA construct validity (weak factor loading, 49% scores=5) | Open — requires expert panel ICC(2,1) |
-| AD range compression (output std=1.54 vs actual 2.46) | All 368 texts re-scored with separated-llm; v29 training in progress |
-| Berkeley/UCC blind spot (MAE 2.5/2.3) | All 368 texts re-scored with separated-llm; v29 training in progress |
+| AD range compression (output std=1.54 vs actual 2.46) | v29 rejected (DA regressed −0.057). Root cause unresolved. More DA data needed. |
+| Berkeley/UCC blind spot (MAE 2.5/2.3) | v29 rejected — 368 rescore not sufficient. More data needed. |
 | CO still weakest dimension (0.538 corrected) | Improving — more data needed |
 | Confidence anti-calibrated (8/10 dims inverted) | Diagnosed — higher conf → higher error. Needs architectural fix |
 | max_length eval bug (256 vs 128) | **Fixed** — all historical held-out_r inflated ~0.012. v23 corrected: 0.696→0.684 |
 | Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
-| B3 — TE uniformity (calibration dead zone + label degradation) | F2 COMPLETE (2026-03-06) — all 368 TE labels replaced with separated-llm. v29 training in progress. F1 (recalibrate) deferred until v29 evals. |
+| B3 — TE uniformity (calibration dead zone + label degradation) | **FULLY DIAGNOSED (2026-03-07).** v29 rejected (TE=0.734). v30 single-task ceiling=0.762. Root cause = data volume: 368 texts = 9.5% of TE corpus, too dilute. Fix: score 500+ TE texts from unlabeled pool. F1 (recalibrate) deferred until better model. |
 | v28 — not promoted | v28 held-out r=0.678 < v23 0.684. TE regression (0.762 vs 0.800) and CO regression (0.488 vs 0.538) offset gains elsewhere. v23 remains production. |
 
 ---
@@ -642,3 +644,29 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **Backups committed:** All 10 per-dim score JSONs in `data/labeling-sessions/`. Commits: RC=08ca8ba, RB=1c7f662, TC=7a97c8a, CC=fac0cc3, DA=10b1f25, CO=fd34866. Assembly+ingest: 40342d1.
 
 ▶ TODO.md §B3 (F2 now complete), distillation-research.md §65 (v29 pending)
+
+---
+
+### Session `20260307-0950` (v29/v30 evaluation; B3 fully diagnosed; TE expansion started)
+
+**v29 evaluated — REJECTED.** `--drop-proxy-dims`, data includes rescore-368 (3,680 sep-llm scores). Held-out overall *r* = 0.668 (< v23 0.684). TE = 0.734 (< v23 0.795, target was ≥ 0.800). 6 dims regressed, 2 improved (TC +0.012, CC +0.018), 2 approximately equal (AD, RC). **v23 remains production.**
+
+- Root cause: 368 texts = 9.5% of TE training data (368/3,852). Too dilute to shift TE label distribution.
+
+**`--train-dims` flag implemented in `scripts/distill.py`.** Zeroes out non-selected dim masks in the training loop so only target-dim gradients flow. All 10 heads still present; val/test evaluates all dims. Smoke-tested (1 epoch, --no-save, confirmed "Training on 1 dim(s): ['threat_exposure']").
+
+**v30-te-ceiling trained — diagnostic only, NOT promoted.** `--train-dims threat_exposure --drop-proxy-dims`. Held-out TE = **0.762** (< v23 0.795). DB test-split result (−0.035) was misleading; canonical 100-text held-out is the correct metric.
+
+**B3 fully diagnosed:**
+
+| Hypothesis | Test | Result |
+|---|---|---|
+| F2: Replace 368 proxy TE labels with sep-llm | v29 training | REJECTED — 9.5% dilution, no improvement |
+| Single-task interference: multi-task hurts TE | v30 single-task | REJECTED — multi-task HELPS (+0.033 bonus) |
+| Natural data ceiling | v30 vs v23 gap | 0.762 single-task vs 0.795 multi-task → ceiling is data volume |
+
+**Root cause confirmed:** TE requires (a) multi-task scaffolding (+0.033) AND (b) more clean TE training data. The 3,852-text TE corpus has insufficient high-quality labels at the extremes.
+
+**Path forward: TE unlabeled-pool expansion.** Score 500+ texts from `data/unlabeled-pool.jsonl` on TE dimension using separated-llm protocol. Target TE ≥ 0.830 (v23 + anticipated gain from ~10% data volume increase at high label quality). Starting immediately.
+
+▶ distillation-research.md §66 (pending — v29 analysis + B3 diagnosis + TE expansion)

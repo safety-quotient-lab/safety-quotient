@@ -73,8 +73,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
   - `--drop-proxy-dims` (TE/TC/CC/AD/ED). Data: +550 texts (ccda+proxy-audit+held-out-expand). 8 epochs.
   - ONNX re-exported 2026-03-01: model.onnx=254.4 MB, model_quantized.onnx=64.0 MB (INT8).
 - **v27** (2026-03-01): held-out_r=**0.655** (−0.029). **Regressed — not promoted.** Same-session halo contamination confirmed.
-- **v29** (2026-03-07): **REJECTED**. held-out TE=0.734 (< v23 0.795), overall=0.668 (< 0.684). 6 dims regressed. Root cause: 368 rescore = 9.5% dilution, too small.
-- **v30-te-ceiling** (2026-03-07): diagnostic only. Single-task TE (`--train-dims threat_exposure`). Held-out TE=0.762. Confirms multi-task adds +0.033 bonus. Single-task NOT viable for production. **B3 fully diagnosed: data volume is root cause.**
+- **v29** (2026-03-06): training launched. `--drop-proxy-dims`. Data includes rescore-368 (3,680 sep-llm scores, B3 F2 fix). Target: TE ≥ 0.800, overall r > 0.684.
 - **max_length bugs** (ALL FIXED 2026-03-01): eval/calibrate/distill had 256→128; CMV had 512→128; CGA-Wiki T2 had 256→128. CMV AUC corrected: 0.5549 (was 0.5735). 11 historical models re-evaluated.
 - **v22a=0.695 > v23=0.684** after correction, but holding v23 (Δ<SE, would invalidate 4 criterion studies).
 - **3,680 rapid-scored records REVERTED** (2026-03-01): H1 halo confirmed (mean |r|=0.658). DB backup: psq.db.bak-pre-revert-20260301.
@@ -170,8 +169,7 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
 - **Production endpoint**: `http://178.156.229.103:3000` (Hetzner CX, Debian 13, 84ms inference). onnxruntime-node fix fragile (nested 1.21.0 removed manually — needs npm override).
-- **Pending**: Psychology-agent to set PSQ_ENDPOINT_URL via wrangler. Durable onnxruntime fix. B3 F3: score 500+ TE texts from unlabeled pool (in progress). B3 F1 recalibrate (--n-bins 20) after v31.
-- **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop. Smoke-tested 2026-03-07.
+- **Pending**: Psychology-agent to set PSQ_ENDPOINT_URL via wrangler. Durable onnxruntime fix. v29 eval + deploy. B3 F1 recalibrate (--n-bins 20) after v29.
 
 ## Key files
 - `TODO.md` — project-level task list | `EXPERIMENTS.md` — training run log

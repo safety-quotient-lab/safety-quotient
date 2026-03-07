@@ -690,6 +690,16 @@ def train(args):
             save_dir = ROOT / save_dir
         save_dir.mkdir(parents=True, exist_ok=True)
 
+    # --train-dims: build index list for dimension filtering in loss
+    train_dim_indices = None
+    if args.train_dims:
+        selected_dims = [d.strip() for d in args.train_dims.split(",")]
+        train_dim_indices = [DIMENSIONS.index(d) for d in selected_dims if d in DIMENSIONS]
+        unrecognized = [d for d in selected_dims if d not in DIMENSIONS]
+        if unrecognized:
+            print(f"  WARNING: unrecognized --train-dims values: {unrecognized}")
+        print(f"  Training on {len(train_dim_indices)} dim(s): {selected_dims}")
+
     print(f"\nTraining for {args.epochs} epochs, {len(train_loader)} batches/epoch")
     eff_batch = args.batch_size * args.grad_accum
     print(f"  LR: {args.lr}, batch: {args.batch_size} (effective: {eff_batch}), patience: {args.patience}")
@@ -752,6 +762,12 @@ def train(args):
             else:
                 pred_scores, pred_confs = model(input_ids, attention_mask)
                 pred_g, true_g, g_mask_valid = None, None, None
+
+            # --train-dims: zero out mask for non-selected dimensions
+            if train_dim_indices is not None:
+                dim_filter = torch.zeros(N_DIMS, dtype=torch.bool, device=device)
+                dim_filter[train_dim_indices] = True
+                mask = mask & dim_filter.unsqueeze(0)
 
             # Determine confidence mode for this epoch
             if args.conf_mode == "two-phase":
@@ -916,6 +932,10 @@ def main():
                        help="Output directory for checkpoints and config (default: models/psq-student)")
     parser.add_argument("--no-cap", action="store_true",
                        help="Disable score-concentration cap (default: cap enabled)")
+    parser.add_argument("--train-dims", default=None,
+                       help="Comma-separated list of dimensions to include in training loss. "
+                            "Other dims are masked out (gradients zeroed). "
+                            "Default: all 10 dims. Example: --train-dims threat_exposure")
     parser.add_argument("--drop-proxy-dims", nargs="?",
                        const="threat_exposure,trust_conditions,contractual_clarity,authority_dynamics,energy_dissipation",
                        default=None,

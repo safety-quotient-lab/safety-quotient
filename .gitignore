@@ -32,5 +32,6 @@ data/*.db-wal
 # Backup files
 data/*.bak
 data/*.bak2
+data/*.bak-*
 
 # Session transcripts tracked via Git LFS (see .gitattributes)

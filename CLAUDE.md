@@ -210,7 +210,8 @@ python scripts/eval_held_out.py --model models/psq-vN/best.pt
 python scripts/export_onnx.py --model models/psq-vN/best.pt --out models/psq-student/
 ```
 
-Key flags: `--no-save`, `--no-cap`, `--bifactor`, `--drop-proxy-dims`
+Key flags: `--no-save`, `--no-cap`, `--bifactor`, `--drop-proxy-dims`, `--train-dims dim1,dim2`
+- `--train-dims`: zero out non-selected dim masks; only listed dims contribute gradients; all 10 heads still present; val/test evaluates all 10 dims. Useful for single-task ceiling diagnostics.
 Context length: **128 tokens** (optimal — 256 worst, 512 partial recovery).
 
 ---

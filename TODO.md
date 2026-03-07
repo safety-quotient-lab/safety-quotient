@@ -37,28 +37,27 @@ Last updated: 2026-03-06
 4. [x] Add `--max-length` CLI arg — done.
 5. [x] Update EXPERIMENTS.md — corrected values recorded.
 
-### B3 — threat_exposure uniformity: calibration dead zone + label degradation [F2 COMPLETE — v29 PENDING]
+### B3 — threat_exposure uniformity: TE unlabeled-pool expansion [IN PROGRESS — 2026-03-07]
 
-**Status:** F2 complete (2026-03-06). v29 training launched. F1 deferred until v29 evals.
+**Status:** F2 (368 rescore) complete but insufficient. v29 REJECTED (TE=0.734, overall=0.668).
+v30 single-task ceiling=0.762. Root cause = data volume: 368 texts = 9.5% of TE corpus.
+Fix: score 500+ texts from unlabeled pool on TE dimension. F1 (recalibrate) deferred until better model.
 
-**Manifestation 1 (calibration):** 4/5 ICESCR texts score TE=6.46 despite raw predictions
-spanning 5.59–6.07. PAVA-pooling confirmed (10 mid-band dead zones in v2 calibration).
-F1 diagnostic ran quantile-binned isotonic (n_bins=20) → TE output range collapses to [4.5, 6.4]
-(1.9-point window). F1 is not viable standalone — the dead zone is a label distribution
-artifact, not a calibration method artifact.
+**B3 diagnosis complete (2026-03-07):**
+- Multi-task is NOT penalizing TE — single-task v30 achieves only 0.762 vs v23 0.795
+- Multi-task scaffolding provides +0.033 bonus (shared encoder representations essential)
+- Root cause: insufficient clean TE labels in the full 3,852-text TE corpus
+- 368 rescore = 9.5% dilution — too small to shift distribution
 
-**Manifestation 2 (training quality):** v28 held-out TE=0.762 vs v23 0.800 (−0.038) despite
-more training data. TE test_r=0.143 (near-random on proxy-label split). Root cause: composite-
-proxy TE labels systematically compress toward score=5 (43% concentration), reducing effective
-discriminative signal.
+**Fix sequence:**
+- [x] F1 diagnostic: PAVA pooling confirmed (2026-03-06)
+- [x] F2: 368 reverted texts re-scored sep-llm (2026-03-06); v29 trained and evaluated (2026-03-07) — REJECTED
+- [x] v30 single-task diagnostic: multi-task necessity confirmed (2026-03-07)
+- [ ] **F3: Score 500+ TE texts from unlabeled pool (sep-llm, TE-only session)** — IN PROGRESS
+- [ ] Train v31 with expanded TE corpus; target held-out TE ≥ 0.830
+- [ ] F1 (deferred): Recalibrate v31 with --n-bins 20 after training
 
-**Revised fix order (F2 must come before F1):**
-- [x] F1 diagnostic: PAVA pooling confirmed; quantile-binned not viable for current model (2026-03-06)
-- [x] F2: All 10 dims for all 368 reverted texts scored with separated-llm (10 sessions, 2026-03-06). 3,680 scores ingested. TE labels now in rescore-368-assembled.jsonl.
-- [ ] Evaluate v29 held-out TE; target ≥ 0.800 and overall r > 0.684
-- [ ] F1 (deferred): Recalibrate v29 with --n-bins 20 after training; viable once label distribution improves
-
-See distillation-research.md §65 for full diagnosis.
+See distillation-research.md §65/§66 and journal.md §37 for full diagnosis.
 
 ### Re-score 368 reverted texts (1 dim per session) [COMPLETE — 2026-03-06]
 
