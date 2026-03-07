@@ -41,24 +41,24 @@ Last updated: 2026-03-06
 
 **Status:** F3b (700 TE texts from unlabeled pool) complete. v32 REJECTED (TE=0.739, overall=0.676).
 1,200 additional TE texts total (500+700) have not recovered v23 TE=0.795. Further expansion
-shows diminishing or negative returns. B3 strategy needs reassessment before more expansion.
+shows diminishing or negative returns. B3 (TE uniformity) strategy needs reassessment before more expansion.
 
-**B3 diagnosis complete (2026-03-07):**
+**B3 (TE uniformity) diagnosis complete (2026-03-07):**
 - Multi-task is NOT penalizing TE — single-task v30 achieves only 0.762 vs v23 0.795
 - Multi-task scaffolding provides +0.033 bonus (shared encoder representations essential)
 - Root cause: insufficient clean TE labels in the full 3,852-text TE corpus
 - Expansion strategy PARTIALLY VALIDATED: 500 texts = +0.039 gain (v29→v31); but 700 more caused -0.034 regression (v31→v32). Diminishing returns or distributional mismatch.
 
 **Fix sequence:**
-- [x] F1 diagnostic: PAVA pooling confirmed (2026-03-06)
-- [x] F2: 368 reverted texts re-scored sep-llm (2026-03-06); v29 trained and evaluated (2026-03-07) — REJECTED
+- [x] F1 (PAVA calibration) diagnostic: PAVA pooling confirmed (2026-03-06)
+- [x] F2 (368 re-scored sep-llm): 368 reverted texts re-scored (2026-03-06); v29 trained and evaluated (2026-03-07) — REJECTED
 - [x] v30 single-task diagnostic: multi-task necessity confirmed (2026-03-07)
-- [x] **F3: 500 TE texts scored from unlabeled pool; ingested 2026-03-07**
+- [x] **F3 (unlabeled-pool expansion, 500 texts): 500 TE texts scored from unlabeled pool; ingested 2026-03-07**
 - [x] v31 trained and evaluated (2026-03-07) — REJECTED (TE=0.773, overall=0.679)
-- [x] **F3b: 700 TE texts scored from unlabeled pool; ingested 2026-03-07**
+- [x] **F3b (unlabeled-pool expansion, 700 texts): 700 TE texts scored from unlabeled pool; ingested 2026-03-07**
 - [x] v32 trained and evaluated (2026-03-07) — REJECTED (TE=0.739, overall=0.676) — TE REGRESSED
 - [ ] **Strategy decision:** (a) accept v23 TE=0.795 as ceiling and move on, OR (b) audit distribution of expansion texts vs training data, OR (c) score remaining held-out dims for expansion batches and train v33 multi-dim
-- [ ] F1 (deferred): Recalibrate best model with --n-bins 20 — defer until a model beats v23
+- [ ] F1 (recalibrate n_bins=20, deferred): Recalibrate best model with --n-bins 20 — defer until a model beats v23
 
 See distillation-research.md §65/§66/§67 and journal.md §37 for full diagnosis.
 

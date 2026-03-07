@@ -40,7 +40,7 @@ v30-te-ceiling (single-task TE only): held-out TE=0.762. Confirms multi-task add
 
 v31: expanded TE corpus (+500 texts from unlabeled pool). TE improved +0.039 vs v29 but still −0.022 vs v23. Overall 0.679 < 0.684. REJECTED.
 
-v32: expanded TE corpus further (+700 texts from unlabeled pool, score=5 fraction 9.9%). TE *regressed* to 0.739 (−0.034 vs v31; within SE(r)≈0.10 noise, but consistent downward direction). HI large regression −0.075 vs v31. AD +0.061 and DA +0.058 recovered vs v31. Overall 0.676 < 0.684. REJECTED. B3 expansion strategy shows diminishing returns — 1,200 additional TE texts have not recovered v23 TE=0.795. v23 remains production.
+v32: expanded TE corpus further (+700 texts from unlabeled pool, score=5 fraction 9.9%). TE *regressed* to 0.739 (−0.034 vs v31; within SE(r)≈0.10 noise, but consistent downward direction). HI large regression −0.075 vs v31. AD +0.061 and DA +0.058 recovered vs v31. Overall 0.676 < 0.684. REJECTED. B3 (TE uniformity) expansion strategy shows diminishing returns — 1,200 additional TE texts have not recovered v23 TE=0.795. v23 remains production.
 
 ### Database (data/psq.db)
 
@@ -102,7 +102,7 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
-| B3 — TE uniformity (unlabeled-pool expansion) | **F3b COMPLETE, v32 REJECTED (2026-03-07).** 700 additional TE texts scored (score=5=9.9%) and ingested. v32 trained: TE=0.739 (regressed −0.034 vs v31), overall=0.676 (< v23 0.684). 1,200 texts total expansion insufficient; diminishing returns apparent. Next: pause B3 or investigate distribution mismatch. v23 remains production. |
+| B3 (TE uniformity) — unlabeled-pool expansion | **F3b (unlabeled-pool expansion, 700 texts) COMPLETE, v32 REJECTED (2026-03-07).** 700 additional TE texts scored (score=5=9.9%) and ingested. v32 trained: TE=0.739 (regressed −0.034 vs v31), overall=0.676 (< v23 0.684). 1,200 texts total expansion insufficient; diminishing returns apparent. Next: pause B3 or investigate distribution mismatch. v23 remains production. |
 | v28 — not promoted | v28 held-out r=0.678 < v23 0.684. TE regression (0.762 vs 0.800) and CO regression (0.488 vs 0.538) offset gains elsewhere. v23 remains production. |
 
 ---
@@ -430,10 +430,10 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 | v25 | 512-token context (batch 8, grad_accum 4) | 0.390 | 0.692* | Near-equal but 5× slower; NOT promoted |
 | v26 | 128-token, LR=1e-5 (slow training test) | — | — | Training failed at startup |
 | v27 | +368 texts (ucc/civil/extreme-adco) | 0.390 | 0.655* | **Regressed** — not promoted |
-| v28 | Same data, no --drop-proxy-dims | 0.412 | 0.678 | B3 diagnostic — TE=0.762 (−0.033 vs v23) |
-| v29 | rescore-368 + --drop-proxy-dims | 0.383 | 0.668 | B3 F2 — TE=0.734, REJECTED |
+| v28 | Same data, no --drop-proxy-dims | 0.412 | 0.678 | B3 (TE uniformity) diagnostic — TE=0.762 (−0.033 vs v23) |
+| v29 | rescore-368 + --drop-proxy-dims | 0.383 | 0.668 | B3 (TE uniformity) F2 (368 re-scored sep-llm) — TE=0.734, REJECTED |
 | v30 | Single-task TE only | — | TE=0.762 | Multi-task bonus +0.033 confirmed |
-| v31 | +500 TE expansion texts | 0.384 | 0.679 | B3 F3 — TE=0.773, REJECTED. v23 remains. |
+| v31 | +500 TE expansion texts | 0.384 | 0.679 | B3 (TE uniformity) F3 (unlabeled-pool expansion, 500 texts) — TE=0.773, REJECTED. v23 remains. |
 
 *held-out_r corrected with max_length=128 eval (was inflated ~0.012 with 256-token eval bug).
 
@@ -654,7 +654,7 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 
 **Backups committed:** All 10 per-dim score JSONs in `data/labeling-sessions/`. Commits: RC=08ca8ba, RB=1c7f662, TC=7a97c8a, CC=fac0cc3, DA=10b1f25, CO=fd34866. Assembly+ingest: 40342d1.
 
-▶ TODO.md §B3 (F2 now complete), distillation-research.md §65 (v29 pending)
+▶ TODO.md §B3 (TE uniformity) (F2 (368 re-scored sep-llm) now complete), distillation-research.md §65 (v29 pending)
 
 ---
 
@@ -668,11 +668,11 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 
 **v30-te-ceiling trained — diagnostic only, NOT promoted.** `--train-dims threat_exposure --drop-proxy-dims`. Held-out TE = **0.762** (< v23 0.795). DB test-split result (−0.035) was misleading; canonical 100-text held-out is the correct metric.
 
-**B3 fully diagnosed:**
+**B3 (TE uniformity) fully diagnosed:**
 
 | Hypothesis | Test | Result |
 |---|---|---|
-| F2: Replace 368 proxy TE labels with sep-llm | v29 training | REJECTED — 9.5% dilution, no improvement |
+| F2 (368 re-scored sep-llm): Replace 368 proxy TE labels with sep-llm | v29 training | REJECTED — 9.5% dilution, no improvement |
 | Single-task interference: multi-task hurts TE | v30 single-task | REJECTED — multi-task HELPS (+0.033 bonus) |
 | Natural data ceiling | v30 vs v23 gap | 0.762 single-task vs 0.795 multi-task → ceiling is data volume |
 
@@ -680,7 +680,7 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 
 **Path forward: TE unlabeled-pool expansion.** Score 500+ texts from `data/unlabeled-pool.jsonl` on TE dimension using separated-llm protocol. Target TE ≥ 0.830 (v23 + anticipated gain from ~10% data volume increase at high label quality). Starting immediately.
 
-▶ distillation-research.md §66 (v29/v30 evaluation + B3 root cause diagnosis)
+▶ distillation-research.md §66 (v29/v30 evaluation + B3 (TE uniformity) root cause diagnosis)
 
 ---
 
@@ -691,7 +691,7 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **Interagent activity:**
 - Received command-response-ack from psychology-agent (to-psq-sub-agent-001.json). Independent verification: TLS endpoint live at https://psq.unratified.org/score, Caddy installed, firewall hardened (port 3000 closed), onnxruntime-node postinstall fix durable, wrangler secret set.
 - MANIFEST.json transport discovery layer introduced by psychology-agent.
-- PR #18 delivered to psychology-agent: scoring interpretation response (psq-interpretation-001.json) diagnosing B1/B2 from unratified-agent's 4-text scoring run.
+- PR #18 delivered to psychology-agent: scoring interpretation response (psq-interpretation-001.json) diagnosing B1 (confidence head dead)/B2 (HI calibration dead zone) from unratified-agent's 4-text scoring run.
 
 **B1 diagnosed and fixed (confidence head dead):**
 - Tested 3 texts (advocacy, constituent guide, "cooking pasta in a sunny kitchen") on both quantized and fp32 ONNX models — ALL returned identical confidence values for ALL 10 dims regardless of input
@@ -700,12 +700,12 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 - Fix: updated calibration.json with correct v23 held-out Pearson r values, modified student.js to use static r as confidence with `confidence_type: "held_out_r"` indicator
 - Deployed on Hetzner, service restarted, verified: 38ms inference, correct confidence values in response
 
-**B2 verified as resolved:**
+**B2 (HI calibration dead zone) verified as resolved:**
 - HI calibration dead zone (raw 5.85-7.65 → 6.69) was already fixed by psychology-agent's isotonic-v2 recalibration (calibration_version: isotonic-v2-2026-03-06)
 - Current HI scores differentiate: 6.55, 6.99, 7.33, 7.39 for 4 test texts
 - 11 remaining wide flat bins across other dims (TE, AD, ED, TC, CO) — deferred to post-v32 recalibration
 
-**Commits:** 61eece2 (scoring interpretation), 54a1a85 (B1 fix), 9629412 (B2 fix — by psychology-agent)
+**Commits:** 61eece2 (scoring interpretation), 54a1a85 (B1 (confidence head dead) fix), 9629412 (B2 (HI calibration dead zone) fix — by psychology-agent)
 
 ---
 
@@ -735,15 +735,15 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 
 **v31 REJECTED.** TE improved +0.039 vs v29 (expansion strategy confirmed working) but did not recover to v23 (−0.022 below). Overall average 0.679 < 0.684. DA regression (−0.087) likely within noise at n=88 (3 consecutive declines: 0.588→0.531→0.501 worth monitoring). **v23 remains production.**
 
-**B3 path forward:** The data expansion strategy is validated — 500 texts shifted TE from 0.734 (v29) to 0.773 (v31). To recover v23 TE (0.795) or surpass it, an additional 500–1,000 TE texts from the unlabeled pool are needed (v32 attempt). F1 (recalibrate) deferred until v32 shows improvement.
+**B3 (TE uniformity) path forward:** The data expansion strategy is validated — 500 texts shifted TE from 0.734 (v29) to 0.773 (v31). To recover v23 TE (0.795) or surpass it, an additional 500–1,000 TE texts from the unlabeled pool are needed (v32 attempt). F1 (recalibrate n_bins=20) deferred until v32 shows improvement.
 
-▶ TODO.md §B3 updated, distillation-research.md §67 (v31 TE expansion results)
+▶ TODO.md §B3 (TE uniformity) updated, distillation-research.md §67 (v31 TE expansion results)
 
 ---
 
-### Session `20260307-1152` (F3b: 700 TE texts scored; v32 trained and evaluated — REJECTED)
+### Session `20260307-1152` (F3b (unlabeled-pool expansion, 700 texts): TE texts scored; v32 trained and evaluated — REJECTED)
 
-**Context:** Continuation of B3 F3b after context compaction. Batches 0–99 of te-expansion-700 scored before compaction; this session scored batches 100–699 (600 texts, 12 batches of 50).
+**Context:** Continuation of B3 (TE uniformity) F3b (unlabeled-pool expansion, 700 texts) after context compaction. Batches 0–99 of te-expansion-700 scored before compaction; this session scored batches 100–699 (600 texts, 12 batches of 50).
 
 **te-expansion-700 scoring complete.** All 700 texts from unlabeled pool scored on threat_exposure (separated-llm protocol). Score distribution: 1→35(5.0%), 2→88(12.6%), 3→134(19.1%), 4→118(16.9%), 5→69(9.9%), 6→62(8.9%), 7→65(9.3%), 8→50(7.1%), 9→79(11.3%). Score=5 fraction = 9.9% (excellent — vs 34% for te-expansion-500). Mean = 4.81. Scores written to `/tmp/te_expansion_700_scores.json`.
 
@@ -769,6 +769,6 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 
 **v32 REJECTED.** TE regressed −0.034 vs v31 (counterintuitive — 700 additional high-quality labels with 9.9% score=5 made TE worse). HI large regression −0.075 vs v31. AD (+0.061) and DA (+0.057) recovered substantially vs v31. Overall 0.676 < 0.684. Cause of TE regression unclear: distributional shift in the 700 texts, stochastic training variance (SE(r)≈0.10), or optimization interference from the new TE mass. **v23 remains production.**
 
-**B3 status:** 1,200 additional TE texts total (500+700) have not recovered v23 TE=0.795. Further expansion has diminishing or negative returns. Next: pause B3 and recalibrate strategy — options include (a) accept current best and move on, (b) investigate distribution of new vs training TE texts, (c) scored-text quality audit, (d) focus on other dims (AD, DA improvements are noteworthy).
+**B3 (TE uniformity) status:** 1,200 additional TE texts total (500+700) have not recovered v23 TE=0.795. Further expansion has diminishing or negative returns. Next: pause B3 (TE uniformity) and recalibrate strategy — options include (a) accept current best and move on, (b) investigate distribution of new vs training TE texts, (c) scored-text quality audit, (d) focus on other dims (AD, DA improvements are noteworthy).
 
-▶ TODO.md §B3 updated
+▶ TODO.md §B3 (TE uniformity) updated

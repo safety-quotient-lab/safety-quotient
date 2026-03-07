@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v23 held-out *r* = **.684** (production best; corrected from .696 after max_length eval bug fix — see §62). v28–v31 all rejected (§65). B3 diagnosis complete: TE requires more data + multi-task scaffolding. 368-text rescore complete (10 sessions, separated-llm). TE expansion: 500 texts scored, v31 TE=.773 (+.039 vs v29) but overall .679 < v23 .684. B1 (confidence head dead) FIXED — static held-out *r* deployed. B2 (HI dead zone) FIXED — isotonic-v2.
-**Next:** Score 500–1,000 more TE texts from unlabeled pool (F3b). Train v32. Recalibrate (F1). Expert validation recruitment.
+**Status:** v23 held-out *r* = **.684** (production best; corrected from .696 after max_length eval bug fix — see §62). v28–v32 all rejected (§65). B3 (TE uniformity) diagnosis complete: TE requires more data + multi-task scaffolding. 368-text rescore complete (10 sessions, separated-llm). TE expansion: 500+700 texts scored, v32 TE=.739 but overall .676 < v23 .684. B1 (confidence head dead) FIXED — static held-out *r* deployed. B2 (HI calibration dead zone) FIXED — isotonic-v2. B3 (TE uniformity) STALLED — 1,200 expansion texts insufficient.
+**Next:** Strategy decision on B3 (TE uniformity). F1 (recalibrate n_bins=20) deferred until a model beats v23. Expert validation recruitment.
 
 ---
 
@@ -5037,16 +5037,16 @@ During ICESCR advocacy text scoring (psq-scoring session, 2026-03-06), 4 of 5 te
 TE = 6.46 despite raw model predictions spanning 5.59–6.07 — a 0.48-unit raw range compressed
 to a single calibrated value. One text scored TE = 7.67 (outside the compressed range).
 
-This is structurally identical to the B2 (HI) dead zone (§26 in psychology-agent journal.md):
+This is structurally identical to the B2 (HI calibration dead zone) (§26 in psychology-agent journal.md):
 isotonic regression's PAVA (Pool Adjacent Violators Algorithm) pooling adjacent bins where
 the validation data is locally non-monotone. The compressed output range [5.59, 6.07] likely
 corresponds to a flat step in the TE calibration curve.
 
-**Diagnosis pending:** B2 diagnosis required direct inspection of validation bin sample counts
+**Diagnosis pending:** B2 (HI calibration dead zone) diagnosis required direct inspection of validation bin sample counts
 in the dead zone. Same procedure needed for TE: run `calibrate.py` in diagnostic mode (or
 inspect raw bin structure) to confirm non-monotone validation bins in the 5.59–6.07 raw
 score range. If bins are populated and PAVA is pooling them, quantile-binned isotonic
-(same fix as B2, n_bins=20) will likely contract the dead zone.
+(same fix as B2 (HI calibration dead zone), n_bins=20) will likely contract the dead zone.
 
 ### Manifestation 2: Training label quality degradation (v28 held-out regression)
 
@@ -5119,7 +5119,7 @@ separated-llm session on the 368 reverted texts (already planned) plus any addit
 where TE is currently composite-proxy only. Goal: reduce the TE composite-proxy fraction and
 improve label variance before the next retrain. Target: TE held-out *r* ≥ .800 in v29.
 
-**Revised order:** F2 → retrain v29 → F1 (recalibrate v29). File B3 reopen after v29 held-out
+**Revised order:** F2 (368 re-scored sep-llm) → retrain v29 → F1 (recalibrate n_bins=20). File B3 (TE uniformity) reopen after v29 held-out
 if TE < .800.
 
 ⚑ EPISTEMIC FLAGS
@@ -5174,11 +5174,11 @@ The shared encoder representations from other dimensions benefit TE prediction �
 TE never achieves v23 performance even with identical data. Multi-task scaffolding is a
 structural dependency, not overhead.
 
-### B3 root cause confirmed
+### B3 (TE uniformity) root cause confirmed
 
 | Hypothesis | Test | Outcome |
 |---|---|---|
-| F2: proxy label contamination | v29 (rescore-368 cleaned labels) | REJECTED — 9.5% dilution insufficient |
+| F2 (368 re-scored sep-llm): proxy label contamination | v29 (rescore-368 cleaned labels) | REJECTED — 9.5% dilution insufficient |
 | Multi-task interference | v30 (single-task TE) | REJECTED — multi-task HELPS (+.033) |
 | Data volume ceiling | v30 vs v23 gap analysis | **CONFIRMED** — ceiling is clean TE label volume |
 
@@ -5196,7 +5196,7 @@ The fix must be additive: score new texts on TE from the unlabeled pool.
 
 ## §67. v31 TE Expansion: Data Volume Strategy Validated (2026-03-07)
 
-Based on the B3 diagnosis (§66), 500 new texts were scored on TE from the unlabeled pool
+Based on the B3 (TE uniformity) diagnosis (§66), 500 new texts were scored on TE from the unlabeled pool
 using the separated-llm protocol. Texts selected to maximize TE label diversity: 150 Dreaddit
 (high TE variance), 150 empathetic dialogues (low-TE anchor), 100 ProsocialDialog (mid-range),
 100 Berkeley (extreme language). Assembled as `data/te-expansion-500-assembled.jsonl`; only TE

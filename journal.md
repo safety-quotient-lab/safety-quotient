@@ -1180,7 +1180,7 @@ The cross-study picture at the close of this work: four independent criterion st
 
 ## 37. B3 Diagnosis: Multi-task Scaffolding as a Construct Dependency (2026-03-07)
 
-We trained v29 with 3,680 new separated-llm labels for the 368 reverted texts (all 10 dimensions, one session per dimension), intending to fix the B3 TE uniformity problem (§35 in distillation-research.md). The hypothesis was that replacing composite-proxy TE labels with clean separated-llm labels would recover TE from its plateau at *r* = .795 (v23). The result: v29 TE = .734 — worse than v23, not better. Overall held-out *r* = .668 (v23 = .684). Six dimensions regressed; two improved marginally (TC +.012, CC +.018).
+We trained v29 with 3,680 new separated-llm labels for the 368 reverted texts (all 10 dimensions, one session per dimension), intending to fix the B3 (TE uniformity) problem (§35 in distillation-research.md). The hypothesis was that replacing composite-proxy TE labels with clean separated-llm labels would recover TE from its plateau at *r* = .795 (v23). The result: v29 TE = .734 — worse than v23, not better. Overall held-out *r* = .668 (v23 = .684). Six dimensions regressed; two improved marginally (TC +.012, CC +.018).
 
 The regression was not a failure of execution but a failure of scale. The 368 rescore represents 9.5% of the TE training corpus (368/3,852 TE scores). Replacing 9.5% of labels with higher-quality versions while 90.5% remain at composite-proxy quality does not shift the signal distribution enough to affect held-out performance. The effect is diluted below the noise floor.
 
@@ -1190,13 +1190,13 @@ This finding has a theoretical implication. The TE construct — perceived threa
 
 The path to TE > .795 is now clear: more clean TE training data within the multi-task framework. The current TE corpus needs to grow by at least 10–15% with high-quality separated-llm labels to meaningfully shift the distribution. We have identified ~500 candidate texts in the unlabeled pool that span the full TE range; scoring these constitutes the next intervention.
 
-The B3 work also resolved an ambiguity about the TE uniformity symptom noted in production (4/5 ICESCR texts scoring TE = 6.46 despite raw model predictions spanning 5.59–6.07). The symptom is a compound of two separate problems: (1) the label distribution has too many score=5 values (35% concentration, vs. the ideal uniform distribution), and (2) the PAVA (pool adjacent violators algorithm) isotonic calibration creates dead zones wherever score counts are unequal. Neither problem can be fixed in isolation. The calibration dead zone (F1) cannot be resolved by recalibration alone when the underlying label distribution is non-uniform; and the label distribution (F2) cannot be resolved by the 368 rescore alone when the corpus is 40× larger. Both require the volume fix first.
+The B3 (TE uniformity) work also resolved an ambiguity about the TE uniformity symptom noted in production (4/5 ICESCR texts scoring TE = 6.46 despite raw model predictions spanning 5.59–6.07). The symptom is a compound of two separate problems: (1) the label distribution has too many score=5 values (35% concentration, vs. the ideal uniform distribution), and (2) the PAVA (pool adjacent violators algorithm) isotonic calibration creates dead zones wherever score counts are unequal. Neither problem can be fixed in isolation. The calibration dead zone, F1 (recalibrate n_bins=20), cannot be resolved by recalibration alone when the underlying label distribution is non-uniform; and the label distribution fix, F2 (368 re-scored sep-llm), cannot be resolved by the 368 rescore alone when the corpus is 40× larger. Both require the volume fix first.
 
 ---
 
 ## 38. B3 Expansion: When More Data Makes Things Worse (2026-03-07)
 
-The B3 diagnosis in §37 ended with an optimistic forecast: score 500 texts from the unlabeled pool, recover TE above .795. We scored 500 texts (te-expansion-500), then 700 more (te-expansion-700), for 1,200 additional texts in total. Neither batch moved TE past v23.
+The B3 (TE uniformity) diagnosis in §37 ended with an optimistic forecast: score 500 texts from the unlabeled pool, recover TE above .795. We scored 500 texts (te-expansion-500), then 700 more (te-expansion-700), for 1,200 additional texts in total. Neither batch moved TE past v23.
 
 The first expansion (v31, 500 texts) produced a gain: TE improved from .734 (v29) to .773 — a +.039 gain that confirmed the strategy was directionally correct. The label distribution shifted visibly; score=5 concentration dropped from 41.5% to 34% in the TE training data. But .773 still fell .022 below v23's .795, insufficient to justify promotion.
 
