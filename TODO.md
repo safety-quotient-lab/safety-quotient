@@ -90,11 +90,13 @@ See distillation-research.md §65/§66/§67 and journal.md §37/§38 for full di
 - [x] **Implementation layer:** Application layer (Node.js `server.js` on Hetzner). ONNX unchanged. Weights in `context-weights.json` config.
 - [x] **Schema:** v3 → v3.1 minor bump. Additive fields; no breaking change for v3 consumers.
 
-**Open implementation work:**
-- [ ] Implement `context-weights.json` + handler logic in `server.js`
-- [ ] Add `context` param to API docs and `agent-card.json`
-- [ ] Validate weight ratios against criterion validity β coefficients
-- [ ] Schema version bump to v3.1 in `server.js` and `student.js`
+**Implementation (2026-03-07):**
+- [x] `src/context-weights.json` created — 5 contexts, evidence-grounded weights, description + evidence_source per context
+- [x] `src/server.js` updated — parses `context` param, validates, computes context_weighted_composite (0-10), spreads into scores block under v3.1 schema
+- [x] Weight ratios derived from criterion validity ordinal rankings (bivariate r-values from CGA-Wiki, CMV, CaSiNo, DonD studies)
+- [x] Schema: server.js uses v3.1 when context present; v3 otherwise (backward-compatible)
+- [ ] **Deploy to Hetzner:** `rsync src/server.js src/context-weights.json hetzner:~/psq/src/ && ssh hetzner sudo systemctl restart psq-server`
+- [ ] Add `context` param to `agent-card.json` `.well-known/` capabilities
 
 ### Deal or No Deal criterion study [COMPLETE — v23 RERUN DONE]
 

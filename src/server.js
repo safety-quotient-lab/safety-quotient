@@ -9,10 +9,14 @@
  * Request body (POST /score):
  *   {
  *     "text": "<text to score>",          // required
- *     "session_id": "<client session id>" // optional — generated if absent
+ *     "session_id": "<client session id>",// optional — generated if absent
+ *     "context": "<use case>"             // optional — enables v3.1 context-aware scoring
+ *                                         // valid: "moderation" | "persuasion" | "negotiation"
+ *                                         //        | "workplace" | "therapeutic"
  *   }
  *
- * Response: psychology-agent/machine-response/v3 JSON
+ * Response: psychology-agent/machine-response/v3 JSON (v3.1 when context is specified)
+ * Context-aware response adds: context_weighted_composite (0-10), context_weights_used
  *
  * Usage:
  *   PSQ_PORT=3000 node src/server.js
@@ -21,8 +25,14 @@
 
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { StudentProvider } from "./student.js";
 import { aggregatePSQ, CONFIDENCE_THRESHOLD } from "./detector.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..");
 
 const listeningPort = parseInt(process.env.PSQ_PORT || "3000", 10);
 const listeningHost = process.env.PSQ_HOST || "127.0.0.1";
@@ -31,6 +41,39 @@ const listeningHost = process.env.PSQ_HOST || "127.0.0.1";
 const CALIBRATION_VERSION = "isotonic-v2-2026-03-06";
 const CALIBRATION_METHOD = "isotonic regression per dimension, n=1897 val";
 const VALIDATION_BASIS = "Dreaddit n=2760, Pearson r=0.684";
+
+// Context-aware scoring: load weight configuration from src/context-weights.json
+let contextWeightsConfig = {};
+try {
+  contextWeightsConfig = JSON.parse(
+    readFileSync(join(ROOT, "src", "context-weights.json"), "utf-8")
+  );
+} catch {
+  console.warn("[PSQ] context-weights.json not found — context-aware scoring unavailable");
+}
+const VALID_CONTEXTS = new Set(Object.keys(contextWeightsConfig));
+
+/**
+ * Compute a context-weighted composite score (0-10 scale).
+ * Distinct from psq_composite (0-100, protective/threat formula in detector.js).
+ * This is a simple weighted mean of per-dimension scores, elevated by context weights.
+ *
+ * Formula: Σ(weight_i × score_i) / Σ(weight_i)
+ * Unspecified dimensions default to weight=1.0.
+ */
+function computeContextWeightedComposite(dimensionScores, contextName) {
+  const config = contextWeightsConfig[contextName];
+  if (!config) return null;
+  const weights = config.weights;
+  let weightedSum = 0;
+  let totalWeight = 0;
+  for (const [dimName, dimData] of Object.entries(dimensionScores)) {
+    const weight = weights[dimName] ?? 1.0;
+    weightedSum += weight * dimData.score;
+    totalWeight += weight;
+  }
+  return Math.round((weightedSum / totalWeight) * 100) / 100;
+}
 
 // PSQ-Lite covers 3 dimensions (inferred from machine-response-v3-spec.md
 // standard limitations block: 7 dims listed as NOT in PSQ-Lite)
@@ -80,9 +123,11 @@ const STANDARD_LIMITATIONS = [
 ];
 
 /**
- * Convert StudentProvider.score() output to psychology-agent/machine-response/v3.
+ * Convert StudentProvider.score() output to psychology-agent/machine-response/v3 or v3.1.
+ * When contextName is provided and valid, the response includes context_weighted_composite
+ * and context_weights_used (v3.1 additive extension — backward-compatible with v3 consumers).
  */
-function buildV3Response(studentResult, sessionId) {
+function buildV3Response(studentResult, sessionId, contextName = null) {
   const { scores: dimensionScores, hierarchy, elapsed_ms } = studentResult;
 
   // Convert dimension score map to array for aggregatePSQ
@@ -123,8 +168,16 @@ function buildV3Response(studentResult, sessionId) {
     })
   );
 
+  // Context-aware scoring (v3.1 extension — additive; v3 consumers may ignore these fields)
+  const contextWeightedComposite = contextName
+    ? computeContextWeightedComposite(dimensionScores, contextName)
+    : null;
+  const contextWeightsUsed = contextName && contextWeightsConfig[contextName]
+    ? contextWeightsConfig[contextName].weights
+    : null;
+
   return {
-    schema: "psychology-agent/machine-response/v3",
+    schema: contextName ? "psychology-agent/machine-response/v3.1" : "psychology-agent/machine-response/v3",
     session_id: sessionId,
     turn: 1,
     timestamp: new Date().toISOString(),
@@ -158,6 +211,15 @@ function buildV3Response(studentResult, sessionId) {
         status: compositeStatus,
         usable: compositeStatus === "scored",
       },
+      ...(contextName && {
+        context: contextName,
+        context_weighted_composite: {
+          value: contextWeightedComposite,
+          scale: "0-10",
+          note: "Weighted mean of per-dimension scores (0-10 scale). Distinct from psq_composite (0-100 protective/threat formula). Higher = safer on context-relevant dimensions.",
+        },
+        context_weights_used: contextWeightsUsed,
+      }),
     },
 
     dimensions: v3Dimensions,
@@ -265,7 +327,7 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    const { text, session_id: clientSessionId } = parsedRequest;
+    const { text, session_id: clientSessionId, context: requestedContext } = parsedRequest;
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {
       sendJsonResponse(res, 400, {
@@ -274,11 +336,23 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    // Validate optional context parameter
+    let resolvedContext = null;
+    if (requestedContext !== undefined && requestedContext !== null) {
+      if (!VALID_CONTEXTS.has(requestedContext)) {
+        sendJsonResponse(res, 400, {
+          error: `Unknown context '${requestedContext}'. Valid values: ${[...VALID_CONTEXTS].join(", ")}`,
+        });
+        return;
+      }
+      resolvedContext = requestedContext;
+    }
+
     const sessionId = clientSessionId || `psq-${randomUUID()}`;
 
     try {
       const studentResult = await scoringProvider.score(text.trim());
-      const v3Response = buildV3Response(studentResult, sessionId);
+      const v3Response = buildV3Response(studentResult, sessionId, resolvedContext);
       sendJsonResponse(res, 200, v3Response);
     } catch (error) {
       console.error(`Inference error [${sessionId}]: ${error.message}`);

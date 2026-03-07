@@ -830,3 +830,26 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **Open work identified:** Implement handler + config, add to API docs and agent-card, validate weight ratios against criterion validity β coefficients.
 
 ▶ distillation-research.md §68 (context-aware API design), TODO.md updated
+
+---
+
+### Session `20260307-1756` (Context-aware scoring implemented in server.js — pending Hetzner deploy)
+
+**Context:** /iterate post-design-decisions. Context-aware scoring spec (§68) complete; implementation is the next step. server.js is local; implementation is executable.
+
+**`src/context-weights.json` created.** 5 contexts: `moderation`, `persuasion`, `negotiation`, `workplace`, `therapeutic`. Each has `description`, `evidence_source`, `primary_dims`, and per-dimension `weights` (2.0 primary / 1.5 secondary / 1.0 other). Weight rationale grounded in criterion validity ordinal rankings (CGA-Wiki → moderation; CMV → persuasion; CaSiNo + DonD → negotiation).
+
+**`src/server.js` updated.** Changes:
+- Added `readFileSync`, `join`, `dirname`, `fileURLToPath` imports
+- Loads `context-weights.json` at startup; gracefully degrades if file absent
+- `buildV3Response` gains optional `contextName` parameter
+- `computeContextWeightedComposite(dimensionScores, contextName)`: weighted mean of 0-10 per-dim scores (not the 0-100 PSQ formula)
+- POST /score handler parses optional `context` field; validates against VALID_CONTEXTS; returns 400 for unknown values
+- Response: `schema` → v3.1 (when context present), adds `context_weighted_composite` (0-10, with scale + note), `context_weights_used` under `scores` block
+- Backward-compatible: no context → schema stays v3, new fields absent
+
+**Pending deploy.** Local changes only — must `rsync` to Hetzner and `systemctl restart psq-server`. Not yet live.
+
+**Epistemic note.** `context_weighted_composite` (0-10 simple weighted mean) and `psq_composite` (0-100 protective/threat formula from detector.js) are intentionally distinct metrics on different scales. Both present in v3.1 response; difference labeled explicitly.
+
+▶ TODO.md implementation tasks updated, deploy pending

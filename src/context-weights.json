@@ -1,0 +1,87 @@
+{
+  "moderation": {
+    "description": "Content moderation / derailment risk. Based on CGA-Wiki criterion study: AD strongest predictor (r_pb=−0.105***); HI and DA significant in multivariate model.",
+    "evidence_source": "distillation-research.md §68, CGA-Wiki criterion study",
+    "primary_dims": ["authority_dynamics", "hostility_index", "defensive_architecture"],
+    "weights": {
+      "threat_exposure":        1.0,
+      "hostility_index":        1.5,
+      "authority_dynamics":     2.0,
+      "energy_dissipation":     1.0,
+      "regulatory_capacity":    1.0,
+      "resilience_baseline":    1.0,
+      "trust_conditions":       1.0,
+      "cooling_capacity":       1.0,
+      "defensive_architecture": 1.5,
+      "contractual_clarity":    1.0
+    }
+  },
+  "persuasion": {
+    "description": "Persuasion / argument quality. Based on CMV criterion study: DA top predictor (r_pb=+0.059***); cooling_capacity and trust_conditions strongest in multivariate model.",
+    "evidence_source": "distillation-research.md §68, CMV criterion study (journal §25)",
+    "primary_dims": ["defensive_architecture", "cooling_capacity", "trust_conditions"],
+    "weights": {
+      "threat_exposure":        1.0,
+      "hostility_index":        1.0,
+      "authority_dynamics":     1.0,
+      "energy_dissipation":     1.0,
+      "regulatory_capacity":    1.0,
+      "resilience_baseline":    1.0,
+      "trust_conditions":       1.5,
+      "cooling_capacity":       1.5,
+      "defensive_architecture": 2.0,
+      "contractual_clarity":    1.0
+    }
+  },
+  "negotiation": {
+    "description": "Negotiation outcomes. Based on CaSiNo criterion study: AD top predictor (r=0.127***); DA and HI significant. DonD confirms AD predicts deal (+0.138) vs. points (−0.070).",
+    "evidence_source": "distillation-research.md §68, CaSiNo and DonD criterion studies (journal §20, §27)",
+    "primary_dims": ["authority_dynamics", "defensive_architecture", "hostility_index"],
+    "weights": {
+      "threat_exposure":        1.0,
+      "hostility_index":        1.5,
+      "authority_dynamics":     2.0,
+      "energy_dissipation":     1.0,
+      "regulatory_capacity":    1.0,
+      "resilience_baseline":    1.0,
+      "trust_conditions":       1.0,
+      "cooling_capacity":       1.0,
+      "defensive_architecture": 1.5,
+      "contractual_clarity":    1.0
+    }
+  },
+  "workplace": {
+    "description": "Workplace psychological safety assessment. AD for status negotiation in teams; ED for resource depletion signals; TC for relational investment and trust.",
+    "evidence_source": "distillation-research.md §68, cross-study context-dependent primacy pattern",
+    "primary_dims": ["authority_dynamics", "energy_dissipation", "trust_conditions"],
+    "weights": {
+      "threat_exposure":        1.0,
+      "hostility_index":        1.0,
+      "authority_dynamics":     2.0,
+      "energy_dissipation":     1.5,
+      "regulatory_capacity":    1.0,
+      "resilience_baseline":    1.0,
+      "trust_conditions":       1.5,
+      "cooling_capacity":       1.0,
+      "defensive_architecture": 1.0,
+      "contractual_clarity":    1.0
+    }
+  },
+  "therapeutic": {
+    "description": "Therapeutic conversation quality. RC for emotion regulation capacity; RB for stress recovery signals; CC (cooling_capacity) for de-escalation; ED for depletion markers.",
+    "evidence_source": "distillation-research.md §68, construct definitions (psq-definition.md §3, §5, §8)",
+    "primary_dims": ["regulatory_capacity", "resilience_baseline", "cooling_capacity", "energy_dissipation"],
+    "weights": {
+      "threat_exposure":        1.0,
+      "hostility_index":        1.0,
+      "authority_dynamics":     1.0,
+      "energy_dissipation":     1.5,
+      "regulatory_capacity":    2.0,
+      "resilience_baseline":    1.5,
+      "trust_conditions":       1.0,
+      "cooling_capacity":       1.5,
+      "defensive_architecture": 1.0,
+      "contractual_clarity":    1.0
+    }
+  }
+}
