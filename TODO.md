@@ -39,25 +39,27 @@ Last updated: 2026-03-06
 
 ### B3 — threat_exposure uniformity: TE unlabeled-pool expansion [IN PROGRESS — 2026-03-07]
 
-**Status:** F2 (368 rescore) complete but insufficient. v29 REJECTED (TE=0.734, overall=0.668).
-v30 single-task ceiling=0.762. Root cause = data volume: 368 texts = 9.5% of TE corpus.
-Fix: score 500+ texts from unlabeled pool on TE dimension. F1 (recalibrate) deferred until better model.
+**Status:** F3 (500 TE texts from unlabeled pool) complete. v31 REJECTED (TE=0.773, overall=0.679).
+TE expansion strategy VALIDATED: 500 texts moved TE from 0.734 (v29) → 0.773 (v31), +0.039.
+But still −0.022 below v23 (0.795). Need 500–1,000 more TE texts for v32 attempt.
 
 **B3 diagnosis complete (2026-03-07):**
 - Multi-task is NOT penalizing TE — single-task v30 achieves only 0.762 vs v23 0.795
 - Multi-task scaffolding provides +0.033 bonus (shared encoder representations essential)
 - Root cause: insufficient clean TE labels in the full 3,852-text TE corpus
-- 368 rescore = 9.5% dilution — too small to shift distribution
+- Expansion strategy works — 500 texts = measurable +0.039 gain. Needs more scale.
 
 **Fix sequence:**
 - [x] F1 diagnostic: PAVA pooling confirmed (2026-03-06)
 - [x] F2: 368 reverted texts re-scored sep-llm (2026-03-06); v29 trained and evaluated (2026-03-07) — REJECTED
 - [x] v30 single-task diagnostic: multi-task necessity confirmed (2026-03-07)
-- [ ] **F3: Score 500+ TE texts from unlabeled pool (sep-llm, TE-only session)** — IN PROGRESS
-- [ ] Train v31 with expanded TE corpus; target held-out TE ≥ 0.830
-- [ ] F1 (deferred): Recalibrate v31 with --n-bins 20 after training
+- [x] **F3: 500 TE texts scored from unlabeled pool; ingested 2026-03-07**
+- [x] v31 trained and evaluated (2026-03-07) — REJECTED (TE=0.773, overall=0.679)
+- [ ] **F3b: Score 500–1,000 more TE texts from unlabeled pool (sep-llm, TE-only session)**
+- [ ] Train v32 with further expanded TE corpus; target held-out TE ≥ 0.800 (v23 recovery)
+- [ ] F1 (deferred): Recalibrate v32 with --n-bins 20 after training
 
-See distillation-research.md §65/§66 and journal.md §37 for full diagnosis.
+See distillation-research.md §65/§66/§67 and journal.md §37 for full diagnosis.
 
 ### Re-score 368 reverted texts (1 dim per session) [COMPLETE — 2026-03-06]
 

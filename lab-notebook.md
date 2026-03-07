@@ -20,23 +20,25 @@ Structured extraction from research sessions. Each entry records what was done, 
 | Production checkpoint | `models/psq-student/best.pt` |
 | ONNX | `model.onnx` 254 MB / `model_quantized.onnx` 64 MB INT8 |
 
-### Per-dimension held-out r (v23 production; v29 rejected)
+### Per-dimension held-out r (v23 production; v29 rejected; v31 rejected)
 
-| Dim | **v23** | v29 | Δ (v29−v23) |
-|---|---|---|---|
-| threat_exposure | **0.795** | 0.734 | −0.061 ★ |
-| regulatory_capacity | **0.768** | 0.767 | ≈0 |
-| energy_dissipation | **0.760** | 0.747 | −0.013 |
-| cooling_capacity | **0.736** | 0.754 | +0.018 |
-| authority_dynamics | **0.713** | 0.713 | ≈0 |
-| trust_conditions | **0.681** | 0.693 | +0.012 |
-| hostility_index | **0.669** | 0.652 | −0.017 |
-| resilience_baseline | **0.597** | 0.575 | −0.022 |
-| defensive_architecture | **0.588** | 0.531 | −0.057 |
-| contractual_clarity | **0.538** | 0.517 | −0.021 |
-| **Average** | **0.684** | 0.668 | **−0.016** |
+| Dim | **v23** | v29 | v31 | Δ (v31−v23) |
+|---|---|---|---|---|
+| threat_exposure | **0.795** | 0.734 | 0.773 | −0.022 |
+| regulatory_capacity | **0.768** | 0.767 | 0.765 | ≈0 |
+| energy_dissipation | **0.760** | 0.747 | 0.773 | +0.013 |
+| cooling_capacity | **0.736** | 0.754 | 0.747 | +0.011 |
+| authority_dynamics | **0.713** | 0.713 | 0.671 | −0.042 |
+| trust_conditions | **0.681** | 0.693 | 0.711 | +0.030 |
+| hostility_index | **0.669** | 0.652 | 0.716 | +0.047 |
+| resilience_baseline | **0.597** | 0.575 | 0.585 | −0.012 |
+| defensive_architecture | **0.588** | 0.531 | 0.501 | −0.087 |
+| contractual_clarity | **0.538** | 0.517 | 0.553 | +0.015 |
+| **Average** | **0.684** | 0.668 | 0.679 | **−0.005** |
 
 v30-te-ceiling (single-task TE only): held-out TE=0.762. Confirms multi-task adds +0.033 bonus (0.795−0.762). Multi-task scaffolding is necessary — single-task TE never viable for production.
+
+v31: expanded TE corpus (+500 texts from unlabeled pool). TE improved +0.039 vs v29 but still −0.022 vs v23. Overall 0.679 < 0.684. REJECTED. v23 remains production. DA trend: 0.588→0.531→0.501 (three versions, but differences within noise at n=88).
 
 ### Database (data/psq.db)
 
@@ -70,6 +72,7 @@ v30-te-ceiling (single-task TE only): held-out TE=0.762. Confirms multi-task add
 | civil | 100 | all dims | **REVERTED then RE-SCORED** — separated-llm, 1 dim/session protocol ✓ |
 | extreme-adco | 118 | AD/CO | **REVERTED then RE-SCORED** — separated-llm, 1 dim/session protocol ✓ |
 | rescore-368 | 368 | all 10 dims | 10-session separated-llm rescore; 3,680 scores ingested 2026-03-06 |
+| te-expansion-500 | 500 | threat_exposure | unlabeled-pool: 150 dreaddit + 150 emp.dial. + 100 prosocial + 100 berkeley; TE sep-llm; ingested 2026-03-07; drove v31 |
 
 ### Criterion Validity Studies
 
@@ -95,7 +98,7 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
-| B3 — TE uniformity (calibration dead zone + label degradation) | **FULLY DIAGNOSED (2026-03-07).** v29 rejected (TE=0.734). v30 single-task ceiling=0.762. Root cause = data volume: 368 texts = 9.5% of TE corpus, too dilute. Fix: score 500+ TE texts from unlabeled pool. F1 (recalibrate) deferred until better model. |
+| B3 — TE uniformity (calibration dead zone + label degradation) | **F3 COMPLETE, v31 REJECTED (2026-03-07).** 500 TE texts scored from unlabeled pool and ingested. v31 trained: TE=0.773 (+0.039 vs v29), overall=0.679 (< v23 0.684). TE expansion works but 500 texts insufficient — need 500–1,000 more. v23 remains production. |
 | v28 — not promoted | v28 held-out r=0.678 < v23 0.684. TE regression (0.762 vs 0.800) and CO regression (0.488 vs 0.538) offset gains elsewhere. v23 remains production. |
 
 ---
@@ -670,3 +673,35 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **Path forward: TE unlabeled-pool expansion.** Score 500+ texts from `data/unlabeled-pool.jsonl` on TE dimension using separated-llm protocol. Target TE ≥ 0.830 (v23 + anticipated gain from ~10% data volume increase at high label quality). Starting immediately.
 
 ▶ distillation-research.md §66 (pending — v29 analysis + B3 diagnosis + TE expansion)
+
+---
+
+### Session `20260307-1048` (TE expansion ingested; v31 trained and evaluated)
+
+**TE expansion assembled and ingested.** `data/te-expansion-500-assembled.jsonl` assembled (--partial, 1/10 dims scored). Migrate.py confirmed 500 texts × 1 score observation each. Placeholder scores (score=5, confidence=0.1) for remaining 9 dims filtered by the ≤0.15 confidence threshold in migrate.py. DB after ingest: TE sep-llm scores = 6,109.
+
+**Score distribution:** TE training data (after proxy drop): 4,135 rows, score=5 fraction = 34% (down from 41.5% in full training_data view). The expansion texts (dreaddit low-TE, empathetic_dialogues high-TE, berkeley extreme-TE) successfully shifted distribution toward extremes.
+
+**v31 trained** (`--drop-proxy-dims`, no --train-dims): 8 epochs to early stopping (patience=3 at epoch 5, val_r=0.4625). 14,859 train / 2,207 val / 2,291 test. 466s/epoch × 8 = ~37 minutes.
+
+**v31 held-out results:**
+
+| Metric | v23 | v31 | Δ |
+|---|---|---|---|
+| threat_exposure | 0.795 | 0.773 | −0.022 ↓ |
+| hostility_index | 0.669 | 0.716 | +0.047 ↑ |
+| authority_dynamics | 0.713 | 0.671 | −0.042 ↓ |
+| energy_dissipation | 0.760 | 0.773 | +0.013 ↑ |
+| regulatory_capacity | 0.768 | 0.765 | ≈0 |
+| resilience_baseline | 0.597 | 0.585 | −0.012 ↓ |
+| trust_conditions | 0.681 | 0.711 | +0.030 ↑ |
+| cooling_capacity | 0.736 | 0.747 | +0.011 ↑ |
+| defensive_architecture | 0.588 | 0.501 | −0.087 ↓ |
+| contractual_clarity | 0.538 | 0.553 | +0.015 ↑ |
+| **Average** | **0.684** | **0.679** | **−0.005** |
+
+**v31 REJECTED.** TE improved +0.039 vs v29 (expansion strategy confirmed working) but did not recover to v23 (−0.022 below). Overall average 0.679 < 0.684. DA regression (−0.087) likely within noise at n=88 (3 consecutive declines: 0.588→0.531→0.501 worth monitoring). **v23 remains production.**
+
+**B3 path forward:** The data expansion strategy is validated — 500 texts shifted TE from 0.734 (v29) to 0.773 (v31). To recover v23 TE (0.795) or surpass it, an additional 500–1,000 TE texts from the unlabeled pool are needed (v32 attempt). F1 (recalibrate) deferred until v32 shows improvement.
+
+▶ TODO.md §B3 updated, distillation-research.md §66/§67 (v31 results — pending doc session)
