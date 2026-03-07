@@ -148,8 +148,48 @@ def get_predictions(model_dir, val_records):
     return predictions, actuals, pred_confs_map, actual_confs_map
 
 
-def fit_isotonic(predictions, actuals):
-    """Fit isotonic regression per dimension."""
+def quantile_bin_means(predicted_scores, true_scores, n_bins):
+    """
+    Reduce (predicted, true) pairs to n_bins quantile-bin means.
+
+    Divides predicted_scores into n_bins equal-population quantile bins,
+    computes (mean_predicted, mean_true) for each bin, and returns the
+    bin means. This is fed to IsotonicRegression instead of raw points,
+    preventing PAVA from creating large dead zones by reducing point density.
+    """
+    sort_order = np.argsort(predicted_scores)
+    sorted_predicted = predicted_scores[sort_order]
+    sorted_true = true_scores[sort_order]
+
+    bin_edges = np.quantile(sorted_predicted, np.linspace(0, 1, n_bins + 1))
+
+    bin_predicted_means = []
+    bin_true_means = []
+    for bin_index in range(n_bins):
+        low_edge = bin_edges[bin_index]
+        high_edge = bin_edges[bin_index + 1]
+        # Include right edge only in the last bin
+        if bin_index == n_bins - 1:
+            in_bin = (sorted_predicted >= low_edge) & (sorted_predicted <= high_edge)
+        else:
+            in_bin = (sorted_predicted >= low_edge) & (sorted_predicted < high_edge)
+        if in_bin.sum() > 0:
+            bin_predicted_means.append(np.mean(sorted_predicted[in_bin]))
+            bin_true_means.append(np.mean(sorted_true[in_bin]))
+
+    return np.array(bin_predicted_means), np.array(bin_true_means)
+
+
+def fit_isotonic(predictions, actuals, n_bins=None):
+    """Fit isotonic regression per dimension.
+
+    Args:
+        predictions: dict of dim → list of raw predicted scores
+        actuals: dict of dim → list of true scores
+        n_bins: if set, apply quantile-binned isotonic (B3/B2 dead-zone fix).
+                Reduces point density to n_bins before PAVA fitting, preventing
+                large flat calibration steps in mid-band. Default None = standard.
+    """
     calibration = {}
 
     for dim in DIMS:
@@ -162,17 +202,26 @@ def fit_isotonic(predictions, actuals):
             continue
 
         if HAS_SKLEARN:
-            # Isotonic regression: monotonic mapping from predicted → actual
             iso = IsotonicRegression(y_min=0.0, y_max=10.0, out_of_bounds="clip")
-            iso.fit(preds, trues)
+
+            if n_bins is not None and len(preds) >= n_bins:
+                # Quantile-binned: reduces density before PAVA to eliminate dead zones
+                fit_x, fit_y = quantile_bin_means(preds, trues, n_bins)
+                method_label = f"isotonic-quantile-binned-{n_bins}"
+            else:
+                # Standard: fit on all individual points
+                fit_x, fit_y = preds, trues
+                method_label = "isotonic"
+
+            iso.fit(fit_x, fit_y)
 
             # Store as piecewise linear lookup table
             calibrated = iso.predict(preds)
-            x_thresholds = iso.X_thresholds_.tolist() if hasattr(iso, 'X_thresholds_') else sorted(set(preds.tolist()))
-            y_thresholds = iso.y_thresholds_.tolist() if hasattr(iso, 'y_thresholds_') else sorted(set(trues.tolist()))
+            x_thresholds = iso.X_thresholds_.tolist() if hasattr(iso, 'X_thresholds_') else sorted(set(fit_x.tolist()))
+            y_thresholds = iso.y_thresholds_.tolist() if hasattr(iso, 'y_thresholds_') else sorted(set(fit_y.tolist()))
 
             calibration[dim] = {
-                "method": "isotonic",
+                "method": method_label,
                 "n": len(preds),
                 "x_thresholds": [round(x, 4) for x in x_thresholds],
                 "y_thresholds": [round(y, 4) for y in y_thresholds],
@@ -285,10 +334,21 @@ def main():
     parser = argparse.ArgumentParser(description="Calibrate PSQ student model predictions")
     parser.add_argument("--model-dir", default="models/psq-student",
                        help="Directory containing best.pt")
+    parser.add_argument("--n-bins", type=int, default=None,
+                       help="If set, apply quantile-binned isotonic regression with this many "
+                            "bins (B3/B2 dead-zone fix). Recommended: 20. Default: standard isotonic.")
+    parser.add_argument("--out", default=None,
+                       help="Output path for calibration.json. Default: <model-dir>/calibration.json")
     args = parser.parse_args()
 
     model_dir = Path(args.model_dir)
     data_dir = Path("data")
+    out_path = Path(args.out) if args.out else model_dir / "calibration.json"
+
+    if args.n_bins:
+        print(f"Mode: quantile-binned isotonic (n_bins={args.n_bins}) — dead-zone fix")
+    else:
+        print("Mode: standard isotonic regression")
 
     print("Loading validation data...")
     val_records = load_data(data_dir)
@@ -298,7 +358,7 @@ def main():
     predictions, actuals, pred_confs, actual_confs = get_predictions(model_dir, val_records)
 
     print("\nFitting score calibration...")
-    calibration = fit_isotonic(predictions, actuals)
+    calibration = fit_isotonic(predictions, actuals, n_bins=args.n_bins)
 
     print("\nFitting confidence calibration...")
     conf_calibration = fit_confidence_calibration(pred_confs, predictions, actuals)
@@ -309,7 +369,6 @@ def main():
             calibration[dim]["confidence_calibration"] = conf_calibration[dim]
 
     # Save calibration map
-    out_path = model_dir / "calibration.json"
     with open(out_path, "w") as f:
         json.dump(calibration, f, indent=2)
     print(f"\nSaved to {out_path}")

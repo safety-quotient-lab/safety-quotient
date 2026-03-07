@@ -5071,25 +5071,60 @@ cap). Down-weighting the concentrated scores reduces effective sample size subst
 | TE score=5 concentration | 43% (2,795/6,523) | Highest of all 10 dims (others: 37–53%, TE at 43%) |
 | ICESCR TE uniformity | 4/5 texts → 6.46 | Calibration dead zone in raw range 5.59–6.07 |
 
+### F1 Diagnostic Results (2026-03-06)
+
+F1 was run: `calibrate.py --n-bins 20 --out calibration-v3.json` on the production psq-student model.
+
+**Findings:**
+
+| | v2 (production) | v3 (n_bins=20) |
+|---|---|---|
+| TE bins | 45 | 7 |
+| TE calibrated output range | [0.0, 9.9] | **[4.5, 6.4]** |
+| TE mid-band dead zones (overlap [3.5–7.5]) | 10 | 2 |
+
+v3 reduces mid-band dead zones from 10 to 2, but the calibrated output range collapses from
+9.9 to **1.9 points**. All TE scores land between 4.5 and 6.4 — a single 2-point window.
+This is not a fix; it is a different failure mode.
+
+**Why the range collapses:** Quantile-binned isotonic averages true labels within each bin.
+With 43% of TE true labels at score=5, the 20 bin means all cluster near 5–6. PAVA then
+pools adjacent near-identical means → 7 thresholds → 2-point output range. The calibration
+is accurate (MAE improved +16.7%), but accuracy on a 2-point range is not useful.
+
+**F1 diagnosis: F1 cannot fix the TE dead zone.** The dead zone is a symptom of the label
+distribution, not of the calibration method. Quantile-binned isotonic amplifies the label
+compression artifact rather than correcting it. The fix must address the root cause first.
+
+**F1 status: NOT viable for TE as a standalone fix.** Do not deploy calibration-v3.json.
+For other dimensions, v3 reduces mid-band dead zones (ED 14→6, RC 16→5, RB 15→6), but
+deploying v3 with a broken TE range makes PSQ-TE meaningless — not promotable as a package.
+
+**Revised fix order:** F2 must come before F1. After F2 produces better TE labels and v29
+trains on improved data, recalibrate with `--n-bins 20`. At that point, the label distribution
+will be less concentrated and the quantile bins will have meaningful variance to fit.
+
 ### Fix candidates
 
-**F1 — Calibration fix (targeted, fast):** Inspect TE calibration bin structure. If PAVA is
-pooling bins 5.59–6.07, apply quantile-binned isotonic (n_bins=20) as in B2. Does not
-require retraining. Deploy as calibration_version isotonic-v3-2026-MM-DD.
+**F1 — Calibration fix (cannot run until after F2):** After v29 trains on improved TE labels,
+run `calibrate.py --n-bins 20` on the new model. Deploy as calibration_version
+isotonic-quantile-binned-20 for the v29 model directory. Do NOT apply to current psq-student
+(v23 backbone) — the label distribution is too degenerate for F1 to help.
 
-**F2 — Label quality fix (slower, durable):** Score TE specifically in a dedicated separated-llm
-session on the 368 reverted texts (already planned) plus any additional texts where TE is
-currently composite-proxy only. Goal: reduce the TE composite-proxy fraction and improve
-training signal quality before the next retrain. Combined with F1, should recover TE ≥ .800.
+**F2 — Label quality fix (must come first, durable):** Score TE specifically in a dedicated
+separated-llm session on the 368 reverted texts (already planned) plus any additional texts
+where TE is currently composite-proxy only. Goal: reduce the TE composite-proxy fraction and
+improve label variance before the next retrain. Target: TE held-out *r* ≥ .800 in v29.
 
-**Recommended order:** F1 first (fast diagnostic + targeted fix). F2 second (label quality,
-pre-conditions the next training run). File B3 reopen after v29 held-out if TE < .800.
+**Revised order:** F2 → retrain v29 → F1 (recalibrate v29). File B3 reopen after v29 held-out
+if TE < .800.
 
 ⚑ EPISTEMIC FLAGS
-- Calibration dead zone diagnosis is inferred from symptom; bin-level inspection not yet run
+- **F1 non-viability now confirmed empirically** (calibration-v3.json TE range = [4.5, 6.4])
 - Training label quality hypothesis is plausible but not confirmed — alternative (TE construct
   is intrinsically harder for DistilBERT) has not been ruled out
 - v28 vs v23 comparison uses held-out *r* on 100 texts; sampling error non-trivial (SE ≈ .054)
+- Other dims in v3 show genuine improvement but cannot be deployed without TE fix
 
 
 ## 13. References
