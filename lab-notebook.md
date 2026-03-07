@@ -93,7 +93,8 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | AD range compression (output std=1.54 vs actual 2.46) | v29 rejected (DA regressed −0.057). Root cause unresolved. More DA data needed. |
 | Berkeley/UCC blind spot (MAE 2.5/2.3) | v29 rejected — 368 rescore not sufficient. More data needed. |
 | CO still weakest dimension (0.538 corrected) | Improving — more data needed |
-| Confidence anti-calibrated (8/10 dims inverted) | Diagnosed — higher conf → higher error. Needs architectural fix |
+| B1 — Confidence head dead (constant output regardless of input) | **FIXED (2026-03-07).** Model confidence head collapsed to per-dim constants. Production now surfaces static held-out Pearson r as confidence (confidence_type: held_out_r). Deployed on Hetzner via student.js + calibration.json update. |
+| B2 — HI calibration dead zone (raw 5.85-7.65 → 6.69) | **FIXED (2026-03-06).** Recalibrated with isotonic-v2 (n_bins=45). HI now differentiates (e.g., 6.55/6.99/7.33/7.39 for 4 test texts). MAE improved −3.9%. |
 | max_length eval bug (256 vs 128) | **Fixed** — all historical held-out_r inflated ~0.012. v23 corrected: 0.696→0.684 |
 | Same-session halo replication | **Confirmed** — mean |r|=0.811. Even "careful" sequential scoring (|r|=0.777) exceeds threshold. 10 sessions required. |
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
@@ -426,6 +427,10 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 | v25 | 512-token context (batch 8, grad_accum 4) | 0.390 | 0.692* | Near-equal but 5× slower; NOT promoted |
 | v26 | 128-token, LR=1e-5 (slow training test) | — | — | Training failed at startup |
 | v27 | +368 texts (ucc/civil/extreme-adco) | 0.390 | 0.655* | **Regressed** — not promoted |
+| v28 | Same data, no --drop-proxy-dims | 0.412 | 0.678 | B3 diagnostic — TE=0.762 (−0.033 vs v23) |
+| v29 | rescore-368 + --drop-proxy-dims | 0.383 | 0.668 | B3 F2 — TE=0.734, REJECTED |
+| v30 | Single-task TE only | — | TE=0.762 | Multi-task bonus +0.033 confirmed |
+| v31 | +500 TE expansion texts | 0.384 | 0.679 | B3 F3 — TE=0.773, REJECTED. v23 remains. |
 
 *held-out_r corrected with max_length=128 eval (was inflated ~0.012 with 256-token eval bug).
 
@@ -673,6 +678,31 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **Path forward: TE unlabeled-pool expansion.** Score 500+ texts from `data/unlabeled-pool.jsonl` on TE dimension using separated-llm protocol. Target TE ≥ 0.830 (v23 + anticipated gain from ~10% data volume increase at high label quality). Starting immediately.
 
 ▶ distillation-research.md §66 (pending — v29 analysis + B3 diagnosis + TE expansion)
+
+---
+
+### Session `20260307-1200` (B1/B2 bug diagnosis + production fix; interagent sync)
+
+**PSQ sub-agent session (Chromabook).** Executed /sync, diagnosed production bugs from unratified-agent scoring data, deployed B1 fix on Hetzner.
+
+**Interagent activity:**
+- Received command-response-ack from psychology-agent (to-psq-sub-agent-001.json). Independent verification: TLS endpoint live at https://psq.unratified.org/score, Caddy installed, firewall hardened (port 3000 closed), onnxruntime-node postinstall fix durable, wrangler secret set.
+- MANIFEST.json transport discovery layer introduced by psychology-agent.
+- PR #18 delivered to psychology-agent: scoring interpretation response (psq-interpretation-001.json) diagnosing B1/B2 from unratified-agent's 4-text scoring run.
+
+**B1 diagnosed and fixed (confidence head dead):**
+- Tested 3 texts (advocacy, constituent guide, "cooking pasta in a sunny kitchen") on both quantized and fp32 ONNX models — ALL returned identical confidence values for ALL 10 dims regardless of input
+- Root cause: model confidence head collapsed to per-dimension constants during training
+- calibration.json `r_confidence` values were seeded from the dead model output (not actual held-out r)
+- Fix: updated calibration.json with correct v23 held-out Pearson r values, modified student.js to use static r as confidence with `confidence_type: "held_out_r"` indicator
+- Deployed on Hetzner, service restarted, verified: 38ms inference, correct confidence values in response
+
+**B2 verified as resolved:**
+- HI calibration dead zone (raw 5.85-7.65 → 6.69) was already fixed by psychology-agent's isotonic-v2 recalibration (calibration_version: isotonic-v2-2026-03-06)
+- Current HI scores differentiate: 6.55, 6.99, 7.33, 7.39 for 4 test texts
+- 11 remaining wide flat bins across other dims (TE, AD, ED, TC, CO) — deferred to post-v32 recalibration
+
+**Commits:** 61eece2 (scoring interpretation), 54a1a85 (B1 fix), 9629412 (B2 fix — by psychology-agent)
 
 ---
 

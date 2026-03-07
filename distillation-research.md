@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v23 held-out *r* = **.684** (production best; corrected from .696 after max_length eval bug fix — see §62). v27 regressed (.655) with +368 new texts — not promoted. Confidence calibration is anti-calibrated (8/10 dims inverted). Context length sweep complete (§61). CGA-Wiki T2 complete (§61d).
-**Next:** Re-score 368 reverted texts (1 dim/session × 10 sessions — §63, §64). Retrain v28. Expert validation recruitment.
+**Status:** v23 held-out *r* = **.684** (production best; corrected from .696 after max_length eval bug fix — see §62). v28–v31 all rejected (§65). B3 diagnosis complete: TE requires more data + multi-task scaffolding. 368-text rescore complete (10 sessions, separated-llm). TE expansion: 500 texts scored, v31 TE=.773 (+.039 vs v29) but overall .679 < v23 .684. B1 (confidence head dead) FIXED — static held-out *r* deployed. B2 (HI dead zone) FIXED — isotonic-v2.
+**Next:** Score 500–1,000 more TE texts from unlabeled pool (F3b). Train v32. Recalibrate (F1). Expert validation recruitment.
 
 ---
 

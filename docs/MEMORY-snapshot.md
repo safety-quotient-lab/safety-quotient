@@ -75,11 +75,12 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 - **v27** (2026-03-01): held-out_r=**0.655** (−0.029). **Regressed — not promoted.** Same-session halo contamination confirmed.
 - **v29** (2026-03-07): **REJECTED**. held-out TE=0.734 (< v23 0.795), overall=0.668 (< 0.684). 6 dims regressed. Root cause: 368 rescore = 9.5% dilution, too small.
 - **v30-te-ceiling** (2026-03-07): diagnostic only. Single-task TE (`--train-dims threat_exposure`). Held-out TE=0.762. Confirms multi-task adds +0.033 bonus. Single-task NOT viable for production. **B3 fully diagnosed: data volume is root cause.**
+- **v31** (2026-03-07): **REJECTED**. 500 TE texts added from unlabeled pool (150 dreaddit+150 empD+100 prosocial+100 berkeley). TE=0.773 (+0.039 vs v29, but still −0.022 vs v23=0.795). Overall=0.679 (< v23 0.684). Expansion strategy VALIDATED — more data needed. Need 500–1,000 more TE texts for v32.
 - **max_length bugs** (ALL FIXED 2026-03-01): eval/calibrate/distill had 256→128; CMV had 512→128; CGA-Wiki T2 had 256→128. CMV AUC corrected: 0.5549 (was 0.5735). 11 historical models re-evaluated.
 - **v22a=0.695 > v23=0.684** after correction, but holding v23 (Δ<SE, would invalidate 4 criterion studies).
 - **3,680 rapid-scored records REVERTED** (2026-03-01): H1 halo confirmed (mean |r|=0.658). DB backup: psq.db.bak-pre-revert-20260301.
 - **368-text rescore COMPLETE** (2026-03-06): All 10 dims re-scored using 1-dim-per-session protocol (10 sessions). 3,680 scores assembled + ingested. Score=5 fraction 28–39% (vs 43% composite-proxy baseline). DB now: 94,041 scores, 40,451 sep-llm.
-- Context length: 128 tokens optimal (sweep complete). Confidence calibration: POOR (8/10 inverted).
+- Context length: 128 tokens optimal (sweep complete). Confidence: B1 FIXED — static held-out r deployed (2026-03-07). B2 FIXED — isotonic-v2 recalibration.
 - distill.py: `--out DIR`, `--no-save`, `--no-cap`, `--bifactor`, `--drop-proxy-dims`
 - Smoke test: `python scripts/distill.py --no-save --epochs 1`; Production: `--out models/psq-vN`
 
@@ -112,6 +113,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 ## Labeling batches (all scored+ingested unless noted)
 - weak-dims(200), rc(150), ad(300), co(200), rb(200), cc(200), te(200), broad(300), pct-200(200), midg(250), test-clean(200), ccda(200), proxy-audit(200), held-out-expand(150) — all complete
 - ucc(150), civil(100), extreme-adco(118) — **REVERTED then RE-SCORED** (10 sessions × 1 dim each, 2026-03-06). All ingested as rescore-368. ✓ COMPLETE.
+- te-expansion-500(500 texts, TE only) — scored 2026-03-07. 150 dreaddit+150 emp.dial.+100 prosocial+100 berkeley. Ingested, drove v31. Other 9 dims need future sessions.
 - Scoring batches of 50 texts per response (avoid 32K output token limit)
   - Partial files: `/tmp/psq_separated/{dim}_partial.json` (accumulate across 4 batches, then ingest)
 
@@ -169,8 +171,9 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Namespace**: `psy:psq` / PSQ-Full (vs `obs:psq` / PSQ-Lite on observatory-agent)
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
-- **Production endpoint**: `http://178.156.229.103:3000` (Hetzner CX, Debian 13, 84ms inference). onnxruntime-node fix fragile (nested 1.21.0 removed manually — needs npm override).
-- **Pending**: Psychology-agent to set PSQ_ENDPOINT_URL via wrangler. Durable onnxruntime fix. B3 F3: score 500+ TE texts from unlabeled pool (in progress). B3 F1 recalibrate (--n-bins 20) after v31.
+- **Production endpoint**: `https://psq.unratified.org/score` (Hetzner CX → Caddy TLS → Node.js localhost:3000). 38ms inference. onnxruntime-node fix durable (postinstall script). Firewall: SSH/HTTP/HTTPS only. calibration_version: isotonic-v2-2026-03-06.
+- **B1 fix deployed (2026-03-07)**: student.js uses static held-out Pearson r from calibration.json `r_confidence` (not dead model confidence head). Response includes `confidence_type: "held_out_r"`.
+- **Pending**: B3 F3b: score 500–1,000 more TE texts from unlabeled pool (v32 attempt). B3 F1 recalibrate (--n-bins 20) after v32.
 - **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop. Smoke-tested 2026-03-07.
 
 ## Key files
