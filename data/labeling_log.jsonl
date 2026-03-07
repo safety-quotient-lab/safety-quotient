@@ -221,3 +221,4 @@
 {"timestamp": "2026-03-06T19:56:15.043001-06:00", "dimension": "hostility_index", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
 {"timestamp": "2026-03-06T20:07:52.021982-06:00", "dimension": "authority_dynamics", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
 {"timestamp": "2026-03-06T20:18:51.718597-06:00", "dimension": "energy_dissipation", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
+{"timestamp": "2026-03-06T20:32:34.517310-06:00", "dimension": "regulatory_capacity", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
