@@ -5246,6 +5246,95 @@ remaining capacity.
   has a causal mechanism (more TE training data)
 
 
+## §68. Context-Aware Scoring API: Design Decisions (2026-03-07)
+
+The PSQ scoring endpoint (`POST /score` at `psq.unratified.org`) returns raw 10-dim scores and a flat composite average. The criterion validity battery established that context-specific weighting substantially outperforms flat averages: profile shape consistently predicts outcomes where g-PSQ (the flat composite) is near-chance (AUC 0.515–0.531). Three API design questions were deferred from initial production deployment (psq-status.md, B2 fix session). This section records the resolved decisions.
+
+### Use-Case Weight Matrix (Evidence Basis)
+
+The criterion validity studies (§59–60, journal §20–27) establish the following dimension-to-use-case mappings:
+
+| Use Case | Primary Predictors | Evidence |
+|---|---|---|
+| Content moderation (derailment risk) | AD, HI, DA | AD strongest in CGA-Wiki; HI/DA significant in multivariate |
+| Persuasion quality | DA, CC, TC | DA top in CMV; CC/TC strongest multivariate coefficients |
+| Negotiation outcomes | AD, DA, HI | AD/DA top in CaSiNo; HI significant |
+| Workplace safety | AD, ED, TC | Status negotiation + resource depletion + trust constructs |
+| Therapeutic conversation quality | RC, RB, CC, ED | Internal resources + recovery + cooling constructs |
+
+### Decision 1: Return Format
+
+**Decision: Return raw 10-dim scores + context-weighted composite + weight vector used.**
+
+Rationale (2-order knock-on):
+- Order 1: A pre-computed composite is immediately usable; surfacing the weight vector makes it auditable. Neither alone is optimal — composite without weights is opaque; weights without composite adds consumer implementation burden.
+- Order 2: Opaque composites erode trust when consumers cannot verify why text X scored differently from text Y. Transparent weights enable debugging, comparison, and downstream trust calibration.
+
+The existing `psq_composite` field (flat average) is retained as-is for backward compatibility. When `context` is specified, the response adds `context_weighted_composite` (float) and `context_weights_used` (object mapping dim abbreviations to weight values).
+
+### Decision 2: Context Specification
+
+**Decision: User-specified explicit `context` parameter. Auto-detection deferred.**
+
+Valid `context` values (maps directly to use-case rows above):
+```
+"moderation"    → AD, HI, DA weighted
+"persuasion"    → DA, CC, TC weighted
+"negotiation"   → AD, DA, HI weighted
+"workplace"     → AD, ED, TC weighted
+"therapeutic"   → RC, RB, CC, ED weighted
+```
+
+Rationale (2-order knock-on):
+- Order 1: Auto-detection requires a context classifier not currently implemented; user-specified is reliable (the consumer knows their application).
+- Order 2: Auto-detection adds a non-trivial failure mode and cannot be tested against the existing criterion validity studies without ground-truth context labels. User-specified can be extended to include auto-detection as an optional fallback later (`context: "auto"`) without breaking the explicit-context interface.
+
+When `context` is omitted, the endpoint behaves identically to the current v3 schema (no breaking change).
+
+### Decision 3: Implementation Layer
+
+**Decision: Application layer (Node.js scoring server). ONNX model unchanged.**
+
+Rationale (2-order knock-on):
+- Order 1: Baking context weights into the ONNX model (custom post-processing node) requires re-export every time weights are tuned. The application layer makes weights a config value.
+- Order 2: Context weights are empirically driven — new criterion validity studies may revise which dimensions are most predictive for a given use case. Application-layer weights allow rapid iteration without model rebuilds (quantization + re-export + redeploy is a 30-min pipeline; updating a JSON config is a 30-second deploy).
+
+**Implementation target:** `server.js` on Hetzner. A `context-weights.json` config file maps context labels to weight objects. The scoring handler applies weights to the raw 10-dim output and appends `context_weighted_composite` and `context_weights_used` to the response before returning.
+
+### Weight Normalization
+
+Weights are relative (not probabilities). The context-weighted composite is:
+
+```
+context_weighted_composite = Σ(weight_i × score_i) / Σ(weight_i)
+```
+
+This preserves the 0–10 output range, matching `psq_composite`. Weights for non-primary dimensions default to 1.0 (equal contribution); primary predictors receive elevated weights (2.0 for top predictor, 1.5 for secondary predictors — exact values configurable in `context-weights.json`).
+
+### Schema Extension (machine-response/v3 → v3.1)
+
+```json
+{
+  "schema": "psychology-agent/machine-response/v3.1",
+  "psq_composite": 6.2,
+  "context": "moderation",
+  "context_weighted_composite": 5.8,
+  "context_weights_used": { "AD": 2.0, "HI": 1.5, "DA": 1.5, "TE": 1.0, ... },
+  "scores": { ... }
+}
+```
+
+Minor version bump (v3 → v3.1) for backward compatibility: `context_weighted_composite` and `context_weights_used` are additive; v3 consumers ignoring unknown fields are unaffected.
+
+### Open Work
+
+- [ ] Implement `context-weights.json` and handler logic in `server.js`
+- [ ] Add `context` parameter to API documentation and `.well-known/agent-card.json`
+- [ ] Validate weight ratios against criterion validity effect sizes (use β coefficients from multivariate models as weight guidance)
+- [ ] Schema update: bump version to v3.1 in `server.js` and `student.js`
+
+---
+
 ## 13. References
 
 - Borkan, D., Dixon, L., Sorensen, J., Thain, N., & Vasserman, L. (2019). Nuanced metrics for measuring unintended bias with real data for text classification. In *Companion Proceedings of the 2019 World Wide Web Conference* (pp. 491–500). https://doi.org/10.1145/3308560.3317593

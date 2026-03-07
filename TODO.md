@@ -84,10 +84,17 @@ See distillation-research.md §65/§66/§67 and journal.md §37/§38 for full di
 | Workplace safety assessment | AD, ED, TC | Status negotiation + resource depletion + trust |
 | Therapeutic conversation quality | RC, RB, CC, ED | Internal resources + recovery + cooling |
 
-**Design questions to resolve:**
-- [ ] Should the API return raw 10-dim scores + a context-weighted composite? Or raw scores + recommended weights per use case?
-- [ ] Should context be user-specified ("I'm building a moderation tool") or auto-detected from text features?
-- [ ] Does this belong in the ONNX model (custom post-processing) or in the application layer?
+**Design questions resolved (2026-03-07, distillation-research.md §68):**
+- [x] **Return format:** Raw 10-dim + `context_weighted_composite` + `context_weights_used`. Transparent and immediately usable; backward-compatible.
+- [x] **Context specification:** User-specified `context` parameter (`moderation` | `persuasion` | `negotiation` | `workplace` | `therapeutic`). Auto-detection deferred.
+- [x] **Implementation layer:** Application layer (Node.js `server.js` on Hetzner). ONNX unchanged. Weights in `context-weights.json` config.
+- [x] **Schema:** v3 → v3.1 minor bump. Additive fields; no breaking change for v3 consumers.
+
+**Open implementation work:**
+- [ ] Implement `context-weights.json` + handler logic in `server.js`
+- [ ] Add `context` param to API docs and `agent-card.json`
+- [ ] Validate weight ratios against criterion validity β coefficients
+- [ ] Schema version bump to v3.1 in `server.js` and `student.js`
 
 ### Deal or No Deal criterion study [COMPLETE — v23 RERUN DONE]
 

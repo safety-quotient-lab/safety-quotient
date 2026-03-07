@@ -813,3 +813,20 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **Hook symlinks created.** `psychology/.claude/settings.json` hooks use relative paths (`.claude/hooks/…`) resolved from the `safety-quotient/` working directory. Three scripts were missing: `parry-wrapper.sh`, `subproject-boundary.sh`, `context-pressure-gate.sh`. Fixed by creating symlinks in `safety-quotient/.claude/hooks/` pointing to `../../../.claude/hooks/{script}`. Verified exit 0 from absolute path. Noise eliminated on next session start (4 hook errors per Read → 0).
 
 ▶ TODO.md §B3 (TE uniformity) updated, memory/psq-status.md updated
+
+---
+
+### Session `20260307-1610` (Context-aware scoring API design decisions resolved)
+
+**Context:** Post-B3 /iterate. Hunt surfaced context-aware API design (Priority 1, 3 open design questions) as highest-value completable item.
+
+**Design decisions resolved.** All 3 API design questions resolved via 2-order knock-on analysis against criterion validity evidence base. Written to distillation-research.md §68.
+
+1. **Return format:** Raw 10-dim + `context_weighted_composite` + `context_weights_used`. Backward-compatible additive fields.
+2. **Context specification:** User-specified `context` parameter (`moderation` | `persuasion` | `negotiation` | `workplace` | `therapeutic`). Five use cases from criterion validity matrix.
+3. **Implementation layer:** Application layer (Node.js `server.js` on Hetzner). ONNX unchanged. Weights in `context-weights.json` config; updateable without model rebuild.
+4. **Schema:** v3 → v3.1 minor bump. No breaking change for v3 consumers.
+
+**Open work identified:** Implement handler + config, add to API docs and agent-card, validate weight ratios against criterion validity β coefficients.
+
+▶ distillation-research.md §68 (context-aware API design), TODO.md updated
