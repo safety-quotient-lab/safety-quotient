@@ -1,0 +1,1474 @@
+{
+ "0": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "1": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "2": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "3": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "4": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "5": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "6": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "7": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "8": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "9": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "10": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "11": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "12": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "13": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "14": {
+  "score": 5.0,
+  "confidence": 0.6
+ },
+ "15": {
+  "score": 5.0,
+  "confidence": 0.6
+ },
+ "16": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "17": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "18": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "19": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "20": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "21": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "22": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "23": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "24": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "25": {
+  "score": 1.0,
+  "confidence": 0.8
+ },
+ "26": {
+  "score": 0,
+  "confidence": 0.95
+ },
+ "27": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "28": {
+  "score": 2.0,
+  "confidence": 0.7
+ },
+ "29": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "30": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "31": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "32": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "33": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "34": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "35": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "36": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "37": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "38": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "39": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "40": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "41": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "42": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "43": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "44": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "45": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "46": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "47": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "48": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "49": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "50": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "51": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "52": {
+  "score": 3.0,
+  "confidence": 0.75
+ },
+ "53": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "54": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "55": {
+  "score": 5.0,
+  "confidence": 0.85
+ },
+ "56": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "57": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "58": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "59": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "60": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "61": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "62": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "63": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "64": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "65": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "66": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "67": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "68": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "69": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "70": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "71": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "72": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "73": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "74": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "75": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "76": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "77": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "78": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "79": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "80": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "81": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "82": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "83": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "84": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "85": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "86": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "87": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "88": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "89": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "90": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "91": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "92": {
+  "score": 1.0,
+  "confidence": 0.85
+ },
+ "93": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "94": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "95": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "96": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "97": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "98": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "99": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "100": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "101": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "102": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "103": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "104": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "105": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "106": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "107": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "108": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "109": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "110": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "111": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "112": {
+  "score": 2.0,
+  "confidence": 0.7
+ },
+ "113": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "114": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "115": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "116": {
+  "score": 5.0,
+  "confidence": 0.6
+ },
+ "117": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "118": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "119": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "120": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "121": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "122": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "123": {
+  "score": 7.0,
+  "confidence": 0.75
+ },
+ "124": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "125": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "126": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "127": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "128": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "129": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "130": {
+  "score": 1.0,
+  "confidence": 0.85
+ },
+ "131": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "132": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "133": {
+  "score": 2.0,
+  "confidence": 0.7
+ },
+ "134": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "135": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "136": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "137": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "138": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "139": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "140": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "141": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "142": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "143": {
+  "score": 1.0,
+  "confidence": 0.85
+ },
+ "144": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "145": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "146": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "147": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "148": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "149": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "150": {
+  "score": 2.0,
+  "confidence": 0.7
+ },
+ "151": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "152": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "153": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "154": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "155": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "156": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "157": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "158": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "159": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "160": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "161": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "162": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "163": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "164": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "165": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "166": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "167": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "168": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "169": {
+  "score": 1.0,
+  "confidence": 0.85
+ },
+ "170": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "171": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "172": {
+  "score": 7.0,
+  "confidence": 0.8
+ },
+ "173": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "174": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "175": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "176": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "177": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "178": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "179": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "180": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "181": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "182": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "183": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "184": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "185": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "186": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "187": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "188": {
+  "score": 2.0,
+  "confidence": 0.8
+ },
+ "189": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "190": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "191": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "192": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "193": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "194": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "195": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "196": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "197": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "198": {
+  "score": 2.0,
+  "confidence": 0.7
+ },
+ "199": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "200": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "201": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "202": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "203": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "204": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "205": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "206": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "207": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "208": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "209": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "210": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "211": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "212": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "213": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "214": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "215": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "216": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "217": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "218": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "219": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "220": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "221": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "222": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "223": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "224": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "225": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "226": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "227": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "228": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "229": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "230": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "231": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "232": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "233": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "234": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "235": {
+  "score": 7.0,
+  "confidence": 0.8
+ },
+ "236": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "237": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "238": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "239": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "240": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "241": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "242": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "243": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "244": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "245": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "246": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "247": {
+  "score": 0,
+  "confidence": 0.9
+ },
+ "248": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "249": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "250": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "251": {
+  "score": 2.0,
+  "confidence": 0.7
+ },
+ "252": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "253": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "254": {
+  "score": 1.0,
+  "confidence": 0.8
+ },
+ "255": {
+  "score": 4.0,
+  "confidence": 0.7
+ },
+ "256": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "257": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "258": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "259": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "260": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "261": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "262": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "263": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "264": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "265": {
+  "score": 1.0,
+  "confidence": 0.8
+ },
+ "266": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "267": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "268": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "269": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "270": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "271": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "272": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "273": {
+  "score": 9.0,
+  "confidence": 0.75
+ },
+ "274": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "275": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "276": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "277": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "278": {
+  "score": 2.0,
+  "confidence": 0.7
+ },
+ "279": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "280": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "281": {
+  "score": 1.0,
+  "confidence": 0.85
+ },
+ "282": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "283": {
+  "score": 7.0,
+  "confidence": 0.65
+ },
+ "284": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "285": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "286": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "287": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "288": {
+  "score": 5.0,
+  "confidence": 0.8
+ },
+ "289": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "290": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "291": {
+  "score": 1.0,
+  "confidence": 0.8
+ },
+ "292": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "293": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "294": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "295": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "296": {
+  "score": 0,
+  "confidence": 0.9
+ },
+ "297": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "298": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "299": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "300": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "301": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "302": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "303": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "304": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "305": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "306": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "307": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "308": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "309": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "310": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "311": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "312": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "313": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "314": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "315": {
+  "score": 9.0,
+  "confidence": 0.8
+ },
+ "316": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "317": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "318": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "319": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "320": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "321": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "322": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "323": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "324": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "325": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "326": {
+  "score": 7.0,
+  "confidence": 0.65
+ },
+ "327": {
+  "score": 6.0,
+  "confidence": 0.65
+ },
+ "328": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "329": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "330": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "331": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "332": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "333": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "334": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "335": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "336": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "337": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "338": {
+  "score": 9.0,
+  "confidence": 0.8
+ },
+ "339": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "340": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "341": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "342": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "343": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "344": {
+  "score": 7.0,
+  "confidence": 0.65
+ },
+ "345": {
+  "score": 2.0,
+  "confidence": 0.75
+ },
+ "346": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "347": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "348": {
+  "score": 7.0,
+  "confidence": 0.7
+ },
+ "349": {
+  "score": 8.0,
+  "confidence": 0.8
+ },
+ "350": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "351": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "352": {
+  "score": 4.0,
+  "confidence": 0.6
+ },
+ "353": {
+  "score": 1.0,
+  "confidence": 0.9
+ },
+ "354": {
+  "score": 5.0,
+  "confidence": 0.7
+ },
+ "355": {
+  "score": 3.0,
+  "confidence": 0.7
+ },
+ "356": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "357": {
+  "score": 4.0,
+  "confidence": 0.65
+ },
+ "358": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "359": {
+  "score": 8.0,
+  "confidence": 0.75
+ },
+ "360": {
+  "score": 3.0,
+  "confidence": 0.65
+ },
+ "361": {
+  "score": 5.0,
+  "confidence": 0.75
+ },
+ "362": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "363": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "364": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "365": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "366": {
+  "score": 5.0,
+  "confidence": 0.65
+ },
+ "367": {
+  "score": 2.0,
+  "confidence": 0.7
+ }
+}
