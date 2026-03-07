@@ -226,3 +226,4 @@
 {"timestamp": "2026-03-06T20:47:22.694191-06:00", "dimension": "trust_conditions", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
 {"timestamp": "2026-03-06T20:50:17.467549-06:00", "dimension": "cooling_capacity", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
 {"timestamp": "2026-03-06T20:52:55.750704-06:00", "dimension": "defensive_architecture", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
+{"timestamp": "2026-03-06T20:57:48.772440-06:00", "dimension": "contractual_clarity", "n_scored": 368, "n_total": 368, "batch": "/tmp/rescore-368.jsonl"}
