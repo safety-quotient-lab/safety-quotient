@@ -934,3 +934,21 @@ Key finding: MAX AUTHORITY ABUSE (expected 0) = NEUTRAL (expected 5) = 5.13. Dir
 agent-card.json `ad-range-compression` limitation (HIGH) added and deployed; Q7 answered in Open Questions.
 
 ▶ journal.md §40, psq-status.md updated, agent-card.json deployed
+
+---
+
+### Session `20260307-1847` (criterion-validity-summary.md AD ordinal caveat; Apache 2.0 relicense)
+
+**Context:** /iterate #3 post-AD calibration audit. criterion-validity-summary.md needed AD ordinal-only caveat before any publication path.
+
+**criterion-validity-summary.md — two targeted edits:**
+
+- §3b (AD Role section): Added calibration caveat paragraph (journal §40 reference). Key claim: AD AUC/r values reflect rank-order predictions within training distribution only. Absolute score interpretation invalid for formal authority texts. Effective range 5.13–6.38 for such texts — indistinguishable from neutral.
+- §6a (Limitations): Added item 6 — "AD range compression (HIGH severity, 2026-03-07)" with ordinal-only interpretation note and formal authority text requirement.
+- `Last updated` header: 2026-03-01 → 2026-03-07.
+
+**License (Apache 2.0).** Session 32c (parallel context) relicensed PSQ code from CC BY-NC-SA 4.0 to Apache 2.0. LICENSE file was already staged when `git add -A` ran. Committed as part of this cycle per MEMORY.md which already records the relicensing decision.
+
+**Docs updated:** criterion-validity-summary.md (§3b + §6a + date); LICENSE → Apache 2.0 committed.
+
+▶ journal.md §40 (AD ordinal caveat sourced from here), criterion-validity-summary.md updated

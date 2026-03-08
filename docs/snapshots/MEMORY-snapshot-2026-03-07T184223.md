@@ -6,13 +6,13 @@
 1. Specialized sub-agents (PSQ is the first)
 2. A consensus-or-parsimony adversarial evaluator
 
-**Where we stopped:** PSQ Session 33 (2026-03-07). criterion-validity-summary.md updated:
-- §3b: AD calibration caveat added (ordinal-only interpretation, range compression 5.13–6.38)
-- §6a: limitation 6 added (AD range compression HIGH severity)
-- Last updated date corrected
-- License discrepancy flagged (PSQ LICENSE still CC BY-NC-SA 4.0; MEMORY says Apache 2.0 — awaiting user confirmation)
-**Next:** License reconciliation (user confirmation needed). Publication framing (Priority 2, L effort).
-HI+AD augmentation planning. Scoring rubric review (Priority 3).
+**Where we stopped:** PSQ Session 32 (2026-03-07). Two calibration audits completed:
+- HI range compression (§39): effective range ~3.44–7.98; anomaly resolved as construct nuance
+- AD range compression (§40): effective range 3.84–6.38; max abuse = neutral (5.13); Q7 answered:
+  UCC/extreme-adco did NOT fix. Direction reversal confirmed. Held-out r=0.713 valid ordinal only.
+  agent-card `ad-range-compression` HIGH limitation added and deployed.
+**Next:** Publication framing (Priority 2, L effort). Formal authority text labeling (AD fix).
+HI+AD combined augmentation planning. Scoring rubric review (Priority 3).
 Psychology agent — await unratified-agent response. Inbound PR sync pending.
 
 ## Design Decisions
@@ -35,7 +35,7 @@ Psychology agent — await unratified-agent response. Inbound PR sync pending.
                               categories; reads ongoing signals in real time
  Machine-to-machine          Socratic stance drops; detection is structural
                               (format + self-id + absence of social hedging)
- License (code)              Apache 2.0 (relicensed Session 32c)
+ License (code)              CC BY-NC-SA 4.0 (root + PSQ code)
  License (PSQ data/weights)  CC BY-SA 4.0 (Dreaddit ShareAlike constraint)
  Cogarch organizing          Semiotics (Peircean). Each trigger classifies a
  principle                   sign type + warrants a specific action. T4 Check 9

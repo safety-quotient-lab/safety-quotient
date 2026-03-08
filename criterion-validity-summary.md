@@ -1,6 +1,6 @@
 # PSQ Criterion Validity Summary
 
-**Last updated:** 2026-03-01
+**Last updated:** 2026-03-07
 **Status:** Four studies complete. All studies independent of PSQ training data.
 **PSQ version used:** v16 (CaSiNo, CGA-Wiki); v23 (CMV rerun 2026-02-28, DonD rerun 2026-02-28).
 
@@ -369,6 +369,8 @@ AD also functions as a classic **suppressor variable** (Conger, 1974) in three o
 
 The AD paradox — weakest factor loading (max promax = .332, below .35 threshold), strongest external validity in contested contexts — is discussed at length in `journal.md` §§23–24 and `distillation-research.md` §33. Three theoretical accounts are advanced; the CMV and DonD results favor Theory 3 (status negotiation).
 
+**⚑ Calibration caveat (journal §40, 2026-03-07).** The AUC and *r* values above reflect rank-order predictions within the training distribution (social media, Reddit, Wikipedia, MTurk). A systematic calibration anchor test reveals AD absolute scores are substantially compressed: effective output range is ~3.84–6.38 for Dreaddit-style texts and 5.13–6.38 for formal authority texts. Maximum authority abuse (anchor: expected 0) scores 5.13 — identical to the neutral policy anchor. These criterion validity results are valid as ordinal predictions (which text has more AD than another, within the social media distribution). They do not support interpreting absolute AD scores on the 0–10 scale for formal or workplace texts. For applications requiring absolute score interpretation, AD is unreliable outside its training distribution. Correction requires adding formal authority text to the training corpus.
+
 ### 3c. ED Role: Process Predictor for Sustained Engagement
 
 Energy dissipation (ED) shows a complementary pattern: it predicts strongly when the behavioral outcome requires sustained engagement over the course of an interaction, and weakly when the outcome is driven by acute power dynamics.
@@ -499,6 +501,8 @@ The bifactor model (planned; `distillation-research.md` §35) would output both 
 4. **Effect sizes are small.** *r* ≈ .08–.13 in CaSiNo, AUC .55–.73 in binary studies. PSQ alone is insufficient for high-stakes decisions; it should be combined with other features.
 
 5. **No sentiment baseline for CGA-Wiki.** The incremental contribution of PSQ beyond sentiment is unknown for the derailment study (unlike CaSiNo where incremental *R*² is reported).
+
+6. **AD range compression (HIGH severity, 2026-03-07).** Calibration audit (`journal.md` §40) shows effective AD output range ~3.84–6.38 for Dreaddit-style texts and 5.13–6.38 for formal authority texts. Maximum authority abuse anchor (expected 0) scores 5.13 — indistinguishable from neutral. Criterion validity AUC and *r* estimates are valid ordinal measures *within* the social media distribution only. Absolute AD scores are not interpretable for formal authority or workplace texts. The Dreaddit training corpus contains subordinate-perspective stress accounts but no formal authority text (policy documents, manager directives). Formal authority text labeling is required before AD can support workplace or content moderation applications requiring absolute score interpretation.
 
 ### 6b. Pending Tests
 
