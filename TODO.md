@@ -4,6 +4,24 @@ Last updated: 2026-03-07
 
 ## Priority 1: Immediate
 
+### AD + HI range compression augmentation (distillation-research.md §69)
+
+**Status:** Plan complete (2026-03-07). Execution pending.
+
+Two dimensions have confirmed output range compression (journal §39 — HI; journal §40 — AD). Both HIGH or MEDIUM severity in agent-card.json. Fix requires targeted labeled data. See §69 for full plan.
+
+**Sequence:**
+1. Source and extract AD batch: ~500 formal authority texts (score 0–4 targets: policy docs, manager directives; score 8–10: consensus governance)
+2. Label AD batch (1 session, authority_dynamics only, separated-llm protocol)
+3. Ingest → v34 training → held-out eval → anchor test
+4. Source and extract HI batch: ~350 texts (score 0–2: HateXplain/OLID; score 8–10: EmpDial/ESConv)
+5. Label HI batch (1 session, hostility_index only, sensitivity flag, separated-llm protocol)
+6. Ingest → v35 training → held-out eval → anchor test
+
+**Success criterion:** Anchor test improvement (absolute calibration), not held-out r. B3 precedent: r improvement not guaranteed. Revert to v23 if held-out r regresses.
+
+---
+
 ### Score production pct batch (200 texts × 10 dims) [COMPLETE — RETRACTED]
 
 **Status:** COMPLETE but RETRACTED. 200 texts scored and ingested. FA v3 (§47) showed pct scoring *collapses* dimension differentiation (eigenvalue 9.41 = 94.1% shared variance). v20 training confirmed no benefit (held-out_r=0.600, flat vs v19). Integer 0-10 scale retained.

@@ -451,7 +451,7 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 5. Human expert validation: DA construct validity still unresolved by LLM data alone. T3b provides computational evidence (AD predicts deal not points), but ICC(2,1) from expert panel required for final resolution.
 6. ~~Does increasing context from 128→256 tokens improve performance on long-text sources?~~ **ANSWERED:** v24 (256 tok) held-out_r=0.670 (−0.026 vs v23). 128-token context is superior: 8/10 dims regressed, only CC (+0.022) and AD (+0.014) improved. Confirms that relevant safety-relevant signal is concentrated in early text windows; DistilBERT's 6 layers cannot leverage longer-range dependencies. 128 tokens confirmed as optimal for this hardware/model combination.
 7. ~~Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.~~ **ANSWERED (2026-03-07):** No. Calibration anchor test confirms effective range 3.84–6.38 (Dreaddit texts) / 5.13–6.38 (formal authority texts). Max authority abuse anchor (expected 0) → 5.13 (same as neutral). Direction reversal: coercive authority (expected 2.5) → 5.67 > neutral (5.13). UCC/extreme-adco added peer-context status contestation data, not formal authority text. Correction requires formal authority texts (policy documents, manager directives). See journal §40.
-8. HI floor compression (2026-03-07): effective HI output range ~3.44–7.98. Can targeted extreme-hostility text labeling (score 0–2 examples) expand the range? How many examples needed? Should this be a standalone fix or combined with AD range compression work?
+8. ~~HI floor compression (2026-03-07): effective HI output range ~3.44–7.98. Can targeted extreme-hostility text labeling (score 0–2 examples) expand the range? How many examples needed? Should this be a standalone fix or combined with AD range compression work?~~ **ANSWERED (2026-03-07):** Yes, targeted labeling is the fix. Target 100 score≤2 texts (HateXplain/OLID) + 80 score≥8 texts + 170 mixed = 350-text HI batch. Separate sessions from AD (halo risk + sensitivity separation). AD first (cleaner), HI second (sensitivity flag). See distillation-research.md §69.
 
 ---
 
@@ -952,3 +952,26 @@ agent-card.json `ad-range-compression` limitation (HIGH) added and deployed; Q7 
 **Docs updated:** criterion-validity-summary.md (§3b + §6a + date); LICENSE → Apache 2.0 committed.
 
 ▶ journal.md §40 (AD ordinal caveat sourced from here), criterion-validity-summary.md updated
+
+---
+
+### Session `20260307-1904` (AD + HI range compression augmentation plan written)
+
+**Context:** /iterate tech debt. Winner: combined AD+HI range compression data augmentation plan (consensus: same root cause, same fix mechanism, Q8 asks to resolve standalone vs. combined question).
+
+**Data diagnosis (DB queries):**
+
+| Dimension | Total sep-llm | Score≤2 | Score≥8 | Score=5 | Model floor | Model ceiling |
+|---|---|---|---|---|---|---|
+| authority_dynamics | 4,398 | 553 (12.6%) | 36 (0.8%) | 1,999 (45.4%) | 3.84 | 6.38 |
+| hostility_index | 3,818 | 444 (11.6%) | 163 (4.3%) | 1,356 (35.5%) | 3.44 | 7.98 |
+
+AD: 0.8% ceiling coverage → max equity almost absent. HI: despite 11.6% floor coverage, model still floors at 3.44 → isotonic calibration gap (val set also lacks extremes).
+
+**Plan written:** distillation-research.md §69. Two separate batches, sequential: AD first (500 texts, formal authority texts), HI second (350 texts, HateXplain/OLID for extreme-floor). 1-dim-per-session protocol mandatory. Success criterion: anchor test improvement (not held-out r).
+
+**Q8 answered:** Separate sessions, sequential. HI batch after AD batch. Standalone (not combined) per halo containment + sensitivity separation requirements.
+
+**Docs updated:** distillation-research.md §69 (full plan); TODO.md Priority 1 (AD+HI plan item); lab-notebook Q8 answered.
+
+▶ distillation-research.md §69

@@ -5335,6 +5335,145 @@ Minor version bump (v3 → v3.1) for backward compatibility: `context_weighted_c
 
 ---
 
+## §69. Range Compression Augmentation Plan: AD + HI (2026-03-07)
+
+### Problem Statement
+
+Two dimensions show significant output range compression confirmed by calibration anchor tests (journal §39 — HI; journal §40 — AD):
+
+**AD (authority_dynamics):** Effective model output range 3.84–6.38 (Dreaddit texts) / 5.13–6.38 (formal authority texts), vs. 0–10 instrument scale. Max authority abuse anchor (expected score 0) → 5.13, identical to neutral. Direction reversal: coercive authority (5.67) scores above neutral (5.13). Root cause: Dreaddit training corpus contains subordinate-perspective stress posts but no formal authority text (policy documents, manager directives, institutional mandates).
+
+**HI (hostility_index):** Effective model output range 3.44–7.98, vs. 0–10 instrument scale. Explicit slur+aggression (expected 0–1) → 3.44. Conflict resolution text (expected 9–10) → 7.26. Root cause: Dreaddit lacks extreme-hostility and extreme-warmth examples at the poles of the instrument.
+
+Both dimensions are validated by held-out Pearson r (AD=0.713, HI=0.669) as rank-order predictors within the Dreaddit distribution. These r values are ordinal measures — they do not certify absolute scale accuracy. The compression is a limitation on absolute score interpretability, not on rank-ordering within distribution.
+
+### Training Data Diagnosis (2026-03-07)
+
+Separated-llm score distributions for both dimensions:
+
+**AD (authority_dynamics) — n=4,398 sep-llm scores:**
+
+| Score range | Count | Pct | Notes |
+|---|---|---|---|
+| 0–2 | 553 | 12.6% | Dreaddit-style subordinate posts only; no formal authority text |
+| 3–4 | 1,129 | 25.7% | Mid-low |
+| 5 (neutral) | 1,999 | 45.4% | Dominant mode — Dreaddit neutral posts default to score=5 |
+| 6–7 | 572 | 13.0% | Mid-high |
+| 8–10 | 36 | 0.8% | Maximum equity almost entirely absent |
+
+**HI (hostility_index) — n=3,818 sep-llm scores:**
+
+| Score range | Count | Pct | Notes |
+|---|---|---|---|
+| 0–2 | 444 | 11.6% | Present but model floor still 3.44 — calibration gap |
+| 3–4 | 1,001 | 26.2% | |
+| 5 (neutral) | 1,356 | 35.5% | Dominant mode |
+| 6–7 | 814 | 21.3% | |
+| 8–10 | 163 | 4.3% | Ceiling severely underrepresented |
+
+### Root Cause Analysis
+
+**AD:** The 553 score≤2 texts are all Dreaddit-style posts ("boss screaming at employee," "HR ignoring complaint") — subordinate perspective, social media register. The model has zero exposure to formal authority text (organizational policies, institutional directives). Model output for formal authority texts (5.13–6.38) reflects complete out-of-distribution failure: model maps unrecognized text to its known neutral distribution (Dreaddit neutral ≈ 5). The 0.8% ceiling (score≥8) means maximum equity examples are nearly absent from training — the high end of the scale is as underrepresented as the floor is misrepresented.
+
+**HI:** Despite 444 score≤2 training texts (11.6%), model floor remains 3.44. Two reinforcing causes:
+1. **Isotonic calibration gap:** The val set (n=1,897 Dreaddit texts) likely lacks extreme HI examples → isotonic regression cannot extrapolate below its minimum training value (~3.44)
+2. **Representation gap:** Social media extreme hostility varies widely in surface form; 444 texts may not provide consistent representation of the distributional extreme
+
+Both causes require the same fix: labeled extreme-floor (0–2) and extreme-ceiling (8–10) texts that are consistent and verifiably extreme.
+
+### Target Text Types
+
+**AD — formal authority texts (score target 0–4):**
+- Corporate policy documents with coercive compliance language (unilateral mandates, no recourse)
+- Manager directives issued without consultation
+- Institutional mandates (government agencies, university administration)
+- Employment law case excerpts: employer-side abuse-of-authority examples
+- Workplace tribunal transcripts: documented authority abuse patterns
+- Contrast texts: cooperative governance (mutual recognition, distributed decision-making, score 8–10)
+
+**AD — maximum equity texts (score target 8–10):**
+- Consensus-based decision processes with documented mutual recognition
+- Workplace charters with equal voice provisions
+- Community governance documents with distributed authority
+- Academic senate minutes (collegial authority, peer legitimacy)
+
+**HI — extreme-hostility texts (score target 0–2):**
+- Hate speech directed at protected groups: slurs, dehumanizing framing, explicit contempt
+- Targeted harassment: direct aggression at named individuals or groups
+- Calls for harm against specific groups
+- Source from existing annotated research datasets (HateXplain, OLID, Measuring Hate Speech corpus) rather than live web scraping
+- Key criterion: hostile intent must be explicitly directed (not ambient stress or venting)
+- Session-level sensitivity flag required: these texts require explicit caution instruction to the scoring agent
+
+**HI — extreme-warmth texts (score target 8–10):**
+- Explicit apologies with full ownership + concrete repair offer
+- Mediation transcripts: good-faith conflict resolution with both parties
+- Therapeutic alliance rupture-repair sequences
+- Workplace reconciliation documents
+- Select resolution-phase turns from EmpatheticDialogues and ESConv (already in training pool)
+
+### Sourcing Strategy
+
+**AD formal authority (lower sensitivity):**
+- Public domain: federal agency policy documents, university governance documents, UN resolutions, collective bargaining agreements
+- Research corpora: workplace communication datasets (if permissively licensed)
+- Synthetic generation: controlled prompts → Claude labels within scoring session (acceptable per labeling policy — Claude Code in conversation, not API scripts)
+
+**HI extreme-floor (higher sensitivity):**
+- HateXplain (Kennedy et al., 2020): multi-platform annotated hate speech, rationale-labeled
+- OLID (Zampieri et al., 2019): Twitter offensive language, with direct/targeted/group subcategories
+- Measuring Hate Speech corpus (Sachdeva et al., 2022): fine-grained scale annotations
+- Avoid: datasets requiring special IRB access or ShareAlike-incompatible licenses
+
+**HI extreme-ceiling:**
+- EmpatheticDialogues: select warmth-extreme turns (already partially in training)
+- ESConv: select resolution-phase turns (already partially in training)
+- Synthetic: controlled prompts for explicit apology / mutual recognition scenarios
+
+### Target Quantities
+
+Based on current distribution gaps and B3 precedent (1,550 additional texts did not recover TE ceiling):
+
+**AD batch — 500 texts total:**
+- Score 0–2 formal authority texts: 150 texts
+- Score 8–10 maximum equity texts: 100 texts
+- Score 3–7 mixed formal texts: 250 texts (prevent pure-extreme artifacts)
+
+**HI batch — 350 texts total:**
+- Score 0–2 extreme hostility: 100 texts (from HateXplain/OLID)
+- Score 8–10 extreme warmth: 80 texts (from EmpDial/ESConv/synthetic)
+- Score 3–7 mixed: 170 texts (maintain mid-range representation)
+
+These quantities are estimates. Given B3 noise floor (SE(r)≈0.10 at n=100 held-out), the primary success criterion is **absolute calibration improvement** (anchor tests before/after), not held-out r improvement.
+
+### Labeling Sequence
+
+**Q8 decision — separate sessions vs. combined:**
+
+**Recommendation: Separate sessions, sequential (AD first, HI second).**
+
+Rationale:
+1. **Halo containment:** AD and HI are thematically adjacent (both involve interpersonal power and aggression). Scoring both in the same session risks same-session halo contamination (established precedent: Session 27, mean |r|=0.811 — catastrophic). One dimension per session is mandatory.
+2. **Sensitivity separation:** AD formal authority texts are clean to label. HI extreme hostility texts require a session-level sensitivity flag and explicit scorer caution instruction. Separating them allows different session-start protocols.
+3. **Sequence logic:** AD first (lower sensitivity, cleaner sourcing), HI second (requires careful source selection). AD results inform HI planning (if AD batch improves calibration without regression, proceed with HI).
+
+**Proposed sequence:**
+1. **AD batch** (500 texts, score authority_dynamics only, 1 session)
+2. Ingest AD batch → v34 training → held-out evaluation
+3. If v34 passes (overall ≥ 0.684): deploy; run AD anchor test → measure range compression
+4. **HI batch** (350 texts, score hostility_index only, 1 session, sensitivity flag)
+5. Ingest HI batch → v35 training → held-out evaluation
+6. Run HI anchor test → measure range compression improvement
+
+### Expected Impact and Epistemic Bounds
+
+- **AD:** Reduce score=5 cluster from 45.4% to ~30% of sep-llm distribution; expand effective model output range toward 0–4 for formal authority texts
+- **HI:** Expand model output floor from 3.44 toward 1–2; expand ceiling from 7.26 toward 8–9
+
+⚑ **EPISTEMIC FLAG — speculative impact:** B3 history demonstrates that targeted data augmentation does not reliably improve held-out r (1,550 additional TE texts failed to recover v23 TE=0.795). The AD+HI augmentation is justified on absolute calibration grounds (instrument fidelity) even if held-out r is unchanged. The success criterion is anchor test performance, not r improvement. If held-out r regresses: revert to v23, document the failure, defer range compression augmentation permanently (analogous to B3 closure).
+
+---
+
 ## 13. References
 
 - Borkan, D., Dixon, L., Sorensen, J., Thain, N., & Vasserman, L. (2019). Nuanced metrics for measuring unintended bias with real data for text classification. In *Companion Proceedings of the 2019 World Wide Web Conference* (pp. 491–500). https://doi.org/10.1145/3308560.3317593
