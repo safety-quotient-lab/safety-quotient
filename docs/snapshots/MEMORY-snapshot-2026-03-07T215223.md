@@ -6,11 +6,14 @@
 1. Specialized sub-agents (PSQ is the first)
 2. A consensus-or-parsimony adversarial evaluator
 
-**Where we stopped:** PSQ Session 36 (2026-03-07). AD augmentation batch COMPLETE: 260 synthetic formal
-authority texts generated, scored (authority_dynamics only), ingested (DB: 23,787 texts / 42,261 sep-llm).
-v34 training handed to other agent (PID 1263204, full GPU).
-**Next:** v34 eval + anchor test (other agent). Then HI batch (~350 texts, hostility_index only, separated-llm).
-See TODO Priority 1 + §69 for remaining sequence. Publication framing (Priority 2). Rubric review (Priority 3).
+**Where we stopped:** PSQ Session 33 (2026-03-07). criterion-validity-summary.md updated:
+- §3b: AD calibration caveat added (ordinal-only interpretation, range compression 5.13–6.38)
+- §6a: limitation 6 added (AD range compression HIGH severity)
+- Last updated date corrected
+- License discrepancy flagged (PSQ LICENSE still CC BY-NC-SA 4.0; MEMORY says Apache 2.0 — awaiting user confirmation)
+**Next:** License reconciliation (user confirmation needed). Publication framing (Priority 2, L effort).
+HI+AD augmentation planning. Scoring rubric review (Priority 3).
+Psychology agent — await unratified-agent response. Inbound PR sync pending.
 
 ## Design Decisions
 
@@ -154,6 +157,6 @@ Communication conventions, cognitive accessibility policy, project structure: se
 **Scoring endpoint:** ✓ POST /score → machine-response/v3. Hetzner psq.unratified.org live.
 **Open issues:** DA validity, CO weakness, no human validation, WEIRD assumptions,
 TE uniformity plateau (B3 CLOSED — v23 TE=0.795 accepted as ceiling; 5 consecutive rejections),
-HI range compression (effective ~3.44–7.98; journal §39; HI batch pending after v34),
-AD range compression HIGH (260 augmentation texts ingested 2026-03-07; v34 training in progress — eval + anchor test pending).
+HI range compression (effective ~3.44–7.98; journal §39),
+AD range compression HIGH (effective ~3.84–6.38; max abuse=neutral 5.13; journal §40; agent-card updated).
 Do not duplicate PSQ improvement work in this context.

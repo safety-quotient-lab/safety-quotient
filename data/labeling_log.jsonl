@@ -230,3 +230,5 @@
 {"timestamp": "2026-03-07T10:04:11.123742-06:00", "dimension": "threat_exposure", "n_scored": 500, "n_total": 500, "batch": "/tmp/te-expansion-500.jsonl", "started_at": "2026-03-07T14:30:00+00:00", "duration_minutes": 94.2, "texts_per_hour": 318.5}
 {"timestamp": "2026-03-07T11:17:22.903511-06:00", "dimension": "threat_exposure", "n_scored": 700, "n_total": 700, "batch": "/tmp/te-expansion-700.jsonl"}
 {"timestamp": "2026-03-07T12:50:23.432522-06:00", "dimension": "threat_exposure", "n_scored": 350, "n_total": 350, "batch": "data/te-expansion-f4.jsonl"}
+{"timestamp": "2026-03-07T21:34:09.142199-06:00", "dimension": "authority_dynamics", "n_scored": 260, "n_total": 260, "batch": "data/ad-augmentation-batch.jsonl"}
+{"timestamp": "2026-03-07T21:45:24.287694-06:00", "dimension": "authority_dynamics", "n_scored": 427, "n_total": 429, "batch": "data/ad-augmentation-batch.jsonl", "started_at": "2026-03-08T03:42:34+00:00", "duration_minutes": 2.8, "texts_per_hour": 9027.1}

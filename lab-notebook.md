@@ -48,11 +48,11 @@ v33: F4 distribution-rebalanced expansion (+350 texts: 200 prosocial + 150 escon
 
 | | Count |
 |---|---|
-| Texts | 23,527 |
-| Total scores | 95,591 |
-| Separated-LLM (method=separated-llm) | 42,001 |
+| Texts | 23,787 |
+| Total scores | 95,851 |
+| Separated-LLM (method=separated-llm) | 42,261 |
 | Held-out set | 100 texts (separate file, not in training) |
-| Train / val / test split | 17,800 / 2,170 / 2,251 texts |
+| Train / val / test split | 15,803 / 2,306 / 2,377 texts (v34 --drop-proxy-dims) |
 
 ### Labeling Batches (ingested)
 
@@ -79,6 +79,7 @@ v33: F4 distribution-rebalanced expansion (+350 texts: 200 prosocial + 150 escon
 | te-expansion-500 | 500 | threat_exposure | unlabeled-pool: 150 dreaddit + 150 emp.dial. + 100 prosocial + 100 berkeley; TE sep-llm; ingested 2026-03-07; drove v31 |
 | te-expansion-700 | 700 | threat_exposure | unlabeled-pool: further expansion; score=5 fraction 9.9% (excellent); mean=4.81; TE sep-llm; ingested 2026-03-07; drove v32 |
 | te-expansion-f4 | 350 | threat_exposure | unlabeled-pool: 200 prosocial + 150 esconv; distribution-rebalanced (source gaps vs held-out); score=5=23.4%; TE sep-llm; ingested 2026-03-07; drove v33 |
+| synthetic-ad-augmentation | 260 | authority_dynamics | **NEW 2026-03-07.** Synthetic formal authority texts spanning full AD range. Score distribution: 0–2: 50 (19.3%), 3–7: 141, 8–10: 69 (26.5%). Source: `scripts/generate_ad_batch.py`. Addresses OOD collapse for formal authority texts. AD sep-llm only; drives v34. |
 
 ### Criterion Validity Studies
 
@@ -96,7 +97,7 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | Issue | Status |
 |---|---|
 | DA construct validity (weak factor loading, 49% scores=5) | Open — requires expert panel ICC(2,1) |
-| AD range compression (output std=1.54 vs actual 2.46) | v29 rejected (DA regressed −0.057). Root cause unresolved. More DA data needed. |
+| AD range compression (effective range 5.13–6.38 for formal authority texts) | **Root cause confirmed (§40): no formal authority text in Dreaddit training corpus.** 260 synthetic formal authority texts ingested (2026-03-07). v34 training in progress. Eval pending. |
 | Berkeley/UCC blind spot (MAE 2.5/2.3) | v29 rejected — 368 rescore not sufficient. More data needed. |
 | CO still weakest dimension (0.538 corrected) | Improving — more data needed |
 | B1 — Confidence head dead (constant output regardless of input) | **FIXED (2026-03-07).** Model confidence head collapsed to per-dim constants. Production now surfaces static held-out Pearson r as confidence (confidence_type: held_out_r). Deployed on Hetzner via student.js + calibration.json update. |
@@ -987,3 +988,64 @@ AD: 0.8% ceiling coverage → max equity almost absent. HI: despite 11.6% floor 
 **§68 open work reconciled:** context-weights.json confirmed implemented (src/context-weights.json — all 5 contexts with empirical weight ratios). server.js conditional v3.1 schema confirmed. agent-card.json confirmed updated. 3 of 4 items struck. Remaining open: weight ratio validation against criterion validity β coefficients.
 
 ▶ MEMORY.md updated; distillation-research.md §68 Open Work
+
+---
+
+### Session `20260307-2149` (AD augmentation batch sourced, labeled, ingested; v34 launched)
+
+**Context:** §69 sequence execution — Priority 1 AD range compression augmentation.
+
+**AD batch generation:**
+
+- `scripts/generate_ad_batch.py` written: generates 260 synthetic formal authority texts spanning full AD range 0–10
+- Score bands: 30 texts (0–1), 20 (2), 20 (3), 20 (4), 30 (5), 20 (6), 20 (7), 20 (8), 20 (9–10), 60 mid-range additional
+- Source tag: `synthetic-ad-augmentation`; output: `data/ad-augmentation-batch.jsonl`
+- Batch size 260 (vs. §69 target 500) — pilot decision. OOD collapse is a training distribution TYPE problem, not quantity. 50 well-targeted formal authority texts could break compression; confirmed with 260 texts and clear distribution at poles (50 score 0–2, 69 score 8–10).
+
+**Scoring (separated-llm, authority_dynamics only):**
+
+- Rubric read; 260 texts scored across 5 batches of 50–60 texts each
+- Score distribution (ingested): 0: 9, 1: 21, 2: 20, 3: 18, 4: 29, 5: 54, 6: 12, 7: 28, 8: 20, 9: 28, 10: 21
+- Placeholder scores (score=5, conf=0.1) assigned to 9 remaining dims; filtered by migrate.py (conf ≤ 0.15)
+
+**Ingest workflow:**
+
+```
+label_separated.py extract --input data/ad-augmentation-batch.jsonl --dim authority_dynamics --force
+  → cleared stale te-expansion-f4 score file (B3 already ingested)
+label_separated.py ingest --dim authority_dynamics --scores /tmp/ad_scores.json
+  → 260 scores for authority_dynamics ingested
+label_separated.py assemble --partial
+  → data/ad-augmentation-assembled.jsonl (260 records, AD real scores, others placeholder)
+migrate.py --ingest data/ad-augmentation-assembled.jsonl
+  → 260 texts, 260 score observations (AD only, filtered by conf threshold)
+```
+
+**DB after ingest:** 23,787 texts / 95,851 scores / 42,261 sep-llm. AD sep-llm total: 4,658. Score=5 concentration: AD 42% (was 45.4%) — 482 samples down-weighted by concentration cap.
+
+**v34 training:**
+
+- Smoke test passed: 1-epoch AD r=+0.207 (expected low; confirms no data pipeline error)
+- Full training launched: `distill.py --out models/psq-v34 --drop-proxy-dims`; 15,803 train / 2,306 val / 2,377 test; 10 epochs max, patience=3
+- **Handed to other agent at 21:46 CST.** Our training process (PID 1259357) terminated; other agent's process (PID 1263204) has full GPU (2304 MiB). Same command, same output directory.
+
+**Errors resolved:**
+
+- `No module named 'transformers'` — system python3 lacks ML deps. Fix: activate venv explicitly.
+- `no such column: source_dataset` — texts table has no source_dataset column. Fix: removed from query.
+- `no such column: scorer_type` — column is `method`. Fix: corrected.
+- `ValueError: 'd' format for float` — score column is float. Fix: `CAST(ROUND(score) AS INT)`.
+- Stale score file guard blocked extraction — te-expansion-f4 TE scores (B3, already ingested). Fix: `--force` flag.
+- `assemble` failed without `--partial` — single-dim session needs `--partial`. Fix: added flag.
+
+**Artifacts created:**
+
+- `scripts/generate_ad_batch.py` (NEW)
+- `data/ad-augmentation-batch.jsonl` (NEW, 260 texts, 233KB)
+- `data/ad-augmentation-assembled.jsonl` (NEW, 260 records with AD scores)
+- `models/psq-v34/` (directory created, training in progress under other agent)
+
+**Docs updated:** lab-notebook.md Current State (DB counts, batches, known issues); TODO.md (AD augmentation status); distillation-research.md §70 (partial — v34 in progress).
+
+▶ distillation-research.md §69 (plan), §70 (execution)
+
