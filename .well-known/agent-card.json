@@ -8,7 +8,9 @@
 
   "schemas_supported": [
     "interagent/v1",
-    "psychology-agent/machine-response/v2"
+    "psychology-agent/machine-response/v2",
+    "psychology-agent/machine-response/v3",
+    "psychology-agent/machine-response/v3.1"
   ],
 
   "extensions": [
@@ -23,7 +25,14 @@
     "input_types": ["text"],
     "output_types": ["json"],
     "domains": ["psychoemotional-safety-scoring"],
-    "operations": ["psq-full-scoring"],
+    "operations": ["psq-full-scoring", "context-aware-scoring"],
+    "context_aware_scoring": {
+      "parameter": "context",
+      "valid_values": ["moderation", "persuasion", "negotiation", "workplace", "therapeutic"],
+      "schema_version": "psychology-agent/machine-response/v3.1",
+      "response_adds": ["context_weighted_composite", "context_weights_used"],
+      "note": "Optional. When specified, response includes context_weighted_composite (0-10 weighted mean) and context_weights_used. Schema bumps to v3.1 (additive, backward-compatible with v3 consumers)."
+    },
     "inference": {
       "model": "distilbert-base-uncased (knowledge-distilled)",
       "model_version": "psq-student v23",
@@ -49,7 +58,7 @@
 
   "scoring": {
     "scale": "0-10 integer per dimension",
-    "composite_status": "not usable (all dims below confidence threshold)",
+    "composite_status": "usable (psq_composite: 0-100 weighted protective/threat formula; context_weighted_composite: 0-10 per-context weighted mean when context specified)",
     "hierarchy_levels": ["g-PSQ", "2-factor", "3-factor", "5-factor", "10-dimension"]
   },
 
@@ -67,11 +76,11 @@
 
   "known_limitations": [
     {
-      "id": "anti-calibration-confidence",
-      "severity": "HIGH",
-      "description": "Confidence outputs anti-calibrated (8/10 dims inverted). Do not use confidence as reliability indicator.",
+      "id": "confidence-is-static-r",
+      "severity": "MEDIUM",
+      "description": "Per-dimension confidence values are static held-out Pearson r estimates, not per-prediction reliability signals. The model confidence head is anti-calibrated and discarded at inference time. Confidence = r-based reliability prior, constant per dimension across all inputs.",
       "affected_dimensions": "all",
-      "mitigation": "Use calibrated scores directly. Treat confidence as metadata only."
+      "mitigation": "Do not interpret confidence as varying by input text. Use confidence as a dimension-level reliability weight (higher r = more validated dimension). See calibration_note in each dimension's response field for the specific r value."
     },
     {
       "id": "weird-population",
