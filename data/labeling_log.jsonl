@@ -246,3 +246,14 @@
 {"timestamp": "2026-03-08T09:12:53.409207-05:00", "dimension": "cooling_capacity", "n_scored": 1000, "n_total": 1002, "batch": "/tmp/rescore-batch-1000.jsonl", "started_at": "2026-03-08T09:10:00-05:00", "duration_minutes": 2.9, "texts_per_hour": 20760.1}
 {"timestamp": "2026-03-08T11:04:49.966187-05:00", "dimension": "contractual_clarity", "n_scored": 1000, "n_total": 1002, "batch": "/tmp/rescore-batch-1000.jsonl", "started_at": "2026-03-08T09:10:00-05:00", "duration_minutes": 114.8, "texts_per_hour": 522.5}
 {"timestamp": "2026-03-08T11:06:48.887791-05:00", "dimension": "threat_exposure", "n_scored": 1000, "n_total": 1002, "batch": "/tmp/rescore-batch-1000.jsonl", "started_at": "2026-03-08T09:10:00-05:00", "duration_minutes": 116.8, "texts_per_hour": 513.6}
+{"timestamp": "2026-03-08T13:07:11.160704-05:00", "dimension": "hostility_index", "n_scored": 350, "n_total": 350, "batch": "data/hi-augmentation-batch.jsonl", "started_at": "2026-03-08T13:01:18-05:00", "duration_minutes": 5.9, "texts_per_hour": 3567.8}
+{"timestamp": "2026-03-08T14:10:07.298714-05:00", "dimension": "threat_exposure", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:11:26.800984-05:00", "dimension": "hostility_index", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:11:52.919216-05:00", "dimension": "energy_dissipation", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:12:03.342932-05:00", "dimension": "defensive_architecture", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:12:05.875017-05:00", "dimension": "authority_dynamics", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:12:09.380550-05:00", "dimension": "trust_conditions", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:12:17.758364-05:00", "dimension": "resilience_baseline", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:12:18.175857-05:00", "dimension": "contractual_clarity", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:13:37.866092-05:00", "dimension": "regulatory_capacity", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}
+{"timestamp": "2026-03-08T14:14:39.290437-05:00", "dimension": "cooling_capacity", "n_scored": 50, "n_total": 50, "batch": "data/concordance-opus-blind.jsonl"}

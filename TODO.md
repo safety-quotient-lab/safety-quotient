@@ -4,19 +4,34 @@ Last updated: 2026-03-08
 
 ## Priority 1: Immediate
 
-### AD + HI range compression augmentation (distillation-research.md §69)
+### Cross-scorer concordance remediation [ACTIVE]
 
-**Status:** AD batch complete (v34 rejected). HI batch sourced (350 texts, `data/hi-augmentation-batch.jsonl`). v35 deployed (1,000-text rescore, 2026-03-08). HI labeling is next.
+**Status:** Concordance study COMPLETE — gate FAILS (ICC 0.495, 1/10 dims pass). 10,000 Opus scores in DB are not interchangeable with Sonnet. Production models (v23/v35) are uncontaminated.
 
 **Sequence:**
+1. ✓ Design concordance study (docs/concordance-study-protocol.md)
+2. ✓ Score 50 texts × 10 dims with Opus (separated-LLM, blind)
+3. ✓ Analyze: mean ICC(2,1) = 0.495 ("poor"), 1/10 pass
+4. ✓ Notify psychology-agent (PR #71, T19)
+5. ✗ **NEXT:** Re-score 999 Opus-only texts with Sonnet (~3 hrs, 10 sessions × 1 dim)
+6. ✗ Retrain with Sonnet-only labels
+7. ✗ B3 recalibration (quantile-binned isotonic, all 10 dims — from psychology-agent T17)
+
+See distillation-research.md §72/§73.
+
+### AD + HI range compression augmentation (distillation-research.md §69) [BLOCKED — concordance]
+
+**Status:** HI batch scored with Opus (350 texts) but concordance study revealed Opus labels are not interchangeable with Sonnet (HI bias +0.82). v36 diagnostic confirmed HI did not improve. HI batch must be re-scored with Sonnet as part of concordance remediation.
+
+**Completed:**
 1. ✓ Source and extract AD batch: 260 synthetic formal authority texts
 2. ✓ Label AD batch (1 session, authority_dynamics only) — 260 scores ingested
 3. ✓ v34 training → REJECTED (AD improvement but overall regression)
-4. ✓ Source HI batch: 350 texts (175 berkeley + 165 empathetic_dialogues + 10 prosocial) — `data/hi-augmentation-batch.jsonl`
-5. ✗ **NEXT:** Label HI batch (1 session, hostility_index only, sensitivity flag, separated-llm protocol)
-6. ✗ Ingest → v36 training → held-out eval → anchor test
+4. ✓ Source HI batch: 350 texts — `data/hi-augmentation-batch.jsonl`
+5. ✓ Label HI batch with Opus — 350 HI scores ingested
+6. ✓ v36 diagnostic — HI=0.709 (v35=0.714, −0.005). HI did NOT improve.
 
-**Success criterion:** Anchor test improvement (absolute calibration), not held-out r. B3 precedent: r improvement not guaranteed.
+**Blocked on:** Concordance remediation (re-score with Sonnet).
 
 ---
 

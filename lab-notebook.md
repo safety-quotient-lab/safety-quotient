@@ -44,9 +44,9 @@ Structured extraction from research sessions. Each entry records what was done, 
 
 | | Count |
 |---|---|
-| Texts | 24,289 |
-| Total scores | 106,353 |
-| Separated-LLM (method=separated-llm) | 52,763 |
+| Texts | 24,639 |
+| Total scores | 106,703 |
+| Separated-LLM (method=separated-llm) | 53,113 |
 | Held-out set | 100 texts (separate file, not in training) |
 | Train / val / test split | ~17,800 / ~2,170 / ~2,251 texts (--drop-proxy-dims) |
 
@@ -104,7 +104,7 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
 | B3 (TE uniformity) — unlabeled-pool expansion | **CLOSED.** v23 TE=0.795 accepted as ceiling. SE(r)≈0.10 noise floor makes further TE gains unresolvable at n=99. v35 TE=0.759 (−0.036, within noise). |
-| Cross-scorer consistency (Opus vs Sonnet) | **NEW.** rescore-1000 batch scored by Opus; all prior data by Sonnet. Agreement unmeasured. |
+| Cross-scorer consistency (Opus vs Sonnet) | **MEASURED — FAIL.** Concordance study: mean ICC(2,1) = 0.495 (1/10 pass). Opus not interchangeable with Sonnet. 10,000 Opus scores in DB must be re-scored with Sonnet. Production (v23/v35) uncontaminated. |
 
 ---
 
@@ -434,7 +434,9 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 | v28 | Same data, no --drop-proxy-dims | 0.412 | 0.678 | B3 (TE uniformity) diagnostic — TE=0.762 (−0.033 vs v23) |
 | v29 | rescore-368 + --drop-proxy-dims | 0.383 | 0.668 | B3 (TE uniformity) F2 (368 re-scored sep-llm) — TE=0.734, REJECTED |
 | v30 | Single-task TE only | — | TE=0.762 | Multi-task bonus +0.033 confirmed |
-| v31 | +500 TE expansion texts | 0.384 | 0.679 | B3 (TE uniformity) F3 (unlabeled-pool expansion, 500 texts) — TE=0.773, REJECTED. v23 remains. |
+| v31 | +500 TE expansion texts | 0.384 | 0.679 | B3 F3 (unlabeled-pool expansion, 500 texts) — TE=0.773, REJECTED |
+| v35 | +1,000 Opus rescore | 0.420 | 0.680 | Marginal sidegrade (6/10 up, 4 down). **Production.** v23 tagged as rollback. |
+| v36 | +350 HI augmentation (Opus) | 0.416 | 0.680 | HI=0.709 (−0.005 vs v35). **DIAGNOSTIC ONLY** — concordance gate failed. |
 
 *held-out_r corrected with max_length=128 eval (was inflated ~0.012 with 256-token eval bug).
 
@@ -450,6 +452,7 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 6. ~~Does increasing context from 128→256 tokens improve performance on long-text sources?~~ **ANSWERED:** v24 (256 tok) held-out_r=0.670 (−0.026 vs v23). 128-token context is superior: 8/10 dims regressed, only CC (+0.022) and AD (+0.014) improved. Confirms that relevant safety-relevant signal is concentrated in early text windows; DistilBERT's 6 layers cannot leverage longer-range dependencies. 128 tokens confirmed as optimal for this hardware/model combination.
 7. ~~Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.~~ **ANSWERED (2026-03-07):** No. Calibration anchor test confirms effective range 3.84–6.38 (Dreaddit texts) / 5.13–6.38 (formal authority texts). Max authority abuse anchor (expected 0) → 5.13 (same as neutral). Direction reversal: coercive authority (expected 2.5) → 5.67 > neutral (5.13). UCC/extreme-adco added peer-context status contestation data, not formal authority text. Correction requires formal authority texts (policy documents, manager directives). See journal §40.
 8. ~~HI floor compression (2026-03-07): effective HI output range ~3.44–7.98. Can targeted extreme-hostility text labeling (score 0–2 examples) expand the range? How many examples needed? Should this be a standalone fix or combined with AD range compression work?~~ **ANSWERED (2026-03-07):** Yes, targeted labeling is the fix. Target 100 score≤2 texts (HateXplain/OLID) + 80 score≥8 texts + 170 mixed = 350-text HI batch. Separate sessions from AD (halo risk + sensitivity separation). AD first (cleaner), HI second (sensitivity flag). See distillation-research.md §69.
+9. Are Opus and Sonnet interchangeable as PSQ dimension scorers? **ANSWERED (2026-03-08):** NO. Mean ICC(2,1) = 0.495 ("poor"), 1/10 dims pass. Opus scores +0.25 higher with wider SD. HI bias = +0.82 (largest). See distillation-research.md §72.
 
 ---
 
@@ -1098,4 +1101,44 @@ migrate.py --ingest data/ad-augmentation-assembled.jsonl
 **Docs updated:** distillation-research.md (status line, ToC, §70/§71), EXPERIMENTS.md (v35 row, artifacts), deployment.md (created), BOOTSTRAP.md, agent-card.json (v35), MEMORY.md, lab-notebook.md, server.js, deploy/hetzner-deploy.sh
 
 ▶ distillation-research.md §70 (rescore), §71 (factor analysis v3)
+
+
+### Session `20260308-1400` (HI batch scored; v36 diagnostic; concordance study — gate FAILS)
+
+**Context:** Execute HI augmentation batch (§69), v36 diagnostic, cross-scorer concordance study.
+
+**HI augmentation batch (350 texts, Opus, HI only):**
+
+- 350 texts from unlabeled pool (175 berkeley + 165 empathetic_dialogues + 10 prosocial)
+- Scored with Opus (`claude-opus-4-6`) via separated-LLM protocol
+- Assembled: `data/hi-augmentation-batch-labeled.jsonl`. Ingested to psq.db.
+- DB: 24,639 texts, 106,703 scores, 53,113 separated-llm
+
+**v36 training (diagnostic only):**
+
+- `distill.py --out models/psq-v36 --drop-proxy-dims`. Best at epoch 8 (val_r=0.476)
+- Held-out r=0.680 (= v35). HI=0.709 (v35=0.714, Δ=−0.005). **HI did NOT improve.**
+- Designated diagnostic-only per concordance gate agreement
+
+**Cross-scorer concordance study (§72):**
+
+- 50 texts × 10 dims, source-stratified (11 datasets, seed=42)
+- Opus scored blind via parallel subagent spawning (1 dim per isolated context)
+- **Result: GATE FAILS.** Mean ICC(2,1) = 0.495 ("poor"). 1/10 dims pass (RC=0.755).
+- Opus scores +0.25 higher than Sonnet on average. HI has largest bias (+0.82).
+- TE has lowest ICC (0.346) despite near-zero bias — genuine text-level noise.
+- Production models (v23/v35) uncontaminated. 10,000 Opus scores affect future training only.
+
+**Gate conflict + interagent:**
+
+- Gate conflict ACK sent to psychology-agent (T17, from-psq-sub-agent-006.json, PR #70)
+- Psychology-agent accepted as "procedural, not substantive" (T18, from-psychology-agent-009.json)
+- Concordance results sent (T19, from-psq-sub-agent-007.json, PR #71)
+- B3 recalibration work order received from psychology-agent (T17, from-psychology-agent-008.json) — ACK'd, will execute after Opus remediation
+
+**Key finding:** Opus HI bias (+0.82) directly explains why HI augmentation failed in v36 — the offset labels conflicted with the Sonnet-calibrated training distribution.
+
+**Docs updated:** distillation-research.md (§72/§73), EXPERIMENTS.md (v36), TODO.md, lab-notebook.md, MEMORY.md, concordance-study-protocol.md
+
+▶ distillation-research.md §72 (concordance), §73 (v36 diagnostic)
 

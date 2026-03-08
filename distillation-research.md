@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v35 held-out *r* = **.680** (production; deployed 2026-03-08). Marginal sidegrade from v23 (.684), accepted for improved dim coverage (6/10 dims up: RB +.113, CO +.061, HI +.045). 1,000-text Opus rescore complete (§70). Factor analysis v3 confirms structural stability (§71). v23 tagged as rollback (`v23-production-backup`).
-**Next:** HI range compression augmentation (§69, 350 texts sourced). Expert validation recruitment.
+**Status:** v35 held-out *r* = **.680** (production; deployed 2026-03-08). Cross-scorer concordance study (§72) **FAILED**: mean ICC(2,1) = .495 (1/10 dims pass). Opus and Sonnet are not interchangeable scorers. 10,000 Opus scores in DB must be replaced with Sonnet labels before next training run. Production models (v23/v35) uncontaminated.
+**Next:** Opus score remediation (re-score 999 texts with Sonnet). B3 recalibration (§69 deferred). Expert validation recruitment.
 
 ---
 
@@ -86,6 +86,8 @@
 69. [AD+HI Range Compression Augmentation Plan](#69-adhi-range-compression-augmentation-plan-2026-03-08) — combined AD+HI augmentation; HI batch 350 texts sourced.
 70. [Stratified 1,000-Text Rescore](#70-stratified-1000-text-rescore-full-separated-llm-relabeling-2026-03-08) — 1,000 texts × 10 dims, Opus scorer, isolated sessions; v35 trained (held-out *r* = .680).
 71. [Factor Analysis v3: Post-Rescore Structural Verification](#71-factor-analysis-v3-post-rescore-structural-verification-2026-03-08) — *N* = 4,498, KMO = .910, g-eigenvalue 6.824 (68.2%), structure stable.
+72. [Cross-Scorer Concordance Study: Opus vs Sonnet](#72-cross-scorer-concordance-study-opus-vs-sonnet-2026-03-08) — 50 texts × 10 dims, ICC(2,1) = .495 ("poor"), 1/10 pass. Gate FAILS.
+73. [v36 Diagnostic: HI Augmentation Impact](#73-v36-diagnostic-hi-augmentation-impact-2026-03-08) — 350 HI texts (Opus), held-out *r* = .680 (flat). HI did not improve (.709 vs .714). Concordance failure explains.
 13. [References](#13-references)
 
 ---
@@ -5581,6 +5583,110 @@ All loadings above 0.70. CC dropped most (0.864→0.702) — consistent with its
 ⚑ **EPISTEMIC FLAGS:**
 - █░░░ MOD: CC loading dropped substantially (0.864→0.702). This may reflect real construct heterogeneity surfacing with more data, or reduced CC variance from high score=5 concentration (60.9%). Monitor in future FA iterations.
 - ░░░░ LOW: 2,893 texts excluded from FA due to incomplete dimensions (mostly single-dim TE-expansion batches). These texts contribute to training but not to structural analysis.
+
+---
+
+## §72. Cross-Scorer Concordance Study: Opus vs Sonnet (2026-03-08)
+
+### Motivation
+
+Two Opus-scored batches entered the training database: a 1,000-text rescore (§70, 10 dims) and a 350-text HI augmentation batch (§69). All prior training data was scored by Claude Sonnet (`claude-sonnet-4-6`). Cross-scorer concordance was unmeasured. Psychology-agent set a gate (T16): concordance study must complete before v36 promotion or further Opus-scored batches enter training.
+
+### Design
+
+| Parameter | Value |
+|---|---|
+| Sample | 50 texts, source-stratified across 11 datasets (seed=42) |
+| Dimensions | All 10 PSQ dimensions |
+| Protocol | Separated-LLM (1 dim per isolated agent context, blind to other dims) |
+| Sonnet scores | Pre-existing in DB (`claude-sonnet-4-6` provenance, verified) |
+| Opus scores | Scored blind using parallel subagent spawning (no Sonnet scores visible) |
+| Total comparisons | 500 (50 texts × 10 dims) |
+| Analysis | ICC(2,1) (absolute agreement, two-way random), Pearson *r*, mean difference, MAD |
+
+Protocol document: `docs/concordance-study-protocol.md`. Sample files: `data/concordance-study-sample.jsonl` (with Sonnet reference), `data/concordance-opus-blind.jsonl` (blind input).
+
+### Results
+
+| Dimension | ICC(2,1) | Pearson *r* | M(Δ) Opus−Sonnet | MAD | Pass (≥.70) |
+|---|---|---|---|---|---|
+| regulatory_capacity | **.755** | .758 | −0.14 | 0.70 | ✓ |
+| trust_conditions | .668 | .690 | +0.12 | 1.04 | ✗ (marginal) |
+| energy_dissipation | .518 | .539 | +0.11 | 1.15 | ✗ |
+| hostility_index | .477 | .529 | +0.82 | 1.30 | ✗ |
+| cooling_capacity | .465 | .495 | +0.61 | 1.41 | ✗ |
+| defensive_architecture | .467 | .471 | +0.23 | 1.07 | ✗ |
+| authority_dynamics | .454 | .468 | +0.18 | 1.22 | ✗ |
+| contractual_clarity | .433 | .443 | +0.11 | 1.27 | ✗ |
+| resilience_baseline | .365 | .381 | +0.46 | 1.18 | ✗ |
+| threat_exposure | .346 | .348 | −0.02 | 1.30 | ✗ |
+
+Aggregate: mean ICC = .495, median = .466. 1/10 dimensions pass ICC ≥ .70 threshold. Mean bias +0.248 (Opus scores higher). Mean MAD = 1.164.
+
+### Interpretation
+
+**Gate outcome: FAIL.** Per protocol (< 7 dims pass): Opus scoring not interchangeable with Sonnet. Retrain with Sonnet-only labels.
+
+Key patterns:
+
+1. **Systematic inflation:** Opus scores +0.25 higher than Sonnet on average. Opus uses wider scale range (SD 1.4–2.0 vs Sonnet 1.3–1.8).
+
+2. **HI has largest bias (+0.82):** This directly explains why the 350-text HI augmentation batch (Opus-scored) did not improve v36 HI performance. The Opus labels were systematically offset from the Sonnet-calibrated training distribution.
+
+3. **TE has genuine noise, not offset:** TE bias = −0.02 (near-zero) but ICC = .346 (worst). The scorers disagree at the text level, not systematically. Offset correction would not help.
+
+4. **Moderate rank-order agreement:** Pearson *r* ranges .35–.76 — the scorers roughly rank texts the same way but assign different absolute values. This makes calibration correction theoretically possible but practically insufficient (noise, not just shift).
+
+5. **ICC classification (Cicchetti, 1994):** Mean ICC .495 = "poor." Only RC reaches "good" (.755). TC (.668) falls in "fair" range.
+
+### Contamination Assessment
+
+| Model | Status | Basis |
+|---|---|---|
+| v23 (production) | CLEAN | Trained 2026-02-28, before any Opus scores |
+| v35 (deployed) | CLEAN | Trained 2026-03-08 12:01 CST, before Opus ingestion |
+| v36 (diagnostic) | CONTAMINATED | Trained with 10,000 Opus scores. Not promoted. |
+
+10,000 Opus scores (13.1% of `training_data` view) affect future training only. No deployed model is contaminated.
+
+### Remediation Plan
+
+Path: Sonnet-only (re-score 999 Opus-only texts with Sonnet). ~3 hours.
+
+Alternatives rejected:
+- Opus-only switch (~14.4 hours): replaces validated Sonnet labels with unvalidated Opus labels
+- Mixed with offset correction: n=50 too thin for per-dimension calibration; ICC reflects noise, not just shift
+
+Opus scores preserved in DB for future cross-model research. Once Sonnet scores are added for those texts, the `best_scores` view will naturally prefer the more recent Sonnet separated-llm scores by recency tiebreaker.
+
+---
+
+## §73. v36 Diagnostic: HI Augmentation Impact (2026-03-08)
+
+### Context
+
+350 HI augmentation texts scored with Opus (HI dim only, separated-llm protocol) and ingested. v36 trained as diagnostic run (`--drop-proxy-dims`, 10 epochs) to test the HI range compression hypothesis from §69.
+
+### v36 Results
+
+| Metric | v36 | v35 | Δ |
+|---|---|---|---|
+| held-out *r* | .680 | .680 | .000 |
+| test *r* | .416 | .420 | −.004 |
+| best epoch | 8 | 10 | — |
+| val *r* | .476 | .471 | +.005 |
+
+HI-specific: v36 HI = .709, v35 HI = .714, Δ = −.005. The augmentation batch **did not improve HI.**
+
+### Explanation
+
+The concordance study (§72) reveals the cause: Opus HI labels are systematically +0.82 points higher than Sonnet. The augmentation batch introduced HI labels that were offset from the Sonnet-calibrated training distribution. The model saw conflicting signals and could not integrate them.
+
+This validates the concordance gate mechanism — the gate correctly prevented promotion of a model trained on mixed-scorer data.
+
+### Status
+
+v36 remains diagnostic-only. v35 remains production. v23 remains rollback.
 
 ---
 

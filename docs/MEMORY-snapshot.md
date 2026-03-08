@@ -97,7 +97,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 - Key docs: psychometric-evaluation.md §3c, distillation-research.md §26/§42/§43, journal.md §18/§28
 
 ## Database (psq.db)
-- `data/psq.db` — SQLite (24,289 texts, 106,353 scores, 52,763 separated-llm — post-1000-rescore 2026-03-08)
+- `data/psq.db` — SQLite (24,639 texts, 106,703 scores, 53,113 separated-llm — post-HI-batch 2026-03-08)
 - Splits: train=17,800 / val=2,170 / test=2,251 / held-out=100
 - Schema: `data/schema.sql` — texts, scores, splits, labeling_sessions, models, calibrations, dataset_mappings
 - Migration: `scripts/migrate.py` — bootstraps from existing JSONLs; `--ingest JSONL` for incremental ingest
@@ -112,6 +112,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 - weak-dims(200), rc(150), ad(300), co(200), rb(200), cc(200), te(200), broad(300), pct-200(200), midg(250), test-clean(200), ccda(200), proxy-audit(200), held-out-expand(150) — all complete
 - ucc(150), civil(100), extreme-adco(118) — **REVERTED then RE-SCORED** (10 sessions × 1 dim each, 2026-03-06). All ingested as rescore-368. ✓ COMPLETE.
 - te-expansion-500(500 texts, TE only) — scored 2026-03-07. 150 dreaddit+150 emp.dial.+100 prosocial+100 berkeley. Ingested, drove v31. Other 9 dims need future sessions.
+- hi-augmentation-350(350 texts, HI only) — scored 2026-03-08 with **OPUS** (concordance FAILED). v36 diagnostic: HI=0.709 (−0.005 vs v35). Must re-score with Sonnet.
 - Scoring batches of 50 texts per response (avoid 32K output token limit)
   - Partial files: `/tmp/psq_separated/{dim}_partial.json` (accumulate across 4 batches, then ingest)
 
@@ -174,7 +175,10 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **B3 CLOSED (2026-03-07)**: v29–v33 all rejected. v23 TE=0.795 accepted as production ceiling. SE(r)≈0.10 noise floor at n=99 makes further TE gains unresolvable.
 - **Context-aware scoring (v3.1)**: 5 contexts (moderation/persuasion/negotiation/workplace/therapeutic). `context-weights.json` + server.js. Deployed to Hetzner 2026-03-07. Backward-compatible (v3 when no context param).
 - **Deploy script fixed (2026-03-08)**: `ubuntu@` → `root@`, added remote backup step (.bak before rsync), fixed step numbering, fixed smoke test response parsing, fixed calibrate/export CLI args.
-- **Pending**: AD+HI range compression augmentation (§69). Plan complete, HI batch sourced (350 texts in `data/hi-augmentation-batch.jsonl`), labeling not started.
+- **Cross-scorer concordance (2026-03-08)**: FAILED. Mean ICC(2,1) = 0.495 (1/10 pass). Opus not interchangeable with Sonnet. Opus scores +0.25 higher, HI bias +0.82. Production uncontaminated. 10,000 Opus scores in DB must be re-scored with Sonnet before next training run. See distillation-research.md §72.
+- **v36 diagnostic (2026-03-08)**: held-out 0.680 (= v35). HI=0.709 (−0.005). HI augmentation did NOT improve. Explained by Opus HI bias (+0.82). NOT promoted.
+- **B3 recalibration work order**: Received from psychology-agent (T17). Quantile-binned isotonic for all 10 dims. ACK'd. Will execute after Opus remediation.
+- **Pending**: Re-score 999 Opus-only texts with Sonnet (~3 hrs). Then retrain + B3 recalibration.
 - **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop. Smoke-tested 2026-03-07.
 
 ## Key files
