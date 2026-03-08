@@ -17,18 +17,18 @@ distillation. The goal is a lightweight, real-time model that scores any text on
 
 ### The 10 Dimensions
 
-| Abbrev | Full Name | What it measures |
+| Abbrev | Internal Name (DB/scripts) | What it measures |
 |--------|-----------|------------------|
 | TE | threat_exposure | Perceived threat level in the environment |
-| HI | hostile_intent | Attributions of malicious intent to others |
+| HI | hostility_index | Attributions of malicious intent to others |
 | AD | authority_dynamics | Peer-context status negotiation (see AD policy below) |
-| CC | communicative_clarity | Clarity, directness, and coherence of communication |
-| TC | trust_and_commitment | Willingness to be vulnerable; relational investment |
-| RB | resilience_and_burnout | Stress capacity, recovery signals, depletion markers |
+| CC | cooling_capacity | Clarity, directness, and coherence of communication |
+| TC | trust_conditions | Willingness to be vulnerable; relational investment |
+| RB | resilience_baseline | Stress capacity, recovery signals, depletion markers |
 | DA | defensive_architecture | Boundary patterns (not ego-defense) |
-| RC | relational_cohesion | Group belonging, in-group/out-group dynamics |
-| CO | contractual_obligation | Norm clarity, fairness expectations, social contracts |
-| ED | emotional_dysregulation | Emotional volatility, regulation capacity |
+| RC | regulatory_capacity | Group belonging, in-group/out-group dynamics |
+| CO | contractual_clarity | Norm clarity, fairness expectations, social contracts |
+| ED | energy_dissipation | Emotional volatility, regulation capacity |
 
 Scoring: 0–10 integer scale per dimension. 0 = minimum safety, 10 = maximum safety.
 
