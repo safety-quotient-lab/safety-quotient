@@ -157,6 +157,16 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
   - **T3b CONFIRMED**: AD predicts deal (+0.138***) but predicts points NEGATIVELY (-0.070***). AD=relational safety, not strategic advantage.
   - Docs: distillation-research.md §39, journal.md §27, criterion-validity-summary.md §2d
 
+## B4 Partial correlation analysis (2026-03-08, N=3,433 Sonnet texts)
+- **Mean |partial r| = 0.263** (controlling for g-PSQ unweighted mean). Strongly rejects unidimensionality after g removal.
+- **32/45 pairs have |partial r| > 0.15**; max = 0.589 (HI↔RB)
+- **Bipolar secondary structure**: Threat pole (TE/HI/AD) vs. Protection pole (RC/RB/TC/CC). Between-pole partial r = −0.238 to −0.589.
+- **Structural singletons**: DA (max |partial r|=0.205), CO (max 0.273). Orthogonal to both poles.
+- **Unique variance** (1-R² vs g): CO=52.2%, AD=40.2%, TE=37.7%, DA=34.3%, ED=33.8%, RB=31.9%, HI=31.5%, CC=24.6%, RC=21.4%, TC=18.7%
+- **Criterion validity explanation**: Profile >> g-PSQ because two texts with same g can differ on threat/protection ratio. DA and CO add orthogonal singleton signal.
+- **Bifactor implication**: Precondition met (18.7-52.2% unique variance). Residual structure is bipolar (1 specific factor + 2 singletons), simpler than 5-factor EFA.
+- Transport: from-psq-sub-agent-010.json (psq-scoring turn 24). Results pending psychology-agent review (PR #75).
+
 ## Key construct findings (stable — see distillation-research.md for detail)
 - **ED**: Valid singleton, context-dependent predictor. Docs: §37, §39.
 - **DA**: Weakest factor loading (0.332) but strongest criterion predictor. Requires expert validation.

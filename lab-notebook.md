@@ -453,6 +453,7 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 7. ~~Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.~~ **ANSWERED (2026-03-07):** No. Calibration anchor test confirms effective range 3.84–6.38 (Dreaddit texts) / 5.13–6.38 (formal authority texts). Max authority abuse anchor (expected 0) → 5.13 (same as neutral). Direction reversal: coercive authority (expected 2.5) → 5.67 > neutral (5.13). UCC/extreme-adco added peer-context status contestation data, not formal authority text. Correction requires formal authority texts (policy documents, manager directives). See journal §40.
 8. ~~HI floor compression (2026-03-07): effective HI output range ~3.44–7.98. Can targeted extreme-hostility text labeling (score 0–2 examples) expand the range? How many examples needed? Should this be a standalone fix or combined with AD range compression work?~~ **ANSWERED (2026-03-07):** Yes, targeted labeling is the fix. Target 100 score≤2 texts (HateXplain/OLID) + 80 score≥8 texts + 170 mixed = 350-text HI batch. Separate sessions from AD (halo risk + sensitivity separation). AD first (cleaner), HI second (sensitivity flag). See distillation-research.md §69.
 9. Are Opus and Sonnet interchangeable as PSQ dimension scorers? **ANSWERED (2026-03-08):** NO. Mean ICC(2,1) = 0.495 ("poor"), 1/10 dims pass. Opus scores +0.25 higher with wider SD. HI bias = +0.82 (largest). See distillation-research.md §72.
+10. Do PSQ dimensions carry functionally distinct information after removing g-PSQ variance? **ANSWERED (2026-03-08):** YES. Mean |partial r| = 0.263 (N=3,433 Sonnet texts); 32/45 pairs > 0.15. Bipolar secondary structure (TE/HI/AD vs RC/RB/TC/CC); DA and CO are structural singletons. Structural precondition for bifactor model confirmed. See distillation-research.md §75, journal.md §42.
 
 ---
 
@@ -1152,3 +1153,37 @@ migrate.py --ingest data/ad-augmentation-assembled.jsonl
 
 ▶ distillation-research.md §72 (concordance), §73 (v36 diagnostic), §74 (B3 recalibration)
 
+
+
+---
+
+### Session `20260308-1527` (Hunt, sync turns 20-22, B4 partial correlations — EXPERIMENTS.md gap filled)
+
+**Context:** Session orientation + /hunt + /sync + /cycle.
+
+**Hunt findings actioned:**
+- EXPERIMENTS.md v32/v33/v34 rows added (had been missing; models present in `models/` directory). Commit f3f411f.
+- /tmp/psq_separated/ concordance batch identified as study artifact (Sonnet re-score of blind file); NOT ingested — texts already have Sonnet labels in DB.
+- CO concentration (56.8% at score=5 for Sonnet sep-llm) — already documented in psychometric-evaluation.md §3; no new action.
+
+**Sync inbound (psychology-agent turns 20-22):**
+- Turn 20: Concordance gate FAIL accepted. Sonnet-only revert endorsed. Spot-check 10 texts (Sonnet-Sonnet test-retest) suggested. Gate transfers to PSQ.
+- Turn 21: B3 steps 1-4 accepted. Deploy deferred to post-v37. B3 success criterion revised: "MAE improvement without regression" (not max-plateau ≤ 0.5). AD per-dim n_bins tuning (30/40) recommended.
+- Turn 22: Work order B4 — partial correlation matrix controlling for g-PSQ. Gate: OPEN, independent of Opus remediation.
+
+**B4 partial correlation analysis (§75, N=3,433 Sonnet texts):**
+- g-PSQ = unweighted mean (mean=4.609, SD=1.207)
+- Mean |partial r| = **0.263** across 45 pairs; 32/45 pairs > 0.15
+- **Bipolar secondary structure:** threat pole (TE/HI/AD) vs. protection pole (RC/RB/TC/CC). Between-pole partial r = −0.238 to −0.589.
+- **Singletons:** DA (max |partial r|=0.205), CO (52.2% unique variance), ED (paradoxical placement — negative with HI/AD, positive with RC/RB)
+- Unique variance per dim: CO=52.2%, AD=40.2%, TE=37.7%, DA=34.3%, TC=18.7% (lowest)
+- Criterion validity explanation confirmed: profile >> g-PSQ because threat/protection ratio + singleton signal (DA, CO) are discarded by g averaging
+- Bifactor precondition met: 18.7-52.2% unique variance per dim. Specific factors collapse to 1 bipolar + 2 singletons (simpler than 5-factor EFA)
+
+**Interagent:**
+- ACK turns 20-22 (from-psq-sub-agent-009.json, psq-scoring turn 23) + B4 results (from-psq-sub-agent-010.json, turn 24)
+- PR #75 opened on psychology-agent repo. Parent repo updated and pushed.
+
+**Docs updated:** EXPERIMENTS.md (v32/v33/v34), distillation-research.md (status line + ToC + §75), journal.md (§42), TODO.md (B4 complete + B3 threshold revision noted), lab-notebook.md (Open Questions Q10 + this entry), MEMORY.md (B4 findings)
+
+▶ distillation-research.md §75 (B4 analysis), journal.md §42 (B4 narrative)

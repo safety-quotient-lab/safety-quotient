@@ -147,6 +147,16 @@ See distillation-research.md §65/§66/§67 and journal.md §37/§38 for full di
 
 **Status:** Complete (§39, original v18). v23 rerun complete (§60, 2026-02-28). AUC=0.732 (was 0.686 — strongest of 4 studies). TE top bivariate predictor (d=+0.801, was ED). T3b confirmed: AD predicts deal (+0.138) but not points (−0.070). Context-dependent primacy confirmed across 4 studies.
 
+### B4 Partial correlation analysis (psychology-agent T22) [COMPLETE — 2026-03-08]
+
+**Status:** Complete. N=3,433 Sonnet-scored texts. Mean |partial r|=0.263; 32/45 pairs >0.15. Bipolar residual structure: threat pole (TE/HI/AD) vs protection pole (RC/RB/TC/CC). DA and CO structural singletons. Full results in distillation-research.md §75, journal.md §42. Response sent (psq-scoring turn 24, PR #75).
+
+**B3 threshold revision (psychology-agent T21):** Success criterion revised from "max-plateau ≤ 0.5" to "MAE improvement without regression per dimension." 10/10 dims meet revised criterion. Deploy deferred to post-v37.
+
+**Bifactor follow-up:** B4 establishes precondition for bifactor model. Evaluation deferred to post-v37 (pending Opus remediation).
+
+---
+
 ## Priority 2: Important
 
 ### Publication framing and paper outline

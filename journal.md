@@ -1394,7 +1394,25 @@ The cross-scorer question remains open. This is the first Opus-scored batch in a
 
 ---
 
-## 42. References
+## 42. B4: The Residual Structure — What Survives After g Is Removed (2026-03-08)
+
+A longstanding tension in the PSQ project has been the coexistence of a strong g-factor (eigenvalue = 6.824, 68.2% variance, §71) with a consistent criterion validity finding that the 10-dimension profile substantially outpredicts the single-factor average. If the g-factor explains 68% of variance, why does g-PSQ perform near chance in every criterion study? The B4 partial correlation analysis (work order from psychology-agent, psq-scoring turn 22) was designed to resolve this.
+
+We computed partial correlations between all 45 dimension pairs after removing g-PSQ variance (*N* = 3,433 texts with all 10 Sonnet-scored dimensions; g-PSQ = unweighted mean). The results are striking. Mean |partial *r*| = .263 across 45 pairs, with 32 of 45 pairs exceeding .15 and a maximum of .589 (hostility_index ↔ resilience_baseline). These are not near-zero — dimensions are not interchangeable after g removal.
+
+The partial correlation matrix reveals a **bipolar secondary structure**: a threat pole (threat_exposure, hostility_index, authority_dynamics) that negatively correlates with a protection pole (regulatory_capacity, resilience_baseline, trust_conditions, cooling_capacity), with between-pole partial *r* ranging from −.238 to −.589. Within each pole, dimensions co-vary positively (within-threat partial *r* = +.180 to +.549; within-protection partial *r* = +.206 to +.504). Two structural singletons sit outside this polarity: defensive_architecture (maximum |partial *r*| = .205, near-zero with both poles) and contractual_clarity (maximum .273, weakly negative with the threat pole).
+
+This structure directly resolves the g-versus-profile paradox. Two texts with identical g-PSQ can differ substantially on their threat/protection ratio: a high-safety workplace text and a high-safety therapeutic text may score similarly on overall safety but differ sharply on whether that safety is achieved through low threat or through high trust and regulatory capacity. The 10-dimension profile captures this ratio; g-PSQ discards it. When criterion outcomes are sensitive to *how* safety is achieved rather than just *how much*, profile shape necessarily outperforms the aggregate.
+
+The DA paradox — weakest factor loading (.332), yet strongest criterion predictor in 3 of 4 studies — also resolves. Defensive_architecture's criterion validity comes from a structural location orthogonal to the g-factor and orthogonal to the threat/protection polarity. It carries a signal that neither summary statistic can capture, which is precisely why it adds unique predictive value across diverse outcome types.
+
+The analysis also reveals unique variance per dimension ranging from 18.7% (trust_conditions) to 52.2% (contractual_clarity). Even the most g-saturated dimension (TC) retains nearly a fifth of its variance independently of overall safety level. This meets the structural precondition for a bifactor model (Reise, 2012): a dominant g-factor coexists with meaningful specific factors. The specific factors, however, are not the five oblique clusters from the earlier EFA (§42); they appear to reduce to one bipolar dimension (threat vs. protection) plus two singletons. A formal bifactor evaluation is planned for post-v37, after the training corpus stabilizes following Opus remediation.
+
+The B4 finding completes a convergent empirical argument for the PSQ's multidimensional architecture. The g-factor is real (§51) and strong (§71). But the residual structure is also real, coherent, and functionally meaningful (§75). These two facts are not in tension — they describe the instrument at two different levels of resolution. A reviewer who sees the g-factor eigenvalue and asks "why not just use a single score?" now has a direct empirical answer: the threat/protection ratio and the DA singleton together carry the criterion validity signal, and neither appears in a single-score representation.
+
+---
+
+## 43. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

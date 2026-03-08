@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v35 held-out *r* = **.680** (production; deployed 2026-03-08). Cross-scorer concordance study (§72) **FAILED**: mean ICC(2,1) = .495 (1/10 dims pass). Opus and Sonnet are not interchangeable scorers. 10,000 Opus scores in DB must be replaced with Sonnet labels before next training run. Production models (v23/v35) uncontaminated.
-**Next:** Opus score remediation (re-score 999 texts with Sonnet). B3 recalibration (§69 deferred). Expert validation recruitment.
+**Status:** v35 held-out *r* = **.680** (production; deployed 2026-03-08). Cross-scorer concordance study (§72) **FAILED**: mean ICC(2,1) = .495 (1/10 dims pass). Opus and Sonnet are not interchangeable scorers. 10,000 Opus scores in DB must be replaced with Sonnet labels before next training run. Production models (v23/v35) uncontaminated. B4 partial correlation analysis (§75): mean |partial *r*| = .263 after g removal — bipolar threat/protection residual structure confirmed.
+**Next:** Opus score remediation (re-score 999 texts with Sonnet → v37). Then re-fit B3 calibration on v37 and deploy. B4 bifactor modeling deferred to post-v37.
 
 ---
 
@@ -89,6 +89,7 @@
 72. [Cross-Scorer Concordance Study: Opus vs Sonnet](#72-cross-scorer-concordance-study-opus-vs-sonnet-2026-03-08) — 50 texts × 10 dims, ICC(2,1) = .495 ("poor"), 1/10 pass. Gate FAILS.
 73. [v36 Diagnostic: HI Augmentation Impact](#73-v36-diagnostic-hi-augmentation-impact-2026-03-08) — 350 HI texts (Opus), held-out *r* = .680 (flat). HI did not improve (.709 vs .714). Concordance failure explains.
 74. [B3 Recalibration: Quantile-Binned Isotonic for All 10 Dimensions](#74-b3-recalibration-quantile-binned-isotonic-for-all-10-dimensions-2026-03-08) — n_bins=20 applied to all dims. MAE −12.4%. Dead zones are model compression, not PAVA artifacts — 0.5 threshold unrealistic without retrain.
+75. [B4 Partial Correlation Analysis: Residual Structure After g-PSQ Removal](#75-b4-partial-correlation-analysis-residual-structure-after-g-psq-removal-2026-03-08) — *N* = 3,433 Sonnet texts. Mean |partial *r*| = .263; 32/45 pairs > .15. Bipolar structure: threat pole (TE/HI/AD) vs. protection pole (RC/RB/TC/CC). DA and CO are structural singletons. Rejects unidimensionality; precondition for bifactor model met.
 13. [References](#13-references)
 
 ---
@@ -5768,6 +5769,100 @@ Steps 1–4 of 6 complete. Steps 5 (deploy to Hetzner) and 6 (notify downstream)
 - ⚑ The 0.5 max-plateau threshold from the work order is not achievable with calibration alone. The threshold implicitly assumes calibration artifacts; the actual bottleneck is model range compression. Recommend revising success criterion to "MAE improvement without regression" rather than absolute plateau width.
 - ⚑ AD plateau *increased* (1.300 → 1.753) with n_bins=20. Quantile bin boundaries for AD may need per-dimension tuning (n_bins=30 or 40). The work order's epistemic flag about per-dimension n_bins optimization was prescient.
 - ⚑ Confidence calibration for TE and CO produced `NaN` correlations (collapsed to single-value output). These dims' confidence calibration is effectively identity. The B1 fix (static held-out *r* as confidence) makes this moot for production.
+
+---
+
+## §75. B4 Partial Correlation Analysis: Residual Structure After g-PSQ Removal (2026-03-08)
+
+### Context
+
+Factor analysis v3 (§71) found a dominant g-factor explaining 68.2% of variance (eigenvalue = 6.824, *N* = 4,498). Four criterion validity studies consistently show that the 10-dimension profile substantially outpredicts g-PSQ (the unweighted average): AUC differences of 0.08–0.09 in CGA-Wiki, CaSiNo, and DonD. This tension — high g-factor loading yet profile-driven prediction — suggests dimensions carry functionally distinct information beyond overall safety level. Work order B4 (psychology-agent turn 22, psq-scoring session) tasked a partial correlation analysis to test this directly.
+
+### Method
+
+*Sample:* *N* = 3,433 texts with all 10 dimensions scored by `claude-sonnet-4-6` using the separated-LLM protocol. Opus-scored texts excluded to prevent scorer-variance confound (concordance study §72 demonstrated non-interchangeability).
+
+*g-PSQ:* Unweighted mean of all 10 dimension scores per text (mean = 4.609, *SD* = 1.207).
+
+*Unique variance:* For each dimension *d*, regressed *d* on g-PSQ; unique variance = 1 − *R*².
+
+*Partial correlations:* Computed residuals from the above regressions; Pearson *r* between all 45 dimension pairs in residual space. All significance computed with *df* = *n* − 2 = 3,431.
+
+### Results
+
+**Unique variance per dimension (1 − *R*²):**
+
+| Dim | *R*² vs g | Unique (%) |
+|-----|-----------|------------|
+| CO | .478 | **52.2** |
+| AD | .598 | **40.2** |
+| TE | .623 | 37.7 |
+| DA | .657 | 34.3 |
+| ED | .662 | 33.8 |
+| RB | .681 | 31.9 |
+| HI | .685 | 31.5 |
+| CC | .754 | 24.6 |
+| RC | .786 | 21.4 |
+| TC | .813 | 18.7 |
+
+All dimensions retain substantial unique variance (18.7–52.2%) not explained by g-PSQ.
+
+**Partial correlation summary:**
+
+- Mean |partial *r*| across 45 pairs: **.263**
+- Pairs with |partial *r*| > .15: **32/45** (71%)
+- Pairs with |partial *r*| > .10: **36/45** (80%)
+- Maximum |partial *r*|: **.589** (HI↔RB)
+
+This strongly rejects the null hypothesis that dimensions are interchangeable after g removal.
+
+**Partial correlation matrix (controlling for g-PSQ, all p < .001 where |r| > .10):**
+
+|    | TE | HI | AD | ED | RC | RB | TC | CC | DA | CO |
+|----|----|----|----|----|----|----|----|----|----|----|
+| TE | — | +.549 | +.180 | +.058 | −.581 | −.507 | −.492 | −.523 | −.198 | −.249 |
+| HI | | — | +.357 | −.305 | −.535 | −.589 | −.339 | −.323 | −.192 | −.273 |
+| AD | | | — | −.300 | −.441 | −.503 | −.290 | −.238 | +.077 | −.165 |
+| ED | | | | — | +.127 | +.163 | −.171 | −.291 | −.205 | −.058 |
+| RC | | | | | — | +.504 | +.222 | +.343 | −.019 | −.004 |
+| RB | | | | | | — | +.231 | +.206 | +.104 | −.058 |
+| TC | | | | | | | — | +.448 | −.128 | +.024 |
+| CC | | | | | | | | — | −.093 | −.053 |
+| DA | | | | | | | | | — | −.108 |
+| CO | | | | | | | | | | — |
+
+### Structural Interpretation
+
+The partial correlation matrix reveals a **bipolar secondary factor** in the residual space — a clear threat-versus-protection dimension that persists after removing overall safety level.
+
+**Threat pole (TE, HI, AD):** Positive partial correlations within the pole (+.180 to +.549). Texts high on threat_exposure are also high on hostility_index and authority_dynamics, above and beyond their g-PSQ score. This cluster maps onto the environmental threat and interpersonal hostility facets of psychological safety (Edmondson, 1999).
+
+**Protection pole (RC, RB, TC, CC):** Positive partial correlations within the pole (+.206 to +.504). Regulatory capacity, resilience_baseline, trust_conditions, and cooling_capacity co-vary in residual space — and negatively with the threat pole (−.238 to −.589). A text high on relational resource dimensions is simultaneously low on threat dimensions, even when total safety level is held constant.
+
+**Structural singletons:**
+
+- **DA** (defensive_architecture): Maximum |partial *r*| = .205. Mildly negative with most dimensions; near-zero with RC and RB. The signal DA carries is largely orthogonal to the threat/protection polarity and to g-PSQ. This may explain the DA paradox: weakest factor loading (.332), strongest criterion predictor across 3/4 studies. DA's predictive signal lives in a structural location inaccessible to both g-PSQ and the threat/protection ratio.
+- **CO** (contractual_clarity): Maximum |partial *r*| = .273. Mildly negative with the threat pole; near-zero with the protection pole. CO's 52.2% unique variance — highest of all dimensions — combined with weak residual associations suggests it measures norm clarity through a lens distinct from both threat and resource constructs. The CO difficulty signal (56.8% score=5 concentration) may reflect genuine construct ambiguity rather than scoring failure.
+- **ED** (energy_dissipation): Paradoxical placement. ED is negatively correlated with HI and AD (not aligning with the threat pole despite its surface valence) but positively with RC and RB. This pattern is consistent with a stress-depletion interpretation orthogonal to threat per se: depleted communication occurs in contexts that are also low-resourced (hence positive RC/RB partial *r*) but is not equivalent to hostility or power imbalance (hence negative HI/AD partial *r*).
+
+### Criterion Validity Explanation
+
+The bipolar residual structure directly resolves the profile-versus-aggregate paradox. Two texts with identical g-PSQ (same overall safety level) can differ substantially on their threat/protection ratio. A single g score discards this ratio; the 10-dimension profile preserves it. The singletons (DA, CO, ED) add further orthogonal signal that g-PSQ cannot capture. This is why the multi-dimension profile consistently outpredicts the aggregate across all four criterion studies with no tuning for the specific outcome.
+
+### Bifactor Model Implication
+
+The partial correlation results meet the structural precondition for a bifactor model (Reise, 2012): all dimensions retain substantial unique variance (18.7–52.2%), and the residual structure is coherent rather than random. The specific factor is not 5 oblique clusters (as EFA §42 found) but a single bipolar threat/protection dimension, plus two singletons (DA, CO) and one ambiguous dimension (ED). This is a simpler and more interpretable factor structure than the earlier 5-factor model. Bifactor evaluation is deferred to post-v37 training, pending Opus remediation.
+
+### Psychology-Agent Response
+
+Psychology-agent reviewed B4 results (PR #75, psq-scoring turn 24). Response pending.
+
+### Epistemic Flags
+
+- ⚑ g-PSQ computed as unweighted mean per work order specification. If g-factor loadings are uneven across dimensions (likely — §71 factor analysis reported eigenvalue but not per-dimension loadings), the unweighted mean is an imperfect g proxy. A factor-score-based g would produce different partial *r* values. Effect direction (bipolar structure, DA/CO singletons) is unlikely to change.
+- ⚑ All statistical significance tests reached *p* < .001 at *n* = 3,433. Effect size (partial *r*) is the relevant metric. The .15 threshold for "meaningful" partial *r* is a judgment call, not a validated cutoff.
+- ⚑ This analysis was conducted on training-distribution texts. Partial *r* values may differ on held-out or out-of-distribution texts. The criterion validity studies used different discourse types and may show a different residual structure.
+- ⚑ The ED paradoxical placement (negative with threat pole despite surface negative valence) is interpreted as stress-depletion orthogonality. This interpretation is plausible but unverified — a formal cluster analysis or bifactor model would test it more rigorously.
 
 ---
 
