@@ -177,8 +177,10 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Deploy script fixed (2026-03-08)**: `ubuntu@` → `root@`, added remote backup step (.bak before rsync), fixed step numbering, fixed smoke test response parsing, fixed calibrate/export CLI args.
 - **Cross-scorer concordance (2026-03-08)**: FAILED. Mean ICC(2,1) = 0.495 (1/10 pass). Opus not interchangeable with Sonnet. Opus scores +0.25 higher, HI bias +0.82. Production uncontaminated. 10,000 Opus scores in DB must be re-scored with Sonnet before next training run. See distillation-research.md §72.
 - **v36 diagnostic (2026-03-08)**: held-out 0.680 (= v35). HI=0.709 (−0.005). HI augmentation did NOT improve. Explained by Opus HI bias (+0.82). NOT promoted.
-- **B3 recalibration work order**: Received from psychology-agent (T17). Quantile-binned isotonic for all 10 dims. ACK'd. Will execute after Opus remediation.
-- **Pending**: Re-score 999 Opus-only texts with Sonnet (~3 hrs). Then retrain + B3 recalibration.
+- **B3 recalibration (2026-03-08)**: Steps 1-4 COMPLETE. n_bins=20, MAE −12.4%. **Key finding: dead zones are model compression, not PAVA.** 0/10 meet 0.5 plateau threshold. TE effective range 1.85 pts. Steps 5-6 (deploy+notify) deferred. `calibration-v3.json` + `scripts/recalibrate.py`. T20 sent (PR #73).
+- **best_scores view updated**: Scorer priority Sonnet > Opus. Opus scores preserved in DB but deprioritized. Once Sonnet re-scores added, they auto-surface.
+- **CLAUDE.md dim names fixed**: 7 display names corrected to match DB (e.g., hostility_index not hostile_intent). Previous mismatch caused agent refusals.
+- **Pending**: Re-score 999 Opus-only texts with Sonnet (~3 hrs, needs Sonnet session). Then retrain + deploy v3 calibration.
 - **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop. Smoke-tested 2026-03-07.
 
 ## Key files

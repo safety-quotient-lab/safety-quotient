@@ -1138,7 +1138,17 @@ migrate.py --ingest data/ad-augmentation-assembled.jsonl
 
 **Key finding:** Opus HI bias (+0.82) directly explains why HI augmentation failed in v36 — the offset labels conflicted with the Sonnet-calibrated training distribution.
 
-**Docs updated:** distillation-research.md (§72/§73), EXPERIMENTS.md (v36), TODO.md, lab-notebook.md, MEMORY.md, concordance-study-protocol.md
+**B3 recalibration (§74, psychology-agent T17 work order):**
 
-▶ distillation-research.md §72 (concordance), §73 (v36 diagnostic)
+- Quantile-binned isotonic (n_bins=20) on all 10 dims. MAE −12.4% average. All 10 improve.
+- 0/10 meet 0.5 max-plateau threshold. Dead zones are model range compression, not PAVA.
+- TE effective calibrated range: 1.85 points on 10-point scale. No calibration can fix this.
+- `calibration-v2.json` archived, `calibration-v3.json` generated, `scripts/recalibrate.py` created.
+- Steps 5-6 (deploy + notify downstream) deferred. T20 sent to psychology-agent (PR #73).
+
+**CLAUDE.md dim names fixed:** 7 display names corrected to match DB internal names. Previous mismatch caused agent refusals during concordance scoring.
+
+**Docs updated:** distillation-research.md (§72/§73/§74), EXPERIMENTS.md (v36), TODO.md, CLAUDE.md, lab-notebook.md, MEMORY.md, concordance-study-protocol.md
+
+▶ distillation-research.md §72 (concordance), §73 (v36 diagnostic), §74 (B3 recalibration)
 
