@@ -15,9 +15,23 @@ Last updated: 2026-03-08
 4. ✓ Notify psychology-agent (PR #71, T19)
 5. ✗ **NEXT:** Re-score 999 Opus-only texts with Sonnet (~3 hrs, 10 sessions × 1 dim)
 6. ✗ Retrain with Sonnet-only labels
-7. ✗ B3 recalibration (quantile-binned isotonic, all 10 dims — from psychology-agent T17)
+7. ✓ B3 recalibration steps 1-4 (quantile-binned isotonic, all 10 dims)
+8. ✗ B3 steps 5-6 (deploy v3 calibration to Hetzner + notify downstream)
 
-See distillation-research.md §72/§73.
+See distillation-research.md §72/§73/§74.
+
+### B3 recalibration — quantile-binned isotonic (psychology-agent T17) [STEPS 1-4 COMPLETE]
+
+**Status:** Steps 1-4 complete. Steps 5-6 deferred pending Opus remediation.
+
+- [x] Step 1: Apply n_bins=20 to all 10 dims → `calibration-v3.json`. MAE −12.4%.
+- [x] Step 2: Dead-zone scan → 0/10 pass 0.5 threshold. **Dead zones are model compression, not PAVA.** Threshold revision needed.
+- [x] Step 3: Archive `calibration-v2.json` alongside v3.
+- [x] Step 4: `scripts/recalibrate.py` — historical score conversion (3 modes).
+- [ ] Step 5: Deploy to Hetzner (pending Opus remediation + deploy decision)
+- [ ] Step 6: Notify downstream (transport message to unratified-agent)
+
+**Key finding:** The 0.5 max-plateau threshold is unrealistic. TE has 1.85-point effective range on a 10-point scale — model range compression, not calibration artifact. See §74.
 
 ### AD + HI range compression augmentation (distillation-research.md §69) [BLOCKED — concordance]
 

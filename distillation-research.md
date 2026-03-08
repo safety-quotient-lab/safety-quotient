@@ -88,6 +88,7 @@
 71. [Factor Analysis v3: Post-Rescore Structural Verification](#71-factor-analysis-v3-post-rescore-structural-verification-2026-03-08) — *N* = 4,498, KMO = .910, g-eigenvalue 6.824 (68.2%), structure stable.
 72. [Cross-Scorer Concordance Study: Opus vs Sonnet](#72-cross-scorer-concordance-study-opus-vs-sonnet-2026-03-08) — 50 texts × 10 dims, ICC(2,1) = .495 ("poor"), 1/10 pass. Gate FAILS.
 73. [v36 Diagnostic: HI Augmentation Impact](#73-v36-diagnostic-hi-augmentation-impact-2026-03-08) — 350 HI texts (Opus), held-out *r* = .680 (flat). HI did not improve (.709 vs .714). Concordance failure explains.
+74. [B3 Recalibration: Quantile-Binned Isotonic for All 10 Dimensions](#74-b3-recalibration-quantile-binned-isotonic-for-all-10-dimensions-2026-03-08) — n_bins=20 applied to all dims. MAE −12.4%. Dead zones are model compression, not PAVA artifacts — 0.5 threshold unrealistic without retrain.
 13. [References](#13-references)
 
 ---
@@ -5687,6 +5688,86 @@ This validates the concordance gate mechanism — the gate correctly prevented p
 ### Status
 
 v36 remains diagnostic-only. v35 remains production. v23 remains rollback.
+
+---
+
+## §74. B3 Recalibration: Quantile-Binned Isotonic for All 10 Dimensions (2026-03-08)
+
+### Background
+
+Psychology-agent work order (psq-scoring T17, from-psychology-agent-008.json): apply quantile-binned isotonic regression (n_bins=20) to all 10 dimensions, extending the B2 HI dead-zone fix to the full dimension set. v2 calibration (standard isotonic) had plateaus up to 3.824 raw units (TE) — 38% of the scale.
+
+### Method
+
+Ran `calibrate.py --n-bins 20` on v35 production model using 2,113 validation records. Produced `calibration-v3.json`. Archived `calibration-v2.json` for deterministic re-mapping.
+
+### Results
+
+| Dimension | v2 max plateau | v3 max plateau | MAE pre | MAE post | MAE Δ |
+|---|---|---|---|---|---|
+| threat_exposure | 3.824 | 3.481 ↓ | 2.376 | 1.980 | −16.7% |
+| hostility_index | 1.229 | 0.509 ↓ | 1.713 | 1.597 | −6.8% |
+| authority_dynamics | 1.300 | 1.753 ↑ | 1.876 | 1.859 | −0.9% |
+| energy_dissipation | 0.974 | 0.879 ↓ | 1.193 | 0.995 | −16.6% |
+| regulatory_capacity | 0.899 | 0.537 ↓ | 0.980 | 0.874 | −10.8% |
+| resilience_baseline | 2.301 | 0.582 ↓ | 0.968 | 0.807 | −16.6% |
+| trust_conditions | 3.046 | 2.329 ↓ | 2.086 | 1.800 | −13.7% |
+| cooling_capacity | 1.513 | 0.833 ↓ | 1.704 | 1.379 | −19.1% |
+| defensive_architecture | 1.434 | 0.889 ↓ | 1.247 | 1.100 | −11.8% |
+| contractual_clarity | 1.638 | 1.245 ↓ | 1.037 | 0.904 | −12.8% |
+| **Average** | | | **1.518** | **1.329** | **−12.4%** |
+
+All 10 dims improved MAE. Plateaus shrink for 9/10 dims (AD increased slightly: 1.300 → 1.753, due to quantile bin boundary placement). **0/10 dims meet the 0.5 max-plateau threshold** from the work order.
+
+### Key Finding: Dead Zones Are Model Compression, Not PAVA Artifacts
+
+The work order assumed dead zones were PAVA artifacts fixable by better pre-aggregation. Diagnosis reveals they are **model range compression**:
+
+- TE raw predictions span [1.13, 7.97] but calibrate to only [4.54, 6.40] — **1.85 effective points on a 10-point scale.** The 3.481-unit plateau exists because the model produces a 3.5-unit raw range (2.99–6.47) where the true TE values are essentially flat. No calibration function can create differentiation the model doesn't produce.
+
+- TC raw predictions calibrate to [4.4, 7.7] — better than TE but still compressed. The 2.329-unit plateau spans a region where model predictions carry no discriminative information.
+
+- Even well-calibrated dims (HI: plateau 0.509, approaching threshold) have the plateau in a mid-band region where model uncertainty is highest.
+
+This is consistent with the B3 diagnosis from §65–§67: the model's prediction distribution is the bottleneck, not the post-hoc calibration function. Quantile binning correctly reduces PAVA-induced pooling (the "flat step" artifact) but cannot resolve model-level indifference.
+
+### Conversion Function
+
+`scripts/recalibrate.py` provides historical score re-mapping with three modes:
+
+```bash
+# From old calibrated score (inverts through v2, then forward through v3)
+python scripts/recalibrate.py --dim threat_exposure --score 6.0 --from v2 --to v3
+
+# From raw model score (preferred — no inversion error)
+python scripts/recalibrate.py --dim threat_exposure --raw-score 4.2 --to v3
+
+# Batch mode (JSON on stdin)
+echo '[{"dimension": "threat_exposure", "calibrated_score": 6.5}]' | \
+    python scripts/recalibrate.py --from v2 --to v3 --batch
+```
+
+Raw-score mode is preferred because isotonic inversion is set-valued (multiple raw values map to the same calibrated value in plateau regions). The function uses interval midpoints as a fallback.
+
+### Artifacts
+
+| File | Purpose |
+|---|---|
+| `models/psq-student/calibration-v2.json` | Archived v2 (standard isotonic) |
+| `models/psq-student/calibration-v3.json` | New v3 (quantile-binned, n_bins=20) |
+| `scripts/recalibrate.py` | Historical score conversion function |
+
+### Status
+
+Steps 1–4 of 6 complete. Steps 5 (deploy to Hetzner) and 6 (notify downstream) deferred pending:
+- Opus score remediation (re-score 999 texts with Sonnet)
+- Decision on whether to deploy v3 calibration on current model or wait for retrain
+
+### Epistemic Flags
+
+- ⚑ The 0.5 max-plateau threshold from the work order is not achievable with calibration alone. The threshold implicitly assumes calibration artifacts; the actual bottleneck is model range compression. Recommend revising success criterion to "MAE improvement without regression" rather than absolute plateau width.
+- ⚑ AD plateau *increased* (1.300 → 1.753) with n_bins=20. Quantile bin boundaries for AD may need per-dimension tuning (n_bins=30 or 40). The work order's epistemic flag about per-dimension n_bins optimization was prescient.
+- ⚑ Confidence calibration for TE and CO produced `NaN` correlations (collapsed to single-value output). These dims' confidence calibration is effectively identity. The B1 fix (static held-out *r* as confidence) makes this moot for production.
 
 ---
 
