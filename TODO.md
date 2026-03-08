@@ -95,7 +95,7 @@ See distillation-research.md §65/§66/§67 and journal.md §37/§38 for full di
 - [x] `src/server.js` updated — parses `context` param, validates, computes context_weighted_composite (0-10), spreads into scores block under v3.1 schema
 - [x] Weight ratios derived from criterion validity ordinal rankings (bivariate r-values from CGA-Wiki, CMV, CaSiNo, DonD studies)
 - [x] Schema: server.js uses v3.1 when context present; v3 otherwise (backward-compatible)
-- [ ] **Deploy to Hetzner:** `rsync src/server.js src/context-weights.json hetzner:~/psq/src/ && ssh hetzner sudo systemctl restart psq-server`
+- [x] **Deploy to Hetzner:** rsync to `/opt/psychology-agent/safety-quotient/src/` via `root@178.156.229.103` (gray-box key). `systemctl restart psq-server`. Verified live 2026-03-07: schema=v3.1, context_weighted_composite=3.76/10 for workplace test.
 - [ ] Add `context` param to `agent-card.json` `.well-known/` capabilities
 
 ### Deal or No Deal criterion study [COMPLETE — v23 RERUN DONE]
