@@ -2,7 +2,7 @@
   "agent_id": "psq-sub-agent",
   "name": "PSQ-Full Sub-Agent",
   "description": "Psychoemotional Safety Quotient (PSQ-Full) scorer. Scores English text on 10 orthogonal psychological safety dimensions using a DistilBERT student model via ONNX inference.",
-  "version": "v23",
+  "version": "v35",
   "role": "sub-agent",
   "parent": "psychology-agent",
 
@@ -35,7 +35,7 @@
     },
     "inference": {
       "model": "distilbert-base-uncased (knowledge-distilled)",
-      "model_version": "psq-student v23",
+      "model_version": "psq-student v35",
       "runtime": "onnxruntime-node (CPU) or onnxruntime (Python, CPU)",
       "latency_milliseconds": 20,
       "context_length_tokens": 128,
@@ -63,7 +63,7 @@
   },
 
   "validation": {
-    "held_out_r": 0.684,
+    "held_out_r": 0.680,
     "held_out_n": 100,
     "held_out_corpus": "Dreaddit (Reddit stress posts)",
     "criterion_studies": [
@@ -112,6 +112,8 @@
 
   "inbox": "~/.claude/proposals/to-psq/",
   "discovery_url": null,
+  "http_endpoint": "https://psq.unratified.org/score",
+  "http_health": "https://psq.unratified.org/health",
 
   "namespace": "psy:psq",
   "tier": "PSQ-Full",

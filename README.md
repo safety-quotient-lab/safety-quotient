@@ -29,15 +29,16 @@ Each dimension is scored 0–10. The g-PSQ (unweighted average) provides a singl
 
 ## Model Performance
 
-Current model: **v23** (DistilBERT, held-out r = 0.696)
+Current model: **v35** (DistilBERT, held-out r = 0.680)
 
-| Metric | v21 | v22a | **v23** |
-|--------|-----|------|---------|
-| Held-out r | 0.630 | 0.682 | **0.696** |
-| TE | 0.492 | 0.805 | **0.800** |
-| ED | 0.636 | 0.712 | **0.768** |
-| RC | 0.729 | 0.756 | **0.782** |
-| CO | 0.555 | 0.504 | **0.549** |
+| Metric | v23 | **v35** |
+|--------|-----|---------|
+| Held-out r | 0.684 | **0.680** |
+| TE | 0.795 | 0.759 |
+| HI | 0.669 | **0.714** |
+| ED | 0.760 | **0.762** |
+| RB | 0.597 | **0.639** |
+| CO | 0.538 | **0.542** |
 
 Held-out evaluation on 100 stratified texts scored by separated LLM scoring (one dimension per session to eliminate halo effects).
 
@@ -51,7 +52,7 @@ PSQ profiles predict meaningful real-world outcomes across 4 independent dataset
 |---------|---|------|----------|
 | CaSiNo (negotiation) | 1,030 | Satisfaction prediction | R²=+0.016 incremental |
 | CGA-Wiki (talk pages) | 4,188 | Conversation derailment | AUC=0.599 |
-| CMV (Reddit) | 4,263 | Persuasion success | AUC=0.5735 |
+| CMV (Reddit) | 4,263 | Persuasion success | AUC=0.5549 |
 | DonD (negotiation) | 12,234 | Deal outcome | **AUC=0.732** |
 
 Profile shape consistently outperforms the g-PSQ average, demonstrating that the dimensional structure carries genuine predictive information beyond valence.

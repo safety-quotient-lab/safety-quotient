@@ -37,10 +37,10 @@ const ROOT = join(__dirname, "..");
 const listeningPort = parseInt(process.env.PSQ_PORT || "3000", 10);
 const listeningHost = process.env.PSQ_HOST || "127.0.0.1";
 
-// Calibration metadata — matches calibration.json fitted 2026-03-06
-const CALIBRATION_VERSION = "isotonic-v2-2026-03-06";
-const CALIBRATION_METHOD = "isotonic regression per dimension, n=1897 val";
-const VALIDATION_BASIS = "Dreaddit n=2760, Pearson r=0.684";
+// Calibration metadata — matches calibration.json fitted 2026-03-08 (v35)
+const CALIBRATION_VERSION = "isotonic-v2-2026-03-08";
+const CALIBRATION_METHOD = "isotonic regression per dimension, n=2113 val";
+const VALIDATION_BASIS = "Dreaddit n=2760, Pearson r=0.680";
 
 // Context-aware scoring: load weight configuration from src/context-weights.json
 let contextWeightsConfig = {};
@@ -196,9 +196,9 @@ function buildV3Response(studentResult, sessionId, contextName = null) {
       classification: "trusted",
       fetch_accessible: false,
       fetch_method: "http-post",
-      source_confidence: 0.684,
+      source_confidence: 0.680,
       source_confidence_basis:
-        "Held-out Pearson r=0.684, n=2760, Dreaddit validation set; isotonic calibration +3.5–21.6% MAE improvement per dimension",
+        "Held-out Pearson r=0.680, n=2760, Dreaddit validation set; isotonic calibration +2.8–21.6% MAE improvement per dimension",
     },
 
     scores: {
@@ -232,8 +232,8 @@ function buildV3Response(studentResult, sessionId, contextName = null) {
           compositeStatus === "scored"
             ? `PSQ-Full composite score: ${compositeValue}/100 (${includedDimensionCount} of 10 dimensions met confidence threshold, weighted by protective/threat role).`
             : "PSQ-Full composite excluded: no dimensions met confidence threshold (r-based proxy < 0.6). Do not use 50/100 fallback for decision-making.",
-        confidence: 0.684,
-        confidence_basis: "Held-out r=0.684 on Dreaddit distribution",
+        confidence: 0.680,
+        confidence_basis: "Held-out r=0.680 on Dreaddit distribution",
         independently_verified: false,
       },
     ],

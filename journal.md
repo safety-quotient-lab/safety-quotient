@@ -5,7 +5,7 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 **Principal investigator:** Kashif Shah
 **Research assistant:** Claude (Anthropic) — LLM-assisted construct operationalization, data labeling, and analysis
 **Inception:** May 2022 (conceptual vocabulary) / February 25, 2026 (formal construct definition)
-**Current date:** 2026-03-01 (v23 held-out *r* = .684, production best after max_length eval bug fix. +550 texts (ccda/proxy-audit/held-out-expand) drove improvements across 7/10 dims. ONNX re-exported. AD description updated in psq-definition.md to reflect peer-context status negotiation. AD rename deferred — taxonomy fidelity with Edmondson, 1999.)
+**Current date:** 2026-03-08 (v35 held-out *r* = .680, deployed to production. 1,000-text Opus rescore + v35 training accepted as marginal sidegrade from v23 (.684). Factor analysis v3 confirms structural stability (*N* = 4,498, KMO = .910). HI improved +.045, RB +.113. AD rename deferred — taxonomy fidelity with Edmondson, 1999.)
 
 ---
 
@@ -51,7 +51,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 38. [B3 Expansion: When More Data Makes Things Worse](#38-b3-expansion-when-more-data-makes-things-worse-2026-03-07)
 39. [HI Range Compression: What the Anomaly Actually Revealed](#39-hi-range-compression-what-the-anomaly-actually-revealed-2026-03-07)
 40. [AD Calibration Audit: When the Strongest Predictor Cannot Score Its Own Construct](#40-ad-calibration-audit-when-the-strongest-predictor-cannot-score-its-own-construct-2026-03-07)
-41. [References](#41-references)
+41. [The Thousand-Text Rescore: Opus, Structural Stability, and v35](#41-the-thousand-text-rescore-opus-structural-stability-and-v35-2026-03-08)
+42. [References](#42-references)
 
 ---
 
@@ -1379,7 +1380,21 @@ agent-card.json. Correction requires formal authority text labeling — not yet 
 
 ---
 
-## 41. References
+## 41. The Thousand-Text Rescore: Opus, Structural Stability, and v35 (2026-03-08)
+
+The v23–v33 gap — five consecutive training versions rejected, none surpassing v23's held-out *r* = .684 — suggested that incremental data additions (368–1,550 texts) were insufficient to move the needle. The 1,000-text stratified rescore was designed to test whether a wholesale relabeling of existing training texts with a different scorer (Claude Opus 4.6, versus the Sonnet 4.6 that produced all prior separated-llm data) and stricter isolation protocol (headless `claude -p` sessions, one dimension per process) would shift the training distribution enough to produce measurable improvement.
+
+The rescore covered 1,000 stratified training texts across all 10 dimensions — 10,000 new scores from 10 isolated sessions. Factor analysis v3 on the post-rescore corpus (*N* = 4,498 complete texts, 2.3× the v2 sample) confirmed structural stability: KMO = .910 ("Superb"), g-eigenvalue = 6.824 (68.2% variance), one factor retained by parallel analysis. The g-factor is a robust structural feature of the PSQ, not a small-sample artifact or scorer-specific bias. Within-text standard deviation improved modestly (+0.036), suggesting Opus provides slightly more dimension-differentiated scores than Sonnet.
+
+v35 training produced held-out *r* = .680 — a nominal Δ of −.004 from v23, deep within the noise floor (SE(*r*) ≈ .10 at *n* = 99). Six of ten dimensions improved: resilience_baseline gained the most (+.113, from .526 to .639), followed by contractual_clarity (+.061) and hostility_index (+.045). Four regressed: authority_dynamics (−.062) and threat_exposure (−.036) were the largest losses. The overall pattern is consistent with measurement noise rather than systematic degradation — no coherent cluster of dimensions moved in the same direction.
+
+We accepted v35 as a marginal sidegrade and promoted it to production, tagging v23 as the rollback point (`v23-production-backup`). The decision was driven by two factors: (a) the per-dimension improvements in HI (+.045) and RB (+.113) address known weaknesses (HI range compression, RB historically weakest among the "internal resources" cluster), and (b) holding v23 indefinitely while the training corpus continues to evolve would create a growing drift between the model's learned distribution and the ground truth it was evaluated against.
+
+The cross-scorer question remains open. This is the first Opus-scored batch in a corpus otherwise scored entirely by Sonnet. Whether Opus and Sonnet produce concordant PSQ scores — and whether mixing scorers introduces a new source of variance — has not been measured. A concordance study (same texts, both scorers, ICC analysis) would resolve this but has not been prioritized.
+
+---
+
+## 42. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

@@ -108,6 +108,25 @@ python scripts/eval_held_out.py --model models/psq-v23/best.pt
 # Start Claude Code — /hunt and /cycle should auto-discover from .claude/skills/
 ```
 
+### 6. Production endpoint (optional)
+
+The PSQ scoring API runs on a Hetzner CX22 VPS. See `docs/deployment.md` for full
+architecture, deploy procedure, and operational runbook.
+
+```bash
+# Verify production endpoint is live
+curl https://psq.unratified.org/health
+
+# Deploy a new model version (after training + eval)
+source venv/bin/activate
+bash deploy/hetzner-deploy.sh --model models/psq-vN
+```
+
+SSH access requires the on-disk key: `ssh root@178.156.229.103`
+
+**Critical:** Do NOT run `npm install` on the server — see `docs/deployment.md`
+for the onnxruntime-node landmine.
+
 ---
 
 ## What's Still Not Portable

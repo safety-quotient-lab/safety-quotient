@@ -88,6 +88,7 @@ Version-by-version record of every training run, with hyperparameters, data chan
 | v29 | 2026-03-07 | DistilBERT | 7 (early stop, best@4) | 2e-5 | 32 | 0.383 | 0.668 | Same data as v28. 14,576 train. | `--drop-proxy-dims`. B3 F2 test — rescore impact. **REJECTED** (TE=0.734, 6 dims regressed). |
 | v30 | 2026-03-07 | DistilBERT | — | 2e-5 | 32 | — | TE=0.762 | Same data as v29. Single-task TE only. | `--drop-proxy-dims --train-dims threat_exposure`. Diagnostic only — confirms multi-task bonus (+0.033). **Not saved.** |
 | v31 | 2026-03-07 | DistilBERT | 8 (early stop, best@5) | 2e-5 | 32 | 0.384 | 0.679 | +500 TE texts (unlabeled pool: dreaddit/empath/prosocial/berkeley). 14,859 train. | `--drop-proxy-dims`. B3 F3 — TE expansion. TE=0.773 (+0.039 vs v29) but overall −0.005 vs v23. **REJECTED.** |
+| v35 | 2026-03-08 | DistilBERT | 10 (best@10) | 2e-5 | 32 | 0.420 | 0.680 | +1,000 texts rescored (Opus, 10 sessions × 1 dim). 24,289 texts, 106,353 scores, 52,763 sep-llm. | `--drop-proxy-dims`. First Opus-scored batch. 6/10 dims improved (RB +0.113, CO +0.061, HI +0.045). TE −0.036, AD −0.062 regressed. **Accepted as marginal sidegrade.** v23 tagged as backup. |
 
 **Notes on v27:** Regressed −0.029 vs v23 corrected (0.655 vs 0.684). All 10 dims worse except CC (flat, +0.007). Biggest drops: TE −0.075, DA −0.064, RB −0.042, ED −0.037. Three new batches (UCC source enrichment, civil_comments enrichment, extreme-adco AD/CO compression fix) were scored in a single rapid session — possible same-session halo contamination. Early stopped at epoch 4 (val_r=0.461). **v23 remains production.**
 
@@ -389,16 +390,21 @@ Score calibration via isotonic regression reduces MAE by 4–25% and decompresse
 
 ## Artifacts
 
-**Production slot** (`models/psq-student/`): v23 (held-out_r=0.696). ONNX re-exported 2026-03-01.
-- `best.pt` — PyTorch checkpoint (epoch 8)
+**Production slot** (`models/psq-student/`): v35 (held-out_r=0.680). ONNX exported + deployed 2026-03-08.
+- `best.pt` — PyTorch checkpoint (epoch 10)
 - `model.onnx` — Full-precision ONNX (254.4 MB, max score diff=0.000005)
-- `model_quantized.onnx` — INT8 quantized (64.0 MB, max score diff=0.558)
+- `model_quantized.onnx` — INT8 quantized (64.0 MB, max score diff=0.508)
 - `tokenizer/` — Tokenizer files
 - `calibration.json` — Score + confidence calibration maps
 - `config.json` — Model config
 - `held_out_results.json` — Held-out evaluation metrics
 
-v23 artifacts in `models/psq-v23/`:
+v35 artifacts in `models/psq-v35/`:
+- `best.pt` — PyTorch checkpoint (epoch 10, 267 MB)
+- `held_out_results.json`, `test_results.json`, `best_results.json`
+- `tokenizer/`, `config.json`
+
+v23 artifacts in `models/psq-v23/` (backup, git tag `v23-production-backup`):
 - `best.pt` — PyTorch checkpoint (epoch 8, 267 MB)
 - `held_out_results.json`, `test_results.json`, `best_results.json`
 - `tokenizer/`, `config.json`

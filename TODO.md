@@ -1,24 +1,22 @@
 # PSQ Project TODO
 
-Last updated: 2026-03-07
+Last updated: 2026-03-08
 
 ## Priority 1: Immediate
 
 ### AD + HI range compression augmentation (distillation-research.md §69)
 
-**Status:** AD batch COMPLETE (2026-03-07). v34 training in progress (other agent, PID 1263204).
-
-Two dimensions have confirmed output range compression (journal §39 — HI; journal §40 — AD). Both HIGH or MEDIUM severity in agent-card.json. Fix requires targeted labeled data. See §69 for full plan.
+**Status:** AD batch complete (v34 rejected). HI batch sourced (350 texts, `data/hi-augmentation-batch.jsonl`). v35 deployed (1,000-text rescore, 2026-03-08). HI labeling is next.
 
 **Sequence:**
-1. ✓ Source and extract AD batch: 260 synthetic formal authority texts (`scripts/generate_ad_batch.py`; `data/ad-augmentation-batch.jsonl`)
-2. ✓ Label AD batch (1 session, authority_dynamics only, separated-llm protocol) — 260 scores ingested
-3. ✗ v34 training → held-out eval → anchor test (training in progress; eval + anchor test pending)
-4. ✗ Source and extract HI batch: ~350 texts (score 0–2: HateXplain/OLID; score 8–10: EmpDial/ESConv)
-5. ✗ Label HI batch (1 session, hostility_index only, sensitivity flag, separated-llm protocol)
-6. ✗ Ingest → v35 training → held-out eval → anchor test
+1. ✓ Source and extract AD batch: 260 synthetic formal authority texts
+2. ✓ Label AD batch (1 session, authority_dynamics only) — 260 scores ingested
+3. ✓ v34 training → REJECTED (AD improvement but overall regression)
+4. ✓ Source HI batch: 350 texts (175 berkeley + 165 empathetic_dialogues + 10 prosocial) — `data/hi-augmentation-batch.jsonl`
+5. ✗ **NEXT:** Label HI batch (1 session, hostility_index only, sensitivity flag, separated-llm protocol)
+6. ✗ Ingest → v36 training → held-out eval → anchor test
 
-**Success criterion:** Anchor test improvement (absolute calibration), not held-out r. B3 precedent: r improvement not guaranteed. Revert to v23 if held-out r regresses.
+**Success criterion:** Anchor test improvement (absolute calibration), not held-out r. B3 precedent: r improvement not guaranteed.
 
 ---
 
@@ -200,4 +198,4 @@ Test prediction T2 from journal §24: does AD deteriorate before HI/TE in CGA-Wi
 
 ### ONNX model re-export [COMPLETE]
 
-v23 promoted to production (2026-03-01). ONNX re-exported (254 MB / 64 MB quantized INT8).
+v35 promoted to production (2026-03-08). ONNX re-exported (254 MB / 64 MB quantized INT8). v23 tagged as rollback.

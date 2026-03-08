@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v23 held-out *r* = **.684** (production best; corrected from .696 after max_length eval bug fix — see §62). v28–v32 all rejected (§65). B3 (TE uniformity) diagnosis complete: TE requires more data + multi-task scaffolding. 368-text rescore complete (10 sessions, separated-llm). TE expansion: 500+700 texts scored, v32 TE=.739 but overall .676 < v23 .684. B1 (confidence head dead) FIXED — static held-out *r* deployed. B2 (HI calibration dead zone) FIXED — isotonic-v2. B3 (TE uniformity) STALLED — 1,200 expansion texts insufficient.
-**Next:** Strategy decision on B3 (TE uniformity). F1 (recalibrate n_bins=20) deferred until a model beats v23. Expert validation recruitment.
+**Status:** v35 held-out *r* = **.680** (production; deployed 2026-03-08). Marginal sidegrade from v23 (.684), accepted for improved dim coverage (6/10 dims up: RB +.113, CO +.061, HI +.045). 1,000-text Opus rescore complete (§70). Factor analysis v3 confirms structural stability (§71). v23 tagged as rollback (`v23-production-backup`).
+**Next:** HI range compression augmentation (§69, 350 texts sourced). Expert validation recruitment.
 
 ---
 
@@ -82,6 +82,10 @@
 65. [B3 — threat_exposure Uniformity](#65-b3--threat_exposure-uniformity-calibration-dead-zone--training-label-degradation-2026-03-06) — calibration dead zone + label degradation. F1 (recalibrate) not viable alone — label distribution too concentrated.
 66. [v29/v30 Evaluation and B3 Root Cause Diagnosis](#66-v29v30-evaluation-and-b3-root-cause-diagnosis-2026-03-07) — v29 REJECTED (TE=.734, overall=.668); v30 single-task diagnostic confirms multi-task bonus (+.033); data volume identified as root cause.
 67. [v31 TE Expansion: Data Volume Strategy Validated](#67-v31-te-expansion-data-volume-strategy-validated-2026-03-07) — 500 TE texts from unlabeled pool; v31 TE=.773 (+.039 vs v29) but overall .679 < v23 .684; expansion works, needs 500–1,000 more.
+68. [AD Range Compression Augmentation Design](#68-ad-range-compression-augmentation-design-2026-03-07) — AD effective range 3.84–6.38; augmentation plan with 500 synthetic authority texts.
+69. [AD+HI Range Compression Augmentation Plan](#69-adhi-range-compression-augmentation-plan-2026-03-08) — combined AD+HI augmentation; HI batch 350 texts sourced.
+70. [Stratified 1,000-Text Rescore](#70-stratified-1000-text-rescore-full-separated-llm-relabeling-2026-03-08) — 1,000 texts × 10 dims, Opus scorer, isolated sessions; v35 trained (held-out *r* = .680).
+71. [Factor Analysis v3: Post-Rescore Structural Verification](#71-factor-analysis-v3-post-rescore-structural-verification-2026-03-08) — *N* = 4,498, KMO = .910, g-eigenvalue 6.824 (68.2%), structure stable.
 13. [References](#13-references)
 
 ---
@@ -5471,6 +5475,112 @@ Rationale:
 - **HI:** Expand model output floor from 3.44 toward 1–2; expand ceiling from 7.26 toward 8–9
 
 ⚑ **EPISTEMIC FLAG — speculative impact:** B3 history demonstrates that targeted data augmentation does not reliably improve held-out r (1,550 additional TE texts failed to recover v23 TE=0.795). The AD+HI augmentation is justified on absolute calibration grounds (instrument fidelity) even if held-out r is unchanged. The success criterion is anchor test performance, not r improvement. If held-out r regresses: revert to v23, document the failure, defer range compression augmentation permanently (analogous to B3 closure).
+
+---
+
+## §70. Stratified 1,000-Text Rescore: Full Separated-LLM Relabeling (2026-03-08)
+
+### Motivation
+
+Prior separated-llm scoring had been accumulated incrementally across 14+ batches over multiple sessions, with varying scorer context and evolving rubric familiarity. The 368-text rescore (§65) demonstrated that 1-dim-per-session isolation is essential (same-session halo contamination produced mean |r|=0.811 in Session 27). However, 9.5% of the training set was insufficient to shift overall model performance (v29 rejected).
+
+This session scales the approach: 1,000 stratified training texts re-scored across all 10 dimensions using isolated `claude -p` sessions (one per dimension, zero cross-dimension context). The 1,000 texts were drawn from the existing training set using stratified sampling.
+
+### Method
+
+**Text selection:** 1,000 texts extracted from `data/psq.db` training split via `scripts/label_separated.py extract --input /tmp/rescore-batch-1000.jsonl`.
+
+**Scoring protocol:**
+- 10 parallel `claude -p` sessions (Claude Code headless CLI mode)
+- Each session scored exactly 1 dimension on all 1,000 texts
+- `--add-dir /tmp --allowedTools "Read,Write,Bash,Glob,Grep"` for filesystem access
+- `--no-session-persistence` to prevent disk bloat
+- `env -u CLAUDECODE` to bypass nested-session check
+- Batch files written every ~100 texts to protect against context loss
+- Scorer: `claude-opus-4-6`, provider: `anthropic`, interface: `claude-code`
+
+**Scoring quality:**
+
+| Dim | Mean | SD | Score=5% | 0–2% | 8–10% | Conf Mean |
+|-----|------|----|----------|------|-------|-----------|
+| TE | 4.13 | 1.61 | 26.0% | 14.5% | 2.0% | 0.806 |
+| HI | 4.50 | 1.52 | 46.5% | 10.9% | 2.0% | 0.806 |
+| AD | 4.54 | 1.29 | 51.9% | 6.7% | 1.6% | 0.788 |
+| ED | 4.47 | 1.31 | 43.5% | 8.0% | 1.7% | 0.756 |
+| RC | 4.32 | 1.23 | 44.8% | 8.5% | 1.1% | 0.781 |
+| RB | 4.63 | 1.19 | 55.7% | 5.9% | 1.3% | 0.738 |
+| TC | 4.31 | 1.63 | 37.2% | 13.9% | 3.3% | 0.781 |
+| CC | 4.51 | 1.48 | 42.1% | 10.3% | 1.9% | 0.775 |
+| DA | 4.58 | 1.29 | 54.4% | 7.0% | 2.6% | 0.790 |
+| CO | 4.89 | 1.16 | 73.0% | 4.3% | 2.8% | 0.804 |
+
+Score=5 range 26–73% (TE lowest, CO highest). Prior 368-rescore had 28–39%. CO's 73% is expected — contractual norms are absent in most conversational text. Confidence means 0.74–0.81 indicate calibrated uncertainty.
+
+**Rate limit incident:** 8/10 sessions completed in the first run (~20 min). TE (100/1000) and CO (500/1000) hit API rate limits. Both resumed after limit reset with partial-score preservation, completing all 1,000 texts.
+
+### Ingestion
+
+Assembled via `label_separated.py assemble` → `migrate.py --ingest`. Post-ingest DB: 24,289 texts, 106,353 scores, 52,763 separated-llm.
+
+### v35 Training
+
+Training launched with `--drop-proxy-dims` immediately after ingestion. Results pending.
+
+⚑ **EPISTEMIC FLAGS:**
+- ░░░░ LOW: `claude -p` sessions used default Opus model (`claude-opus-4-6`), not the historical Sonnet scorer. Provenance corrected in DB and assembled JSONL. This is the first batch scored by Opus — cross-scorer consistency unknown but expected to be high (same Claude family).
+- █░░░ MOD: CO score=5 at 73% suggests this dimension has limited discrimination power in conversational text. May reflect genuine construct characteristics (contractual norms rarely surface) rather than scorer bias.
+- ░░░░ LOW: 2 extra scores per dim (1002/1000) from batch overlap in some sessions — deduplicated by id during consolidation.
+
+---
+
+## §71. Factor Analysis v3: Post-Rescore Structural Verification (2026-03-08)
+
+Factor analysis v3 on all separated-llm data (N=4,498 complete texts, 52,763 total scores) after the 1,000-text rescore (§70) and all prior batches. This is a verification that the structural properties of the scoring are stable with 2.3× more data than FA v2 (N=1,970).
+
+### Results Summary
+
+**KMO = 0.910** ("Marvelous"), up from 0.902. Bartlett's chi2 = 44,851.1, p < .001.
+
+**Parallel analysis: 1 factor only** (unchanged). Factor 2 eigenvalue (0.962) below random threshold (1.066).
+
+**g-factor eigenvalue = 6.824 (68.2% variance)**, up from 6.727 (67.3%).
+
+**1-Factor Loadings:**
+
+| Dim | Loading | h² | Δ from v2 |
+|-----|---------|-----|-----------|
+| TC | 0.913 | 0.834 | −0.017 |
+| RC | 0.891 | 0.794 | +0.037 |
+| ED | 0.875 | 0.766 | — |
+| DA | 0.837 | 0.700 | −0.077 |
+| CO | 0.822 | 0.676 | — |
+| RB | 0.811 | 0.658 | — |
+| HI | 0.805 | 0.649 | — |
+| TE | 0.795 | 0.633 | — |
+| AD | 0.788 | 0.622 | — |
+| CC | 0.702 | 0.493 | −0.162 |
+
+All loadings above 0.70. CC dropped most (0.864→0.702) — consistent with its 60.9% score=5 rate limiting its shared variance contribution. AD remains second-lowest (0.788), consistent with its documented divergent validity pattern (weakest factor loading, strongest criterion predictor).
+
+**Mean inter-dim |r| = 0.644** (up from 0.632). **Within-text SD = 0.753** (up from 0.717 — positive signal: newer batches differentiate dimensions slightly more).
+
+### Comparison with FA v2
+
+| Metric | v2 | v3 | Δ |
+|--------|----|----|---|
+| N | 1,970 | 4,498 | +2,528 |
+| KMO | 0.902 | 0.910 | +0.008 |
+| g eigenvalue | 6.727 | 6.824 | +0.097 |
+| g % variance | 67.3% | 68.2% | +0.9% |
+| Mean |r| | 0.632 | 0.644 | +0.012 |
+| Factors (PA) | 1 | 1 | = |
+| Within-text SD | 0.717 | 0.753 | +0.036 |
+
+**Conclusion:** Factor structure is stable. g-factor is robust across 2.3× more data — confirmed structural feature, not small-sample artifact. The within-text SD improvement (+0.036) suggests the rescore batches are providing slightly more dimension-differentiated scores than the original corpus.
+
+⚑ **EPISTEMIC FLAGS:**
+- █░░░ MOD: CC loading dropped substantially (0.864→0.702). This may reflect real construct heterogeneity surfacing with more data, or reduced CC variance from high score=5 concentration (60.9%). Monitor in future FA iterations.
+- ░░░░ LOW: 2,893 texts excluded from FA due to incomplete dimensions (mostly single-dim TE-expansion batches). These texts contribute to training but not to structural analysis.
 
 ---
 

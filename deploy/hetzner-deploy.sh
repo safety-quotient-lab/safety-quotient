@@ -7,7 +7,7 @@
 # Prerequisites:
 #   - models/psq-vN/best.pt exists (training complete)
 #   - venv activated: source venv/bin/activate
-#   - SSH access: ssh ubuntu@178.156.229.103 works without password
+#   - SSH access: ssh root@178.156.229.103 works without password (key auth)
 #
 # Usage:
 #   bash deploy/hetzner-deploy.sh --model models/psq-v28
@@ -21,7 +21,7 @@ set -euo pipefail
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-REMOTE_HOST="ubuntu@178.156.229.103"
+REMOTE_HOST="root@178.156.229.103"
 REMOTE_WORKING_DIR="/opt/psychology-agent/safety-quotient"
 REMOTE_MODEL_DIR="${REMOTE_WORKING_DIR}/models/psq-student"
 SERVICE_NAME="psq-server"
@@ -68,17 +68,17 @@ fi
 
 echo "Step 2: Calibration ..."
 if [[ "$DRY_RUN" == "false" ]]; then
-    python scripts/calibrate.py
+    python scripts/calibrate.py --model-dir "${MODEL_DIR}" --out "${LOCAL_STUDENT_DIR}/calibration.json"
 fi
 
 echo "Step 3: ONNX export ..."
 if [[ "$DRY_RUN" == "false" ]]; then
-    python scripts/export_onnx.py
+    python scripts/export_onnx.py --checkpoint "${MODEL_DIR}/best.pt"
 fi
 
 echo "Step 4: Held-out evaluation ..."
 if [[ "$DRY_RUN" == "false" ]]; then
-    python scripts/eval_held_out.py --model "${LOCAL_STUDENT_DIR}/best.pt"
+    python scripts/eval_held_out.py --model "${MODEL_DIR}/best.pt"
 fi
 
 # ── Step 2: SHA256 local ──────────────────────────────────────────────────────
@@ -90,10 +90,21 @@ LOCAL_QUANT_HASH=$(sha256sum "${LOCAL_STUDENT_DIR}/model_quantized.onnx" | cut -
 echo "  model.onnx:           ${LOCAL_ONNX_HASH}"
 echo "  model_quantized.onnx: ${LOCAL_QUANT_HASH}"
 
-# ── Step 3: rsync to Hetzner ──────────────────────────────────────────────────
+# ── Step 3: Backup current model on Hetzner ─────────────────────────────────
 
 echo ""
-echo "Step 6: rsync model files to Hetzner ..."
+echo "Step 6: Backing up current model on Hetzner ..."
+if [[ "$DRY_RUN" == "false" ]]; then
+    ssh "${REMOTE_HOST}" "cp ${REMOTE_MODEL_DIR}/model_quantized.onnx ${REMOTE_MODEL_DIR}/model_quantized.onnx.bak 2>/dev/null && echo '  Backup created ✓' || echo '  No existing model to back up (first deploy?)'"
+    ssh "${REMOTE_HOST}" "cp ${REMOTE_MODEL_DIR}/calibration.json ${REMOTE_MODEL_DIR}/calibration.json.bak 2>/dev/null || true"
+else
+    echo "  (dry run — skipping backup)"
+fi
+
+# ── Step 4: rsync to Hetzner ──────────────────────────────────────────────────
+
+echo ""
+echo "Step 7: rsync model files to Hetzner ..."
 RSYNC_FLAGS="-avz --progress"
 if [[ "$DRY_RUN" == "true" ]]; then
     RSYNC_FLAGS="${RSYNC_FLAGS} --dry-run"
@@ -109,10 +120,10 @@ rsync ${RSYNC_FLAGS} \
     "${LOCAL_STUDENT_DIR}/" \
     "${REMOTE_HOST}:${REMOTE_MODEL_DIR}/"
 
-# ── Step 4: Verify SHA256 on Hetzner ─────────────────────────────────────────
+# ── Step 5: Verify SHA256 on Hetzner ─────────────────────────────────────────
 
 echo ""
-echo "Step 7: Verifying SHA256 on Hetzner ..."
+echo "Step 8: Verifying SHA256 on Hetzner ..."
 REMOTE_ONNX_HASH=$(ssh "${REMOTE_HOST}" "sha256sum ${REMOTE_MODEL_DIR}/model.onnx" | cut -d' ' -f1)
 REMOTE_QUANT_HASH=$(ssh "${REMOTE_HOST}" "sha256sum ${REMOTE_MODEL_DIR}/model_quantized.onnx" | cut -d' ' -f1)
 
@@ -129,19 +140,19 @@ if [[ "$LOCAL_QUANT_HASH" != "$REMOTE_QUANT_HASH" ]]; then
 fi
 echo "  SHA256 verified ✓"
 
-# ── Step 5: Restart service ───────────────────────────────────────────────────
+# ── Step 6: Restart service ───────────────────────────────────────────────────
 
 echo ""
-echo "Step 8: Restarting ${SERVICE_NAME} ..."
+echo "Step 9: Restarting ${SERVICE_NAME} ..."
 if [[ "$DRY_RUN" == "false" ]]; then
-    ssh "${REMOTE_HOST}" "sudo systemctl restart ${SERVICE_NAME}"
+    ssh "${REMOTE_HOST}" "systemctl restart ${SERVICE_NAME}"
     sleep 10  # wait for ONNX model load (~8s)
 fi
 
-# ── Step 6: Health check ──────────────────────────────────────────────────────
+# ── Step 7: Health check ──────────────────────────────────────────────────────
 
 echo ""
-echo "Step 9: Health check ..."
+echo "Step 10: Health check ..."
 if [[ "$DRY_RUN" == "false" ]]; then
     HEALTH=$(curl -sf "${HEALTH_URL}" || echo '{"status":"error"}')
     echo "  ${HEALTH}"
@@ -152,15 +163,15 @@ if [[ "$DRY_RUN" == "false" ]]; then
     echo "  Health check passed ✓"
 fi
 
-# ── Step 7: Scoring smoke test ────────────────────────────────────────────────
+# ── Step 8: Scoring smoke test ────────────────────────────────────────────────
 
 echo ""
-echo "Step 10: Scoring smoke test ..."
+echo "Step 11: Scoring smoke test ..."
 if [[ "$DRY_RUN" == "false" ]]; then
     SCORE=$(curl -sf -X POST "${SCORE_URL}" \
         -H "Content-Type: application/json" \
         -d '{"text": "The team felt safe raising concerns in this meeting."}' \
-        | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'composite={d[\"composite\"][\"score\"]:.1f}, status={d[\"composite\"][\"status\"]}, calibration={d[\"composite\"][\"calibration_version\"]}')" \
+        | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'composite={d[\"scores\"][\"psq_composite\"][\"value\"]:.1f}, calibration={d[\"scores\"][\"calibration_version\"]}, dims={len(d[\"dimensions\"])}')" \
         2>/dev/null || echo "score request failed")
     echo "  ${SCORE}"
 fi
