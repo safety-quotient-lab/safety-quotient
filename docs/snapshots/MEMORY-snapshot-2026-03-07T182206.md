@@ -6,15 +6,12 @@
 1. Specialized sub-agents (PSQ is the first)
 2. A consensus-or-parsimony adversarial evaluator
 
-**Where we stopped:** PSQ Session 31 (2026-03-07). Three items completed:
-1. Hetzner deploy: context-aware scoring live (schema=v3.1, context_weighted_composite=3.76/10 ✓)
-2. agent-card.json: v3/v3.1 schemas, context_aware_scoring capability block, limitations fixed, deployed
-3. HI range compression diagnosed: effective range ~3.44–7.98 (4.5/10 pts); floor compressed
-   (slur→3.44, death threat→4.81); ceiling compressed (reconciliation→7.26). Original HI
-   anomaly resolved as construct nuance (stress venting ≠ directed hostility). See journal §39.
-**Next:** Publication framing (Priority 2, L effort). AD range compression/HI range compression
-data augmentation (both need extreme-score targeted labeling). Scoring rubric review (Priority 3).
-Psychology agent — await unratified-agent response. Inbound PR sync pending.
+**Where we stopped:** PSQ session (2026-03-07). B3 F3b complete. v32 REJECTED (TE=0.739, overall=0.676).
+700 more TE texts (score=5=9.9%) caused TE regression vs v31 (counterintuitive). 1,200 total expansion texts
+insufficient. B3 STALLED. v23 remains production. User request pending: use structured labels like
+"B3 (TE uniformity)" and "F3b (unlabeled-pool expansion)" throughout docs.
+**Next:** Strategy decision on B3 — accept v23 ceiling, investigate distributional mismatch, or move to other dims.
+AD and DA improved in v32 (+0.061, +0.057 vs v31) — may warrant targeted labeling. 25 residual scores deferred.
 
 ## Design Decisions
 
@@ -93,7 +90,6 @@ Quick reference (when → what fires):
  External content enters T13: classify source (trusted/semi/untrusted), injection scan, scope relevance, taint propagation
  Every decision point   T14: structural checkpoint — precedent, constraints, norms, open-source trajectory
  PSQ v3 enters context  T15: composite gate, anti-calibration, scale discipline, PSQ-Lite mapping (0.70), 7-dim gap, WEIRD flag
- External-facing action T16: scope+substance gate, obligation+irreversibility, external interpretant — gh issues/PRs/comments
 ```
 
 **Knock-on depth:** 8 orders. 1–2: certain. 3: likely. 4–5: possible. 6: speculative.
@@ -157,7 +153,6 @@ Communication conventions, cognitive accessibility policy, project structure: se
   Static r-estimate (intentional). Limitation = confidence-is-static-r (MEDIUM, not HIGH).
 **Scoring endpoint:** ✓ POST /score → machine-response/v3. Hetzner psq.unratified.org live.
 **Open issues:** DA validity, AD compression, CO weakness, no human validation, WEIRD assumptions,
-TE uniformity plateau (B3 CLOSED — v23 TE=0.795 accepted as ceiling; 5 consecutive rejections),
-HI range compression (effective range ~3.44–7.98; floor compressed: explicit slur→3.44; resolved
-original anomaly as construct nuance — see journal §39).
+v27 regression, TE uniformity plateau (4/5 ICESCR texts = 6.46), HI direction anomaly (hostile
+anchor > policy brief on 0–10 safety scale — counterintuitive, uninvestigated).
 Do not duplicate PSQ improvement work in this context.

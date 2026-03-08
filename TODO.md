@@ -1,6 +1,6 @@
 # PSQ Project TODO
 
-Last updated: 2026-03-06
+Last updated: 2026-03-07
 
 ## Priority 1: Immediate
 
@@ -96,7 +96,7 @@ See distillation-research.md §65/§66/§67 and journal.md §37/§38 for full di
 - [x] Weight ratios derived from criterion validity ordinal rankings (bivariate r-values from CGA-Wiki, CMV, CaSiNo, DonD studies)
 - [x] Schema: server.js uses v3.1 when context present; v3 otherwise (backward-compatible)
 - [x] **Deploy to Hetzner:** rsync to `/opt/psychology-agent/safety-quotient/src/` via `root@178.156.229.103` (gray-box key). `systemctl restart psq-server`. Verified live 2026-03-07: schema=v3.1, context_weighted_composite=3.76/10 for workplace test.
-- [ ] Add `context` param to `agent-card.json` `.well-known/` capabilities
+- [x] Add `context` param to `agent-card.json` `.well-known/` capabilities — v3.1, context_aware_scoring block, operations updated, confidence limitation downgraded to MEDIUM, composite_status fixed. Deployed to Hetzner 2026-03-07.
 
 ### Deal or No Deal criterion study [COMPLETE — v23 RERUN DONE]
 
@@ -170,7 +170,7 @@ Status: Protocol designed (§19), recruitment not started. 5 expert psychologist
 - [ ] Review each dimension's score anchors (1-3, 4-6, 7-9) against actual high/low-scoring texts in the held-out set
 - [ ] For each dimension, sample 5 texts at score extremes (held-out predictions <3 and >7) and verify anchors match observed content
 - [ ] Update anchors where the model's learned construct diverges from the original definition
-- [ ] Prioritize AD (known discrepancy), ED (singleton, unclear construct), DA (weak factor loading)
+- [ ] Prioritize AD (known discrepancy), HI (floor compression confirmed), ED (singleton, unclear construct), DA (weak factor loading)
 
 ### Criterion validity summary table [COMPLETE]
 

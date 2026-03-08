@@ -49,7 +49,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 36. [DonD v23 Rerun: TE Reversal, T3b, and the Measurement Artifact Cascade](#36-dond-v23-rerun-te-reversal-t3b-and-the-measurement-artifact-cascade-2026-02-28)
 37. [B3 Diagnosis: Multi-task Scaffolding as a Construct Dependency](#37-b3-diagnosis-multi-task-scaffolding-as-a-construct-dependency-2026-03-07)
 38. [B3 Expansion: When More Data Makes Things Worse](#38-b3-expansion-when-more-data-makes-things-worse-2026-03-07)
-39. [References](#39-references)
+39. [HI Range Compression: What the Anomaly Actually Revealed](#39-hi-range-compression-what-the-anomaly-actually-revealed-2026-03-07)
+40. [References](#40-references)
 
 ---
 
@@ -1216,7 +1217,74 @@ Five consecutive rejections spanning v29, v31, v32, v33, and the v30 single-task
 
 ---
 
-## 39. References
+## 39. HI Range Compression: What the Anomaly Actually Revealed (2026-03-07)
+
+An anomaly flagged during the context-aware scoring smoke test — hostile social media
+text scoring *higher* on HI (hostility_index) than a policy brief — prompted a systematic
+calibration audit of the HI dimension. The investigation resolved the original anomaly
+as a construct nuance and uncovered a distinct, more significant issue: range compression.
+
+**The calibration anchor test.** We scored the three canonical calibration anchor texts
+against their expected scores, then extended the test across the full 0–10 spectrum with
+representative texts:
+
+| Text type | Expected | Obtained | Deviation |
+|---|---|---|---|
+| Explicit slur + aggression (calibration anchor) | 0–1 | 3.44 | +2.44 to +3.44 |
+| Death threat + dehumanization | 0–1 | 4.81 | +3.81 to +4.81 |
+| Targeted contempt, overt | 1–2 | 3.58 | +1.58 to +2.58 |
+| Mild hostile edge / irritation | 4 | 4.62 | +0.62 (acceptable) |
+| Neutral transaction | 5 | 6.00 | +1.00 (slight upward bias) |
+| Warm vent post (seeking support) | 6–7 | 5.49 | −0.51 to −1.51 |
+| Affirming trans post (calibration anchor) | 8 | 7.98 | −0.02 (near-perfect) |
+| Conflict resolution / reconciliation | 9–10 | 7.26 | −1.74 to −2.74 |
+
+The pattern is clear: HI has a compressed effective output range of approximately 3.44 to
+7.98 — only 4.5 points of a 10-point scale. Floor compression affects the hostile end (0–3),
+ceiling compression affects the warmth/reconciliation end (9–10), and the mid-range (4–7)
+is reasonably calibrated with slight upward bias near neutral.
+
+**The anomaly explained.** The "hostile social media > policy brief" observation arises from
+two compounding factors. First, the HI construct specifically measures *hostility directed at
+others* — not emotional valence or aggressiveness in general. Stress-venting social media
+posts that express frustration without a specific hostile target score in the 4.5–5.5 range
+(mild hostility / neutral), because they lack the directed attribution of malicious intent
+that drives HI down. Civil policy briefs that attribute harmful intent to specific actors
+("deliberate neglect," "willful misconduct") score lower than measured, measured-tone briefs
+because they contain the construct's key signal: other-attribution of hostile intent. A
+supportive or seeking-support social media post, labeled "hostile" by dataset metadata
+(indicating the poster was stressed), can correctly score higher on HI (6–7 range) than a
+policy brief making adversarial arguments (5–6 range). The "anomaly" is the model working
+correctly — the *label* "hostile social media" was misleading.
+
+Second, mid-range compression means that a stress post (true HI ~4–5) and a mild policy
+brief (true HI ~5–6) are both pulled toward the 5–6 zone, making the distinction appear
+reversed at first glance.
+
+**HI range compression as a structural limitation.** The floor compression — the model's
+inability to score below ~3.44 even for explicit slurs and threats — is analogous to the
+AD range compression documented earlier (AD output std = 1.54 vs. actual std = 2.46). Both
+likely originate from the same cause: the Dreaddit training distribution contains
+predominantly moderate-stress text. Extreme hostility examples (score 0–2) and peak
+warmth/reconciliation examples (score 9–10) are underrepresented. The model has learned a
+compressed mapping that avoids the extremes because it rarely saw them during training.
+
+**Construct validity implications.** The HI dimension is working as designed — it correctly
+distinguishes outward hostility from emotional distress — but the low end of the scale is
+not operationally accessible. For content moderation use cases (where score 0–2 distinguishes
+actionable from near-actionable content), this is a meaningful limitation. The CGA-Wiki
+criterion study (AUC = 0.599 with AD as top predictor, HI as secondary) used full
+conversations, where HI signal likely accumulates across turns. For single-utterance scoring,
+HI cannot reliably identify the most extreme hostile content.
+
+**Status.** Original anomaly: closed (construct nuance, correctly behaving). New issue opened:
+HI floor compression, severity MEDIUM, analogous to AD compression. No immediate fix planned —
+the same data augmentation logic that would address AD compression (targeted extreme-HI text
+labeling) would apply here, but no training run is currently planned given B3 closure.
+
+---
+
+## 40. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

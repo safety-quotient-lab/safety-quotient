@@ -451,6 +451,7 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 5. Human expert validation: DA construct validity still unresolved by LLM data alone. T3b provides computational evidence (AD predicts deal not points), but ICC(2,1) from expert panel required for final resolution.
 6. ~~Does increasing context from 128→256 tokens improve performance on long-text sources?~~ **ANSWERED:** v24 (256 tok) held-out_r=0.670 (−0.026 vs v23). 128-token context is superior: 8/10 dims regressed, only CC (+0.022) and AD (+0.014) improved. Confirms that relevant safety-relevant signal is concentrated in early text windows; DistilBERT's 6 layers cannot leverage longer-range dependencies. 128 tokens confirmed as optimal for this hardware/model combination.
 7. Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.
+8. HI floor compression (2026-03-07): effective HI output range ~3.44–7.98. Can targeted extreme-hostility text labeling (score 0–2 examples) expand the range? How many examples needed? Should this be a standalone fix or combined with AD range compression work?
 
 ---
 
@@ -853,3 +854,46 @@ All score=5 fractions substantially below the 43% composite-proxy baseline, conf
 **Epistemic note.** `context_weighted_composite` (0-10 simple weighted mean) and `psq_composite` (0-100 protective/threat formula from detector.js) are intentionally distinct metrics on different scales. Both present in v3.1 response; difference labeled explicitly.
 
 ▶ TODO.md implementation tasks updated, deploy pending
+
+---
+
+### Session `20260307-1830` (Context-aware scoring deployed to Hetzner; agent-card.json updated; HI range compression diagnosed)
+
+**Context:** Post-implementation /iterate sessions. Three discrete work items completed.
+
+**Hetzner deploy complete.**
+`rsync` of `src/server.js` and `src/context-weights.json` to `root@178.156.229.103:/opt/psychology-agent/safety-quotient/src/`.
+`systemctl restart psq-server` — active. Smoke test: POST /score with `context=workplace` → schema=v3.1, context_weighted_composite=3.76/10. ✓ Live.
+
+**`.well-known/agent-card.json` updated.**
+- `schemas_supported`: added `psychology-agent/machine-response/v3` and `v3.1`
+- `capabilities.operations`: added `context-aware-scoring`
+- `capabilities.context_aware_scoring`: new block — 5 valid contexts, response_adds, backward-compat note
+- `scoring.composite_status`: fixed stale "not usable" → describes both psq_composite (0-100) and context_weighted_composite (0-10)
+- `known_limitations[0]`: replaced HIGH `anti-calibration-confidence` with MEDIUM `confidence-is-static-r` (B1 fixed in Session 26; confidence head discarded; r-values surfaced as calibration_note)
+- Deployed to Hetzner. Committed.
+
+**HI range compression diagnosed (journal §39).**
+
+Calibration anchor test: scored three canonical HI anchors and additional texts covering the full 0–10 spectrum.
+
+| Text type | Expected | Got |
+|---|---|---|
+| Explicit slur+aggression (anchor) | 0–1 | 3.44 |
+| Death threat+dehumanization | 0–1 | 4.81 |
+| Targeted contempt | 1–2 | 3.58 |
+| Mild hostile edge | 4 | 4.62 |
+| Neutral transaction | 5 | 6.00 |
+| Warm vent post | 6–7 | 5.49 |
+| Affirming trans post (anchor) | 8 | 7.98 |
+| Conflict resolution | 9–10 | 7.26 |
+
+Effective output range: ~3.44 to 7.98 (4.5 of 10 points). Floor and ceiling both compressed.
+Analogous to AD range compression. Cause: Dreaddit training data lacks extreme hostility / extreme warmth examples.
+
+HI direction anomaly (smoke test: social media HI=6.88 > policy brief HI=6.15) resolved as construct nuance:
+HI measures *hostility directed at others*, not emotional aggressiveness. Stress-venting posts (no hostile target) correctly score higher HI than policy critique (other-attribution of harmful intent). The label "hostile social media" was misleading — referred to emotional valence, not directed hostility.
+
+**Known issues updated.** psq-status.md: HI direction anomaly replaced with HI range compression entry. TODO.md: rubric review now prioritizes HI alongside AD.
+
+▶ journal.md §39 (HI range compression), psq-status.md updated, TODO.md updated
