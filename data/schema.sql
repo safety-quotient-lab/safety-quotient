@@ -227,8 +227,13 @@ CREATE INDEX idx_dataset_mappings_dataset ON dataset_mappings(dataset_id);
 
 -- best_scores: canonical score per text+dim
 --
--- Priority: separated-llm(1) > synthetic(2) > joint-llm(3) > composite-proxy(4)
--- Tiebreak: higher confidence, then most recent
+-- Priority: method (separated-llm > synthetic > joint-llm > composite-proxy)
+--           then scorer (sonnet > opus > others)
+--           then confidence DESC, then recency DESC
+--
+-- Scorer priority ensures validated Sonnet labels outrank unvalidated Opus
+-- labels when both exist for the same text+dim. Opus scores remain in the
+-- DB for future cross-model research. See distillation-research.md §72.
 CREATE VIEW best_scores AS
 SELECT s.*
 FROM scores s
@@ -241,6 +246,11 @@ WHERE s.id = (
             WHEN 'synthetic'       THEN 2
             WHEN 'joint-llm'       THEN 3
             WHEN 'composite-proxy' THEN 4
+        END ASC,
+        CASE
+            WHEN s2.scorer = 'claude-sonnet-4-6' THEN 1
+            WHEN s2.scorer = 'claude-opus-4-6'   THEN 2
+            ELSE 3
         END ASC,
         s2.confidence DESC,
         s2.scored_at DESC
