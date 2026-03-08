@@ -975,3 +975,15 @@ AD: 0.8% ceiling coverage → max equity almost absent. HI: despite 11.6% floor 
 **Docs updated:** distillation-research.md §69 (full plan); TODO.md Priority 1 (AD+HI plan item); lab-notebook Q8 answered.
 
 ▶ distillation-research.md §69
+
+---
+
+### Session `20260307-1936` (MEMORY.md Active Thread updated; §68 open work checklist reconciled)
+
+**Context:** /iterate full hunt. Winner: MEMORY.md Active Thread stale (Session 33 reference, license pending) + §68 open work checklist un-struck (3 of 4 items done).
+
+**MEMORY.md:** Updated Active Thread to Session 34. License reconciliation marked RESOLVED. Next updated to AD batch execution (§69 sequence).
+
+**§68 open work reconciled:** context-weights.json confirmed implemented (src/context-weights.json — all 5 contexts with empirical weight ratios). server.js conditional v3.1 schema confirmed. agent-card.json confirmed updated. 3 of 4 items struck. Remaining open: weight ratio validation against criterion validity β coefficients.
+
+▶ MEMORY.md updated; distillation-research.md §68 Open Work

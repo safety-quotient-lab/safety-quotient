@@ -5328,10 +5328,10 @@ Minor version bump (v3 → v3.1) for backward compatibility: `context_weighted_c
 
 ### Open Work
 
-- [ ] Implement `context-weights.json` and handler logic in `server.js`
-- [ ] Add `context` parameter to API documentation and `.well-known/agent-card.json`
+- [x] Implement `context-weights.json` and handler logic in `server.js` — **DONE** (Session 31/32; src/context-weights.json with all 5 contexts; server.js handler complete)
+- [x] Add `context` parameter to API documentation and `.well-known/agent-card.json` — **DONE** (agent-card.json updated Session 31/33; schemas_supported includes v3.1; context_aware_scoring block added)
 - [ ] Validate weight ratios against criterion validity effect sizes (use β coefficients from multivariate models as weight guidance)
-- [ ] Schema update: bump version to v3.1 in `server.js` and `student.js`
+- [x] Schema update: bump version to v3.1 in `server.js` — **DONE** (server.js conditionally sets schema v3.1 when context param present; student.js has no schema field — not applicable)
 
 ---
 
