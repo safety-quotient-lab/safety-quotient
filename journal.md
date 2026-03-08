@@ -50,7 +50,8 @@ A chronological research narrative of the Psychoemotional Safety Quotient (PSQ) 
 37. [B3 Diagnosis: Multi-task Scaffolding as a Construct Dependency](#37-b3-diagnosis-multi-task-scaffolding-as-a-construct-dependency-2026-03-07)
 38. [B3 Expansion: When More Data Makes Things Worse](#38-b3-expansion-when-more-data-makes-things-worse-2026-03-07)
 39. [HI Range Compression: What the Anomaly Actually Revealed](#39-hi-range-compression-what-the-anomaly-actually-revealed-2026-03-07)
-40. [References](#40-references)
+40. [AD Calibration Audit: When the Strongest Predictor Cannot Score Its Own Construct](#40-ad-calibration-audit-when-the-strongest-predictor-cannot-score-its-own-construct-2026-03-07)
+41. [References](#41-references)
 
 ---
 
@@ -1284,7 +1285,101 @@ labeling) would apply here, but no training run is currently planned given B3 cl
 
 ---
 
-## 40. References
+## 40. AD Calibration Audit: When the Strongest Predictor Cannot Score Its Own Construct (2026-03-07)
+
+The AD range compression issue (output std = 1.54 vs. actual std = 2.46; 48.4% of
+separated-LLM scores at exactly 5.0) was a documented limitation of the v23 production
+model. The question recorded as Open Question 7 was whether the UCC and extreme-adco
+labeling batches — ingested before v23 training — had corrected the compression. A
+systematic calibration anchor test answered this definitively: they had not.
+
+**Calibration anchor test.** We scored the five canonical AD anchors — spanning 0 to 10
+in the instruments.json rubric — against their expected values, then extended the test to
+Dreaddit-style stress posts that represent the actual training distribution:
+
+*Formal authority texts (out of distribution for Dreaddit training):*
+
+| Text type | Expected | Obtained | Deviation |
+|---|---|---|---|
+| Maximum authority abuse (anchor) | 0 | 5.13 | +5.13 |
+| Coercive authority (anchor) | 2.5 | 5.67 | +3.17 |
+| Neutral policy communication (anchor) | 5 | 5.13 | +0.13 |
+| Distributed authority (anchor) | 7.5 | 6.38 | −1.12 |
+| Maximum equity (anchor) | 10 | 6.38 | −3.62 |
+
+*Dreaddit-style stress posts (within training distribution):*
+
+| Text type | Expected | Obtained | Deviation |
+|---|---|---|---|
+| Boss screaming at employee | 1–2 | 3.84 | +1.84 to +2.84 |
+| HR ignored harassment complaint | 2–3 | 4.81 | +1.81 to +2.81 |
+| Micromanagement complaint | 3–4 | 5.13 | +1.13 to +2.13 |
+| Boss dumps work at end of day | 3–4 | 4.81 | +0.81 to +1.81 |
+| Peer conflict (no authority present) | 5 | 4.88 | −0.12 |
+| Warm supportive peer post | 7–8 | 5.67 | −1.33 to −2.33 |
+
+Effective output range: 3.84–6.38 for in-distribution texts (2.54 points). For formal
+authority texts, the range collapses further to 5.13–6.38 (1.25 points of 10).
+
+**The direction reversal.** The most striking finding is not the compression but a direction
+reversal in formal authority texts: coercive authority (expected 2.5) scores *higher* than
+the neutral policy anchor (expected 5) — 5.67 versus 5.13. The model assigns "safer" AD
+to explicit coercion than to neutral communication. This is not noise at SE(*r*) ≈ .10; it
+is a structural artifact of training on a distribution that contains no formal authority
+texts. The Dreaddit corpus (Reddit stress posts) represents informal, peer-level, or
+subordinate-perspective accounts of authority dynamics — almost always written from the
+position of someone experiencing power asymmetry, rarely from the position of the
+authority figure exercising it. The model learned to detect victim-perspective accounts
+of power abuse (boss screamed at me → AD = 3.84) but has no learned representation of
+authority text written *in* the authoritative voice.
+
+**What the held-out *r* = 0.713 actually measures.** The third-best held-out correlation
+among all 10 dimensions (*r* = 0.713 on Dreaddit) is not a contradiction. Correlation
+measures the *rank ordering* of texts by their AD predictions, not the accuracy of
+absolute scale values. Within the 2.54-point output range that the model uses for
+Dreaddit texts, predictions maintain a meaningful monotonic ordering — texts with more
+severe authority imbalance (from the subordinate perspective) score lower than texts with
+less severe imbalance. The criterion validity studies (CaSiNo, CGA-Wiki, CMV, DonD) all
+use social media and dialogue corpora from within or near the Dreaddit distribution, where
+this monotonic ordering is preserved. The AUC estimates (0.599–0.732) are valid measures
+of ordinal prediction accuracy, not absolute scale accuracy.
+
+**Practical implications.** Three implications follow from the compressed range:
+
+1. *Absolute scores are uninterpretable.* A score of 5.13 on AD is indistinguishable from
+   neutral whether the text is a neutral policy memo or a directive that combines coercion
+   with the elimination of all subordinate voice. Users who interpret AD scores as indicating
+   "moderate authority balance" will be systematically misled for any text that is not a
+   first-person stress account.
+
+2. *Context-weighted composite is affected.* The v3.1 context-weighted composite in the
+   workplace context assigns AD a weight of 2.0 — the highest weight. If workplace texts are
+   out of the Dreaddit distribution (formal communication, memos, directives), the AD
+   contribution will be near-constant at 5.1–5.7, and the composite will be driven by the
+   other weighted dimensions (energy_dissipation, trust_conditions). The composite is not
+   invalid, but AD does not contribute the discrimination the weights assume.
+
+3. *The criterion validity evidence is stronger than it appears for ordinal comparisons.*
+   The compressed range, paradoxically, makes the AUC estimates more robust: even a
+   compressed monotonic predictor can achieve meaningful AUC if the relative ordering is
+   preserved, which the Dreaddit distribution satisfies.
+
+**Root cause.** The labeling corpus (Dreaddit + supplementary batches) lacks formal
+authority texts. UCC (university comment corpus), civil discourse, and extreme-adco batches
+added peer-level status contestation data, which improved the model's ability to detect
+epistemic positioning and relational power moves (the Theory 3 mechanism, journal §24).
+They did not add formal authority texts — neither institutional policy documents nor
+manager-to-subordinate directives written from the authority's perspective. Q7 is answered:
+the compression was not corrected.
+
+**Status.** AD range compression confirmed as a structural limitation of v23.
+Severity upgraded to HIGH for absolute score interpretation in out-of-distribution contexts.
+Criterion validity AUC estimates remain valid (ordinal). Known limitation added to
+agent-card.json. Correction requires formal authority text labeling — not yet planned.
+
+---
+
+## 41. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
 

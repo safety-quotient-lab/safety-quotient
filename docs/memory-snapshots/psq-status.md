@@ -28,6 +28,12 @@
   - DA validity (authority_dynamics construct)
   - DA trend: 0.588 (v23) → 0.531 (v29) → 0.501 (v31) → 0.558 (v32) → 0.544 (v33); noisy, not a trend
   - AD: 0.713 (v23) → 0.671 (v31) → 0.732 (v32) → 0.678 (v33); stochastic variance (SE(r)≈0.10)
+  - AD range compression CONFIRMED HIGH (2026-03-07, journal §40): effective output range 3.84–6.38
+    for Dreaddit texts; 5.13–6.38 for formal authority texts. Max abuse anchor (expected 0) → 5.13.
+    Direction reversal: coercive authority (expected 2.5) → 5.67 > neutral (5.13). UCC/extreme-adco
+    batches did NOT correct compression (Q7 answered: No). Held-out r=0.713 valid as ordinal only;
+    absolute scores uninterpretable for formal authority texts. Context-weighted composite (workplace,
+    AD weight=2.0) affected — AD contribution near-constant 5.1–5.7 for formal texts. See journal §40.
   - CO weakness (r=0.534–0.538 across v23/v32/v33)
   - No human validation (only Dreaddit training data)
   - WEIRD assumptions

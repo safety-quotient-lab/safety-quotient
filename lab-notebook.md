@@ -450,7 +450,7 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 4. ~~Is CC penalized by proxy removal?~~ **ANSWERED:** v23 CC=0.739 (+0.020 vs v22a). NO — proxy removal is net-positive for CC. The v22a regression was a data quantity effect, not a proxy removal artifact.
 5. Human expert validation: DA construct validity still unresolved by LLM data alone. T3b provides computational evidence (AD predicts deal not points), but ICC(2,1) from expert panel required for final resolution.
 6. ~~Does increasing context from 128→256 tokens improve performance on long-text sources?~~ **ANSWERED:** v24 (256 tok) held-out_r=0.670 (−0.026 vs v23). 128-token context is superior: 8/10 dims regressed, only CC (+0.022) and AD (+0.014) improved. Confirms that relevant safety-relevant signal is concentrated in early text windows; DistilBERT's 6 layers cannot leverage longer-range dependencies. 128 tokens confirmed as optimal for this hardware/model combination.
-7. Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.
+7. ~~Can the AD range compression (output std=1.54 vs actual std=2.46) be corrected by the UCC/extreme-adco labeling batches? AD is the most compressed dimension (ratio=0.63) and has 48.4% of sep-llm scores at exactly 5.0.~~ **ANSWERED (2026-03-07):** No. Calibration anchor test confirms effective range 3.84–6.38 (Dreaddit texts) / 5.13–6.38 (formal authority texts). Max authority abuse anchor (expected 0) → 5.13 (same as neutral). Direction reversal: coercive authority (expected 2.5) → 5.67 > neutral (5.13). UCC/extreme-adco added peer-context status contestation data, not formal authority text. Correction requires formal authority texts (policy documents, manager directives). See journal §40.
 8. HI floor compression (2026-03-07): effective HI output range ~3.44–7.98. Can targeted extreme-hostility text labeling (score 0–2 examples) expand the range? How many examples needed? Should this be a standalone fix or combined with AD range compression work?
 
 ---
@@ -897,3 +897,40 @@ HI measures *hostility directed at others*, not emotional aggressiveness. Stress
 **Known issues updated.** psq-status.md: HI direction anomaly replaced with HI range compression entry. TODO.md: rubric review now prioritizes HI alongside AD.
 
 ▶ journal.md §39 (HI range compression), psq-status.md updated, TODO.md updated
+
+---
+
+### Session `20260307-1845` (AD range compression calibration audit; Q7 answered)
+
+**Context:** /iterate post-HI investigation. Q7 (AD range compression) was the runner-up.
+
+**Calibration anchor test.** Scored 5 AD calibration anchors + 6 in-distribution Dreaddit texts.
+
+| Text type | Expected | Got |
+|---|---|---|
+| Max authority abuse (anchor) | 0 | 5.13 |
+| Coercive authority (anchor) | 2.5 | 5.67 |
+| Neutral policy (anchor) | 5 | 5.13 |
+| Distributed authority (anchor) | 7.5 | 6.38 |
+| Max equity (anchor) | 10 | 6.38 |
+| Boss screaming at employee | 1–2 | 3.84 |
+| HR ignored complaint | 2–3 | 4.81 |
+| Micromanagement | 3–4 | 5.13 |
+| Work dumped at 4pm | 3–4 | 4.81 |
+| Peer conflict (no authority) | 5 | 4.88 |
+| Warm supportive peer | 7–8 | 5.67 |
+
+Effective range: 3.84–6.38 (Dreaddit); 5.13–6.38 (formal authority texts). 2.54 points of 10.
+
+Key finding: MAX AUTHORITY ABUSE (expected 0) = NEUTRAL (expected 5) = 5.13. Direction reversal: coercive authority (5.67) > neutral (5.13). UCC/extreme-adco did NOT correct compression.
+
+**Root cause confirmed.** Dreaddit contains subordinate-perspective stress posts. No formal authority text (policy documents, manager directives). UCC/extreme-adco added peer-context status contestation — not the missing training type.
+
+**Held-out r=0.713 reinterpreted.** Valid as ordinal rank-ordering within Dreaddit distribution. Not an absolute scale accuracy metric. Criterion validity AUC estimates unaffected (ordinal comparison). Absolute score interpretation invalid for formal/workplace texts.
+
+**Impact on context-weighted composite.** workplace context assigns AD weight=2.0. For formal texts, AD ≈ 5.13–5.67 (near-constant). Other dimensions (energy_dissipation, trust_conditions) do the actual discriminating in workplace composite. Composite not invalid — just not doing what the weight implies.
+
+**Docs updated:** journal §40 (full narrative); psq-status AD compression severity upgraded HIGH;
+agent-card.json `ad-range-compression` limitation (HIGH) added and deployed; Q7 answered in Open Questions.
+
+▶ journal.md §40, psq-status.md updated, agent-card.json deployed

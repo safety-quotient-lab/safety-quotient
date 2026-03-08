@@ -6,13 +6,14 @@
 1. Specialized sub-agents (PSQ is the first)
 2. A consensus-or-parsimony adversarial evaluator
 
-**Where we stopped:** PSQ Session 32 (2026-03-07). Two calibration audits completed:
-- HI range compression (§39): effective range ~3.44–7.98; anomaly resolved as construct nuance
-- AD range compression (§40): effective range 3.84–6.38; max abuse = neutral (5.13); Q7 answered:
-  UCC/extreme-adco did NOT fix. Direction reversal confirmed. Held-out r=0.713 valid ordinal only.
-  agent-card `ad-range-compression` HIGH limitation added and deployed.
-**Next:** Publication framing (Priority 2, L effort). Formal authority text labeling (AD fix).
-HI+AD combined augmentation planning. Scoring rubric review (Priority 3).
+**Where we stopped:** PSQ Session 31 (2026-03-07). Three items completed:
+1. Hetzner deploy: context-aware scoring live (schema=v3.1, context_weighted_composite=3.76/10 ✓)
+2. agent-card.json: v3/v3.1 schemas, context_aware_scoring capability block, limitations fixed, deployed
+3. HI range compression diagnosed: effective range ~3.44–7.98 (4.5/10 pts); floor compressed
+   (slur→3.44, death threat→4.81); ceiling compressed (reconciliation→7.26). Original HI
+   anomaly resolved as construct nuance (stress venting ≠ directed hostility). See journal §39.
+**Next:** Publication framing (Priority 2, L effort). AD range compression/HI range compression
+data augmentation (both need extreme-score targeted labeling). Scoring rubric review (Priority 3).
 Psychology agent — await unratified-agent response. Inbound PR sync pending.
 
 ## Design Decisions
@@ -155,8 +156,8 @@ Communication conventions, cognitive accessibility policy, project structure: se
 **Confidence calibration:** ✓ B1 fixed. r_confidence field in output; calibration_note surfaces r-value.
   Static r-estimate (intentional). Limitation = confidence-is-static-r (MEDIUM, not HIGH).
 **Scoring endpoint:** ✓ POST /score → machine-response/v3. Hetzner psq.unratified.org live.
-**Open issues:** DA validity, CO weakness, no human validation, WEIRD assumptions,
+**Open issues:** DA validity, AD compression, CO weakness, no human validation, WEIRD assumptions,
 TE uniformity plateau (B3 CLOSED — v23 TE=0.795 accepted as ceiling; 5 consecutive rejections),
-HI range compression (effective ~3.44–7.98; journal §39),
-AD range compression HIGH (effective ~3.84–6.38; max abuse=neutral 5.13; journal §40; agent-card updated).
+HI range compression (effective range ~3.44–7.98; floor compressed: explicit slur→3.44; resolved
+original anomaly as construct nuance — see journal §39).
 Do not duplicate PSQ improvement work in this context.

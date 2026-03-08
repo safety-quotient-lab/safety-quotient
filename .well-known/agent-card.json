@@ -98,6 +98,13 @@
       "severity": "MEDIUM",
       "description": "DA (defensive_architecture) has weakest factor loading (0.332) but is paradoxically the strongest criterion predictor. CO (contractual_obligation) is the weakest overall predictor (held-out r = 0.504).",
       "affected_dimensions": ["defensive_architecture", "contractual_obligation"]
+    },
+    {
+      "id": "ad-range-compression",
+      "severity": "HIGH",
+      "description": "authority_dynamics effective output range is ~3.84–6.38 (Dreaddit stress posts) and 5.13–6.38 (formal authority texts), vs. 0-10 scale. Max authority abuse anchor (expected 0) scores 5.13 — indistinguishable from neutral. Direction reversal: coercive authority scores higher than neutral. Training corpus (Dreaddit) contains subordinate-perspective stress posts but no formal authority text (policy documents, manager directives). Held-out r=0.713 is valid as an ordinal rank-order measure within the Dreaddit distribution; absolute AD scores are not interpretable on the 0-10 scale for formal or workplace texts.",
+      "affected_dimensions": ["authority_dynamics"],
+      "mitigation": "Use AD for relative comparisons within social media stress text only. Do not interpret absolute AD scores as indicating a specific level of authority balance. Context-weighted composite (workplace context) is affected — AD contribution near-constant 5.1–5.7 for formal texts; other dimensions drive workplace composite discrimination."
     }
   ],
 
