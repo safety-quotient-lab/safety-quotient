@@ -5,6 +5,9 @@ models/*
 !models/psq-student/
 models/psq-student/*
 !models/psq-student/calibration.json
+!models/psq-student/calibration-v3.json
+!models/psq-student/calibration-v4.json
+!models/psq-student/calibration-v2-isotonic.json
 __pycache__/
 *.pyc
 *.egg-info/

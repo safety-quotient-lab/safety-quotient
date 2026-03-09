@@ -37,9 +37,9 @@ const ROOT = join(__dirname, "..");
 const listeningPort = parseInt(process.env.PSQ_PORT || "3000", 10);
 const listeningHost = process.env.PSQ_HOST || "127.0.0.1";
 
-// Calibration metadata — matches calibration.json fitted 2026-03-08 (v35)
-const CALIBRATION_VERSION = "isotonic-v2-2026-03-08";
-const CALIBRATION_METHOD = "isotonic regression per dimension, n=2113 val";
+// Calibration metadata — matches calibration.json fitted 2026-03-08 (v37, quantile-binned isotonic n_bins=20)
+const CALIBRATION_VERSION = "quantile-binned-v4-2026-03-08";
+const CALIBRATION_METHOD = "quantile-binned isotonic regression per dimension, n_bins=20, n=2113 val";
 const VALIDATION_BASIS = "Dreaddit n=2760, Pearson r=0.680";
 
 // Context-aware scoring: load weight configuration from src/context-weights.json

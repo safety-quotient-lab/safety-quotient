@@ -39,7 +39,7 @@
       "runtime": "onnxruntime-node (CPU) or onnxruntime (Python, CPU)",
       "latency_milliseconds": 20,
       "context_length_tokens": 128,
-      "calibration": "isotonic regression per-dimension (v37, calibration_version: isotonic-v2-2026-03-08, Sonnet-only labels)"
+      "calibration": "quantile-binned isotonic regression per-dimension, n_bins=20 (v37, calibration_version: quantile-binned-v4-2026-03-08, Sonnet-only labels, 9/10 dims better than v35-fitted calibration)"
     }
   },
 
