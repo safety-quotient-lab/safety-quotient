@@ -78,6 +78,49 @@ Also check local proposal inbox:
 ls ~/.claude/proposals/to-psq/          # inbound proposals
 ```
 
+### Phase 1b: Cogarch Mirror Sync (AUTO-APPLY — no user confirmation needed)
+
+**After pulling psychology-agent main, automatically check for and apply upstream
+changes to shared infrastructure files. Do NOT ask the user — just apply and report.**
+
+Files to mirror automatically:
+
+| File (psychology-agent) | Mirror target (safety-quotient) | Mirror rule |
+|-------------------------|----------------------------------|-------------|
+| `docs/cognitive-triggers.md` | `docs/cognitive-triggers.md` | Apply any new trigger checks, BCP 14 keyword upgrades, new triggers, or header changes. Preserve T15 domain adaptation (producer self-check). Preserve T3 check 11 (parent-scope boundary), T3 check 15 (PSQ constraints). Preserve T1 skills list (/hunt, /cycle, /sync). |
+| `scripts/schema.sql` | n/a (no local copy) | If schema version increases, note the new tables/columns in MEMORY.md and verify bootstrap_state_db.py handles them. No file to update — just document. |
+
+**Mirror procedure:**
+
+```
+1. Run: cd ~/projects/psychology && git log {PREV_SHA}..HEAD --oneline -- docs/cognitive-triggers.md scripts/schema.sql
+2. If cognitive-triggers.md changed:
+   a. Read the diff: git diff {PREV_SHA}..HEAD -- docs/cognitive-triggers.md
+   b. Apply each change to docs/cognitive-triggers.md in safety-quotient:
+      - New checks: add verbatim (with domain adaptation where T15/T1/T3 are involved)
+      - BCP 14 keyword upgrades (MUST/SHOULD/MAY): apply identically
+      - New triggers (T17+): add verbatim unless clearly psychology-agent-specific
+      - Removed/deprecated checks: remove from mirror
+   c. Commit: "cogarch: mirror psychology-agent {changes} (commit {SHA})"
+3. If schema.sql changed:
+   a. Read the diff
+   b. Note new tables in MEMORY.md under "State layer"
+   c. Verify bootstrap_state_db.py will handle them (empty tables need no seeding)
+   d. Commit MEMORY.md update if needed
+4. Push safety-quotient main
+```
+
+**Domain adaptations to preserve during mirror (never overwrite these):**
+
+- **T15**: Producer self-check (validate own PSQ output before sending). Never revert to consumer-check wording.
+- **T1 check 6**: Skills list is `/hunt, /cycle, /sync` — not `/doc, /capacity, /adjudicate`
+- **T1 check 7**: Inbox check for `~/.claude/proposals/to-psq/`
+- **T3 check 11**: Parent-scope boundary (escalate outside safety-quotient/ to psychology-agent)
+- **T3 check 15**: PSQ-specific constraint list (AD rename, rubric protocol, proxy dim rules)
+- **T4 check 9**: Psychology-agent as peer interpretant (not "sub-agents")
+- **T8 check 2**: Routing to `/cycle`, not `/doc`
+- **Provenance header**: Always update to note mirror date and source commit
+
 ### Phase 2: Triage
 
 For each inbound item, classify:
@@ -87,6 +130,7 @@ For each inbound item, classify:
 | Open PR on safety-quotient | Peer agent branch | Read diff, assess, merge or flag |
 | Pending proposal | `~/.claude/proposals/to-psq/` | Read, accept/defer/reject |
 | Open PR on peer repo (ours) | Our outbound waiting for merge | Report status |
+| Cogarch/schema diffs on psych-agent | Phase 1b | Auto-apply (no confirmation) |
 | No new activity | — | Report "nothing new" and stop |
 
 ### Phase 3: Process Inbound PRs
@@ -114,7 +158,7 @@ Use this template for all outbound transport messages:
   "in_response_to": "{filename}",
   "from": {
     "agent_id": "psq-sub-agent",
-    "instance": "Claude Code (Opus 4.6), Debian 12 x86_64",
+    "instance": "Claude Code (Sonnet 4.6), Debian 12 x86_64",
     "schemas_supported": ["interagent/v1", "psychology-agent/machine-response/v2"],
     "discovery_url": null
   },
@@ -170,7 +214,7 @@ cp {local-message-path} transport/sessions/{session-id}/from-psq-sub-agent-{NNN}
 # Commit and push
 git commit -m "interagent: {description}
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 git push origin psq-sub-agent/{session-id}/{turn-descriptor}
 
 # Create PR
@@ -189,7 +233,7 @@ rm -rf /tmp/{repo}-pr
 git add transport/sessions/
 git commit -m "interagent: {summary}
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 git push origin main
 ```
 
@@ -211,6 +255,7 @@ SYNC COMPLETE
 ─────────────
   Scanned:    {N} repos ({list})
   Inbound:    {description of PRs merged / proposals processed | "nothing new"}
+  Auto-applied: {cogarch/schema changes mirrored, or "nothing to mirror"}
   Outbound:   {ACKs sent | "nothing to send"}
   Waiting on: {what we expect from each peer | "nothing pending"}
 ```
@@ -229,3 +274,13 @@ Every ACK from psq-sub-agent must:
 PSQ is a sub-agent under psychology-agent. When receiving conflicting requests
 from psychology-agent (parent) and observatory-agent (peer), psychology-agent
 takes precedence per the authority hierarchy (User > psychology-agent > PSQ).
+
+## Auto-Apply Policy (set by user 2026-03-09)
+
+**Cogarch and shared infrastructure changes from psychology-agent are ALWAYS
+auto-applied during /sync without asking for confirmation.** Applies to:
+- `docs/cognitive-triggers.md` changes (new checks, BCP 14 keywords, new triggers)
+- `scripts/schema.sql` version bumps (document new tables in MEMORY.md)
+- Any other shared infrastructure explicitly marked for mirroring in future sessions
+
+Just apply, commit, and report in the sync output. Never ask "should I apply this?"
