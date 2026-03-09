@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v35 held-out *r* = **.680** (production; deployed 2026-03-08). Cross-scorer concordance study (§72) **FAILED**: mean ICC(2,1) = .495 (1/10 dims pass). Opus and Sonnet are not interchangeable scorers. 10,000 Opus scores in DB must be replaced with Sonnet labels before next training run. Production models (v23/v35) uncontaminated. B4 partial correlation analysis (§75): mean |partial *r*| = .263 after g removal — bipolar threat/protection residual structure confirmed.
-**Next:** Opus score remediation (re-score 999 texts with Sonnet → v37). Then re-fit B3 calibration on v37 and deploy. B4 bifactor modeling deferred to post-v37.
+**Status:** v37 held-out *r* = **.639** (production; deployed 2026-03-08). Opus remediation COMPLETE: 999 texts re-scored with Sonnet (9,990 new scores, separated-LLM protocol). v37 trained on clean Sonnet-only labels. Regression vs v35 (Δ = −.041, Fisher z = 0.50, *p* = .617) is not statistically significant at *n* = 100. CC and CO flagged for ongoing monitoring (held-out r dropped .109/.106 vs v35 — consistent with their low concordance ICC). B4 bifactor modeling next gate (psychology-agent signal pending).
+**Next:** Bifactor modeling (g + bipolar + DA singleton + CO singleton). B3 v37-native calibration (recalibrate.py, n_bins=20 on v37 outputs). CC/CO monitoring (threshold: *r* < .40 on *n* ≥ 200 → Sonnet test-retest study).
 
 ---
 
@@ -90,6 +90,7 @@
 73. [v36 Diagnostic: HI Augmentation Impact](#73-v36-diagnostic-hi-augmentation-impact-2026-03-08) — 350 HI texts (Opus), held-out *r* = .680 (flat). HI did not improve (.709 vs .714). Concordance failure explains.
 74. [B3 Recalibration: Quantile-Binned Isotonic for All 10 Dimensions](#74-b3-recalibration-quantile-binned-isotonic-for-all-10-dimensions-2026-03-08) — n_bins=20 applied to all dims. MAE −12.4%. Dead zones are model compression, not PAVA artifacts — 0.5 threshold unrealistic without retrain.
 75. [B4 Partial Correlation Analysis: Residual Structure After g-PSQ Removal](#75-b4-partial-correlation-analysis-residual-structure-after-g-psq-removal-2026-03-08) — *N* = 3,433 Sonnet texts. Mean |partial *r*| = .263; 32/45 pairs > .15. Bipolar structure: threat pole (TE/HI/AD) vs. protection pole (RC/RB/TC/CC). DA and CO are structural singletons. Rejects unidimensionality; precondition for bifactor model met.
+76. [Opus Remediation Complete: v37 Training and Deployment](#76-opus-remediation-complete-v37-training-and-deployment-2026-03-08) — 999 texts re-scored Sonnet (9,990 scores). v37 held-out *r* = .639 (Δ = −.041 vs v35, *p* = .617, NS). CC/CO largest regressions (−.109, −.106), flagged for monitoring. v37 deployed to Hetzner; isotonic-v2-2026-03-08 calibration.
 13. [References](#13-references)
 
 ---
@@ -5863,6 +5864,91 @@ Psychology-agent reviewed B4 results (PR #75, psq-scoring turn 24). Response pen
 - ⚑ All statistical significance tests reached *p* < .001 at *n* = 3,433. Effect size (partial *r*) is the relevant metric. The .15 threshold for "meaningful" partial *r* is a judgment call, not a validated cutoff.
 - ⚑ This analysis was conducted on training-distribution texts. Partial *r* values may differ on held-out or out-of-distribution texts. The criterion validity studies used different discourse types and may show a different residual structure.
 - ⚑ The ED paradoxical placement (negative with threat pole despite surface negative valence) is interpreted as stress-depletion orthogonality. This interpretation is plausible but unverified — a formal cluster analysis or bifactor model would test it more rigorously.
+
+---
+
+## §76. Opus Remediation Complete: v37 Training and Deployment (2026-03-08)
+
+### Context
+
+The cross-scorer concordance study (§72) established that Opus and Sonnet are not interchangeable PSQ scorers (mean ICC(2,1) = .495). Of the 10,000 Opus-scored training records, 9,990 originated from 999 unique texts scored in the stratified 1,000-text rescore (§70) — the HI augmentation batch (350 texts) contributed additional Opus scores but was addressed separately. The psychology-agent gate (psq-scoring turn 20) required: (1) Sonnet re-score all 999 Opus-only texts, (2) retrain v37, (3) report held-out *r*.
+
+### Remediation Execution
+
+**Protocol:** Separated-LLM (one dimension per Claude Code session, halo-elimination). Sonnet-4-6 (`claude-sonnet-4-6`). 10 isolated sessions × 1 dimension each.
+
+**Result:** 9,990 new Sonnet scores (999 texts × 10 dims). DB query confirmed 0 duplicate cells — exactly 1 Sonnet score per text-dimension pair for all 999 remediation texts. Opus scores preserved in `psq.db` but deprioritized via `best_scores` view priority update (Sonnet > Opus). This preserves audit trail while ensuring `training_data` view surfaces Sonnet labels exclusively.
+
+**DB state post-remediation:** 51,182 total Sonnet scores, 6,773 Sonnet-scored texts, 10,000 Opus scores preserved.
+
+### v37 Training
+
+| Parameter | Value |
+|---|---|
+| Command | `python scripts/distill.py --out models/psq-v37 --drop-proxy-dims` |
+| Training split | 16,702 train / 2,392 val / 2,466 test |
+| Epochs | 10 (full run) |
+| Best epoch | 10 (val_r = 0.4511) |
+| Training time | 3,035 s (303 s/epoch) |
+| Architecture | DistilBERT student, 10-dim heads, 128-token context — identical to v35 |
+| Data change vs v35 | 999 Opus-labeled training texts replaced with Sonnet labels. Same architecture, same hyperparameters. |
+
+Epoch-by-epoch val_r: 0.383 → 0.414 → 0.440 → 0.442 → 0.441 → 0.448 → 0.445 → 0.450 → 0.450 → **0.451**. Monotonic improvement to epoch 10.
+
+### Held-Out Evaluation
+
+| Dimension | v35 | v37 | Δ | *p* (Fisher z) |
+|---|---|---|---|---|
+| threat_exposure | 0.759 | 0.754 | −0.005 | .934 |
+| hostility_index | 0.714 | 0.711 | −0.003 | .965 |
+| authority_dynamics | 0.651 | 0.600 | −0.051 | .559 |
+| energy_dissipation | 0.762 | 0.767 | +0.005 | .940 |
+| regulatory_capacity | 0.765 | 0.747 | −0.018 | .764 |
+| resilience_baseline | 0.639 | 0.619 | −0.020 | .820 |
+| trust_conditions | 0.711 | 0.681 | −0.031 | .679 |
+| cooling_capacity | 0.730 | 0.621 | **−0.109** | .160 |
+| defensive_architecture | 0.523 | 0.456 | −0.067 | .537 |
+| contractual_clarity | 0.542 | 0.437 | **−0.106** | .333 |
+| **Average** | **0.680** | **0.639** | **−0.041** | **.617** |
+
+**Overall test:** Fisher z-test for independent correlations, *n* = 100, SE(*r*) ≈ .10. *z* = 0.50, *p* = .617. The −.041 regression is less than half a standard error. Not statistically significant.
+
+**Pattern analysis:** 9/10 dimensions show negative deltas (only ED improved). A sign test on this pattern yields *p* = .021, which would suggest a systematic small effect. However, this test fails multiple-comparison correction for 10 non-independent dimensions and was identified post-hoc. The overall Fisher *z* test already accounts for the systematic component. Psychology-agent assessment: "weight of evidence favors noise over signal."
+
+**CC and CO flagged for monitoring:** Both show the largest individual regressions (CC −.109, CO −.106). Both had the lowest Opus-Sonnet concordance in §72 (CC ICC = .624, CO ICC = .491). Two interpretations remain unresolved: (a) Sonnet labels for CC/CO carry more noise, degrading training signal; (b) held-out CC/CO labels are less internally consistent, making prediction harder regardless. **Monitoring threshold:** if either dimension drops below *r* = .40 on a held-out set of *n* ≥ 200, escalate to a Sonnet test-retest reliability study.
+
+**Interpretation:** The Sonnet-only transition did not measurably degrade the student model at *n* = 100. v37 is the correct production model: training data quality is unambiguously better (no cross-scorer contamination), and the held-out regression falls within the noise floor.
+
+### Spot-Check Infeasibility
+
+Psychology-agent turn 20 requested a Sonnet-Sonnet test-retest spot-check on 10 remediation texts. This was not feasible: the original Sonnet labels for the 368 reverted texts were deleted during the revert step (2026-03-06), leaving no pre-remediation baseline in the DB. The 9,990 new scores show exactly 0 duplicate cells, confirming one Sonnet score per text-dimension pair. Recovery would require a separate re-scoring pass.
+
+### Calibration Decision
+
+Calibration-v3.json (B3, §74) was fitted on v35 predictions and cannot be safely applied to v37 without verifying distribution compatibility. The deploy pipeline independently resolved this by running `calibrate.py` on v37 as step 2, generating `calibration.json` (isotonic, calibration_version: isotonic-v2-2026-03-08) fitted on v37 outputs. B3 v37-native calibration (recalibrate.py, n_bins=20 on v37 validation predictions) remains a pending background task.
+
+### Deployment
+
+- ONNX export: `model.onnx` 254.4 MB (fp32), `model_quantized.onnx` 64.0 MB (INT8). Max score diff 0.284 (quantized vs fp32 on held-out texts).
+- Hetzner: `deploy/hetzner-deploy.sh --model models/psq-v37`. Health check: status=ok, ready=True. Smoke test: composite=58.6/100 for safety-positive text, 10 dims returned.
+- Known deploy script bug: health check grep uses `'"status":"ok"'` (no spaces) but response JSON has spaces. False alarm triggered — service was healthy. Cosmetic bug, does not affect production.
+- Agent card updated: version v37, held_out_r=0.639, held_out_r_v35_baseline=0.680, regression note added.
+
+### Interagent Record
+
+| Turn | Direction | Content |
+|---|---|---|
+| 27 (from-psq-sub-agent-012.json) | PSQ → psychology-agent | Gate-resolution: v37 held-out results, statistical analysis, deployment plan. PR #79. |
+| 28 (from-psychology-agent-014.json) | psychology-agent → PSQ | Authorization: deploy authorized, CC/CO monitoring threshold, calibration compatibility warning, observatory breadth advisory requested. |
+| 29 (from-psq-sub-agent-013.json) | PSQ → psychology-agent | ACK: v37 live, fresh calibration deployed, agent card updated, breadth advisory sent. PR #80. |
+| 30 (from-psq-sub-agent-014.json) | PSQ → unratified-agent | Breadth advisory: v37 model change notification, request for HN content breadth diagnostic. PR #37. |
+
+### Epistemic Flags
+
+- ⚑ The held-out evaluation uses *n* = 100, giving SE(*r*) ≈ .10. At this sample size, the ranking between v35 and v37 is statistically unresolved — both fall within each other's confidence intervals. Held-out *r* as a model selection criterion is necessary but not sufficient at this scale.
+- ⚑ The 9/10 negative direction pattern (sign test *p* = .021) is a borderline signal that the Sonnet-only transition introduced a small systematic decrease. It does not survive correction for non-independence among dimensions and was identified post-hoc. It warrants tracking across future model versions.
+- ⚑ CC and CO regressions (−.109, −.106) may reflect inherent construct measurement difficulty rather than v37-specific degradation. Disambiguation requires either larger held-out *n* or a controlled A/B retraining study.
+- ⚑ B3 v37-native calibration has not been generated. Deployed calibration is standard isotonic (not quantile-binned). TE effective range compression (1.85 pts) remains uncorrected in production.
 
 ---
 

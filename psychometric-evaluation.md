@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-01
 **Scope:** Evaluation of PSQ against established psychometric best practices (AERA, APA, & NCME, 2014)
-**Status:** v23 DistilBERT — held-out *r* = **.684** (corrected from .696 after max_length eval bug fix). 7/10 dims improved: ED +.056 (.712 → .768), CO +.045 (.504 → .549), AD +.030, RC +.026, CC +.020. Test-split paradox documented (test *r* = .387 uses mixed labels; held-out *r* is the valid metric). Four criterion validity studies. Hierarchical model: PSQ → clusters → dimensions.
+**Status:** v37 DistilBERT (production 2026-03-08) — held-out *r* = **.639** (Sonnet-only training labels; Δ = −.041 vs v35 0.680, Fisher z = 0.50, *p* = .617, not significant). Criterion validity studies conducted under v23 (held-out *r* = .684). Production model history: v23 → v35 → v37. Four criterion validity studies. Hierarchical model: PSQ → clusters → dimensions.
 
 **Citation conventions:** This document follows APA 7th edition formatting. Test statistics are italicized (*r*, *p*, *d*, *N*), leading zeros are suppressed on *p*-values, and degrees of freedom are included where available.
 

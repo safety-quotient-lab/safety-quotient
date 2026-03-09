@@ -10,45 +10,47 @@ Structured extraction from research sessions. Each entry records what was done, 
 
 ## Current State *(overwrite each session)*
 
-### Model: v35 (production, 2026-03-08)
+### Model: v37 (production, 2026-03-08)
 
 | Metric | Value |
 |---|---|
 | Architecture | DistilBERT-base-uncased (66.7M params) |
-| Held-out r (avg 10 dims) | **0.680** (v23 was 0.684; accepted as marginal sidegrade) |
-| Test r | 0.420 |
+| Held-out r (avg 10 dims) | **0.639** (v35 was 0.680; Δ=−0.041, p=0.617, not significant) |
+| Test r | 0.387 |
 | Production checkpoint | `models/psq-student/best.pt` |
 | ONNX | `model.onnx` 254 MB / `model_quantized.onnx` 64 MB INT8 |
-| Deployed | 2026-03-08, psq.unratified.org, 42ms inference |
-| Rollback | git tag `v23-production-backup` |
+| Deployed | 2026-03-08, psq.unratified.org, calibration: isotonic-v2-2026-03-08 |
+| Rollback | `models/psq-v35/` (v23 also tagged `v23-production-backup`) |
 
-### Per-dimension held-out r (v35 production vs v23 backup)
+### Per-dimension held-out r (v37 production vs v35 prior)
 
-| Dim | **v35** | v23 | Δ | Direction |
+| Dim | **v37** | v35 | Δ | Direction |
 |---|---|---|---|---|
-| regulatory_capacity | **0.765** | 0.768 | −0.003 | ≈ |
-| energy_dissipation | **0.762** | 0.760 | +0.002 | ≈ |
-| threat_exposure | **0.759** | 0.795 | −0.036 | ↓ |
-| cooling_capacity | **0.730** | 0.736 | −0.006 | ≈ |
-| hostility_index | **0.714** | 0.669 | +0.045 | ↑ |
-| trust_conditions | **0.711** | 0.681 | +0.022 | ↑ |
-| authority_dynamics | **0.651** | 0.713 | −0.062 | ↓ |
-| resilience_baseline | **0.639** | 0.597 | +0.113 | ↑↑ |
-| contractual_clarity | **0.542** | 0.538 | +0.061 | ↑ |
-| defensive_architecture | **0.523** | 0.588 | −0.024 | ↓ |
-| **Average** | **0.680** | 0.684 | **−0.004** | ≈ |
+| regulatory_capacity | **0.747** | 0.765 | −0.018 | ≈ |
+| energy_dissipation | **0.767** | 0.762 | +0.005 | ≈ |
+| threat_exposure | **0.754** | 0.759 | −0.005 | ≈ |
+| cooling_capacity | **0.621** | 0.730 | −0.109 | ↓ ⚑ |
+| hostility_index | **0.711** | 0.714 | −0.003 | ≈ |
+| trust_conditions | **0.681** | 0.711 | −0.031 | ≈ |
+| authority_dynamics | **0.600** | 0.651 | −0.051 | ↓ |
+| resilience_baseline | **0.619** | 0.639 | −0.020 | ≈ |
+| contractual_clarity | **0.437** | 0.542 | −0.106 | ↓ ⚑ |
+| defensive_architecture | **0.456** | 0.523 | −0.067 | ↓ |
+| **Average** | **0.639** | 0.680 | **−0.041** | ↓ |
 
-6/10 improved, 4 regressed. RB largest gain (+0.113). AD largest regression (−0.062). Overall delta within noise (SE≈0.10 at n=99).
+9/10 dims show negative deltas (only ED improved). Fisher z=0.50, p=0.617 (not significant at n=100). ⚑ CC and CO flagged for monitoring — threshold r<0.40 on n≥200 triggers Sonnet test-retest study.
 
 ### Database (data/psq.db)
 
 | | Count |
 |---|---|
 | Texts | 24,639 |
-| Total scores | 106,703 |
-| Separated-LLM (method=separated-llm) | 53,113 |
+| Total scores | 106,703+ (post-remediation) |
+| Separated-LLM (method=separated-llm) | 53,113+ (post-HI batch) |
+| Sonnet-scored texts | 6,773 |
+| Opus scores preserved (deprioritized) | 10,000 |
 | Held-out set | 100 texts (separate file, not in training) |
-| Train / val / test split | ~17,800 / ~2,170 / ~2,251 texts (--drop-proxy-dims) |
+| Train / val / test split | 16,702 / 2,392 / 2,466 texts (v37 --drop-proxy-dims) |
 
 ### Labeling Batches (ingested)
 
@@ -77,6 +79,7 @@ Structured extraction from research sessions. Each entry records what was done, 
 | te-expansion-f4 | 350 | threat_exposure | unlabeled-pool: 200 prosocial + 150 esconv; distribution-rebalanced (source gaps vs held-out); score=5=23.4%; TE sep-llm; ingested 2026-03-07; drove v33 |
 | synthetic-ad-augmentation | 260 | authority_dynamics | Synthetic formal authority texts spanning full AD range. AD sep-llm only; drove v34. |
 | rescore-1000 | 1,000 | all 10 dims | **NEW 2026-03-08.** Stratified training texts rescored via 10 isolated `claude -p` sessions (Opus scorer). 10,000 new scores. First Opus batch. Drove v35 (production). |
+| opus-remediation-999 | 999 | all 10 dims | **2026-03-08.** Re-scored all 999 Opus-only texts with Sonnet (separated-LLM, 10 sessions × 1 dim). 9,990 new Sonnet scores. Drove v37 (production). |
 
 ### Criterion Validity Studies
 
@@ -104,7 +107,9 @@ Cross-study: profile >> average in all studies. AD positive in DonD (r_pb=+0.138
 | 25 residual pre-revert scores | Open — 7 TE (civil), 18 DA (ucc), half-point values from 2026-02-27 |
 | Expert validation recruitment | Not started — protocol designed |
 | B3 (TE uniformity) — unlabeled-pool expansion | **CLOSED.** v23 TE=0.795 accepted as ceiling. SE(r)≈0.10 noise floor makes further TE gains unresolvable at n=99. v35 TE=0.759 (−0.036, within noise). |
-| Cross-scorer consistency (Opus vs Sonnet) | **MEASURED — FAIL.** Concordance study: mean ICC(2,1) = 0.495 (1/10 pass). Opus not interchangeable with Sonnet. 10,000 Opus scores in DB must be re-scored with Sonnet. Production (v23/v35) uncontaminated. |
+| Cross-scorer consistency (Opus vs Sonnet) | **REMEDIATED.** 999 Opus-only texts re-scored with Sonnet (9,990 new scores). v37 trained on clean Sonnet-only labels. Deployed 2026-03-08. Opus scores preserved but deprioritized (best_scores view: Sonnet > Opus). |
+| CC/CO monitoring (v37 regressions) | **MONITORING.** CC −0.109, CO −0.106 vs v35. Threshold: r<0.40 on n≥200 → Sonnet test-retest. Not at threshold yet. |
+| Deploy script health check bug | **Open (cosmetic).** Grep uses '"status":"ok"' (no spaces) but response has spaces. False alarm on health check. Service was healthy. Fix needed in hetzner-deploy.sh. |
 
 ---
 
@@ -435,8 +440,9 @@ Best sources: dreaddit (62% informative), berkeley (53.5%).
 | v29 | rescore-368 + --drop-proxy-dims | 0.383 | 0.668 | B3 (TE uniformity) F2 (368 re-scored sep-llm) — TE=0.734, REJECTED |
 | v30 | Single-task TE only | — | TE=0.762 | Multi-task bonus +0.033 confirmed |
 | v31 | +500 TE expansion texts | 0.384 | 0.679 | B3 F3 (unlabeled-pool expansion, 500 texts) — TE=0.773, REJECTED |
-| v35 | +1,000 Opus rescore | 0.420 | 0.680 | Marginal sidegrade (6/10 up, 4 down). **Production.** v23 tagged as rollback. |
+| v35 | +1,000 Opus rescore | 0.420 | 0.680 | Marginal sidegrade (6/10 up, 4 down). Prior production. v23 tagged as rollback. |
 | v36 | +350 HI augmentation (Opus) | 0.416 | 0.680 | HI=0.709 (−0.005 vs v35). **DIAGNOSTIC ONLY** — concordance gate failed. |
+| **v37** | Opus remediation (999 texts → Sonnet) | 0.387 | **0.639** | Δ=−0.041 vs v35, p=0.617 (NS). Clean Sonnet-only labels. CC/CO flagged. **Production.** Deployed 2026-03-08. |
 
 *held-out_r corrected with max_length=128 eval (was inflated ~0.012 with 256-token eval bug).
 
@@ -1187,3 +1193,47 @@ migrate.py --ingest data/ad-augmentation-assembled.jsonl
 **Docs updated:** EXPERIMENTS.md (v32/v33/v34), distillation-research.md (status line + ToC + §75), journal.md (§42), TODO.md (B4 complete + B3 threshold revision noted), lab-notebook.md (Open Questions Q10 + this entry), MEMORY.md (B4 findings)
 
 ▶ distillation-research.md §75 (B4 analysis), journal.md §42 (B4 narrative)
+
+---
+
+### Session `20260308-2021` (Opus remediation complete — v37 trained, evaluated, deployed)
+
+**Context:** Continuation of sessions 37/37a. Opus remediation (re-scoring 999 texts with Sonnet) was in progress across prior sessions. This session: monitored v37 training to completion, ran held-out evaluation, delivered gate-resolution to psychology-agent, deployed v37 to Hetzner, received authorization (psychology-agent turn 28), sent ACK + breadth advisory.
+
+**Opus remediation complete:**
+- 999 texts × 10 dims = 9,990 new Sonnet scores (separated-LLM protocol, 10 sessions × 1 dim)
+- 0 duplicate cells — DB confirms exactly 1 Sonnet score per text-dimension pair
+- Opus scores preserved in psq.db; `best_scores` view priority updated: Sonnet > Opus
+- DB state: 51,182 total Sonnet scores, 6,773 Sonnet-scored texts, 10,000 Opus scores preserved
+
+**v37 training:**
+- `distill.py --out models/psq-v37 --drop-proxy-dims`. Best epoch 10 (val_r=0.4511). 3,035s.
+- Training split: 16,702 / 2,392 / 2,466
+
+**Held-out evaluation:**
+- held_out_r = **0.639** (v35=0.680, Δ=−0.041, Fisher z=0.50, p=0.617, NS)
+- 9/10 dims negative; only energy_dissipation improved (+0.005)
+- CC (−0.109) and CO (−0.106) largest regressions — flagged for monitoring
+- CC/CO threshold: r<0.40 on n≥200 → escalate to Sonnet test-retest study
+
+**Psychology-agent gate (turn 27/28/29):**
+- Turn 27 (psq-012): gate-resolution sent, PR #79 merged to psychology-agent
+- Turn 28 (psych-014): deployment AUTHORIZED. CC/CO monitoring noted. Calibration-v3 distribution warning.
+- Turn 29 (psq-013): ACK — v37 live, fresh calibration deployed, agent card updated. PR #80.
+
+**Deployment:**
+- ONNX: fp32 254.4 MB, INT8 64 MB (max diff 0.284 quantized)
+- Hetzner: https://psq.unratified.org/score — status=ok, ready=True, smoke test composite=58.6/100
+- Calibration: isotonic-v2-2026-03-08 (fresh v37 calibration; calibration-v3.json NOT applied — distribution mismatch risk)
+- Agent card: version v35→v37, held_out_r 0.680→0.639, calibration string updated, regression note added
+
+**Breadth advisory (turn 30, psq-014):**
+- Sent to unratified-agent (PR #37 on unratified repo) — v37 model change notification + HN content breadth diagnostic request
+- Architecture unchanged; breadth compression likely persists on HN content
+
+**JSON fix:** from-psq-sub-agent-012.json had invalid +0.005 literal (JSON does not allow leading +). Fixed locally. (Already merged to psychology-agent as PR #79 — the remote may still have the bug, but it was cosmetic.)
+
+**Spot-check infeasibility:** Sonnet-Sonnet test-retest for remediation texts not feasible — original Sonnet labels deleted during 2026-03-06 revert step. No pre-remediation baseline in DB.
+
+▶ distillation-research.md §76 (Opus remediation + v37 training + deployment)
+

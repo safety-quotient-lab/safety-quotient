@@ -4,32 +4,34 @@ Last updated: 2026-03-08
 
 ## Priority 1: Immediate
 
-### Cross-scorer concordance remediation [ACTIVE]
+### Cross-scorer concordance remediation [COMPLETE — 2026-03-08]
 
-**Status:** Concordance study COMPLETE — gate FAILS (ICC 0.495, 1/10 dims pass). 10,000 Opus scores in DB are not interchangeable with Sonnet. Production models (v23/v35) are uncontaminated.
+**Status:** COMPLETE. 999 Opus-only texts re-scored with Sonnet (9,990 new Sonnet scores, separated-LLM protocol). v37 trained on clean Sonnet-only labels. v37 deployed to Hetzner 2026-03-08 as production model.
 
 **Sequence:**
 1. ✓ Design concordance study (docs/concordance-study-protocol.md)
 2. ✓ Score 50 texts × 10 dims with Opus (separated-LLM, blind)
 3. ✓ Analyze: mean ICC(2,1) = 0.495 ("poor"), 1/10 pass
 4. ✓ Notify psychology-agent (PR #71, T19)
-5. ✗ **NEXT:** Re-score 999 Opus-only texts with Sonnet (~3 hrs, 10 sessions × 1 dim)
-6. ✗ Retrain with Sonnet-only labels
+5. ✓ Re-scored 999 Opus-only texts with Sonnet (10 sessions × 1 dim, separated-LLM)
+6. ✓ v37 retrained on clean Sonnet-only labels. held-out_r=0.639 (Δ=−0.041 vs v35, p=0.617, NS).
 7. ✓ B3 recalibration steps 1-4 (quantile-binned isotonic, all 10 dims)
-8. ✗ B3 steps 5-6 (deploy v3 calibration to Hetzner + notify downstream)
+8. [ ] B3 v37-native calibration (recalibrate.py on v37 outputs — calibration-v3 was v35-fitted, not applied)
+9. [ ] B3 step 6: Notify downstream once v37-native calibration deployed
 
-See distillation-research.md §72/§73/§74.
+See distillation-research.md §72/§73/§74/§76.
 
-### B3 recalibration — quantile-binned isotonic (psychology-agent T17) [STEPS 1-4 COMPLETE]
+### B3 recalibration — quantile-binned isotonic (psychology-agent T17) [STEPS 1-4 COMPLETE; v37-NATIVE PENDING]
 
-**Status:** Steps 1-4 complete. Steps 5-6 deferred pending Opus remediation.
+**Status:** Steps 1-4 complete on v35 outputs. v37 deployed with fresh standard isotonic calibration (not quantile-binned). B3 quantile-binned calibration needs to be re-run on v37 outputs before deployment.
 
 - [x] Step 1: Apply n_bins=20 to all 10 dims → `calibration-v3.json`. MAE −12.4%.
 - [x] Step 2: Dead-zone scan → 0/10 pass 0.5 threshold. **Dead zones are model compression, not PAVA.** Threshold revision needed.
 - [x] Step 3: Archive `calibration-v2.json` alongside v3.
 - [x] Step 4: `scripts/recalibrate.py` — historical score conversion (3 modes).
-- [ ] Step 5: Deploy to Hetzner (pending Opus remediation + deploy decision)
-- [ ] Step 6: Notify downstream (transport message to unratified-agent)
+- [ ] Step 5a: Re-run recalibrate.py on v37 validation predictions (n_bins=20) to generate v37-native B3 calibration. (calibration-v3.json was fitted on v35 distribution — not safe to apply to v37.)
+- [ ] Step 5b: Deploy v37-native quantile-binned calibration to Hetzner (replace standard isotonic).
+- [ ] Step 6: Notify downstream (transport message to unratified-agent once v37 B3 calibration deployed).
 
 **Key finding:** The 0.5 max-plateau threshold is unrealistic. TE has 1.85-point effective range on a 10-point scale — model range compression, not calibration artifact. See §74.
 
@@ -46,6 +48,31 @@ See distillation-research.md §72/§73/§74.
 6. ✓ v36 diagnostic — HI=0.709 (v35=0.714, −0.005). HI did NOT improve.
 
 **Blocked on:** Concordance remediation (re-score with Sonnet).
+
+---
+
+### Bifactor modeling (psychology-agent turn 25 specification) [NEXT GATE]
+
+**Status:** Preconditions met — v37 deployed (stable grounding). Awaiting psychology-agent signal to begin.
+
+**Specification (from psq-scoring turn 25):**
+- 4-component model: g (dominant factor) + bipolar specific factor (threat/protection) + DA singleton + CO singleton
+- ED placement: underdetermined — resolve empirically under bifactor rotation
+- Deliverables: CFI, RMSEA, SRMR, omega_h, omega_s per specific factor
+
+**Gate:** Will not begin until psychology-agent signals readiness. ACK sent in turn 29.
+
+See distillation-research.md §75 (B4 precondition analysis).
+
+---
+
+### CC/CO monitoring [ACTIVE — monitoring threshold not reached]
+
+**Status:** Monitoring. v37 CC=0.621 (−0.109 vs v35), CO=0.437 (−0.106 vs v35). Both flagged by psychology-agent (turn 28).
+
+**Threshold:** If CC or CO drops below r=0.40 on a held-out set of n≥200, escalate to a Sonnet test-retest reliability study for that dimension.
+
+**Current:** CC=0.621 (above threshold), CO=0.437 (above threshold). No immediate action.
 
 ---
 

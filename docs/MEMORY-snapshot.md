@@ -68,15 +68,14 @@ See CLAUDE.md. AD stays as `authority_dynamics`. Rubric changes require controll
 See CLAUDE.md for full workflow. Key: one dim per session, `scripts/label_separated.py`, no API scripts.
 Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble after every 2-3 dims.
 
-## Current model: v35 (production, held-out_r=0.680, deployed 2026-03-08)
-- **v35**: held-out_r=**0.680**. test_r=0.420. 2026-03-08. Epoch 10, val_r=0.471.
-  - `--drop-proxy-dims`. +1,000 texts rescored (Opus, 10 sessions × 1 dim). DB: 24,289 texts, 106,353 scores, 52,763 sep-llm.
-  - First Opus-scored batch (claude-opus-4-6). 6/10 dims improved: RB +0.113, CO +0.061, HI +0.045, TC +0.022, ED +0.021, RC +0.012. 4 regressed: AD −0.062, TE −0.036, DA −0.024, CC −0.023.
-  - ONNX exported + deployed to Hetzner 2026-03-08. Calibrated (isotonic). 42ms inference.
-  - **v23 tagged as backup**: git tag `v23-production-backup` (held-out_r=0.684).
-- **v31** (2026-03-07): **REJECTED**. 500 TE texts added. TE=0.773, overall=0.679. **REJECTED.**
-- **v29** (2026-03-07): **REJECTED**. 368-text rescore. Overall=0.668, 6 dims regressed.
-- **v27** (2026-03-01): **REJECTED**. held-out_r=0.655, same-session halo contamination.
+## Current model: v37 (production, held-out_r=0.639, deployed 2026-03-08)
+- **v37**: held-out_r=**0.639**. test_r=0.387. 2026-03-08. Epoch 10, val_r=0.4511. 3,035s.
+  - `--drop-proxy-dims`. Opus remediation: 999 texts re-scored Sonnet (9,990 scores, separated-LLM). Clean Sonnet-only.
+  - Δ vs v35 = −0.041, Fisher z=0.50, p=0.617 (NS). CC −0.109, CO −0.106 flagged (monitoring threshold: r<0.40 on n≥200).
+  - ONNX exported + deployed to Hetzner 2026-03-08. Calibration: isotonic-v2-2026-03-08.
+  - Rollback: `models/psq-v35/`. v23 tagged `v23-production-backup` (held-out_r=0.684).
+- **v35**: Prior production (replaced 2026-03-08). Opus contamination reason for replacement.
+- **v36**: DIAGNOSTIC ONLY. HI batch Opus-scored; concordance gate failed.
 - **max_length bugs** (ALL FIXED 2026-03-01): eval/calibrate/distill had 256→128.
 - Context length: 128 tokens optimal. Confidence: B1 FIXED — static held-out r. B2 FIXED — isotonic-v2.
 - distill.py: `--out DIR`, `--no-save`, `--no-cap`, `--bifactor`, `--drop-proxy-dims`
@@ -180,18 +179,17 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Namespace**: `psy:psq` / PSQ-Full (vs `obs:psq` / PSQ-Lite on observatory-agent)
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
-- **Production endpoint**: `https://psq.unratified.org/score` (Hetzner CX → Caddy TLS → Node.js localhost:3000). 38ms inference. onnxruntime-node fix durable (postinstall script). Firewall: SSH/HTTP/HTTPS only. calibration_version: isotonic-v2-2026-03-06.
-- **B1 fix deployed (2026-03-07)**: student.js uses static held-out Pearson r from calibration.json `r_confidence` (not dead model confidence head). Response includes `confidence_type: "held_out_r"`.
-- **B3 CLOSED (2026-03-07)**: v29–v33 all rejected. v23 TE=0.795 accepted as production ceiling. SE(r)≈0.10 noise floor at n=99 makes further TE gains unresolvable.
-- **Context-aware scoring (v3.1)**: 5 contexts (moderation/persuasion/negotiation/workplace/therapeutic). `context-weights.json` + server.js. Deployed to Hetzner 2026-03-07. Backward-compatible (v3 when no context param).
-- **Deploy script fixed (2026-03-08)**: `ubuntu@` → `root@`, added remote backup step (.bak before rsync), fixed step numbering, fixed smoke test response parsing, fixed calibrate/export CLI args.
-- **Cross-scorer concordance (2026-03-08)**: FAILED. Mean ICC(2,1) = 0.495 (1/10 pass). Opus not interchangeable with Sonnet. Opus scores +0.25 higher, HI bias +0.82. Production uncontaminated. 10,000 Opus scores in DB must be re-scored with Sonnet before next training run. See distillation-research.md §72.
-- **v36 diagnostic (2026-03-08)**: held-out 0.680 (= v35). HI=0.709 (−0.005). HI augmentation did NOT improve. Explained by Opus HI bias (+0.82). NOT promoted.
-- **B3 recalibration (2026-03-08)**: Steps 1-4 COMPLETE. n_bins=20, MAE −12.4%. **Key finding: dead zones are model compression, not PAVA.** 0/10 meet 0.5 plateau threshold. TE effective range 1.85 pts. Steps 5-6 (deploy+notify) deferred. `calibration-v3.json` + `scripts/recalibrate.py`. T20 sent (PR #73).
-- **best_scores view updated**: Scorer priority Sonnet > Opus. Opus scores preserved in DB but deprioritized. Once Sonnet re-scores added, they auto-surface.
-- **CLAUDE.md dim names fixed**: 7 display names corrected to match DB (e.g., hostility_index not hostile_intent). Previous mismatch caused agent refusals.
-- **Pending**: Re-score 999 Opus-only texts with Sonnet (~3 hrs, needs Sonnet session). Then retrain + deploy v3 calibration.
-- **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop. Smoke-tested 2026-03-07.
+- **Production endpoint**: `https://psq.unratified.org/score` (Hetzner CX → Caddy TLS → Node.js localhost:3000). onnxruntime-node fix durable. Firewall: SSH/HTTP/HTTPS only. calibration_version: isotonic-v2-2026-03-08 (v37).
+- **B1 fix deployed (2026-03-07)**: student.js uses static held-out Pearson r from calibration.json `r_confidence`. Response includes `confidence_type: "held_out_r"`.
+- **B3 CLOSED (TE branch, 2026-03-07)**: v29–v33 all rejected. v23 TE=0.795 accepted as ceiling. SE(r)≈0.10 noise floor at n=99. B3 quantile-binned calibration (v35-fitted) NOT deployed to v37 (distribution mismatch risk). v37-native B3 calibration pending.
+- **Context-aware scoring (v3.1)**: 5 contexts (moderation/persuasion/negotiation/workplace/therapeutic). `context-weights.json` + server.js. Deployed 2026-03-07. Backward-compatible.
+- **Cross-scorer concordance (2026-03-08)**: REMEDIATED. 999 Opus texts re-scored Sonnet (9,990 scores). v37 trained clean. Opus scores preserved/deprioritized (best_scores: Sonnet > Opus). See §72/§76.
+- **v37 deployment (2026-03-08)**: COMPLETE. held-out_r=0.639 (Δ=−0.041 vs v35, p=0.617, NS). Deployed Hetzner. Agent card updated (version, held_out_r, calibration). Turns 27-30 sent.
+- **B3 recalibration (2026-03-08)**: Steps 1-4 complete on v35. `calibration-v3.json` + `scripts/recalibrate.py`. v37-native B3 pending (recalibrate.py on v37 validation predictions).
+- **Deploy script bug (cosmetic)**: health check grep uses '"status":"ok"' (no spaces) but response has spaces. False alarm only — service was healthy. Fix needed in hetzner-deploy.sh.
+- **CLAUDE.md dim names fixed**: 7 display names corrected to match DB (e.g., hostility_index not hostile_intent).
+- **Pending (next session)**: (1) Bifactor modeling — await psychology-agent signal. (2) B3 v37-native calibration. (3) CC/CO monitoring. (4) Deploy script health check bug fix.
+- **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop.
 
 ## Key files
 - `TODO.md` — project-level task list | `EXPERIMENTS.md` — training run log

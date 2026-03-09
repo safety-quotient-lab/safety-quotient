@@ -29,16 +29,18 @@ Each dimension is scored 0–10. The g-PSQ (unweighted average) provides a singl
 
 ## Model Performance
 
-Current model: **v35** (DistilBERT, held-out r = 0.680)
+Current model: **v37** (DistilBERT, held-out r = 0.639, Sonnet-only training labels)
 
-| Metric | v23 | **v35** |
-|--------|-----|---------|
-| Held-out r | 0.684 | **0.680** |
-| TE | 0.795 | 0.759 |
-| HI | 0.669 | **0.714** |
-| ED | 0.760 | **0.762** |
-| RB | 0.597 | **0.639** |
-| CO | 0.538 | **0.542** |
+| Metric | v23 | v35 | **v37** |
+|--------|-----|-----|---------|
+| Held-out r | 0.684 | 0.680 | **0.639** |
+| TE | 0.795 | 0.759 | 0.754 |
+| HI | 0.669 | 0.714 | **0.711** |
+| ED | 0.760 | 0.762 | **0.767** |
+| RB | 0.597 | 0.639 | 0.619 |
+| CO | 0.538 | 0.542 | 0.437 |
+
+v37 vs v35: Δ = −0.041, Fisher z = 0.50, p = 0.617 (not significant at n=100). Regression within noise floor. v37 uses clean Sonnet-only training labels; v35 had Opus-scored texts in training data.
 
 Held-out evaluation on 100 stratified texts scored by separated LLM scoring (one dimension per session to eliminate halo effects).
 
