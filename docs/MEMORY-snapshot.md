@@ -8,10 +8,11 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 ## Cogarch (adopted 2026-03-09)
 T1-T16 trigger system now active. Canonical source: `docs/cognitive-triggers.md` (in-repo).
 T15 adapted as producer self-check (validate own output before sending, not received output).
-State layer Phase 1: dual-write (markdown = source of truth, SQLite = index). `bootstrap_state_db.py` seeds `state.db`. Phase 2 (live dual-write in /sync + /cycle) pending SL-2 from psychology-agent.
+State layer Phase 1: dual-write (markdown = source of truth, SQLite = index). `bootstrap_state_db.py` seeds `state.db`. Phase 2: `dual_write.py` delivered to psychology-agent (2026-03-09). PSQ /sync now checks `ack_required` flag; ACK skipped when absent/false.
 FA postmortems append to `docs/cognitive-triggers.md` § Postmortem Template.
 EF-1 governance layer applied 2026-03-09: BCP 14 (RFC 2119+8174) keywords active. Seven invariants constrain autonomous actions.
 Schema v3 live (psychology-agent): adds `trust_budget` + `autonomous_actions` tables (EF-1 trust model). bootstrap_state_db.py picks up automatically at next run.
+Schema v5 live (2026-03-09): adds `ack_required` + `ack_received` columns to `transport_messages`. Backward-compatible (DEFAULT 0). Optional ACK protocol — sender sets `ack_required: true` to require explicit receiver ACK; default false uses `processed` column as confirmation. bootstrap_state_db.py picks up automatically.
 **Auto-apply policy**: /sync ALWAYS applies cogarch + schema diffs from psychology-agent without asking. See `.claude/skills/sync/SKILL.md` Phase 1b.
 
 ## Snapshots
@@ -197,4 +198,4 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Cross-scorer concordance (2026-03-08)**: REMEDIATED. 999 Opus texts re-scored Sonnet (9,990 scores). v37 trained clean. Opus scores preserved/deprioritized (best_scores: Sonnet > Opus). See §72/§76.
 - **v37 deployment (2026-03-08)**: held-out_r=0.639. Deployed Hetzner. calibration-v4. `--train-dims dim1,dim2` flag added to distill.py.
 - **B5 bifactor (2026-03-08)**: M5 FINAL — TE/HI/AD vs RC/RB bipolar + DA singleton; ED/CO/TC/CC g-only. CFI=0.9475, RMSEA=0.1286, omega_h=0.938. Detail: §77–79.
-- **Session status (2026-03-09)**: Cogarch Phase 2 COMPLETE. SL-1 merged (PR #90). CO rubric adopted (PR #92). PR #91 open. SL-2 pending.
+- **Session status (2026-03-09)**: Cogarch Phase 2 COMPLETE. SL-1 merged (PR #90). CO rubric adopted (PR #92). PRs #91+#92 merged. SL-2 dual_write.py delivered (psych-agent). Schema v5 live.

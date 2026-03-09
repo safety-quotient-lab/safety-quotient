@@ -142,7 +142,11 @@ For an inbound PR (branch pattern: `{agent}/{session}/{turn}`):
 3. Assess the content — transport message, scoring request, schema update?
 4. If acceptable: `gh pr merge {N} --merge --repo safety-quotient-lab/safety-quotient`
 5. Pull: `git pull --rebase origin main` (stash if needed)
-6. If a response is needed, write it (see Phase 4)
+6. Determine if a response is needed:
+   - Check `ack_required` field on the inbound message. If `true`, an ACK MUST be written.
+   - If `ack_required` is `false` or absent, skip ACK — `processed` state serves as confirmation.
+   - If substantive content requires a response regardless of `ack_required`, write one (see Phase 4).
+7. If `ack_required: true` and no substantive response needed, write a minimal ACK (see Phase 4).
 
 ### Phase 4: Write ACK / Response Messages (interagent/v1)
 
@@ -185,6 +189,7 @@ Use this template for all outbound transport messages:
     "gate_status": "open | blocked",
     "gate_note": "..."
   },
+  "ack_required": false,
   "setl": 0.0,
   "epistemic_flags": ["..."]
 }
