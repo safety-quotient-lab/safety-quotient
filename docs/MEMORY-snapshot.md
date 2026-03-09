@@ -179,16 +179,17 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Namespace**: `psy:psq` / PSQ-Full (vs `obs:psq` / PSQ-Lite on observatory-agent)
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
-- **Production endpoint**: `https://psq.unratified.org/score` (Hetzner CX → Caddy TLS → Node.js localhost:3000). onnxruntime-node fix durable. Firewall: SSH/HTTP/HTTPS only. calibration_version: isotonic-v2-2026-03-08 (v37).
+- **Production endpoint**: `https://psq.unratified.org/score` (Hetzner CX → Caddy TLS → Node.js localhost:3000). onnxruntime-node fix durable. Firewall: SSH/HTTP/HTTPS only. calibration_version: **quantile-binned-v4-2026-03-08** (v37, n_bins=20).
 - **B1 fix deployed (2026-03-07)**: student.js uses static held-out Pearson r from calibration.json `r_confidence`. Response includes `confidence_type: "held_out_r"`.
-- **B3 CLOSED (TE branch, 2026-03-07)**: v29–v33 all rejected. v23 TE=0.795 accepted as ceiling. SE(r)≈0.10 noise floor at n=99. B3 quantile-binned calibration (v35-fitted) NOT deployed to v37 (distribution mismatch risk). v37-native B3 calibration pending.
+- **B3 COMPLETE (2026-03-08)**: Steps 5-6 done. calibration-v4 = quantile-binned isotonic (n_bins=20) on v37 val predictions. 9/10 dims pass (v4 MAE ≤ v3 MAE). TC exception +0.005 (negligible). Deployed to Hetzner as active calibration.json. AD n_bins sensitivity: n_bins=30 gives +1.6pp gain at extrapolation risk; n_bins=20 selected.
+- **calibration files**: `models/psq-student/calibration.json` = v4 (active), `calibration-v3.json` = v35-fitted (archived), `calibration-v2-isotonic.json` = prior standard isotonic (archived).
 - **Context-aware scoring (v3.1)**: 5 contexts (moderation/persuasion/negotiation/workplace/therapeutic). `context-weights.json` + server.js. Deployed 2026-03-07. Backward-compatible.
 - **Cross-scorer concordance (2026-03-08)**: REMEDIATED. 999 Opus texts re-scored Sonnet (9,990 scores). v37 trained clean. Opus scores preserved/deprioritized (best_scores: Sonnet > Opus). See §72/§76.
 - **v37 deployment (2026-03-08)**: COMPLETE. held-out_r=0.639 (Δ=−0.041 vs v35, p=0.617, NS). Deployed Hetzner. Agent card updated (version, held_out_r, calibration). Turns 27-30 sent.
-- **B3 recalibration (2026-03-08)**: Steps 1-4 complete on v35. `calibration-v3.json` + `scripts/recalibrate.py`. v37-native B3 pending (recalibrate.py on v37 validation predictions).
 - **Deploy script bug (cosmetic)**: health check grep uses '"status":"ok"' (no spaces) but response has spaces. False alarm only — service was healthy. Fix needed in hetzner-deploy.sh.
 - **CLAUDE.md dim names fixed**: 7 display names corrected to match DB (e.g., hostility_index not hostile_intent).
-- **Pending (next session)**: (1) Bifactor modeling — await psychology-agent signal. (2) B3 v37-native calibration. (3) CC/CO monitoring. (4) Deploy script health check bug fix.
+- **B5 bifactor gate OPEN (2026-03-08)**: 4-component confirmatory bifactor — g (all 10) + bipolar (TE/HI/AD+ vs RC/RB/TC/CC−) + DA singleton + CO singleton. ED: test on bipolar vs free factor. Software check needed (semopy/factor_analyzer). Psychology-agent PR #82 open.
+- **Pending (next session)**: (1) B5 bifactor modeling (gate OPEN). (2) CC/CO monitoring. (3) Deploy script health check bug fix.
 - **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop.
 
 ## Key files
