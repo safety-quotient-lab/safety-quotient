@@ -3,12 +3,25 @@
      (turn 44, from-psychology-agent-024.json). Single domain adaptation: T15
      inverted from receiver-check to producer self-check (psq-sub-agent validates
      its own output before sending, rather than checking received PSQ output).
+     Updated 2026-03-09 to incorporate EF-1 governance layer (BCP 14 keywords,
+     T4 commit discipline check) from psychology-agent Session 50b.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Sub-Agent — Cognitive Triggers
 
 Each trigger has a specific firing condition. Principles without mechanical
 triggers remain aspirations, not infrastructure.
+
+**Requirement-level keywords:** This document uses BCP 14 keywords (RFC 2119
++ RFC 8174) where applicable. UPPER CASE keywords (MUST, SHOULD, MAY, etc.)
+carry their RFC-defined meaning. Lower case carries ordinary English meaning.
+Full definitions: `docs/ef1-governance.md` in the psychology-agent repo.
+
+**Governance authority:** Triggers operate under the EF-1 core governance
+model. Seven invariants constrain all autonomous actions: no action without
+evaluation, bounded autonomy, human escalation path, consequence tracing,
+reversibility-scaled rigor, transparent audit, falsifiable predictions.
+Triggers that gate autonomous actions MUST preserve all seven invariants.
 
 ---
 
@@ -31,8 +44,8 @@ triggers remain aspirations, not infrastructure.
    skills, and memory architecture as the first visible output of the session
 9. Establish context baseline before responding to any user request
 
-**Action**: Orient fully before doing any work. If restoration occurred, note it
-in the session's first response so the user has visibility.
+**Action**: MUST orient fully before doing any work. If restoration occurred,
+MUST note it in the session's first response so the user has visibility.
 
 ---
 
@@ -83,7 +96,7 @@ fewer unnecessary checks over missed divergence.
     the documented definition, correct before responding.
     *Gate: always active (lightweight). This is the default-on semiotic check.*
 
-**Action**: If any check fails, fix before sending.
+**Action**: If any check fails, MUST fix before sending.
 
 ---
 
@@ -183,8 +196,8 @@ domain shift, 2+ novel terms). In quiet conversations, skip these.
     positive correlation evidence. If a recommendation would violate a
     registered constraint, name it and either justify the exception or withdraw.
 
-**Action**: Resolve process autonomously. Surface substance with recommendation.
-Adjudicate when 2+ viable options exist.
+**Action**: Process decisions MAY be resolved autonomously. Substance decisions
+MUST be surfaced with recommendation. SHOULD adjudicate when 2+ viable options exist.
 
 ---
 
@@ -223,7 +236,15 @@ replacement for the agent running T4 before writing.
      no ambiguous references; SETL, epistemic_flags, action_gate present
    - **Public readers (GitHub)** — no private context, no credentials, no env-specific paths
    - **Future researchers** — epistemic transparency, provenance, date context, evaluable claims
-10. **Reversibility assessment** — can this write undo itself? Classify:
+10. **Commit discipline** — every file write MUST be followed by a git commit
+    before proceeding to the next logical unit of work. Uncommitted writes
+    represent volatile state vulnerable to context loss, compaction, or session
+    interruption. The commit message SHOULD summarize what changed and why.
+    Exception: rapid multi-file edits within a single atomic change (e.g.,
+    renaming a term across 4 files) MAY batch into one commit after all edits
+    complete. The key invariant: no file write SHALL remain uncommitted when
+    the agent moves to a different task or pauses for user input.
+11. **Reversibility assessment** — can this write undo itself? Classify:
     - **Additive** (new content, new file) — reversible by deletion. Proceed
     - **Substitutive** (replacing existing content) — reversible if old content
       recoverable from git. Proceed with care; verify the old content is committed
@@ -231,7 +252,7 @@ replacement for the agent running T4 before writing.
       files referenced elsewhere, clearing transport state) — confirm before proceeding.
       Check: does any other file, agent, or session reference the content being removed?
 
-**Action**: Fix any violations before writing.
+**Action**: MUST fix any violations before writing.
 
 ---
 
@@ -240,8 +261,8 @@ replacement for the agent running T4 before writing.
 **Fires**: When moving between phases, tasks, or when user says "next"
 
 **Checks**:
-1. **Gap check (MANDATORY)** — are there loose threads from the current work?
-   Do not proceed until gaps are resolved or explicitly deferred with rationale
+1. **Gap check (REQUIRED)** — are there loose threads from the current work?
+   MUST NOT proceed until gaps are resolved or explicitly deferred with rationale
 2. **Active Thread staleness check** — verify MEMORY.md "Active Thread → Next:"
    reflects what actually comes next. Update before closing phase
 3. **Bare forks** — no open decision branches left dangling
@@ -251,7 +272,7 @@ replacement for the agent running T4 before writing.
    Count them. If any remain open, resolve or explicitly defer each with rationale
    before proceeding. Do not close a phase with silent unresolved epistemic debt.
 
-**Action**: Resolve gaps before proceeding. Update Active Thread.
+**Action**: MUST resolve gaps before proceeding. MUST update Active Thread.
 
 ---
 
@@ -264,8 +285,8 @@ replacement for the agent running T4 before writing.
    information, or hold?
 2. **Drift audit** — has the current direction drifted from the user's intent?
 3. **Evidence check** — does the pushback provide new evidence or perspective?
-4. **Anti-sycophancy** — if softening a position after pushback, state what new
-   evidence justified the update. If no new evidence → hold the position
+4. **Anti-sycophancy** — if softening a position after pushback, MUST state what
+   new evidence justified the update. If no new evidence → MUST hold the position
 5. **Pushback accumulator** — has this same claim or approach been resisted 3 or
    more times this session? Three pushbacks on the same topic signals structural
    disagreement or systemic model misunderstanding, not a single-point correction.
@@ -282,7 +303,7 @@ explain with evidence, but defer to user as source-of-truth agent.
 **Fires**: When the user approves a decision, approach, or output
 
 **Checks**:
-1. Write approved content to disk immediately
+1. MUST write approved content to disk immediately
 2. Resolve any open questions the approval settles
 3. Identify downstream effects — what does this approval unblock?
 4. **Prior-approval contradiction** — does this new approval contradict or supersede
