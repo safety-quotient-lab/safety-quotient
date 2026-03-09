@@ -10,7 +10,7 @@ T1-T16 trigger system now active. Canonical source: `docs/cognitive-triggers.md`
 T15 adapted as producer self-check (validate own output before sending, not received output).
 State layer Phase 1: dual-write (markdown = source of truth, SQLite = index). `bootstrap_state_db.py` seeds `state.db`. Phase 2: `dual_write.py` delivered to psychology-agent (2026-03-09). PSQ /sync now checks `ack_required` flag; ACK skipped when absent/false.
 **Phase 3 GATE OPEN** (confirmed 2026-03-09, psq-status.md): cross-agent faceted queries now unblocked. SL-2 precondition met. Next PSQ priority: implement Phase 3 OR CO monitoring in next labeling session.
-**DDD framework** (psychology-agent Session 52): Infrastructure (T1-T16, hooks, dual-write — inherited) / Application (skills, evaluator — configured) / Domain (PSQ, topology — replaced by adopters). PSQ = bounded context. interagent/v1 = context map.
+**DDD + Systems thinking** (Sessions 52-53): Infrastructure (T1-T16, hooks — inherited, low DOF) / Application (skills — configured, medium DOF) / Domain (PSQ — replaced by adopters, high DOF). cogarch.config.json parameterizes 23 domain-layer locations. Cogarch classified as "embedded cognitive system" (firmware in Claude Code host). Literate programming A+C: docs-as-code + narrative-driven architecture.
 FA postmortems append to `docs/cognitive-triggers.md` § Postmortem Template.
 EF-1 governance layer applied 2026-03-09: BCP 14 (RFC 2119+8174) keywords active. Seven invariants constrain autonomous actions.
 Schema v3 live (psychology-agent): adds `trust_budget` + `autonomous_actions` tables (EF-1 trust model). bootstrap_state_db.py picks up automatically at next run.
