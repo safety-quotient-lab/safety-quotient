@@ -16,22 +16,22 @@ Last updated: 2026-03-08
 5. ✓ Re-scored 999 Opus-only texts with Sonnet (10 sessions × 1 dim, separated-LLM)
 6. ✓ v37 retrained on clean Sonnet-only labels. held-out_r=0.639 (Δ=−0.041 vs v35, p=0.617, NS).
 7. ✓ B3 recalibration steps 1-4 (quantile-binned isotonic, all 10 dims)
-8. [ ] B3 v37-native calibration (recalibrate.py on v37 outputs — calibration-v3 was v35-fitted, not applied)
-9. [ ] B3 step 6: Notify downstream once v37-native calibration deployed
+8. ✓ B3 v37-native calibration deployed: calibration-v4.json (quantile-binned isotonic, n_bins=20, 9/10 dims improve over v3, 2026-03-08)
+9. [ ] B3 step 6: Notify unratified-agent once v37 B3 calibration deployed (fold into next unratified message)
 
 See distillation-research.md §72/§73/§74/§76.
 
-### B3 recalibration — quantile-binned isotonic (psychology-agent T17) [STEPS 1-4 COMPLETE; v37-NATIVE PENDING]
+### B3 recalibration — quantile-binned isotonic (psychology-agent T17) [STEPS 1-5 COMPLETE; step 6 pending unratified notification]
 
-**Status:** Steps 1-4 complete on v35 outputs. v37 deployed with fresh standard isotonic calibration (not quantile-binned). B3 quantile-binned calibration needs to be re-run on v37 outputs before deployment.
+**Status:** COMPLETE (deployment). calibration-v4.json is live on Hetzner (quantile-binned isotonic, n_bins=20, fitted on v37 val outputs, 9/10 dims improve over v3). Step 6 (unratified notification) pending — fold into next unratified message.
 
 - [x] Step 1: Apply n_bins=20 to all 10 dims → `calibration-v3.json`. MAE −12.4%.
 - [x] Step 2: Dead-zone scan → 0/10 pass 0.5 threshold. **Dead zones are model compression, not PAVA.** Threshold revision needed.
 - [x] Step 3: Archive `calibration-v2.json` alongside v3.
 - [x] Step 4: `scripts/recalibrate.py` — historical score conversion (3 modes).
-- [ ] Step 5a: Re-run recalibrate.py on v37 validation predictions (n_bins=20) to generate v37-native B3 calibration. (calibration-v3.json was fitted on v35 distribution — not safe to apply to v37.)
-- [ ] Step 5b: Deploy v37-native quantile-binned calibration to Hetzner (replace standard isotonic).
-- [ ] Step 6: Notify downstream (transport message to unratified-agent once v37 B3 calibration deployed).
+- [x] Step 5a: Re-run calibrate.py on v37 val predictions (n_bins=20) → `calibration-v4.json`. 9/10 dims MAE improvement over v3. 2026-03-08.
+- [x] Step 5b: Deploy v37-native quantile-binned calibration to Hetzner. calibration.json = v4. Server CALIBRATION_VERSION updated. 2026-03-08.
+- [ ] Step 6: Notify unratified-agent (fold into next unratified message — v37 advisory PR #37 already open).
 
 **Key finding:** The 0.5 max-plateau threshold is unrealistic. TE has 1.85-point effective range on a 10-point scale — model range compression, not calibration artifact. See §74.
 

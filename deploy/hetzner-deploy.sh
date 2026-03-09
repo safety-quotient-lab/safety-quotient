@@ -68,7 +68,7 @@ fi
 
 echo "Step 2: Calibration ..."
 if [[ "$DRY_RUN" == "false" ]]; then
-    python scripts/calibrate.py --model-dir "${MODEL_DIR}" --out "${LOCAL_STUDENT_DIR}/calibration.json"
+    python scripts/calibrate.py --model-dir "${MODEL_DIR}" --n-bins 20 --out "${LOCAL_STUDENT_DIR}/calibration.json"
 fi
 
 echo "Step 3: ONNX export ..."
@@ -156,7 +156,7 @@ echo "Step 10: Health check ..."
 if [[ "$DRY_RUN" == "false" ]]; then
     HEALTH=$(curl -sf "${HEALTH_URL}" || echo '{"status":"error"}')
     echo "  ${HEALTH}"
-    if ! echo "${HEALTH}" | grep -q '"status":"ok"'; then
+    if ! echo "${HEALTH}" | python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status')=='ok' else 1)" 2>/dev/null; then
         echo "ERROR: Health check failed"
         exit 1
     fi
