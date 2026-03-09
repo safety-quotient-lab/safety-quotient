@@ -5952,6 +5952,96 @@ Calibration-v3.json (B3, §74) was fitted on v35 predictions and cannot be safel
 
 ---
 
+## §77. B5 Bifactor CFA: 4-Component Model, omega_h, DA Paradox Revised (2026-03-08)
+
+### Overview
+
+Confirmatory bifactor factor analysis (CFA) of PSQ 10-dimension scores from *N* = 4,432 Sonnet LLM–labeled texts with complete dimension coverage (all 10 dimensions scored). Software: semopy 2.3.11 (Python). Estimator: maximum likelihood. Data source: `psq.db`, `scorer='claude-sonnet-4-6'`.
+
+### Model Specification
+
+4-component bifactor:
+- **g** (general safety factor): all 10 dimensions
+- **bipolar** (specific): TE, HI, AD, RC, RB, TC, CC — threat pole positive (TE/HI/AD), protection pole negative (RC/RB/TC/CC)
+- **ed_f** (singleton): ED only
+- **da_f** (singleton): DA only
+- **co_f** (singleton): CO only
+
+All factor pairs constrained orthogonal (zero covariance). Factor variances freely estimated.
+
+### Fit Indices
+
+| Model | *χ*² | df | CFI | RMSEA |
+|---|---|---|---|---|
+| M1: 1-factor | 6790.892 | 35 | 0.836 | 0.209 |
+| M3: Bifactor (4-specific) | 2241.317 | 25 | 0.946 | 0.141 |
+
+Δ*χ*²(10) = 4549.575, *p* ≈ 0. Bifactor overwhelmingly preferred.
+
+RMSEA = 0.141 exceeds the 0.06 threshold. At *N* = 4,432, *χ*² is extremely sensitive to minor misspecification. Sources of misfit identified: (1) CC bipolar loading non-significant, (2) TC loading marginal, (3) singleton factor variances near-zero. CFI = 0.946 (near 0.95) indicates the bifactor accounts for most shared variance.
+
+### Factor Loadings
+
+| Indicator | *g* | *bipolar* | *ed_f* | *da_f* | *co_f* | Residual |
+|---|---|---|---|---|---|---|
+| TE | 1.000 (fixed) | 1.000 (fixed) | — | — | — | 0.871 |
+| HI | 1.052 | 1.102 | — | — | — | 0.262 |
+| AD | 0.807 | 0.563 | — | — | — | 0.570 |
+| ED | 0.913 | — | 1.000 (fixed) | — | — | 0.721 |
+| RC | 1.037 | −0.218 | — | — | — | 0.260 |
+| RB | 0.922 | −0.431 | — | — | — | 0.431 |
+| TC | 1.057 | −0.069* | — | — | — | 0.630 |
+| CC | 0.855 | +0.019 (n.s.) | — | — | — | 1.268 |
+| DA | 0.825 | — | — | 1.000 (fixed) | — | 0.499 |
+| CO | 0.717 | — | — | — | 1.000 (fixed) | 0.951 |
+
+*p* < .001 for all loadings except: TC bipolar (*p* = .0005, marginal), CC bipolar (*p* = .421, non-significant).
+
+Factor variances: *g* = 1.856, *bipolar* = 0.778, *ed_f* = 0.022, *da_f* = 0.130, *co_f* = 0.060.
+
+### Omega Coefficients (Rodriguez et al., 2016)
+
+Composite = unit-weighted sum of all 10 indicators.
+
+| Factor | Type | ω | Interpretation |
+|---|---|---|---|
+| *g* | ω_h | **0.942** | 94.2% of composite variance attributable to *g* |
+| *bipolar* | ω_s | 0.033 | Bipolar adds 3.3% to bipolar-subscale reliability |
+| *ed_f* | ω_s | 0.010 | Negligible (var(*ed_f*) = 0.022) |
+| *da_f* | ω_s | 0.069 | Largest singleton; DA captures 6.9% unique |
+| *co_f* | ω_s | 0.031 | Small; CO captures 3.1% unique |
+
+ω_h = 0.942 validates the g-PSQ (unweighted average) as a psychometrically sound summary measure. The 5-factor structure from EFA (§26) survives as approximate residual structure, but the bifactor model reveals it is dominated by *g*.
+
+### ED Model Comparison
+
+M2 (ED on bipolar) vs M3 (ED singleton): Δ*χ*² = 0.343, Δdf = 0. Fit is statistically indistinguishable. ED singleton preferred on theoretical grounds: ED is a context-dependent singleton confirmed in CaSiNo and DonD criterion studies. There is no theoretical basis for ED to load on the threat/protection polarity.
+
+### DA Paradox Revised
+
+Prior claim (from EFA §26): "DA has the weakest Factor 1 loading (0.332) but is the strongest criterion predictor."
+
+Bifactor finding: DA *g* loading = 0.825 — the **third-lowest** of 10, not the lowest. CO has the weakest *g* loading (0.717). The EFA result was a rotation artifact (oblique/orthogonal rotation does not produce unique solutions; DA's uniqueness was attributed to the residual factors in EFA).
+
+DA variance decomposition:
+- *g* contribution: 66.8%
+- *da_f* singleton: 6.9%
+- Residual (unique, unexplained): 26.3%
+
+Revised interpretation: DA's criterion validity superiority arises from content specificity (peer-context status negotiation — Edmondson, 1999; French & Raven, 1959), not from structural isolation from *g*. DA is both a reliable *g*-marker (0.825) and a domain-specific signal through its unique variance. The "paradox" was an artifact of the measurement model, not a genuine structural anomaly.
+
+CO is the structurally most isolated dimension (lowest *g* loading = 0.717, unique variance 51.4%). CO's non-significant criterion validity in CMV (*p* = .155) is consistent with this — CO's unique content (norm clarity, fairness expectations) does not generalize to the studied outcomes.
+
+### Recommended Respecification
+
+Relax bipolar factor to 5-indicators (TE/HI/AD/RC/RB). Exclude TC and CC from the bipolar-specific factor; allow them to be g-only indicators. This will reduce misfit (RMSEA expected to drop) while preserving the core bifactor structure. TC (marginal bipolar loading) and CC (non-significant) add noise, not signal, to the bipolar factor.
+
+### Interagent Record
+
+Turn 33 (from-psq-sub-agent-016.json): B3 steps 5-6 gate-resolution. Turn 34 (from-psq-sub-agent-017.json): B5 bifactor results. PR #82 (B3 gate), PR #83 (B5 results) → psychology-agent.
+
+---
+
 ## 13. References
 
 - Borkan, D., Dixon, L., Sorensen, J., Thain, N., & Vasserman, L. (2019). Nuanced metrics for measuring unintended bias with real data for text classification. In *Companion Proceedings of the 2019 World Wide Web Conference* (pp. 491–500). https://doi.org/10.1145/3308560.3317593
