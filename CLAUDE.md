@@ -4,7 +4,7 @@ This file is auto-read by Claude Code on every session start. It contains stable
 project conventions that rarely change. For volatile state (current model version,
 DB counts, in-progress work), see MEMORY.md in the Claude Code memory directory.
 
-**Last updated:** 2026-03-06
+**Last updated:** 2026-03-09
 
 ---
 
@@ -346,6 +346,69 @@ Resolution agreed in `transport/sessions/item2-derivation/psq-lite-response-001.
 - `/hunt` — Systematic work discovery (scans TODO, tasks, git, docs, DB for next actions)
 - `/cycle` — Post-development checklist (update all documentation, commit, clean up)
 - `/sync` — Inter-agent mesh synchronization (check peer repos for PRs/proposals, merge, ACK, deliver)
+
+---
+
+## Cognitive Architecture (Cogarch)
+
+The PSQ sub-agent mirrors the psychology-agent's cognitive architecture (cogarch), per
+the cogarch adoption directive (turn 44, 2026-03-09). This creates shared infrastructure
+for consistent epistemic standards, bidirectional memory sync, and unified failure analysis.
+
+### Trigger System (T1–T16)
+
+Canonical reference: `docs/cognitive-triggers.md` (in-repo, auto-loaded at T1).
+
+16 triggers fire on specific conditions — not aspirational principles, but mechanical checks.
+
+**Domain adaptation from psychology-agent:** T15 is inverted. In the psychology-agent,
+T15 checks received PSQ output (consumer check). Here, T15 checks PSQ output before
+sending (producer self-check): composite status, scale consistency, calibration currency,
+confidence type field, epistemic flags, WEIRD distribution assessment, action gate.
+
+All other triggers (T1–T14, T16) apply without modification.
+
+### State Layer (SQLite, Phase 1)
+
+Dual-write protocol — markdown is the source of truth; SQLite is a queryable index:
+
+1. **Write markdown first** (lab-notebook, transport files, memory files)
+2. **Then write SQLite** — if DB write fails, markdown stands alone
+3. **Recovery** — `scripts/bootstrap_state_db.py --force` rebuilds `state.db` from source
+
+Schema v2 (`scripts/schema.sql`): 9 tables — `transport_messages`, `memory_entries`,
+`decision_chain`, `trigger_state`, `session_log`, `claims`, `epistemic_flags`,
+`psq_status`, `entry_facets`.
+
+Deterministic keys: every row keyed by derivable identifier (kebab-case from source text),
+never by auto-increment alone. Rules in `.claude/rules/sqlite.md`.
+
+Phase 2 (SL-2 dual-write integration): Pending psychology-agent's SL-2 landing.
+Phase 3 (cross-agent faceted queries): Gated on SL-2.
+
+### Memory Conventions
+
+- **MEMORY.md** — always-loaded index (target < 60 lines, hard limit 200). Routing table
+  with minimal inline content; detail lives in topic files
+- **Topic files** — `memory/snapshot-*.md`, `memory/cogarch.md`, etc. Linked from MEMORY.md
+- **Tiered access** annotations in Active Thread: hot (in context), warm (file read away), cold (archived)
+- **Deterministic keys** — all queryable memory entries keyed by kebab-case of their topic + bold key
+
+### Postmortem Format (Cogarch Failure Analysis)
+
+When a trigger fails, document in `docs/cognitive-triggers.md` § Postmortem Template:
+
+```
+FA-{N}: {one-line description}
+Date / Session / Severity: HIGH | MOD | LOW
+What happened (fair witness — facts only)
+Detection latency
+Root cause chain (3 levels)
+Which trigger missed (T{N} Check {M})
+Why it missed / Prevention actions / Status
+```
+
+Shared FA template enables cross-agent failure comparison with psychology-agent.
 
 ---
 

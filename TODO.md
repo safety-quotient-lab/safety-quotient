@@ -17,13 +17,13 @@ Last updated: 2026-03-08
 6. ✓ v37 retrained on clean Sonnet-only labels. held-out_r=0.639 (Δ=−0.041 vs v35, p=0.617, NS).
 7. ✓ B3 recalibration steps 1-4 (quantile-binned isotonic, all 10 dims)
 8. ✓ B3 v37-native calibration deployed: calibration-v4.json (quantile-binned isotonic, n_bins=20, 9/10 dims improve over v3, 2026-03-08)
-9. [ ] B3 step 6: Notify unratified-agent once v37 B3 calibration deployed (fold into next unratified message)
+9. ✓ B3 step 6: Notified unratified-agent of calibration-v4 + omega_h=0.938 validation (PR #38, turn 31, 2026-03-08)
 
 See distillation-research.md §72/§73/§74/§76.
 
-### B3 recalibration — quantile-binned isotonic (psychology-agent T17) [STEPS 1-5 COMPLETE; step 6 pending unratified notification]
+### B3 recalibration — quantile-binned isotonic (psychology-agent T17) [COMPLETE — 2026-03-08]
 
-**Status:** COMPLETE (deployment). calibration-v4.json is live on Hetzner (quantile-binned isotonic, n_bins=20, fitted on v37 val outputs, 9/10 dims improve over v3). Step 6 (unratified notification) pending — fold into next unratified message.
+**Status:** COMPLETE. calibration-v4.json live on Hetzner. Unratified notified (PR #38, turn 31).
 
 - [x] Step 1: Apply n_bins=20 to all 10 dims → `calibration-v3.json`. MAE −12.4%.
 - [x] Step 2: Dead-zone scan → 0/10 pass 0.5 threshold. **Dead zones are model compression, not PAVA.** Threshold revision needed.
@@ -31,7 +31,7 @@ See distillation-research.md §72/§73/§74/§76.
 - [x] Step 4: `scripts/recalibrate.py` — historical score conversion (3 modes).
 - [x] Step 5a: Re-run calibrate.py on v37 val predictions (n_bins=20) → `calibration-v4.json`. 9/10 dims MAE improvement over v3. 2026-03-08.
 - [x] Step 5b: Deploy v37-native quantile-binned calibration to Hetzner. calibration.json = v4. Server CALIBRATION_VERSION updated. 2026-03-08.
-- [ ] Step 6: Notify unratified-agent (fold into next unratified message — v37 advisory PR #37 already open).
+- [x] Step 6: Notified unratified-agent (PR #38, turn 31, 2026-03-08).
 
 **Key finding:** The 0.5 max-plateau threshold is unrealistic. TE has 1.85-point effective range on a 10-point scale — model range compression, not calibration artifact. See §74.
 
