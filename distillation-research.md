@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v37 held-out *r* = **.639** (production; deployed 2026-03-08). Opus remediation COMPLETE: 999 texts re-scored with Sonnet (9,990 new scores, separated-LLM protocol). v37 trained on clean Sonnet-only labels. Regression vs v35 (Δ = −.041, Fisher z = 0.50, *p* = .617) is not statistically significant at *n* = 100. CC and CO flagged for ongoing monitoring (held-out r dropped .109/.106 vs v35 — consistent with their low concordance ICC). B4 bifactor modeling next gate (psychology-agent signal pending).
-**Next:** Bifactor modeling (g + bipolar + DA singleton + CO singleton). B3 v37-native calibration (recalibrate.py, n_bins=20 on v37 outputs). CC/CO monitoring (threshold: *r* < .40 on *n* ≥ 200 → Sonnet test-retest study).
+**Status:** v37 held-out *r* = **.639** (production; deployed 2026-03-08). Sonnet-only labels (999 Opus texts remediated). B5 bifactor structural work stream COMPLETE: M5 final model accepted (g + 5-item bipolar TE/HI/AD vs RC/RB + DA singleton; RMSEA = 0.1286, CFI = 0.9475, ω_h = 0.938; §77–79). CC = 0.621, CO = 0.437 (monitoring; threshold *r* < .40). CO score concentration (49.3% at 5.0) identified as probable root cause of CO's weak held-out *r* — universal across all natural text sources; fix requires CO-targeted data from high-contrast sources (negotiation, stack-exchange).
+**Next:** CO concentration intervention (source-targeted labeling or prompt sharpening experiment). Criterion validity v23 vs v37 framing decision (v37 Sonnet-clean but weaker by Δ = .045). Publication framing (journal.md). Expert validation panel design.
 
 ---
 

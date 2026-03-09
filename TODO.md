@@ -35,9 +35,9 @@ See distillation-research.md §72/§73/§74/§76.
 
 **Key finding:** The 0.5 max-plateau threshold is unrealistic. TE has 1.85-point effective range on a 10-point scale — model range compression, not calibration artifact. See §74.
 
-### AD + HI range compression augmentation (distillation-research.md §69) [BLOCKED — concordance]
+### AD + HI range compression augmentation (distillation-research.md §69) [CLOSED — 2026-03-09]
 
-**Status:** HI batch scored with Opus (350 texts) but concordance study revealed Opus labels are not interchangeable with Sonnet (HI bias +0.82). v36 diagnostic confirmed HI did not improve. HI batch must be re-scored with Sonnet as part of concordance remediation.
+**Status:** CLOSED. Concordance remediation complete (v37 Sonnet-only). DB audit confirmed hi-augmentation-350 texts already had prior Sonnet HI labels — Opus HI scores deprioritized by best_scores view (Sonnet > Opus). Only 1 text (text_id=24211) has Opus-only labels across all dims; training data is clean. HI augmentation did not improve held-out HI (v36: 0.709 vs v35: 0.714). Range compression remains but augmentation approach is exhausted — no further action planned.
 
 **Completed:**
 1. ✓ Source and extract AD batch: 260 synthetic formal authority texts
@@ -46,33 +46,36 @@ See distillation-research.md §72/§73/§74/§76.
 4. ✓ Source HI batch: 350 texts — `data/hi-augmentation-batch.jsonl`
 5. ✓ Label HI batch with Opus — 350 HI scores ingested
 6. ✓ v36 diagnostic — HI=0.709 (v35=0.714, −0.005). HI did NOT improve.
-
-**Blocked on:** Concordance remediation (re-score with Sonnet).
-
----
-
-### Bifactor modeling (psychology-agent turn 25 specification) [NEXT GATE]
-
-**Status:** Preconditions met — v37 deployed (stable grounding). Awaiting psychology-agent signal to begin.
-
-**Specification (from psq-scoring turn 25):**
-- 4-component model: g (dominant factor) + bipolar specific factor (threat/protection) + DA singleton + CO singleton
-- ED placement: underdetermined — resolve empirically under bifactor rotation
-- Deliverables: CFI, RMSEA, SRMR, omega_h, omega_s per specific factor
-
-**Gate:** Will not begin until psychology-agent signals readiness. ACK sent in turn 29.
-
-See distillation-research.md §75 (B4 precondition analysis).
+7. ✓ Block resolved — best_scores view correctly deprioritizes Opus; training clean.
 
 ---
 
-### CC/CO monitoring [ACTIVE — monitoring threshold not reached]
+### Bifactor modeling work stream (B4 + B5) [COMPLETE — 2026-03-08]
 
-**Status:** Monitoring. v37 CC=0.621 (−0.109 vs v35), CO=0.437 (−0.106 vs v35). Both flagged by psychology-agent (turn 28).
+**Status:** COMPLETE. M5 is the final accepted structural model (psychology-agent turn 39).
 
-**Threshold:** If CC or CO drops below r=0.40 on a held-out set of n≥200, escalate to a Sonnet test-retest reliability study for that dimension.
+**M5 final model:** g (all 10 dims) + 5-item bipolar (TE/HI/AD vs RC/RB) + DA singleton. ED, CO, TC, CC are g-only. RMSEA=0.1286, CFI=0.9475, ω_h=0.938. DA paradox resolved: DA g-loading=0.825 (3rd ascending), not weak (prior EFA was rotation artifact). M5b (add CC factor) produced zero improvement.
 
-**Current:** CC=0.621 (above threshold), CO=0.437 (above threshold). No immediate action.
+**Completed:**
+1. ✓ B4 partial correlations (N=3,433): mean |partial r|=0.263, bipolar structure confirmed, DA isolated. (turn 24, §75)
+2. ✓ B5 CFA 4-component model: CFI=0.946, RMSEA=0.141, ω_h=0.942. (turn 32–34, §77)
+3. ✓ B5-R 5-item bipolar respecification (M4): RMSEA=0.1365. (turn 36, §78)
+4. ✓ B5-S structural comparison M5 vs M5b: M5 FINAL, CC diminishing returns confirmed. (turn 38, §79)
+5. ✓ Psychology-agent accepted M5 as final structural model (turn 39).
+
+See distillation-research.md §75–79, journal.md.
+
+---
+
+### CC/CO monitoring [ACTIVE — CO concentration problem identified]
+
+**Status:** CC=0.621 (above threshold, monitoring). CO=0.437 (above threshold but concentration problem found 2026-03-09).
+
+**CO finding (2026-03-09):** 49.3% of Sonnet CO scores are exactly 5.0 — severe scorer anchoring at the midpoint. Universal across all real text sources (empathetic_dialogues 58%, berkeley 55.8%, dreaddit 52%). Only negotiation/structured sources escape it (casino 0%, politeness_stack-exchange 19.8%, synthetic 8.5%). Root cause: CO ("norm clarity, fairness expectations") is genuinely ambiguous in casual text — scorers default to neutral. This is the likely primary driver of CO's weak held-out r.
+
+**Threshold:** If CC or CO drops below r=0.40 on held-out n≥200 → Sonnet test-retest reliability study.
+
+**Next action (CO):** Targeted intervention — options: (a) add negotiation/structured-discourse texts where CO signal is salient (casino-like), (b) CO-specific synthetic batch with explicit contractual anchors, (c) controlled prompt sharpening experiment (scoring-research-plan.md protocol). Run (c) before labeling to avoid mixed-signal training data.
 
 ---
 
