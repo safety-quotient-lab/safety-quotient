@@ -2,7 +2,7 @@
   "agent_id": "psq-sub-agent",
   "name": "PSQ-Full Sub-Agent",
   "description": "Psychoemotional Safety Quotient (PSQ-Full) scorer. Scores English text on 10 orthogonal psychological safety dimensions using a DistilBERT student model via ONNX inference.",
-  "version": "v35",
+  "version": "v37",
   "role": "sub-agent",
   "parent": "psychology-agent",
 
@@ -35,11 +35,11 @@
     },
     "inference": {
       "model": "distilbert-base-uncased (knowledge-distilled)",
-      "model_version": "psq-student v35",
+      "model_version": "psq-student v37",
       "runtime": "onnxruntime-node (CPU) or onnxruntime (Python, CPU)",
       "latency_milliseconds": 20,
       "context_length_tokens": 128,
-      "calibration": "isotonic regression per-dimension (n=1897 val records)"
+      "calibration": "isotonic regression per-dimension (v37, calibration_version: isotonic-v2-2026-03-08, Sonnet-only labels)"
     }
   },
 
@@ -63,7 +63,9 @@
   },
 
   "validation": {
-    "held_out_r": 0.680,
+    "held_out_r": 0.639,
+    "held_out_r_v35_baseline": 0.680,
+    "held_out_regression_note": "v37 vs v35: delta=-0.041, p=0.617 (n=100, not significant). Clean Sonnet-only training labels.",
     "held_out_n": 100,
     "held_out_corpus": "Dreaddit (Reddit stress posts)",
     "criterion_studies": [
