@@ -9,6 +9,8 @@ This file holds volatile state only — current model, DB counts, batch lists, i
 T1-T16 trigger system now active. Canonical source: `docs/cognitive-triggers.md` (in-repo).
 T15 adapted as producer self-check (validate own output before sending, not received output).
 State layer Phase 1: dual-write (markdown = source of truth, SQLite = index). `bootstrap_state_db.py` seeds `state.db`. Phase 2: `dual_write.py` delivered to psychology-agent (2026-03-09). PSQ /sync now checks `ack_required` flag; ACK skipped when absent/false.
+**Phase 3 GATE OPEN** (confirmed 2026-03-09, psq-status.md): cross-agent faceted queries now unblocked. SL-2 precondition met. Next PSQ priority: implement Phase 3 OR CO monitoring in next labeling session.
+**DDD framework** (psychology-agent Session 52): Infrastructure (T1-T16, hooks, dual-write — inherited) / Application (skills, evaluator — configured) / Domain (PSQ, topology — replaced by adopters). PSQ = bounded context. interagent/v1 = context map.
 FA postmortems append to `docs/cognitive-triggers.md` § Postmortem Template.
 EF-1 governance layer applied 2026-03-09: BCP 14 (RFC 2119+8174) keywords active. Seven invariants constrain autonomous actions.
 Schema v3 live (psychology-agent): adds `trust_budget` + `autonomous_actions` tables (EF-1 trust model). bootstrap_state_db.py picks up automatically at next run.
@@ -191,11 +193,7 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
 - **Production endpoint**: `https://psq.unratified.org/score` (Hetzner CX → Caddy TLS → Node.js localhost:3000). onnxruntime-node fix durable. Firewall: SSH/HTTP/HTTPS only. calibration_version: **quantile-binned-v4-2026-03-08** (v37, n_bins=20).
-- **B1 fix deployed (2026-03-07)**: student.js uses static held-out Pearson r from calibration.json `r_confidence`. Response includes `confidence_type: "held_out_r"`.
-- **B3 COMPLETE (2026-03-08)**: Steps 5-6 done. calibration-v4 = quantile-binned isotonic (n_bins=20) on v37 val predictions. 9/10 dims pass (v4 MAE ≤ v3 MAE). TC exception +0.005 (negligible). Deployed to Hetzner as active calibration.json. AD n_bins sensitivity: n_bins=30 gives +1.6pp gain at extrapolation risk; n_bins=20 selected.
-- **calibration files**: `models/psq-student/calibration.json` = v4 (active), `calibration-v3.json` = v35-fitted (archived), `calibration-v2-isotonic.json` = prior standard isotonic (archived).
-- **Context-aware scoring (v3.1)**: 5 contexts (moderation/persuasion/negotiation/workplace/therapeutic). `context-weights.json` + server.js. Deployed 2026-03-07. Backward-compatible.
-- **Cross-scorer concordance (2026-03-08)**: REMEDIATED. 999 Opus texts re-scored Sonnet (9,990 scores). v37 trained clean. Opus scores preserved/deprioritized (best_scores: Sonnet > Opus). See §72/§76.
-- **v37 deployment (2026-03-08)**: held-out_r=0.639. Deployed Hetzner. calibration-v4. `--train-dims dim1,dim2` flag added to distill.py.
-- **B5 bifactor (2026-03-08)**: M5 FINAL — TE/HI/AD vs RC/RB bipolar + DA singleton; ED/CO/TC/CC g-only. CFI=0.9475, RMSEA=0.1286, omega_h=0.938. Detail: §77–79.
-- **Session status (2026-03-09)**: Cogarch Phase 2 COMPLETE. SL-1 merged (PR #90). CO rubric adopted (PR #92). PRs #91+#92 merged. SL-2 dual_write.py delivered (psych-agent). Schema v5 live.
+- **Calibration (2026-03-08)**: B1+B3 COMPLETE. student.js uses `confidence_type: "held_out_r"`. calibration.json = v4 quantile-binned isotonic (n_bins=20, v37). 9/10 dims pass MAE gate.
+- **Context-aware scoring (v3.1)**: 5 contexts. `context-weights.json` + server.js. 2026-03-07.
+- **v37 (2026-03-08)**: held-out_r=0.639. Sonnet-clean. calibration-v4. B5 M5 FINAL (§77–79). Concordance REMEDIATED.
+- **Session status (2026-03-09)**: Phase 2 COMPLETE. PRs #90-92 merged. Schema v5 live. **Phase 3 GATE OPEN.**
