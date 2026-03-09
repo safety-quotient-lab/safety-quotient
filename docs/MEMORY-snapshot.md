@@ -5,6 +5,15 @@
 **Note:** Stable project conventions are now in `CLAUDE.md` (repo root, auto-read).
 This file holds volatile state only — current model, DB counts, batch lists, in-progress work.
 
+## Cogarch (adopted 2026-03-09)
+T1-T16 trigger system now active. Canonical source: `docs/cognitive-triggers.md` (in-repo).
+T15 adapted as producer self-check (validate own output before sending, not received output).
+State layer Phase 1: dual-write (markdown = source of truth, SQLite = index). `bootstrap_state_db.py` seeds `state.db`. Phase 2 (live dual-write in /sync + /cycle) pending SL-2 from psychology-agent.
+FA postmortems append to `docs/cognitive-triggers.md` § Postmortem Template.
+EF-1 governance layer applied 2026-03-09: BCP 14 (RFC 2119+8174) keywords active. Seven invariants constrain autonomous actions.
+Schema v3 live (psychology-agent): adds `trust_budget` + `autonomous_actions` tables (EF-1 trust model). bootstrap_state_db.py picks up automatically at next run.
+**Auto-apply policy**: /sync ALWAYS applies cogarch + schema diffs from psychology-agent without asking. See `.claude/skills/sync/SKILL.md` Phase 1b.
+
 ## Snapshots
 - `memory/snapshot-20260301-1225-paradigm-shift.md` — Summary format + MY REASONING voice protocol. Git tag: `paradigm-shift-summary-format` (919f496). Full 9-order knock-on analysis of voice choice. **Restore point for format paradigm.**
 
@@ -96,7 +105,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 - Key docs: psychometric-evaluation.md §3c, distillation-research.md §26/§42/§43, journal.md §18/§28
 
 ## Database (psq.db)
-- `data/psq.db` — SQLite (24,639 texts, 106,703 scores, 53,113 separated-llm — post-HI-batch 2026-03-08)
+- `data/psq.db` — SQLite (24,639 texts, 116,693 scores, 51,182 Sonnet-scorer — post-cogarch-session 2026-03-09)
 - Splits: train=17,800 / val=2,170 / test=2,251 / held-out=100
 - Schema: `data/schema.sql` — texts, scores, splits, labeling_sessions, models, calibrations, dataset_mappings
 - Migration: `scripts/migrate.py` — bootstraps from existing JSONLs; `--ingest JSONL` for incremental ingest
@@ -164,13 +173,14 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Unique variance** (1-R² vs g): CO=52.2%, AD=40.2%, TE=37.7%, DA=34.3%, ED=33.8%, RB=31.9%, HI=31.5%, CC=24.6%, RC=21.4%, TC=18.7%
 - **Criterion validity explanation**: Profile >> g-PSQ because two texts with same g can differ on threat/protection ratio. DA and CO add orthogonal singleton signal.
 - **Bifactor implication**: Precondition met (18.7-52.2% unique variance). Residual structure is bipolar (1 specific factor + 2 singletons), simpler than 5-factor EFA.
-- Transport: from-psq-sub-agent-010.json (psq-scoring turn 24). Results pending psychology-agent review (PR #75).
+- Transport: from-psq-sub-agent-010.json (psq-scoring turn 24). ACCEPTED by psychology-agent (turn 41).
 
 ## Key construct findings (stable — see distillation-research.md for detail)
 - **ED**: Valid singleton, context-dependent predictor. Docs: §37, §39.
 - **DA**: Weakest factor loading (0.332) but strongest criterion predictor. Requires expert validation.
 - **Scoring experiments**: ALL REJECTED (§50). g-factor is real (§51, range/extremity effect). No prompt changes.
 - **Proxy audit**: 5 dims dropped from proxy (TE/TC/CC/AD/ED). Docs: §52, §55.
+- **CO rubric (2026-03-09)**: UPDATED to Variant B (implicit-vs-absent). Experiment: 3 variants × 50 texts. B: −6pp %@5 (54→48), +0.23 SD, stable mean. Old rubric: score 5 = "neutral — no contractual signals." New rubric: score 5 = "absent — no social obligations present; pure description or self-referential only"; score 4 = "implicit expectations exist but haven't been made explicit." instruments.json updated. PR #92 → psychology-agent.
 
 ## Interagent protocol (2026-03-06)
 - **Agent Card**: `.well-known/agent-card.json` — capability declaration (A2A v0.3.0)
@@ -185,18 +195,6 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **calibration files**: `models/psq-student/calibration.json` = v4 (active), `calibration-v3.json` = v35-fitted (archived), `calibration-v2-isotonic.json` = prior standard isotonic (archived).
 - **Context-aware scoring (v3.1)**: 5 contexts (moderation/persuasion/negotiation/workplace/therapeutic). `context-weights.json` + server.js. Deployed 2026-03-07. Backward-compatible.
 - **Cross-scorer concordance (2026-03-08)**: REMEDIATED. 999 Opus texts re-scored Sonnet (9,990 scores). v37 trained clean. Opus scores preserved/deprioritized (best_scores: Sonnet > Opus). See §72/§76.
-- **v37 deployment (2026-03-08)**: COMPLETE. held-out_r=0.639 (Δ=−0.041 vs v35, p=0.617, NS). Deployed Hetzner. Agent card updated (version, held_out_r, calibration). Turns 27-30 sent.
-- **Deploy script fixed (2026-03-08)**: health check now uses Python JSON parsing (not grep). `--n-bins 20` added to calibrate.py call so future deploys produce quantile-binned calibration by default.
-- **CLAUDE.md dim names fixed**: 7 display names corrected to match DB (e.g., hostility_index not hostile_intent).
-- **B5 bifactor COMPLETE (2026-03-08)**: 4-component CFA (semopy 2.3.11, N=4,432 Sonnet labels). CFI=0.946, RMSEA=0.141, Δchi2=4,550 vs 1-factor (p≈0). omega_h=0.942 (g-PSQ captures 94.2% of composite variance). Bipolar factor: TE/HI/AD+ vs RC/RB− ONLY (CC non-sig p=0.421; TC marginal). ED singleton = bipolar (indistinguishable fit), singleton preferred. DA paradox REVISED: DA g=0.825 (3rd ascending), CO=0.717 (lowest). Prior EFA finding was rotation artifact. See distillation-research.md §77. PR #83 → psychology-agent.
-- **B5-R COMPLETE (2026-03-08)**: 5-item bipolar respecification (M4). RMSEA=0.1365, omega_h=0.939, omega_s(bipolar)=0.072. Turn 36 → psychology-agent. See §78.
-- **B5-S COMPLETE (2026-03-08)**: M5/M5b structural comparison. **M5 = FINAL bifactor model**: 5-item bipolar (TE/HI/AD vs RC/RB) + DA singleton; ED/CO/TC/CC all g-only. RMSEA=0.1286, CFI=0.9475, omega_h=0.938. M5b (add cc_f) zero improvement — cc_f var=0.022, omega_s=0.008. CC residual structurally diffuse; diminishing returns confirmed; M5 accepted as final. Turn 38 → psychology-agent. See §79.
-- **Pending (next session)**: (1) Psychology-agent acceptance of M5 as final. (2) CC/CO monitoring. (3) Notify unratified-agent of calibration-v4 deployment (fold into next unratified message).
-- **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop.
-
-## Key files
-- `TODO.md` — project-level task list | `EXPERIMENTS.md` — training run log
-- `scripts/label_separated.py` — canonical labeling tool | `scripts/distill.py` — training
-- `data/unlabeled-pool.jsonl` — 17,451 unlabeled texts | `data/held-out-test.jsonl` — 100 held-out texts
-- `distillation-research.md` — running research notes | `journal.md` — research narrative
-- `criterion-validity-summary.md` — cross-study criterion validity (v23 reruns 2026-02-28)
+- **v37 deployment (2026-03-08)**: held-out_r=0.639. Deployed Hetzner. calibration-v4. `--train-dims dim1,dim2` flag added to distill.py.
+- **B5 bifactor (2026-03-08)**: M5 FINAL — TE/HI/AD vs RC/RB bipolar + DA singleton; ED/CO/TC/CC g-only. CFI=0.9475, RMSEA=0.1286, omega_h=0.938. Detail: §77–79.
+- **Session status (2026-03-09)**: Cogarch Phase 2 COMPLETE. SL-1 merged (PR #90). CO rubric adopted (PR #92). PR #91 open. SL-2 pending.
