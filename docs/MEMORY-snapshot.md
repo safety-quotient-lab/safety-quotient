@@ -189,8 +189,8 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Deploy script bug (cosmetic)**: health check grep uses '"status":"ok"' (no spaces) but response has spaces. False alarm only — service was healthy. Fix needed in hetzner-deploy.sh.
 - **CLAUDE.md dim names fixed**: 7 display names corrected to match DB (e.g., hostility_index not hostile_intent).
 - **B5 bifactor COMPLETE (2026-03-08)**: 4-component CFA (semopy 2.3.11, N=4,432 Sonnet labels). CFI=0.946, RMSEA=0.141, Δchi2=4,550 vs 1-factor (p≈0). omega_h=0.942 (g-PSQ captures 94.2% of composite variance). Bipolar factor: TE/HI/AD+ vs RC/RB− ONLY (CC non-sig p=0.421; TC marginal). ED singleton = bipolar (indistinguishable fit), singleton preferred. DA paradox REVISED: DA g=0.825 (3rd ascending), CO=0.717 (lowest). Prior EFA finding was rotation artifact. See distillation-research.md §77. PR #83 → psychology-agent.
-- **Next bifactor step**: Respecify bipolar as 5-item (TE/HI/AD/RC/RB; drop CC and TC from bipolar). Expected RMSEA improvement. Awaiting psychology-agent approval.
-- **Pending (next session)**: (1) Bifactor respecification (5-item bipolar). (2) CC/CO monitoring. (3) Deploy script health check bug fix.
+- **B5-R COMPLETE (2026-03-08)**: 5-item bipolar respecification (M4). chi2=2256.766, df=27, CFI=0.946, RMSEA=0.1365 (improved from 0.1414). omega_h=0.9388 (stable). omega_s(bipolar)=0.0717 (doubled from 7-item 0.033 — purer factor). Misfit sources: CC residual=1.267 (largest), near-zero ed_f/co_f singletons, N-sensitivity. Recommended next: M5 (collapse ED/CO to g-only, retain DA singleton). Turn 36 (from-psq-sub-agent-018.json) → psychology-agent. See §78.
+- **Pending (next session)**: (1) M5 structural test (if psychology-agent directs). (2) CC/CO monitoring. (3) Deploy script health check bug fix.
 - **distill.py new flag**: `--train-dims dim1,dim2` — zeroes non-selected dim masks in training loop.
 
 ## Key files

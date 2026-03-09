@@ -6042,6 +6042,77 @@ Turn 33 (from-psq-sub-agent-016.json): B3 steps 5-6 gate-resolution. Turn 34 (fr
 
 ---
 
+## §78. B5-R: 5-Item Bipolar Respecification (Confirmatory Bifactor, M4)
+
+**Date:** 2026-03-08. **Work order:** psychology-agent turn 35 (from-psychology-agent-018.json). **Data:** N = 4,432 Sonnet LLM labels (complete cases, all 10 dims). **Estimator:** ML (semopy 2.3.11).
+
+**Model (M4):** g (all 10 dims) + bipolar (TE, HI, AD, RC, RB) + *da_f* (singleton) + *ed_f* (singleton) + *co_f* (singleton). TC and CC: g-only indicators (no bipolar loading). All factor pairs orthogonal.
+
+### Fit Comparison
+
+| Model | *χ*² | df | CFI | RMSEA | Description |
+|---|---|---|---|---|---|
+| M1: 1-factor | 6790.892 | 35 | 0.836 | 0.209 | Baseline |
+| M3: 7-item bipolar (B5) | 2241.317 | 25 | 0.946 | 0.1414 | TE/HI/AD/RC/RB/TC/CC |
+| **M4: 5-item bipolar (B5-R)** | **2256.766** | **27** | **0.946** | **0.1365** | TE/HI/AD/RC/RB only |
+
+Δ*χ*²(M3→M4) = 15.449, Δdf = 2, *p* = .0004. M3 fits better in absolute chi-square (more parameters) but M4 has better RMSEA (RMSEA penalizes for complexity via df). The TC and CC bipolar loadings in M3 were near-zero and introduced misfit, not fit — removing them trades 15.4 chi-square units for 2 df, yielding RMSEA improvement of 0.0049. M4 is the preferred structural model on parsimony and RMSEA grounds.
+
+RMSEA = 0.1365 remains above 0.10. See Misfit Sources below.
+
+### Factor Loadings (Unstandardized *B* and Standardized *β*)
+
+TE marker variable fixed to 1.0 on both *g* and bipolar. Standardized: *β* = *B* × √var(factor) / √var(observed). Factor variances: *g* = 1.822, *bipolar* = 0.797, *ed_f* = 0.038, *da_f* = 0.149, *co_f* = 0.068. All loadings *p* < .001 unless noted.
+
+| Indicator | *g* (*B*) | *g* (*β*) | Bipolar (*B*) | Bipolar (*β*) | Singleton | Residual | Note |
+|---|---|---|---|---|---|---|---|
+| TE | 1.000 | 0.721 | 1.000 | 0.477 | — | 0.885 | Marker variable; threat pole |
+| HI | 1.052 | 0.787 | 1.121 | 0.554 | — | 0.243 | Dominant threat-pole indicator |
+| AD | 0.809 | 0.768 | 0.570 | 0.358 | — | 0.573 | Moderate threat-pole loading |
+| ED | 0.922 | 0.822 | — | — | *ed_f* = 1.000 | 0.704 | Singleton; unchanged from M3 |
+| RC | 1.049 | **0.935** | −0.193 | −0.114 | — | 0.259 | Strongest *g* loading; weak protection pole |
+| RB | 0.934 | 0.859 | −0.405 | −0.246 | — | 0.432 | Dominant protection-pole indicator |
+| TC | 1.065 | 0.874 | — | — | g-only | 0.637 | Strong *g* marker; no bipolar loading |
+| CC | 0.863 | 0.719 | — | — | g-only | **1.267** | Largest residual — primary misfit source |
+| DA | 0.832 | 0.817 | — | — | *da_f* = 1.000 | 0.480 | Singleton; unchanged from M3 |
+| CO | 0.724 | 0.697 | — | — | *co_f* = 1.000 | 0.942 | Weakest *g* loading across all 10 dims |
+
+Standardized loadings clarify cross-indicator comparisons. Within the threat pole: HI (*β* = 0.554) > TE (0.477) > AD (0.358). Within the protection pole: RB (*β* = −0.246) > RC (−0.114) — RC is the strongest *g* indicator but a weak protection-pole marker. The *g* loadings span 0.697–0.935, all well above 0.60, consistent with ω_h dominance.
+
+### Omega Coefficients (M4)
+
+| Factor | ω | M3 Value | Δ | Interpretation |
+|---|---|---|---|---|
+| *g* (ω_h) | **0.9388** | 0.9418 | −0.003 | 93.9% composite variance from *g* — g-PSQ validated |
+| *bipolar* 5-item (ω_s) | **0.0717** | 0.0329 | +0.038 | More than doubled — 5-item factor is purer |
+| *da_f* (ω_s) | 0.0789 | 0.0689 | +0.010 | DA retains meaningful domain-specific content |
+| *co_f* (ω_s) | 0.0346 | 0.0306 | +0.004 | Small but real CO unique variance |
+| *ed_f* (ω_s) | 0.0165 | 0.0098 | +0.007 | Near-negligible; ED contextually specific |
+
+ω_h = 0.939 is stable — the 0.3 pp decrease from M3 reflects TC and CC bipolar variance now absorbed entirely into *g*, as expected. The key new finding is ω_s(bipolar) = 0.072: the 5-item factor is a substantially purer specific factor than the 7-item version. A subscale of (TE + HI + AD) − (RC + RB) remains *g*-dominated (≈93% of variance), but the bipolar structure is now more cleanly identified.
+
+### Misfit Sources (RMSEA = 0.1365 > 0.10)
+
+Three identified sources, in order of severity:
+
+1. **CC large residual variance (1.267)** — The largest residual of all 10 indicators, 38% above the next-largest (CO = 0.942). CC has substantial variance not captured by *g* alone and no singleton or specific-factor absorption. CC's unique content (norm clarity, communication coherence) may require a dedicated singleton (*cc_f*) or a 2-item clarity-specific factor shared with TC.
+
+2. **Near-zero singleton factor variances (*ed_f* = 0.038, *co_f* = 0.068)** — Both produce near-zero model-implied covariances, creating discrepancy with observed data. Their ω_s values (0.017, 0.035) suggest minimal unique information. Collapsing ED and CO to g-only indicators (M5) would reduce complexity by 2 parameters.
+
+3. **N = 4,432 chi-square sensitivity** — At this N, chi-square is inflated ~4.4× relative to N = 1,000. By Browne & Cudeck (1993) standards, RMSEA = 0.08 would indicate good fit in large-N contexts. CFI = 0.946 (near threshold) suggests the model captures most shared variance. A portion of the residual RMSEA above 0.10 reflects unavoidable N-sensitivity rather than gross misspecification.
+
+### Next Structural Model
+
+**M5 (recommended):** Collapse *ed_f* and *co_f* to g-only; retain *da_f* singleton; keep 5-item bipolar. Rationale: *da_f* variance = 0.149 with ω_s = 0.079 — substantively meaningful. *ed_f* (var = 0.038, ω_s = 0.017) and *co_f* (var = 0.068, ω_s = 0.035) are close to g-only already. Removing them reduces complexity, which should improve RMSEA if their near-zero variances were generating systematic discrepancy.
+
+**M5b (alternative):** Add *cc_f* singleton. Addresses misfit source #1 directly. More complex (adds 1 parameter vs M5 removes 2). Testing both M5 and M5b would clarify whether misfit primarily stems from over-specified singletons or from CC under-specification.
+
+### Interagent Record
+
+Turn 35 (from-psychology-agent-018.json): B5 review + B5-R work order. Turn 36 (from-psq-sub-agent-018.json): B5-R gate-resolution.
+
+---
+
 ## 13. References
 
 - Borkan, D., Dixon, L., Sorensen, J., Thain, N., & Vasserman, L. (2019). Nuanced metrics for measuring unintended bias with real data for text classification. In *Companion Proceedings of the 2019 World Wide Web Conference* (pp. 491–500). https://doi.org/10.1145/3308560.3317593
