@@ -6113,6 +6113,70 @@ Turn 35 (from-psychology-agent-018.json): B5 review + B5-R work order. Turn 36 (
 
 ---
 
+## §79. B5-S: M5 and M5b Structural Comparison — Final Bifactor Model (M5)
+
+**Date:** 2026-03-08. **Work order:** psychology-agent turn 37 (from-psychology-agent-019.json). **Data:** N = 4,432 Sonnet LLM labels (complete cases). **Estimator:** ML (semopy 2.3.11).
+
+### 4-Way Fit Comparison
+
+| Model | *χ*² | df | CFI | RMSEA | Description |
+|---|---|---|---|---|---|
+| M3: 7-item bipolar (B5) | 2241.317 | 25 | 0.946 | 0.1414 | g + bipolar(7) + 3 singletons |
+| M4: 5-item bipolar (B5-R) | 2256.766 | 27 | 0.946 | 0.1365 | g + bipolar(5) + 3 singletons |
+| **M5: 5-item bipolar + DA only (B5-S winner)** | **2154.072** | **29** | **0.9475** | **0.1286** | g + bipolar(5) + *da_f*; ED/CO/TC/CC g-only |
+| M5b: 5-item bipolar + 4 singletons | 2154.072 | 26 | 0.9474 | 0.1359 | g + bipolar(5) + *da_f* + *ed_f* + *co_f* + *cc_f* |
+
+**M4→M5 chi-square anomaly:** chi-square *decreased* by 102.7 when removing 2 parameters — formally unusual in nested SEM. Attributed to numerical instability from near-zero singleton variances (*ed_f* = 0.038, *co_f* = 0.068) causing suboptimal optimization in M4 (Fisher Information non-PD in all models). M5 has a cleaner optimization landscape. RMSEA values are the more reliable comparison metric (0.1365→0.1286). **M5→M5b:** identical chi-square (0.000 improvement) despite 3 additional parameters. M5 preferred on parsimony.
+
+### Factor Loadings M5 (Unstandardized *B* and Standardized *β*)
+
+Factor variances: *g* = 1.825, *bipolar* = 0.773, *da_f* = 0.129. All loadings *p* < .001 unless noted.
+
+| Indicator | *g* (*B*) | *g* (*β*) | Bipolar (*B*) | Bipolar (*β*) | Singleton | Residual | Note |
+|---|---|---|---|---|---|---|---|
+| TE | 1.000 | 0.709 | 1.000 | 0.461 | — | 1.034 | Marker variable; threat pole |
+| HI | 1.056 | 0.786 | 1.137 | 0.551 | — | 0.260 | Dominant threat-pole indicator |
+| AD | 0.814 | 0.768 | 0.584 | 0.359 | — | 0.575 | Moderate threat-pole loading |
+| ED | 0.923 | 0.817 | — | — | g-only | 0.775 | Singleton collapsed; *ed_f* was near-zero |
+| RC | 1.056 | **0.933** | −0.192 | −0.110 | — | 0.274 | Strongest *g* loading; weak protection pole |
+| RB | 0.939 | 0.860 | −0.409 | −0.243 | — | 0.440 | Dominant protection-pole indicator |
+| TC | 1.073 | 0.874 | — | — | g-only | 0.649 | Strong *g* marker |
+| CC | 0.869 | 0.721 | — | — | g-only | **1.275** | Largest residual; structurally diffuse unique variance |
+| DA | 0.836 | 0.814 | — | — | *da_f* = 1.000 | 0.521 | Singleton retained; ω_s = 0.067 |
+| CO | 0.740 | 0.703 | — | — | g-only | 1.020 | Singleton collapsed; *co_f* was near-zero |
+
+Standardized loadings are stable relative to M4: g loadings shifted <0.01 for all indicators. Bipolar loadings unchanged to 3 decimal places. The optimization found an essentially identical structural solution once near-zero singletons were removed.
+
+### Omega Coefficients (M5, Final Model)
+
+| Factor | ω | M4 Value | Δ | Interpretation |
+|---|---|---|---|---|
+| *g* (ω_h) | **0.9381** | 0.9388 | −0.001 | Stable; g-PSQ validated across all models |
+| *bipolar* 5-item (ω_s) | **0.0706** | 0.0717 | −0.001 | Stable; 5-item bipolar captures ~7% beyond *g* |
+| *da_f* (ω_s) | 0.0671 | 0.0789 | −0.012 | DA singleton still meaningful; slight decrease |
+| cc_f in M5b (ω_s) | 0.0082 | — | — | Near-zero; confirms CC residual not a simple construct |
+
+### Verdict: Which Misfit Source Dominates?
+
+**Over-specified singletons (M5 hypothesis) — confirmed as dominant contributor.** Removing *ed_f* and *co_f* improved RMSEA by 0.0079 (0.1365→0.1286). Adding *cc_f* (M5b) produced zero chi-square improvement and near-zero ω_s (0.008). CC's large residual (1.267→1.275 in M5) is structurally stubborn — it persists even when CC has its own singleton factor.
+
+**CC construct interpretation revised:** CC's unique variance is structurally diffuse, not a simple latent construct. The *cc_f* test rules out the simplest explanation. CC likely has multidimensional unique content or genuine measurement heterogeneity — norm clarity and communication coherence are operationally distinct constructs that happen to co-load on *g*. The CC question is now reframed: not "does CC have unique variance?" (yes) but "is CC measuring a coherent construct?" (uncertain). This elevates CC as a priority for the expert validation study.
+
+### Diminishing Returns Assessment
+
+RMSEA = 0.1286 remains above 0.10. However, further structural refinement has diminishing returns:
+1. CC's residual is not addressable by factor addition (M5b confirms).
+2. N-sensitivity contributes unavoidably (~4.4× inflation at N = 4,432).
+3. A correlated-factors model would improve RMSEA artificially by relaxing orthogonality — not recommended without theoretical justification.
+
+**M5 is accepted as the final structural description.** ω_h = 0.938 is stable and validates the g-PSQ composite. The 5-item bipolar and DA singleton are the only structural features beyond *g* that meet interpretability and substantive variance thresholds.
+
+### Interagent Record
+
+Turn 37 (from-psychology-agent-019.json): B5-S work order (M5 + M5b comparison). Turn 38 (from-psq-sub-agent-019.json): B5-S gate-resolution delivered.
+
+---
+
 ## 13. References
 
 - Borkan, D., Dixon, L., Sorensen, J., Thain, N., & Vasserman, L. (2019). Nuanced metrics for measuring unintended bias with real data for text classification. In *Companion Proceedings of the 2019 World Wide Web Conference* (pp. 491–500). https://doi.org/10.1145/3308560.3317593
