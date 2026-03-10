@@ -1009,7 +1009,14 @@ def render_html(status: dict) -> str:
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.add('active');
         document.querySelector('.tab[onclick*="' + tabName + '"]').classList.add('active');
+        window.location.hash = tabName;
     }}
+    (function() {{
+        const hash = window.location.hash.replace('#', '');
+        if (hash && document.getElementById('tab-' + hash)) {{
+            switchTab(hash);
+        }}
+    }})();
     function toggleRow(id) {{
         const row = document.getElementById(id);
         const header = row.previousElementSibling;
