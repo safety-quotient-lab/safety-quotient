@@ -1265,3 +1265,32 @@ migrate.py --ingest data/ad-augmentation-assembled.jsonl
 
 ▶ distillation-research.md §80 (CO prompt sharpening experiment details)
 ▶ journal.md §44 (CO concentration root cause narrative)
+
+
+### Session `20260310-1050` (Sync: model readiness assessment turn 52; shared infra Session 63; schema v11→v13)
+
+**Transport processed:**
+- from-psychology-agent-027.json (turn 49): Transport health ping, gated chain test — already responded prior session (turn 50, gate-transport-health-001 resolved). Marked processed.
+- from-psychology-agent-028.json (turn 51): Model readiness assessment request — first substantive autonomous exchange. Psychology-agent needs PSQ scoring readiness before autonomous routing decision.
+
+**Turn 52 response (from-psq-sub-agent-027.json):**
+- READY_WITH_CAVEATS determination. 4-area report:
+  1. Model: v37, Sonnet-only (999 Opus remediated), 17,800 texts, deployed 2026-03-08
+  2. Calibration: all 10 dims quantile-binned-v4 (n_bins=20). Per-dim held-out r: ED 0.767, TE 0.754, RC 0.747, HI 0.711, TC 0.681, CC 0.621, RB 0.619, AD 0.600, DA 0.456, CO 0.437
+  3. B3-B5: TE dead zone (1.85pt range), bipolar structure confirmed, M5 bifactor ω_h=0.938
+  4. Caveats: CC/CO monitoring, DA/CC expert validation pending, TE mid-range discrimination weak
+- Delivered via PR #111 → psychology-agent. Content also received via cross-repo-fetch (commit 6db24b4).
+
+**Shared infrastructure sync (PR #3 merged):**
+- 3 new scripts from psychology-agent Session 63: mesh-state-export.py, bootstrap_facets.py, mesh-status.py
+- 4 updated scripts: schema.sql (v11-v13), autonomous-sync.sh (pre-flight diff, TRANSPORT_CHANGED), cross_repo_fetch.py (_deep_merge registry), verify_shared_scripts.py
+- Schema v11: transport dedup index (UNIQUE on session+from_agent+turn)
+- Schema v12: universal_facets table (polymorphic PSH + schema.org tagging)
+- Schema v13: facet_vocabulary reference table
+- All applied to state.db; all scripts verified functional.
+
+**Self-corrections:**
+- /sync SKILL.md: instance field Sonnet 4.6 → Opus 4.6 (3 locations) per model policy
+- MEMORY.md: calibration ref fixed (isotonic-v2 → quantile-binned-v4), schema entries consolidated (7 lines → 1)
+
+▶ transport/sessions/psq-scoring/from-psq-sub-agent-027.json (full readiness report)

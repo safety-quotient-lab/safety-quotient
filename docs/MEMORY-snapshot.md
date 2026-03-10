@@ -13,11 +13,7 @@ State layer Phase 1: dual-write (markdown = source of truth, SQLite = index). `b
 **DDD + Systems thinking** (Sessions 52-53): Infrastructure (T1-T16, hooks — inherited, low DOF) / Application (skills — configured, medium DOF) / Domain (PSQ — replaced by adopters, high DOF). cogarch.config.json parameterizes 23 domain-layer locations. Cogarch classified as "embedded cognitive system" (firmware in Claude Code host). Literate programming A+C: docs-as-code + narrative-driven architecture.
 FA postmortems append to `docs/cognitive-triggers.md` § Postmortem Template.
 EF-1 governance layer applied 2026-03-09: BCP 14 (RFC 2119+8174) keywords active. Seven invariants constrain autonomous actions.
-Schema v3 live (psychology-agent): adds `trust_budget` + `autonomous_actions` tables (EF-1 trust model). bootstrap_state_db.py picks up automatically at next run.
-Schema v5 live (2026-03-09): adds `ack_required` + `ack_received` to `transport_messages`. Optional ACK protocol — sender sets `ack_required: true`; default false uses `processed` column.
-Schema v6 live (Session 59): MANIFEST.json auto-generated from `transport_messages`; completed history in state.db + git (not in MANIFEST).
-Schema v7 live (Session 59): `lessons` table — structured index of lessons.md entries; `promotion_status`, `graduated_to`, pattern/domain/severity columns. Private visibility.
-Schema v8 live (Session 59): `table_visibility` — 4-tier model: public (cogarch infra) / shared (research output) / commercial (calibration, rubrics, datasets) / private (memory, lessons, trust). `export_public_state.py` uses this to generate adopter seed DBs.
+**Schema v13 live** (2026-03-10). Key tables by version: v3 `trust_budget`+`autonomous_actions` (EF-1), v5 `ack_required`/`ack_received` on `transport_messages`, v6 MANIFEST auto-gen, v7 `lessons`, v8 `table_visibility` (4-tier), v9 `min_action_interval` on trust_budget, v10 `active_gates` (gated chain tracking, gate-aware polling at 60s), v11 transport dedup index, v12 `universal_facets` (polymorphic PSH+schema.org tagging), v13 `facet_vocabulary` reference table. Full spec: `scripts/schema.sql`.
 **Auto-apply policy**: /sync ALWAYS applies cogarch + schema diffs from psychology-agent without asking. See `.claude/skills/sync/SKILL.md` Phase 1b.
 
 ## Snapshots
@@ -87,7 +83,7 @@ Batch files in `/tmp/psq_separated/`. Score 50 texts per response. Assemble afte
 - **v37**: held-out_r=**0.639**. test_r=0.387. 2026-03-08. Epoch 10, val_r=0.4511. 3,035s.
   - `--drop-proxy-dims`. Opus remediation: 999 texts re-scored Sonnet (9,990 scores, separated-LLM). Clean Sonnet-only.
   - Δ vs v35 = −0.041, Fisher z=0.50, p=0.617 (NS). CC −0.109, CO −0.106 flagged (monitoring threshold: r<0.40 on n≥200).
-  - ONNX exported + deployed to Hetzner 2026-03-08. Calibration: isotonic-v2-2026-03-08.
+  - ONNX exported + deployed to Hetzner 2026-03-08. Calibration: quantile-binned-v4-2026-03-08.
   - Rollback: `models/psq-v35/`. v23 tagged `v23-production-backup` (held-out_r=0.684).
 - **v35**: Prior production (replaced 2026-03-08). Opus contamination reason for replacement.
 - **v36**: DIAGNOSTIC ONLY. HI batch Opus-scored; concordance gate failed.
