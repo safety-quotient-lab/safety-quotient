@@ -1,6 +1,6 @@
 {
   "schema": "mesh-state/v1",
-  "timestamp": "2026-03-10T17:00:02",
+  "timestamp": "2026-03-10T18:00:02",
   "agent_id": "psq-agent",
   "trust_budget": {
     "agent_id": "psq-agent",
