@@ -33,7 +33,7 @@ Parse `$ARGUMENTS` to determine scope:
 
 | Agent | Repo | Agent Card | Transport | Relationship |
 |-------|------|------------|-----------|-------------|
-| psychology-agent | safety-quotient-lab/psychology-agent | (local only) | git-PR | Parent orchestrator |
+| psychology-agent | safety-quotient-lab/psychology-agent | (local only) | cross-repo-fetch | Parent orchestrator |
 | observatory-agent | safety-quotient-lab/observatory | https://observatory.unratified.org/.well-known/agent-card.json | git-PR | Peer (runs PSQ-Lite) |
 | unratified-agent | safety-quotient-lab/unratified | https://unratified.org/.well-known/agent-card.json | git-PR | Peer (hosting platform) |
 
@@ -121,6 +121,32 @@ Files to mirror automatically:
 - **T8 check 2**: Routing to `/cycle`, not `/doc`
 - **Provenance header**: Always update to note mirror date and source commit
 
+### Phase 1c: Cross-Repo-Fetch Inbound (state.db)
+
+**Primary inbound path for psychology-agent messages.** The autonomous-sync
+cron runs `cross_repo_fetch.py --index` before invoking /sync, which fetches
+messages via `git show psychology-agent/main:transport/sessions/...` and indexes
+them in state.db with `processed = FALSE`.
+
+Check for unprocessed messages:
+
+```bash
+sqlite3 state.db "SELECT filename, session_name, turn, message_type, from_agent, subject
+  FROM transport_messages
+  WHERE processed = FALSE
+  ORDER BY turn ASC;"
+```
+
+For each unprocessed message, read the full content:
+
+```bash
+git show psychology-agent/main:transport/sessions/{session_name}/{filename}
+```
+
+This replaces the Phase 1 "parent repo direct-to-main check" for psychology-agent
+when cross-repo-fetch transport is configured. PR-based transport (Phase 1/3)
+remains active for observatory-agent and unratified-agent.
+
 ### Phase 2: Triage
 
 For each inbound item, classify:
@@ -131,6 +157,7 @@ For each inbound item, classify:
 | Pending proposal | `~/.claude/proposals/to-psq/` | Read, accept/defer/reject |
 | Open PR on peer repo (ours) | Our outbound waiting for merge | Report status |
 | Cogarch/schema diffs on psych-agent | Phase 1b | Auto-apply (no confirmation) |
+| Unprocessed cross-repo message | Phase 1c (state.db) | Read → assess → respond or ACK |
 | No new activity | — | Report "nothing new" and stop |
 
 ### Phase 3: Process Inbound PRs
@@ -147,6 +174,41 @@ For an inbound PR (branch pattern: `{agent}/{session}/{turn}`):
    - If `ack_required` is `false` or absent, skip ACK — `processed` state serves as confirmation.
    - If substantive content requires a response regardless of `ack_required`, write one (see Phase 4).
 7. If `ack_required: true` and no substantive response needed, write a minimal ACK (see Phase 4).
+
+### Phase 3b: Process Cross-Repo-Fetch Messages
+
+For each unprocessed message from Phase 1c:
+
+1. Read the full JSON via `git show psychology-agent/main:transport/sessions/{session}/{filename}`
+2. Classify: request, notification, review, ack, gate-resolution
+3. Determine if a response is needed:
+   - Check `ack_required` field. If `true`, a response or ACK MUST be written.
+   - If the message contains a `gate` field, the sender blocks on our response.
+     Responding promptly unblocks their gate-accelerated polling.
+   - If `message_type` is `request`, generate a substantive response.
+   - If `message_type` is `notification`, ACK only if `ack_required: true`.
+4. Generate the response (see Phase 4 template). Write to local transport:
+   ```bash
+   # Determine next sequence number
+   ls transport/sessions/{session}/from-psq-sub-agent-*.json | tail -1
+   # Write response file
+   ```
+5. Mark the inbound message as processed:
+   ```bash
+   python3 scripts/dual_write.py mark-processed --filename "{filename}"
+   ```
+6. Index the outbound message:
+   ```bash
+   python3 scripts/dual_write.py transport-message \
+     --session "{session}" --filename "{outbound_filename}" \
+     --turn {N} --type "{type}" \
+     --from-agent psq-sub-agent --to-agent "{target}" \
+     --timestamp "{timestamp}" --subject "{subject}"
+   ```
+
+**Gate-aware responses:** If the inbound message carries a `gate` field, include
+`"in_response_to": "{inbound_filename}"` in the response. The sender's /sync
+uses `in_response_to` to match responses against active gates and auto-resolve them.
 
 ### Phase 4: Write ACK / Response Messages (interagent/v1)
 
