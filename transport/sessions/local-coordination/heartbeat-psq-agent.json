@@ -1,0 +1,21 @@
+{
+  "schema": "local-coordination/v1",
+  "timestamp": "2026-03-09T23:57:46",
+  "message_type": "heartbeat",
+  "from": {
+    "agent_id": "psq-agent",
+    "hostname": "chromabook",
+    "platform": "linux-x86_64",
+    "capabilities": [
+      "psq-scoring",
+      "model-training",
+      "calibration",
+      "transport"
+    ]
+  },
+  "payload": {
+    "status": "alive",
+    "uptime_indicator": "2026-03-09T23:57",
+    "sync_ready": true
+  }
+}
