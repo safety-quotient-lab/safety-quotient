@@ -1,0 +1,70 @@
+{
+  "schema": "agent-registry/v1",
+  "description": "Known agents in the PSQ agent mesh. /sync reads this to determine who to check for activity and who to consider for outbound messages.",
+  "updated": "2026-03-09",
+
+  "agents": {
+    "psychology-agent": {
+      "role": "parent",
+      "description": "Psychology agent — collegial mentor, discipline-first orchestrator",
+      "transport": "cross-repo-fetch",
+      "repo": "safety-quotient-lab/psychology-agent",
+      "remote_name": "psychology-agent",
+      "sessions_path": "transport/sessions/",
+      "outbox_path": "transport/mail/outbox/",
+      "manifest_path": "transport/MANIFEST.json",
+      "message_prefix": "from-psychology-agent-",
+      "active_sessions": ["psq-scoring"],
+      "always_consider": true,
+      "autonomous": false,
+      "discovery_url": null,
+      "notes": "Parent orchestrator. Cross-repo transport via git remote fetch — read MANIFEST via `git show psychology-agent/main:transport/MANIFEST.json`. Authority hierarchy: User > psychology-agent > PSQ."
+    },
+
+    "unratified-agent": {
+      "role": "peer",
+      "description": "Blog platform operator, consumer of PSQ scores",
+      "transport": "cross-repo-pr",
+      "repo": "safety-quotient-lab/unratified",
+      "sessions_path": "transport/sessions/",
+      "message_prefix": "from-unratified-agent-",
+      "active_sessions": [],
+      "always_consider": false,
+      "autonomous": false,
+      "discovery_url": "https://unratified.org/.well-known/agent-card.json",
+      "notes": "Peer agent. Blog posts, content quality, PSQ display."
+    },
+
+    "observatory-agent": {
+      "role": "peer",
+      "description": "Observatory — runs PSQ-Lite, content analysis",
+      "transport": "cross-repo-pr",
+      "repo": "safety-quotient-lab/observatory",
+      "sessions_path": "transport/sessions/",
+      "message_prefix": "from-observatory-agent-",
+      "active_sessions": [],
+      "always_consider": false,
+      "autonomous": false,
+      "discovery_url": "https://observatory.unratified.org/.well-known/agent-card.json",
+      "notes": "Peer agent. PSQ-Lite consumer, content analysis."
+    }
+  },
+
+  "outbound_routing": {
+    "description": "When /sync detects content relevant to a registered agent, route accordingly.",
+    "rules": [
+      {
+        "domain": "psychometrics",
+        "keywords": ["PSQ", "scoring", "calibration", "model", "dimension", "training data", "distillation"],
+        "route_to": ["psychology-agent"],
+        "action": "notify psychology-agent of scoring/model updates"
+      },
+      {
+        "domain": "cogarch",
+        "keywords": ["trigger", "cognitive architecture", "hook", "evaluator"],
+        "route_to": ["psychology-agent"],
+        "action": "mirror check — psychology-agent is cogarch authority"
+      }
+    ]
+  }
+}

@@ -37,4 +37,12 @@ data/*.bak
 data/*.bak2
 data/*.bak-*
 
+# Agent state (machine-local, rebuilt from schema + bootstrap)
+state.db
+state.db-shm
+state.db-wal
+
+# Agent identity (machine-local)
+.agent-identity.json
+
 # Session transcripts tracked via Git LFS (see .gitattributes)
