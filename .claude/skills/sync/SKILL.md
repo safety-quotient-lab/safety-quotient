@@ -224,7 +224,7 @@ Use this template for all outbound transport messages:
   "in_response_to": "{filename}",
   "from": {
     "agent_id": "psq-sub-agent",
-    "instance": "Claude Code (Sonnet 4.6), Debian 12 x86_64",
+    "instance": "Claude Code (Opus 4.6), Debian 12 x86_64",
     "schemas_supported": ["interagent/v1", "psychology-agent/machine-response/v2"],
     "discovery_url": null
   },
@@ -281,7 +281,7 @@ cp {local-message-path} transport/sessions/{session-id}/from-psq-sub-agent-{NNN}
 # Commit and push
 git commit -m "interagent: {description}
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 git push origin psq-sub-agent/{session-id}/{turn-descriptor}
 
 # Create PR
@@ -300,7 +300,7 @@ rm -rf /tmp/{repo}-pr
 git add transport/sessions/
 git commit -m "interagent: {summary}
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 git push origin main
 ```
 
