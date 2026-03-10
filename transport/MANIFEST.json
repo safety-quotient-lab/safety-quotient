@@ -1,0 +1,8 @@
+{
+  "schema": "manifest/v1",
+  "generated_at": "2026-03-09T23:00:00-05:00",
+  "agent_id": "psq-agent",
+  "description": "Pending transport messages for peer agents. Auto-generated — do not edit manually.",
+  "pending": [],
+  "note": "Empty MANIFEST — no pending messages. Peers read this via git show to discover inbound."
+}

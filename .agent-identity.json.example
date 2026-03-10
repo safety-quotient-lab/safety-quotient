@@ -1,0 +1,12 @@
+{
+  "agent_id": "psq-agent",
+  "hostname": "chromabook",
+  "platform": "linux-x86_64",
+  "capabilities": [
+    "psq-scoring",
+    "model-training",
+    "calibration",
+    "transport"
+  ],
+  "note": "Copy to .agent-identity.json and adjust hostname/platform for your machine. Gitignored — machine-local identity."
+}
