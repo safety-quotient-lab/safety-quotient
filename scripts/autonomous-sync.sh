@@ -366,13 +366,7 @@ run_sync() {
 
     log "Running /sync --autonomous..." >&2
 
-    # Pull cross-repo inbound messages into state.db before orientation
-    if [ -f "${PROJECT_ROOT}/scripts/cross_repo_fetch.py" ]; then
-        log "Fetching cross-repo transport..." >&2
-        python3 "${PROJECT_ROOT}/scripts/cross_repo_fetch.py" --index 2>/dev/null || {
-            err "cross_repo_fetch.py failed — continuing without cross-repo inbound"
-        }
-    fi
+    # cross_repo_fetch already ran before pre-flight — skip here.
 
     # Generate orientation payload from state.db
     local orientation
@@ -390,15 +384,29 @@ run_sync() {
     fi
 
     local sync_output
+    local claude_exit
     sync_output=$(claude -p "${prompt}" \
         --allowedTools "Read,Write,Edit,Glob,Grep,Bash" \
         --permission-mode "bypassPermissions" \
-        --max-turns 30 \
-        2>&1) || {
-        err "claude CLI exited with error"
-        echo "${sync_output}" | tail -20
-        return 1
-    }
+        --max-turns 80 \
+        2>&1)
+    claude_exit=$?
+
+    if [ "${claude_exit}" -ne 0 ]; then
+        # Distinguish max-turns (partial success) from real failures
+        if echo "${sync_output}" | grep -qi "max turns\|Reached max"; then
+            log "WARNING: claude CLI hit max-turns limit — partial sync completed"
+            # Partial success — don't treat as failure
+        elif echo "${sync_output}" | grep -qi "usage\|credit\|limit\|billing\|exceeded"; then
+            err "HALT — API usage limit reached. Check billing/extra usage settings."
+            echo "${sync_output}" | tail -5
+            return 1
+        else
+            err "claude CLI exited with error (code ${claude_exit})"
+            echo "${sync_output}" | tail -20
+            return 1
+        fi
+    fi
 
     echo "${sync_output}"
     return 0
@@ -492,9 +500,31 @@ main() {
         exit 1
     fi
 
+    # Index cross-repo inbound messages BEFORE pre-flight check.
+    # cross_repo_fetch uses git fetch (not git pull), so new peer messages
+    # won't appear in TRANSPORT_CHANGED. Indexing first ensures the
+    # unprocessed count in state.db reflects reality.
+    if [ -f "${PROJECT_ROOT}/scripts/cross_repo_fetch.py" ]; then
+        log "Fetching cross-repo transport..."
+        python3 "${PROJECT_ROOT}/scripts/cross_repo_fetch.py" --index 2>/dev/null || {
+            log "WARNING: cross_repo_fetch.py failed — continuing without cross-repo inbound"
+        }
+    fi
+
+    # Auto-process trivial messages in Python (no LLM needed).
+    # Marks as processed: ack_required=false AND type in (ack, notification).
+    # Only messages requiring substance review survive for claude /sync.
+    if [ -f "${PROJECT_ROOT}/scripts/auto_process_trivial.py" ]; then
+        local auto_result
+        auto_result=$(python3 "${PROJECT_ROOT}/scripts/auto_process_trivial.py" 2>/dev/null) || true
+        if [ -n "${auto_result}" ]; then
+            log "Auto-processed: ${auto_result}"
+        fi
+    fi
+
     # Pre-flight check: skip expensive claude invocation if nothing changed.
     # Still invoke if: transport changed, gates active, wake signal, or
-    # unprocessed messages exist in state.db.
+    # unprocessed messages exist in state.db (after cross-repo index + auto-process).
     if [ "${TRANSPORT_CHANGED}" = false ] && [ "${GATE_ACCELERATED}" = false ]; then
         local unprocessed_count
         unprocessed_count=$(sqlite3 "${DB_PATH}" \
