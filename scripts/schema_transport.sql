@@ -90,3 +90,32 @@ CREATE TABLE IF NOT EXISTS schema_version (
 
 INSERT OR IGNORE INTO schema_version (version, description)
 VALUES (1, 'Transport infrastructure: transport_messages, trust_budget, autonomous_actions');
+
+
+-- ============================================================================
+-- ACTIVE GATES (Schema v2 — mirrored from psychology-agent schema v10, 2026-03-09)
+-- Tracks gated autonomous chain exchanges where sender blocks on receiver.
+-- Full spec: docs/gated-chains-spec.md (psychology-agent repo).
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS active_gates (
+    gate_id             TEXT PRIMARY KEY,
+    sending_agent       TEXT NOT NULL,
+    receiving_agent     TEXT NOT NULL,
+    session_name        TEXT NOT NULL,
+    outbound_filename   TEXT NOT NULL,
+    blocks_until        TEXT NOT NULL DEFAULT 'response',
+    timeout_minutes     INTEGER NOT NULL DEFAULT 60,
+    fallback_action     TEXT NOT NULL DEFAULT 'continue-without-response',
+    status              TEXT NOT NULL DEFAULT 'waiting',
+    created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')),
+    resolved_at         TEXT,
+    resolved_by         TEXT,
+    timeout_at          TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_gates_status
+    ON active_gates (status) WHERE status = 'waiting';
+
+INSERT OR IGNORE INTO schema_version (version, description)
+VALUES (2, 'Add active_gates table — gated autonomous chain tracking (mirrored from psychology-agent schema v10)');
