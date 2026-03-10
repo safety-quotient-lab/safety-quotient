@@ -3,7 +3,7 @@
 
 # PSQ Sub-Agent Status (managed in its own context)
 
-**Production endpoint:** ✓ https://psq.unratified.org/score — live, TLS, Hetzner CX Ashburn
+**Production endpoint:** ✓ https://psq.safety-quotient.dev/score — live, TLS, Hetzner CX Ashburn
 **Score calibration:** ✓ isotonic-v2-2026-03-06. Quantile-binned isotonic (n_bins=20).
   All 10 dims calibrated. HI dead zone resolved (B2 (HI calibration dead zone) fix, Session 26).
   Historical MAE improvement: +3.5–21.6% per dimension vs. raw.
@@ -14,7 +14,7 @@
 **Model transfer:** ✓ rsync complete. SHA256 verified (Hetzner matches Chromebook source).
   41 files, 531 MB. best.pt on Hetzner; local copy lost.
 **Service:** systemd psq-server active. 84ms inference. onnxruntime-node postinstall fix.
-**Wrangler secret:** PSQ_ENDPOINT_URL → https://psq.unratified.org
+**Wrangler secret:** PSQ_ENDPOINT_URL → https://psq.safety-quotient.dev
 **Firewall:** ufw SSH + HTTP/HTTPS only. Port 3000 closed from public.
 **Integration:** psq-scoring session turn 7 complete — 5 ICESCR texts scored, B2 (HI calibration dead zone) validated.
 **B3 (TE uniformity) CLOSED 2026-03-07:**
