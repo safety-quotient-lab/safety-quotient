@@ -14,7 +14,10 @@ State layer Phase 1: dual-write (markdown = source of truth, SQLite = index). `b
 FA postmortems append to `docs/cognitive-triggers.md` § Postmortem Template.
 EF-1 governance layer applied 2026-03-09: BCP 14 (RFC 2119+8174) keywords active. Seven invariants constrain autonomous actions.
 Schema v3 live (psychology-agent): adds `trust_budget` + `autonomous_actions` tables (EF-1 trust model). bootstrap_state_db.py picks up automatically at next run.
-Schema v5 live (2026-03-09): adds `ack_required` + `ack_received` columns to `transport_messages`. Backward-compatible (DEFAULT 0). Optional ACK protocol — sender sets `ack_required: true` to require explicit receiver ACK; default false uses `processed` column as confirmation. bootstrap_state_db.py picks up automatically.
+Schema v5 live (2026-03-09): adds `ack_required` + `ack_received` to `transport_messages`. Optional ACK protocol — sender sets `ack_required: true`; default false uses `processed` column.
+Schema v6 live (Session 59): MANIFEST.json auto-generated from `transport_messages`; completed history in state.db + git (not in MANIFEST).
+Schema v7 live (Session 59): `lessons` table — structured index of lessons.md entries; `promotion_status`, `graduated_to`, pattern/domain/severity columns. Private visibility.
+Schema v8 live (Session 59): `table_visibility` — 4-tier model: public (cogarch infra) / shared (research output) / commercial (calibration, rubrics, datasets) / private (memory, lessons, trust). `export_public_state.py` uses this to generate adopter seed DBs.
 **Auto-apply policy**: /sync ALWAYS applies cogarch + schema diffs from psychology-agent without asking. See `.claude/skills/sync/SKILL.md` Phase 1b.
 
 ## Snapshots
@@ -193,7 +196,5 @@ Protocol designed (`expert-validation-protocol.md`), recruitment not started.
 - **Skills**: `/sync` — mesh sync with psychology-agent, observatory, unratified (git-PR transport). Phase 1 includes parent repo `git fetch` for direct-to-main messages.
 - **Authority**: User > psychology-agent > PSQ sub-agent
 - **Production endpoint**: `https://psq.unratified.org/score` (Hetzner CX → Caddy TLS → Node.js localhost:3000). onnxruntime-node fix durable. Firewall: SSH/HTTP/HTTPS only. calibration_version: **quantile-binned-v4-2026-03-08** (v37, n_bins=20).
-- **Calibration (2026-03-08)**: B1+B3 COMPLETE. student.js uses `confidence_type: "held_out_r"`. calibration.json = v4 quantile-binned isotonic (n_bins=20, v37). 9/10 dims pass MAE gate.
-- **Context-aware scoring (v3.1)**: 5 contexts. `context-weights.json` + server.js. 2026-03-07.
-- **v37 (2026-03-08)**: held-out_r=0.639. Sonnet-clean. calibration-v4. B5 M5 FINAL (§77–79). Concordance REMEDIATED.
-- **Session status (2026-03-09)**: Phase 2 COMPLETE. PRs #90-92 merged. Schema v5 live. **Phase 3 GATE OPEN.**
+- **Calibration**: B1+B3 COMPLETE. calibration.json = v4 quantile-binned isotonic (n_bins=20, v37). 9/10 dims pass. `confidence_type: "held_out_r"`. 5 scoring contexts (v3.1).
+- **v37 (2026-03-08)**: held-out_r=0.639. Sonnet-clean. calibration-v4. B5 M5 FINAL (§77–79). Concordance REMEDIATED. Phase 2 COMPLETE. Phase 3 GATE OPEN.

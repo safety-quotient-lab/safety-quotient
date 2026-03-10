@@ -7,6 +7,8 @@
      T4 commit discipline check) from psychology-agent Session 50b.
      Updated 2026-03-09 (Sessions 54-57, commit 719d216): T13 check 2 — removed
      stale Parry reference; parry removed upstream (PR #32596 pending resolution).
+     Updated 2026-03-09 (Sessions 58-59, commit 7657fbc): T2 check 8b — Socratic
+     gate added (AskUserQuestion before direction-setting answers).
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Sub-Agent — Cognitive Triggers
@@ -68,6 +70,11 @@ MUST note it in the session's first response so the user has visibility.
 7. **Evidence** — claims linked to evidence?
 8. **Clarification** — if clarification is needed, use the `AskUserQuestion` tool;
    never ask questions as inline plain text
+8b. **Socratic gate** — before delivering a substantive answer to a direction-setting
+   or exploratory question, consider whether an `AskUserQuestion` call would surface
+   assumptions, sharpen scope, or reveal trade-offs the user hasn't stated. Bias
+   toward asking over assuming. Does not fire on mechanical tasks (builds, commits,
+   file edits) or when the user gave an explicit directive with clear intent
 
 **Semiotic sub-checks (SRT-inspired, gated activation):**
 
