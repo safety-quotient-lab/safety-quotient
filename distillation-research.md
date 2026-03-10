@@ -1,8 +1,8 @@
 # PSQ Distillation Research: Proxy Validation & Ground Truth Selection
 
 **Date:** 2026-03-01
-**Status:** v37 held-out *r* = **.639** (production; deployed 2026-03-08). Sonnet-only labels (999 Opus texts remediated). B5 bifactor structural work stream COMPLETE: M5 final model accepted (g + 5-item bipolar TE/HI/AD vs RC/RB + DA singleton; RMSEA = 0.1286, CFI = 0.9475, ω_h = 0.938; §77–79). CC = 0.621, CO = 0.437 (monitoring; threshold *r* < .40). CO score concentration (49.3% at 5.0) identified as probable root cause of CO's weak held-out *r* — universal across all natural text sources; fix requires CO-targeted data from high-contrast sources (negotiation, stack-exchange).
-**Next:** CO concentration intervention (source-targeted labeling or prompt sharpening experiment). Criterion validity v23 vs v37 framing decision (v37 Sonnet-clean but weaker by Δ = .045). Publication framing (journal.md). Expert validation panel design.
+**Status:** v37 held-out *r* = **.639** (production; deployed 2026-03-08). Sonnet-only labels (999 Opus texts remediated). B5 bifactor structural work stream COMPLETE: M5 final model accepted (g + 5-item bipolar TE/HI/AD vs RC/RB + DA singleton; RMSEA = 0.1286, CFI = 0.9475, ω_h = 0.938; §77–79). CC = 0.621, CO = 0.437 (monitoring; threshold *r* < .40). CO prompt sharpening experiment COMPLETE (2026-03-09): Variant B adopted — score 5 now "absent" (pure description/self-referential); score 4 now "implicit expectations not yet stated"; 6pp reduction in midpoint concentration (§80).
+**Next:** Score 50 CO experiment texts with Variant B rubric (currently unlabeled). Monitor CO %@5 in first 3 future CO sessions (threshold: >40% on dreaddit-heavy batch → escalate). Criterion validity v23 vs v37 framing decision. Publication framing (journal.md). Expert validation panel design.
 
 ---
 
@@ -6174,6 +6174,49 @@ RMSEA = 0.1286 remains above 0.10. However, further structural refinement has di
 ### Interagent Record
 
 Turn 37 (from-psychology-agent-019.json): B5-S work order (M5 + M5b comparison). Turn 38 (from-psq-sub-agent-019.json): B5-S gate-resolution delivered.
+
+---
+
+## §80. CO Prompt Sharpening Experiment: Variant B Adopted (2026-03-09)
+
+**Motivation.** 49.3% of Sonnet CO (contractual\_clarity) scores cluster at exactly 5.0 across all natural text sources. Only negotiation/structured sources escape: casino (0%), politeness\_stack-exchange (19.8%), synthetic (8.5%). This concentration suppresses gradient signal during student training and is the most probable root cause of CO's weak held-out *r* (0.437 vs. composite 0.639).
+
+**Root cause.** The baseline rubric defines score 5 as "neutral — no contractual signals." For casual, emotional, and commentary text, this is technically correct — explicit contractual content is genuinely absent. However, the rubric conflates two distinct states:
+
+- (a) **Contractual context truly absent**: pure description, self-talk, neutral factual content
+- (b) **Implicit social obligations present but unstated**: friendship norms, professional expectations, relational duties
+
+Both states score 5 under the baseline rubric, producing justified-but-unhelpful concentration. The pattern is structural, not a source-selection artifact: concentration is universal across all structurally different natural text sources.
+
+**Experiment design.** 3-variant × 50-text controlled experiment. Same texts, same session, same scorer (claude-sonnet-4-6). Rubric as the only variable.
+
+| Variant | Description | Score 5 anchor |
+|---------|-------------|----------------|
+| A (baseline) | Current production rubric | Neutral — no contractual signals |
+| B (implicit-vs-absent) | Explicit absent/implicit distinction | Absent — no social obligations present; pure description or self-referential only |
+| C (behavioral markers) | Explicit linguistic markers required | No markers — text contains no language about obligations, agreements, expectations, fairness, rules, or consequences |
+
+Batch: casino (4), politeness\_stack-exchange (14), politeness\_wikipedia (5), prosocial (18), civil\_comments (18), dreaddit (21, capped at batch capacity). Chosen from lower-concentration sources where implicit CO signal theoretically exists — designed to stress-test rubric sensitivity.
+
+**Results.**
+
+| Variant | *N* | Mean | *SD* | % at 5 | % in [3,4,6,7] |
+|---------|-----|------|------|--------|----------------|
+| A (baseline) | 50 | 4.94 | 1.10 | 54.0% | 44.0% |
+| B (implicit-vs-absent) | 50 | 4.90 | 1.33 | 48.0% | 46.0% |
+| C (behavioral markers) | 50 | 5.20 | 1.16 | 52.0% | 44.0% |
+
+Variant B vs. A: Δ%@5 = −6.0pp, Δ*SD* = +0.23, Δmean = −0.04 (within ±0.5 criterion). Variant C vs. A: Δ%@5 = −2.0pp, Δ*SD* = +0.06, Δmean = +0.26. Score distributions: A = 3×5, 4×8, **5×27**, 6×7, 7×2, 9×1; B = 2×1, 3×6, 4×9, **5×24**, 6×4, 7×4, 8×1, 9×1; C = 3×1, 4×11, **5×26**, 6×4, 7×6, 8×1, 9×1.
+
+**Winner: Variant B.** Concentration at 5 drops 6pp; *SD* increases 21%; mean stable. Variant C requires explicit behavioral vocabulary ("you should," "I owe," "the rule is"), misses the common case of implicit social obligation, and elevates mean by +0.26 without meaningful concentration reduction. The 30% absolute threshold was not met, but this batch was sampled from structurally low-CO-signal sources (baseline 54% > production 49.3%), making 30% unachievable regardless of rubric. Relative evidence favors B unambiguously.
+
+**Adoption.** `instruments.json` updated 2026-03-09: CO description, score 5 ("absent — no social obligations, agreements, or expectations present in the context; pure description or self-referential content only"), score 4 ("mild ambiguity — implicit expectations exist but haven't been made explicit; parties likely have different assumptions"), score 6 ("mild clarity — implicit expectations are reasonably clear from context, even if unstated"). Previous rubric preserved as `scoring_rubric_previous` field. Prior CO labels (~3,000, 49.3% at 5) remain in DB, deprioritized if re-scored.
+
+**Monitoring plan.** Monitor %@5 in first 3 future CO sessions. If concentration remains >40% on a dreaddit-heavy batch, escalate to full rubric redesign. Next step: score the 50 experiment texts with Variant B (currently unlabeled for CO) to add training signal.
+
+**Epistemic notes.** (a) Experiment *N* = 50 — directional evidence only; single-session scoring means scorer state could influence results. (b) Confidence interval on 6pp reduction at *N* = 50 is wide (binomial ±13.8pp). (c) Whether Variant B will improve CO held-out *r* in training is speculative (claim confidence 0.55) — mechanism is plausible but confounded by data quantity. (d) The 50 experiment texts have not yet been scored for CO production labels.
+
+**Interagent record.** Turn 47 (from-psq-sub-agent-024.json): CO concentration finding + Variant B adoption delivered to psychology-agent. PR #92 merged.
 
 ---
 

@@ -67,15 +67,17 @@ See distillation-research.md §75–79, journal.md.
 
 ---
 
-### CC/CO monitoring [ACTIVE — CO concentration problem identified]
+### CC/CO monitoring [ACTIVE — CO rubric intervention complete, monitoring phase]
 
-**Status:** CC=0.621 (above threshold, monitoring). CO=0.437 (above threshold but concentration problem found 2026-03-09).
+**Status:** CC=0.621 (above threshold, monitoring). CO=0.437 (above threshold; rubric intervention complete 2026-03-09).
 
-**CO finding (2026-03-09):** 49.3% of Sonnet CO scores are exactly 5.0 — severe scorer anchoring at the midpoint. Universal across all real text sources (empathetic_dialogues 58%, berkeley 55.8%, dreaddit 52%). Only negotiation/structured sources escape it (casino 0%, politeness_stack-exchange 19.8%, synthetic 8.5%). Root cause: CO ("norm clarity, fairness expectations") is genuinely ambiguous in casual text — scorers default to neutral. This is the likely primary driver of CO's weak held-out r.
+**CO finding (2026-03-09):** 49.3% of Sonnet CO scores are exactly 5.0. Root cause: rubric conflates "absent" with "implicit but unstated." Prompt sharpening experiment COMPLETE — Variant B adopted (instruments.json updated). 50 experiment texts still unlabeled for CO production use.
+
+**CO rubric status:** Variant B live. Score 5 = "absent — no social obligations present; pure description or self-referential only." Score 4 = "implicit expectations exist but not yet stated." Previous rubric preserved as `scoring_rubric_previous` in instruments.json.
+
+**Monitoring plan:** Track %@5 in first 3 future CO labeling sessions. If concentration remains >40% on a dreaddit-heavy batch → escalate to full rubric redesign. Next CO session should also score the 50 experiment texts.
 
 **Threshold:** If CC or CO drops below r=0.40 on held-out n≥200 → Sonnet test-retest reliability study.
-
-**Next action (CO):** Targeted intervention — options: (a) add negotiation/structured-discourse texts where CO signal is salient (casino-like), (b) CO-specific synthetic batch with explicit contractual anchors, (c) controlled prompt sharpening experiment (scoring-research-plan.md protocol). Run (c) before labeling to avoid mixed-signal training data.
 
 ---
 

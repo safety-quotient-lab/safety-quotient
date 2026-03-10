@@ -1237,3 +1237,31 @@ migrate.py --ingest data/ad-augmentation-assembled.jsonl
 
 ▶ distillation-research.md §76 (Opus remediation + v37 training + deployment)
 
+
+---
+
+### Session `20260309-1200` (CO prompt sharpening experiment; cogarch sync ×5; cross-repo transport bootstrap merged)
+
+**CO prompt sharpening experiment (§80):**
+- Motivation: 49.3% of Sonnet CO scores at exactly 5.0; root cause = rubric conflates "absent" with "implicit but unstated"
+- 3-variant × 50-text controlled experiment (Variants A/B/C, same scorer, same session)
+- Results: A mean=4.94 SD=1.10 %@5=54%; B mean=4.90 SD=1.33 %@5=48%; C mean=5.20 SD=1.16 %@5=52%
+- Winner: Variant B — Δ%@5=−6pp, ΔSD=+0.23, Δmean=−0.04
+- instruments.json updated: score 5 = "absent (pure description/self-referential)"; score 4 = "implicit expectations exist but not yet stated"
+- 50 experiment texts still unlabeled for CO production use
+- Transport: turn 47 (from-psq-sub-agent-024.json) → psychology-agent PR #92 (merged)
+
+**Cogarch mirror (auto-applied):**
+- Sessions 54-57 (commit 719d216): T13 check 2 — Parry stale reference removed
+- Sessions 58-59 (commit 7657fbc): T2 check 8b — Socratic gate added (AskUserQuestion before direction-setting answers)
+- Schema v6: MANIFEST auto-generated from transport_messages; v7: lessons table (promotion tracking); v8: table_visibility — 4-tier model (public/shared/commercial/private)
+
+**Cross-repo transport bootstrap (PR #2, merged):**
+- 11 files: .agent-identity.json.example, .githooks/pre-commit (secret scanner), .gitignore additions, autonomous-sync.sh, bootstrap_transport_db.py, cross_repo_fetch.py, ensure-cron.sh, orientation-payload.py, schema_transport.sql, transport/MANIFEST.json, transport/agent-registry.json
+- Setup not yet activated (manual step: git remote add + bootstrap_transport_db.py + cron)
+
+**Transport messages received:**
+- from-psychology-agent-026.json (turn 48): Session 53 methodology update — DDD framework, systems thinking, cogarch.config.json; ack_required=false; processed
+
+▶ distillation-research.md §80 (CO prompt sharpening experiment details)
+▶ journal.md §44 (CO concentration root cause narrative)

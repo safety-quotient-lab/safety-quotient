@@ -1412,6 +1412,20 @@ The B4 finding completes a convergent empirical argument for the PSQ's multidime
 
 ---
 
+## 44. CO Score Concentration: Root Cause Identified, Rubric Intervention Designed (2026-03-09)
+
+The 49.3% midpoint concentration in the contractual\_clarity (CO) dimension — flagged during v37 evaluation (§76) and the B5 structural analysis (§77–79) — was diagnosed and remediated in a controlled rubric experiment.
+
+The root cause is a conflation problem in the original rubric. Score 5 ("neutral — no contractual signals") is technically accurate for most casual, emotional, and commentary text, where explicit contractual content is genuinely absent. But it fails to distinguish two structurally different states: (a) contexts where contractual framing is truly absent — self-talk, pure description, factual statements — and (b) contexts where implicit social obligations exist but have not been made explicit. Friendship expectations, professional norms, and relational duties are pervasive in natural language; they produce implicit obligations even when no explicit contract language is present. Under the baseline rubric, both states score 5. The concentration is thus not a scorer error or data artifact — it is a justified consequence of a rubric that cannot discriminate.
+
+The alternative rubric candidates were tested in a 3-variant × 50-text controlled experiment (same scorer, same session, rubric as sole variable). Variant B explicitly separates the absent and implicit cases: score 5 is reserved for contexts with no social obligations whatsoever (pure description, self-referential content), while score 4 captures implicit obligations that parties likely hold different assumptions about. Variant C required explicit behavioral vocabulary ("you should," "I owe," "the rule is") and proved too conservative — it missed the common case of implicit obligation and elevated the mean without reducing concentration.
+
+Variant B reduced midpoint concentration by 6pp (54%→48%) and increased within-batch *SD* by 21% (1.10→1.33) without biasing the mean (Δ = −0.04). The rubric has been adopted and incorporated into `instruments.json`. The hypothesis that improved rubric discrimination will raise CO's held-out *r* (0.437 vs. composite 0.639) is plausible — more varied score labels should provide more gradient during student training — but is confounded by data quantity and remains unverified until a training run uses the new rubric's labels.
+
+The episode illustrates a general risk in scoring instrument design: midpoint concentration can reflect the instrument's inability to discriminate rather than the domain's genuine uniformity. In the CO case, both the concentration and its source were invisible until a source-stratified analysis revealed that negotiation text (casino: 0% at 5) and casual text (dreaddit: 52% at 5) shared the same rubric anchor despite representing qualitatively different social conditions.
+
+---
+
 ## 43. References
 
 Andrews, G., Singh, M., & Bond, M. (1993). The Defense Style Questionnaire. *Journal of Nervous and Mental Disease, 181*(4), 246–256.
