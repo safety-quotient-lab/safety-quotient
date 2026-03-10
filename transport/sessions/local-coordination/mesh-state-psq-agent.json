@@ -1,6 +1,6 @@
 {
   "schema": "mesh-state/v1",
-  "timestamp": "2026-03-10T16:00:01",
+  "timestamp": "2026-03-10T17:00:02",
   "agent_id": "psq-agent",
   "trust_budget": {
     "agent_id": "psq-agent",
@@ -99,6 +99,6 @@
     "active_gates": 0
   },
   "psh_facets": {},
-  "schema_version": 13,
+  "schema_version": 14,
   "epistemic_flags_unresolved": 0
 }
