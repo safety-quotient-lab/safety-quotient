@@ -113,9 +113,9 @@
   "scope_boundary": "Validated for: English social media stress text, self-report format. Not validated for: clinical intake notes, therapist-authored text, non-English, non-WEIRD populations, texts > 128 tokens.",
 
   "inbox": "~/.claude/proposals/to-psq/",
-  "discovery_url": null,
-  "http_endpoint": "https://psq.unratified.org/score",
-  "http_health": "https://psq.unratified.org/health",
+  "discovery_url": "https://psq.safety-quotient.dev/.well-known/agent-card.json",
+  "http_endpoint": "https://psq.safety-quotient.dev/score",
+  "http_health": "https://psq.safety-quotient.dev/health",
 
   "namespace": "psy:psq",
   "tier": "PSQ-Full",

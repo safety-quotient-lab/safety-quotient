@@ -115,7 +115,7 @@ architecture, deploy procedure, and operational runbook.
 
 ```bash
 # Verify production endpoint is live
-curl https://psq.unratified.org/health
+curl https://psq.safety-quotient.dev/health
 
 # Deploy a new model version (after training + eval)
 source venv/bin/activate

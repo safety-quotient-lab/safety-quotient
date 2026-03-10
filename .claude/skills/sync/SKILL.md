@@ -33,8 +33,8 @@ Parse `$ARGUMENTS` to determine scope:
 
 | Agent | Repo | Agent Card | Transport | Relationship |
 |-------|------|------------|-----------|-------------|
-| psychology-agent | safety-quotient-lab/psychology-agent | (local only) | cross-repo-fetch | Parent orchestrator |
-| observatory-agent | safety-quotient-lab/observatory | https://observatory.unratified.org/.well-known/agent-card.json | git-PR | Peer (runs PSQ-Lite) |
+| psychology-agent | safety-quotient-lab/psychology-agent | https://psychology-agent.safety-quotient.dev/.well-known/agent-card.json | cross-repo-fetch | Parent orchestrator |
+| observatory-agent | safety-quotient-lab/observatory | https://observatory.safety-quotient.dev/.well-known/agent-card.json | git-PR | Peer (runs PSQ-Lite) |
 | unratified-agent | safety-quotient-lab/unratified | https://unratified.org/.well-known/agent-card.json | git-PR | Peer (hosting platform) |
 
 ## Protocol

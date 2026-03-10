@@ -25,8 +25,8 @@ REMOTE_HOST="root@178.156.229.103"
 REMOTE_WORKING_DIR="/opt/psychology-agent/safety-quotient"
 REMOTE_MODEL_DIR="${REMOTE_WORKING_DIR}/models/psq-student"
 SERVICE_NAME="psq-server"
-HEALTH_URL="https://psq.unratified.org/health"
-SCORE_URL="https://psq.unratified.org/score"
+HEALTH_URL="https://psq.safety-quotient.dev/health"
+SCORE_URL="https://psq.safety-quotient.dev/score"
 
 LOCAL_STUDENT_DIR="models/psq-student"
 

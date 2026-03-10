@@ -17,7 +17,7 @@
       "active_sessions": ["psq-scoring"],
       "always_consider": true,
       "autonomous": false,
-      "discovery_url": null,
+      "discovery_url": "https://psychology-agent.safety-quotient.dev/.well-known/agent-card.json",
       "notes": "Parent orchestrator. Cross-repo transport via git remote fetch — read MANIFEST via `git show psychology-agent/main:transport/MANIFEST.json`. Authority hierarchy: User > psychology-agent > PSQ."
     },
 
@@ -45,7 +45,7 @@
       "active_sessions": [],
       "always_consider": false,
       "autonomous": false,
-      "discovery_url": "https://observatory.unratified.org/.well-known/agent-card.json",
+      "discovery_url": "https://observatory.safety-quotient.dev/.well-known/agent-card.json",
       "notes": "Peer agent. PSQ-Lite consumer, content analysis."
     }
   },

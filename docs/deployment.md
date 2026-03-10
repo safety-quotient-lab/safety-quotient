@@ -14,7 +14,7 @@ Last updated: 2026-03-08
 │  │  :443 TLS │     │  server.js :3000 │     │  Runtime   │  │
 │  └──────────┘     └──────────────────┘     └────────────┘  │
 │                                                             │
-│  psq.unratified.org  →  reverse_proxy localhost:3000        │
+│  psq.safety-quotient.dev  →  reverse_proxy localhost:3000   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -31,7 +31,7 @@ Last updated: 2026-03-08
 | Host | `178.156.229.103` |
 | User | `root` |
 | Auth | SSH key (on-disk, no password) |
-| DNS | `psq.unratified.org` |
+| DNS | `psq.safety-quotient.dev` |
 
 ```bash
 ssh root@178.156.229.103
@@ -45,7 +45,7 @@ ssh root@178.156.229.103
 Liveness check. Returns model readiness and calibration version.
 
 ```bash
-curl https://psq.unratified.org/health
+curl https://psq.safety-quotient.dev/health
 ```
 
 ```json
@@ -57,7 +57,7 @@ curl https://psq.unratified.org/health
 Score text across all 10 PSQ dimensions.
 
 ```bash
-curl -X POST https://psq.unratified.org/score \
+curl -X POST https://psq.safety-quotient.dev/score \
   -H "Content-Type: application/json" \
   -d '{"text": "The team felt safe raising concerns."}'
 ```
@@ -117,7 +117,7 @@ journalctl -u psq-server -n 100
 
 ```
 # /etc/caddy/Caddyfile
-psq.unratified.org {
+psq.safety-quotient.dev {
     reverse_proxy localhost:3000
 }
 ```
@@ -187,7 +187,7 @@ rsync -avz models/psq-student/{model_quantized.onnx,calibration.json,tokenizer/}
 ssh root@178.156.229.103 "systemctl restart psq-server"
 
 # 4. Verify
-curl https://psq.unratified.org/health
+curl https://psq.safety-quotient.dev/health
 ```
 
 
@@ -229,7 +229,7 @@ but has not been tested.
 **Health check (cron or external):**
 
 ```bash
-curl -sf https://psq.unratified.org/health | grep -q '"status":"ok"' || echo "PSQ DOWN"
+curl -sf https://psq.safety-quotient.dev/health | grep -q '"status":"ok"' || echo "PSQ DOWN"
 ```
 
 **No uptime monitoring is currently configured.** The service relies on systemd
