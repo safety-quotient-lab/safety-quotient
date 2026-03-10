@@ -329,3 +329,184 @@ VALUES ('active_gates', 'private', 'Gate state — machine-specific operational 
 
 INSERT OR IGNORE INTO schema_version (version, description)
 VALUES (10, 'Add active_gates table — gated autonomous chain tracking with timeout and fallback cascade');
+
+
+-- ── Schema v11: Transport duplicate prevention ──────────────────────
+
+-- Turn numbers are per-agent within a session, not globally unique per session.
+-- Two agents in the same session legitimately share turn numbers (concurrent
+-- assignment without a shared counter). The correct uniqueness constraint:
+-- no agent writes the same turn twice in the same session.
+--
+-- NOTE: Historical data contains same-agent turn collisions (pre-v11 data
+-- assigned turns from filenames, not state.db). The unique index cannot be
+-- created if collisions exist. Use bootstrap_state_db.py --force to rebuild
+-- from source files with corrected turns, or fix collisions manually before
+-- applying. The index creation will silently fail on DBs with collisions —
+-- future writes still benefit from the next-turn subcommand in dual_write.py.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_transport_agent_turn_unique
+    ON transport_messages (session_name, from_agent, turn);
+
+INSERT OR IGNORE INTO schema_version (version, description)
+VALUES (11, 'Unique index on (session_name, from_agent, turn) + next-turn subcommand — prevents same-agent turn collisions going forward');
+
+
+-- ── Schema v12: Universal facets (dual-vocabulary classification) ─────
+--
+-- Plan 9 insight: disciplines are namespaces, not directories. Every entity
+-- in the state layer gains facets. Query composes the view.
+--
+-- Universal facets decouple from memory_entries — any entity type (transport
+-- messages, decisions, lessons, sessions, memory entries) can carry facets.
+-- No FK constraint (SQLite cannot enforce polymorphic FKs); integrity by
+-- application convention.
+--
+-- Two vocabularies:
+--   psh         — PSH subject categories (Czech National Library, L1 + project-local)
+--                 10 active PSH categories + PL-001 (ai-systems). L2-ready via
+--                 slash-separated values (e.g., 'psychology/psychometrics').
+--   schema_type — schema.org type per entity table (Message, Claim, Event, etc.)
+--
+-- Bootstrap: scripts/bootstrap_facets.py (replaces bootstrap_pje_facets.py)
+-- Discovery: --discover mode surfaces vocabulary gaps via literary warrant.
+
+CREATE TABLE IF NOT EXISTS universal_facets (
+    entity_type TEXT NOT NULL,       -- table name: 'transport_messages', 'decision_chain', etc.
+    entity_id   INTEGER NOT NULL,    -- row id in the source table
+    facet_type  TEXT NOT NULL,        -- 'psh', 'schema_type', 'domain', 'agent', 'work_stream', etc.
+    facet_value TEXT NOT NULL,
+    confidence          REAL DEFAULT 1.0,    -- keyword match strength (0.0–1.0)
+    keyword_hits        TEXT,                -- JSON array of matched keywords (nullable)
+    computed_at         TEXT,                -- when this facet was last computed
+    keyword_set_version INTEGER DEFAULT 1,   -- which keyword set version produced this facet
+    created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')),
+    PRIMARY KEY (entity_type, entity_id, facet_type, facet_value)
+);
+
+CREATE INDEX IF NOT EXISTS idx_uf_facet_lookup
+    ON universal_facets (facet_type, facet_value);
+
+CREATE INDEX IF NOT EXISTS idx_uf_entity
+    ON universal_facets (entity_type, entity_id);
+
+CREATE INDEX IF NOT EXISTS idx_uf_psh
+    ON universal_facets (facet_value) WHERE facet_type = 'psh';
+
+CREATE INDEX IF NOT EXISTS idx_uf_schema_type
+    ON universal_facets (facet_value) WHERE facet_type = 'schema_type';
+
+-- Migrate existing entry_facets into universal_facets
+INSERT OR IGNORE INTO universal_facets (entity_type, entity_id, facet_type, facet_value)
+    SELECT 'memory_entries', entry_id, facet_type, facet_value FROM entry_facets;
+
+INSERT OR IGNORE INTO table_visibility (table_name, default_visibility, description)
+VALUES ('universal_facets', 'shared', 'Cross-entity facets — PSH subjects, schema.org types, agents, work streams. Shared because facet types and values are public vocabulary.');
+
+INSERT OR IGNORE INTO schema_version (version, description)
+VALUES (12, 'Universal facets — polymorphic entity tagging. Dual vocabulary: PSH subjects (11 L1 categories incl. PL-001 ai-systems) + schema.org types. Replaces PJE taxonomy and entry_facets FK-bound pattern.');
+
+
+-- ── Schema v13: Facet vocabulary reference table ─────────────────────
+--
+-- Queryable source of truth for PSH categories and schema.org types.
+-- bootstrap_facets.py Python constants remain the write-time implementation;
+-- this table provides the queryable, shared registry that other scripts
+-- and downstream consumers can read without importing Python.
+--
+-- Visibility: shared — these represent public vocabulary definitions.
+
+CREATE TABLE IF NOT EXISTS facet_vocabulary (
+    facet_type      TEXT NOT NULL,        -- 'psh' or 'schema_type'
+    facet_value     TEXT NOT NULL,        -- e.g., 'psychology', 'schema:Message'
+    code            TEXT,                 -- PSH code (e.g., 'PSH9194') or null for schema.org
+    source          TEXT NOT NULL,        -- 'PSH', 'schema.org', or 'project-local'
+    description     TEXT,                 -- human-readable description
+    entity_scope    TEXT,                 -- for schema_type: which table(s) carry this type
+    active          INTEGER NOT NULL DEFAULT 1,  -- 0 = retired (e.g., pje_domain)
+    keyword_count   INTEGER DEFAULT 0,   -- number of keywords in the classification set
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')),
+    updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')),
+    PRIMARY KEY (facet_type, facet_value)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fv_active
+    ON facet_vocabulary (facet_type) WHERE active = 1;
+
+-- Seed PSH categories
+INSERT OR IGNORE INTO facet_vocabulary (facet_type, facet_value, code, source, description, keyword_count) VALUES
+    ('psh', 'psychology',          'PSH9194',  'PSH',           'Empirical, measurement, constructs, calibration, human factors',  43),
+    ('psh', 'law',                 'PSH8808',  'PSH',           'Governance, obligations, precedent, rights, due process',          35),
+    ('psh', 'computer-technology', 'PSH12314', 'PSH',           'Systems, specs, architecture, transport, databases',               32),
+    ('psh', 'information-science', 'PSH6445',  'PSH',           'Memory, indexing, classification, metadata, provenance',           20),
+    ('psh', 'systems-theory',      'PSH11322', 'PSH',           'Cogarch, feedback, emergence, cascade, self-healing',              11),
+    ('psh', 'philosophy',          'PSH2596',  'PSH',           'Epistemology, fair witness, falsifiability, evidence, warrant',     13),
+    ('psh', 'sociology',           'PSH9508',  'PSH',           'Dignity index, cultural, community, audience, stakeholder',          8),
+    ('psh', 'mathematics',         'PSH7093',  'PSH',           'Calibration, regression, factor analysis, statistical methods',     13),
+    ('psh', 'communications',      'PSH9759',  'PSH',           'Interagent protocol, transport, mesh, sync, notification',          12),
+    ('psh', 'pedagogy',            'PSH8126',  'PSH',           'Socratic method, jargon policy, learning, onboarding',              10),
+    ('psh', 'ai-systems',          'PL-001',   'project-local', 'LLM, multi-agent, tool use, alignment — no PSH equivalent',         17);
+
+-- Seed schema.org types
+INSERT OR IGNORE INTO facet_vocabulary (facet_type, facet_value, code, source, description, entity_scope) VALUES
+    ('schema_type', 'schema:Message',          NULL, 'schema.org', 'Transport messages between agents',           'transport_messages'),
+    ('schema_type', 'schema:ChooseAction',     NULL, 'schema.org', 'Resolved design decisions',                   'decision_chain'),
+    ('schema_type', 'schema:Event',            NULL, 'schema.org', 'Session log entries',                         'session_log'),
+    ('schema_type', 'schema:Claim',            NULL, 'schema.org', 'Verified claims from transport',              'claims'),
+    ('schema_type', 'schema:DefinedTerm',      NULL, 'schema.org', 'Memory entries — structured knowledge',       'memory_entries'),
+    ('schema_type', 'schema:LearningResource', NULL, 'schema.org', 'Lessons — transferable patterns',             'lessons'),
+    ('schema_type', 'schema:HowToStep',        NULL, 'schema.org', 'Cognitive triggers — operational procedures', 'trigger_state'),
+    ('schema_type', 'schema:Action',           NULL, 'schema.org', 'Autonomous actions audit trail',              'autonomous_actions'),
+    ('schema_type', 'schema:SuspendAction',    NULL, 'schema.org', 'Active gates — blocking operations',          'active_gates'),
+    ('schema_type', 'schema:Comment',          NULL, 'schema.org', 'Epistemic flags — quality concerns',          'epistemic_flags');
+
+-- Seed inactive PSH categories (the remaining 33 of 44) — available for
+-- intelligent discovery: --discover matches unclassified entity clusters
+-- against these descriptions to recommend activations.
+INSERT OR IGNORE INTO facet_vocabulary (facet_type, facet_value, code, source, description, active) VALUES
+    ('psh', 'anthropology',          'PSH1',     'PSH', 'Human cultures, ethnography, cultural practices',            0),
+    ('psh', 'architecture',          'PSH116',   'PSH', 'Building design, city planning, urban development',          0),
+    ('psh', 'astronomy',             'PSH320',   'PSH', 'Celestial objects, space, cosmic phenomena',                 0),
+    ('psh', 'biology',               'PSH573',   'PSH', 'Life sciences, organisms, ecology, evolution',               0),
+    ('psh', 'chemistry',             'PSH5450',  'PSH', 'Chemical compounds, reactions, molecular science',           0),
+    ('psh', 'transport',             'PSH1038',  'PSH', 'Transportation systems, logistics, vehicles',                0),
+    ('psh', 'economic-sciences',     'PSH1217',  'PSH', 'Economics, finance, trade, business',                        0),
+    ('psh', 'electronics',           'PSH1781',  'PSH', 'Electronic components, devices, circuits',                   0),
+    ('psh', 'electrical-engineering','PSH2086',  'PSH', 'Electrical systems, power distribution',                     0),
+    ('psh', 'energy',                'PSH2395',  'PSH', 'Energy sources, power generation, energy systems',           0),
+    ('psh', 'physics',               'PSH2910',  'PSH', 'Mechanics, thermodynamics, quantum physics',                 0),
+    ('psh', 'geophysics',            'PSH3768',  'PSH', 'Earth physics, seismology, planetary physics',               0),
+    ('psh', 'geography',             'PSH4231',  'PSH', 'Physical and human geography, regional studies',             0),
+    ('psh', 'geology',               'PSH4439',  'PSH', 'Rock formations, mineralogy, earth structure',               0),
+    ('psh', 'history',               'PSH5042',  'PSH', 'Historical events, periods, civilizations',                  0),
+    ('psh', 'metallurgy',            'PSH5176',  'PSH', 'Metal production, alloys, metal processing',                 0),
+    ('psh', 'computer-science',      'PSH6548',  'PSH', 'Computing, algorithms, software, information technology',    0),
+    ('psh', 'linguistics',           'PSH6641',  'PSH', 'Language structure, grammar, philology',                     0),
+    ('psh', 'literature',            'PSH6914',  'PSH', 'Books, poetry, literary works, criticism',                   0),
+    ('psh', 'religion',              'PSH7769',  'PSH', 'Theology, spirituality, faith traditions',                   0),
+    ('psh', 'general',               'PSH7979',  'PSH', 'Cross-disciplinary, general topics, miscellaneous',          0),
+    ('psh', 'political-science',     'PSH8308',  'PSH', 'Government, politics, political theory',                     0),
+    ('psh', 'food-industry',         'PSH8613',  'PSH', 'Food production, processing, nutrition',                     0),
+    ('psh', 'sports',                'PSH9899',  'PSH', 'Athletic activities, physical education, recreation',         0),
+    ('psh', 'consumer-industry',     'PSH10067', 'PSH', 'Consumer goods, retail, manufacturing',                      0),
+    ('psh', 'construction',          'PSH10355', 'PSH', 'Building construction, civil works',                         0),
+    ('psh', 'mechanical-engineering','PSH10652', 'PSH', 'Machinery, mechanical systems, engineering design',          0),
+    ('psh', 'mining',                'PSH11453', 'PSH', 'Mining, mineral extraction, mining technology',              0),
+    ('psh', 'art',                   'PSH11591', 'PSH', 'Visual arts, fine arts, aesthetics',                         0),
+    ('psh', 'water-management',      'PSH12008', 'PSH', 'Water systems, hydrology, water resources',                 0),
+    ('psh', 'military-affairs',      'PSH12156', 'PSH', 'Military science, warfare, defense',                        0),
+    ('psh', 'science-technology',    'PSH11939', 'PSH', 'General science, technology, applied research',              0),
+    ('psh', 'health-services',       'PSH12577', 'PSH', 'Medicine, healthcare, medical services, public health',      0),
+    ('psh', 'agriculture',           'PSH13220', 'PSH', 'Farming, crop production, livestock',                        0);
+
+-- Retire PJE vocabulary entries (historical record)
+INSERT OR IGNORE INTO facet_vocabulary (facet_type, facet_value, code, source, description, active) VALUES
+    ('pje_domain', 'psychology',    NULL, 'project-local', 'RETIRED 2026-03-10 — replaced by PSH facets', 0),
+    ('pje_domain', 'jurisprudence', NULL, 'project-local', 'RETIRED 2026-03-10 — replaced by PSH facets', 0),
+    ('pje_domain', 'engineering',   NULL, 'project-local', 'RETIRED 2026-03-10 — replaced by PSH facets', 0),
+    ('pje_domain', 'cross-cutting', NULL, 'project-local', 'RETIRED 2026-03-10 — replaced by PSH facets', 0);
+
+INSERT OR IGNORE INTO table_visibility (table_name, default_visibility, description)
+VALUES ('facet_vocabulary', 'shared', 'Vocabulary definitions for PSH categories and schema.org types — public reference data');
+
+INSERT OR IGNORE INTO schema_version (version, description)
+VALUES (13, 'Facet vocabulary reference table — queryable source of truth for PSH categories and schema.org types. Shared visibility. Retired PJE entries preserved with active=0.');

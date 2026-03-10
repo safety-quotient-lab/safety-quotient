@@ -45,4 +45,7 @@ state.db-wal
 # Agent identity (machine-local)
 .agent-identity.json
 
+# Local infrastructure overrides (hostnames, SSH users, paths — machine-specific)
+transport/agent-registry.local.json
+
 # Session transcripts tracked via Git LFS (see .gitattributes)
