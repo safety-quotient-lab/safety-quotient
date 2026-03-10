@@ -42,78 +42,65 @@ def load_identity() -> dict:
     }
 
 
-def safe_query(conn: sqlite3.Connection, sql: str, params: tuple = ()) -> list[dict]:
-    """Execute a query, returning [] if the table does not exist."""
-    try:
-        rows = conn.execute(sql, params).fetchall()
-        return [dict(r) for r in rows]
-    except sqlite3.OperationalError:
-        return []
-
-
 def recent_sessions(conn: sqlite3.Connection, limit: int = 5) -> list[dict]:
-    return safe_query(
-        conn,
+    rows = conn.execute(
         "SELECT id, timestamp, summary, epistemic_flags "
         "FROM session_log ORDER BY id DESC LIMIT ?",
         (limit,),
-    )
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def unprocessed_messages(conn: sqlite3.Connection) -> list[dict]:
-    return safe_query(
-        conn,
+    rows = conn.execute(
         "SELECT session_name, filename, turn, message_type, from_agent, "
         "to_agent, subject, setl, urgency "
         "FROM transport_messages WHERE processed = FALSE "
         "ORDER BY timestamp DESC",
-    )
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def open_claims(conn: sqlite3.Connection, limit: int = 10) -> list[dict]:
-    return safe_query(
-        conn,
+    rows = conn.execute(
         "SELECT c.claim_id, c.claim_text, c.confidence, t.from_agent, "
         "t.session_name "
         "FROM claims c JOIN transport_messages t ON c.transport_msg = t.id "
         "WHERE c.verified = FALSE "
         "ORDER BY c.confidence ASC LIMIT ?",
         (limit,),
-    )
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def unresolved_flags(conn: sqlite3.Connection, limit: int = 10) -> list[dict]:
-    return safe_query(
-        conn,
+    rows = conn.execute(
         "SELECT session_id, source, flag_text "
         "FROM epistemic_flags WHERE resolved = FALSE "
         "ORDER BY created_at DESC LIMIT ?",
         (limit,),
-    )
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def active_decisions(conn: sqlite3.Connection, limit: int = 10) -> list[dict]:
-    return safe_query(
-        conn,
+    rows = conn.execute(
         "SELECT decision_key, decision_text, decided_date, confidence "
         "FROM decision_chain ORDER BY decided_date DESC LIMIT ?",
         (limit,),
-    )
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def trust_budget_status(conn: sqlite3.Connection, agent_id: str) -> dict | None:
-    try:
-        row = conn.execute(
-            "SELECT * FROM trust_budget WHERE agent_id = ?", (agent_id,)
-        ).fetchone()
-        return dict(row) if row else None
-    except sqlite3.OperationalError:
-        return None
+    row = conn.execute(
+        "SELECT * FROM trust_budget WHERE agent_id = ?", (agent_id,)
+    ).fetchone()
+    return dict(row) if row else None
 
 
 def stale_memory(conn: sqlite3.Connection, days_threshold: int = 5) -> list[dict]:
-    return safe_query(
-        conn,
+    rows = conn.execute(
         "SELECT topic, entry_key, last_confirmed, "
         "CAST(julianday('now') - julianday(last_confirmed) AS INTEGER) "
         "AS days_stale "
@@ -122,15 +109,33 @@ def stale_memory(conn: sqlite3.Connection, days_threshold: int = 5) -> list[dict
         "AND julianday('now') - julianday(last_confirmed) > ? "
         "ORDER BY days_stale DESC LIMIT 10",
         (days_threshold,),
-    )
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def trigger_summary(conn: sqlite3.Connection) -> list[dict]:
-    return safe_query(
-        conn,
+    rows = conn.execute(
         "SELECT trigger_id, description, fire_count, last_fired "
         "FROM trigger_state ORDER BY trigger_id",
-    )
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def waiting_gates(conn: sqlite3.Connection, agent_id: str) -> list[dict]:
+    try:
+        rows = conn.execute(
+            "SELECT gate_id, sending_agent, receiving_agent, session_name, "
+            "blocks_until, timeout_minutes, fallback_action, "
+            "created_at, timeout_at "
+            "FROM active_gates "
+            "WHERE status = 'waiting' "
+            "AND (sending_agent = ? OR receiving_agent = ?) "
+            "ORDER BY created_at",
+            (agent_id, agent_id),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except sqlite3.OperationalError:
+        return []
 
 
 def format_payload(
@@ -142,6 +147,7 @@ def format_payload(
     decisions: list,
     budget: dict | None,
     stale: list,
+    gates: list | None = None,
 ) -> str:
     lines = []
     now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -169,6 +175,25 @@ def format_payload(
     else:
         lines.append("  No budget entry — first run will initialize.")
     lines.append("")
+
+    # Active gates (gated autonomous chains)
+    if gates:
+        lines.append(f"## Active Gates ({len(gates)}) — ACCELERATED POLLING")
+        for gate in gates:
+            role = "SENDER" if gate["sending_agent"] == identity["agent_id"] else "RECEIVER"
+            peer = gate["receiving_agent"] if role == "SENDER" else gate["sending_agent"]
+            lines.append(
+                f"  [{role}] {gate['gate_id']} → {peer}"
+            )
+            lines.append(
+                f"    Session: {gate['session_name']}, "
+                f"blocks_until: {gate['blocks_until']}, "
+                f"timeout: {gate['timeout_at']}"
+            )
+            lines.append(
+                f"    Fallback: {gate['fallback_action']}"
+            )
+        lines.append("")
 
     # Recent sessions
     lines.append(f"## Recent Sessions (last {len(sessions)})")
@@ -261,6 +286,7 @@ def main() -> None:
         decisions=active_decisions(conn),
         budget=trust_budget_status(conn, agent_id),
         stale=stale_memory(conn),
+        gates=waiting_gates(conn, agent_id),
     )
 
     print(payload)
