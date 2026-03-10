@@ -21,11 +21,11 @@
     },
     {
       "path": "scripts/dual_write.py",
-      "description": "Incremental state.db upserts (11 subcommands)",
+      "description": "Incremental state.db upserts (15 subcommands incl. engineering-incident, next-turn, facet)",
       "shared_with": [
         "safety-quotient"
       ],
-      "sha256": "f969dc09baee7666c1e82b29b754e883923a261b0dcd7d38c14a088cf5e57911"
+      "sha256": "a9a7b3f3c4cd6c72e98a0a57b952048d8e194795f5fa4df7e20a7d56f256ab23"
     },
     {
       "path": "scripts/heartbeat.py",
@@ -61,11 +61,11 @@
     },
     {
       "path": "scripts/schema.sql",
-      "description": "Full state.db schema (v10, 13 tables)",
+      "description": "Full state.db schema (v14, engineering_incidents table)",
       "shared_with": [
         "safety-quotient"
       ],
-      "sha256": "00966bbf589c7551e54858fd04ee8235b1ed583cf92c2ab931f4bd6a62d5939b"
+      "sha256": "5befbcf5523dda7b387b8d69bfbdb16086b754cbe09809266a49ab76c4d41463"
     }
   ]
 }
