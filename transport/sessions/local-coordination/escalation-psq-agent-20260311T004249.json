@@ -1,0 +1,23 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "local-coordination",
+  "timestamp": "2026-03-11T00:42:49.094825+00:00",
+  "message_type": "escalation",
+  "from": {
+    "agent_id": "psq-agent"
+  },
+  "to": {
+    "agent_id": "human"
+  },
+  "content": {
+    "subject": "End-to-end escalation test from chromabook",
+    "severity": "info",
+    "category": "test-notification",
+    "context": "Session 67 \u2014 validating escalate.py script on remote machine",
+    "issue_url": "https://github.com/safety-quotient-lab/safety-quotient/issues/14"
+  },
+  "ack_required": true,
+  "urgency": "normal",
+  "setl": 0.02,
+  "epistemic_flags": []
+}

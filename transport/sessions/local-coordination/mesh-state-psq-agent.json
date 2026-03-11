@@ -1,6 +1,6 @@
 {
   "schema": "mesh-state/v1",
-  "timestamp": "2026-03-10T19:00:02",
+  "timestamp": "2026-03-10T20:00:02",
   "agent_id": "psq-agent",
   "trust_budget": {
     "agent_id": "psq-agent",
@@ -94,8 +94,8 @@
     }
   ],
   "transport": {
-    "total_messages": 45,
-    "unprocessed": 0,
+    "total_messages": 46,
+    "unprocessed": 1,
     "active_gates": 0
   },
   "psh_facets": {},
