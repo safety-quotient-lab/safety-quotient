@@ -9,6 +9,10 @@
      stale Parry reference; parry removed upstream (PR #32596 pending resolution).
      Updated 2026-03-09 (Sessions 58-59, commit 7657fbc): T2 check 8b — Socratic
      gate added (AskUserQuestion before direction-setting answers).
+     Updated 2026-03-11 (Session 71, commit acf4051): T18 added — UX design
+     grounding (cognitive load, Gestalt, Norman, Tufte, accessibility); T16
+     BCP 14 keyword upgrades (MUST/MAY/REQUIRES); T16 provenance note added;
+     governance footer added to Knock-On Order Reference.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Sub-Agent — Cognitive Triggers
@@ -543,8 +547,8 @@ creation, `gh api` write operations, transport message delivery to peer repos
 **Checks**:
 1. **Scope + substance gate** — does this action serve the current task?
    If it involves substance (filing claims, committing to work, creating
-   obligations for others), confirm with user before proceeding. Process
-   actions (labeling, closing, formatting) may proceed autonomously
+   obligations for others), MUST confirm with user before proceeding. Process
+   actions (labeling, closing, formatting) MAY proceed autonomously
 2. **Obligation + irreversibility** — does this create a response obligation
    for the recipient or an open item on our backlog? GitHub issues can be
    closed but not deleted; PR comments persist; transport messages become
@@ -555,7 +559,7 @@ creation, `gh api` write operations, transport message delivery to peer repos
    - **Hard to reverse**: merge PR, close issue, publish release, push transport
      ACK (becomes part of peer committed state) → confirm with user
    - **Irreversible**: delete repo, force push main, deploy to production,
-     remove published content → require explicit user approval
+     remove published content → REQUIRES explicit user approval
 4. **External interpretant** — who reads this on the external platform?
    Peer agents, their human operators, and public GitHub visitors may all
    see the action. Calibrate tone, detail, and epistemic flags for the
@@ -570,7 +574,64 @@ creation, `gh api` write operations, transport message delivery to peer repos
    - **Verify** — after writing, confirm: file count matches expectation,
      MANIFEST updated, no duplicates introduced, no records lost
 
-**Action**: If any check fails, pause and surface to user before proceeding.
+**Action**: If any check fails, MUST pause and surface to user before proceeding.
+
+**Provenance**: Gap identified Session 29 (2026-03-07) — GitHub issue filed on
+peer repo without trigger coverage. Knock-on analysis traced 10 orders; T16
+scope kept narrow (external actions only) to maintain hook-scope honesty.
+
+---
+
+## T18: UX Design Grounding
+
+**Fires**: Before creating or modifying any user-facing interface — compositor
+pages, dashboards, agent output formats, CLI displays, report layouts, any
+artifact where a human reads or interacts with system output
+
+**Checks**:
+1. **Cognitive load audit** (Miller, 1956; Sweller, 1988) — does the design
+   stay within working memory limits? Chunk information into 4±1 groups.
+   Progressive disclosure: show summary first, detail on demand. If a view
+   requires holding more than 4 independent concepts simultaneously, restructure
+2. **Perceptual grouping** (Wertheimer, 1923 — Gestalt principles) — do
+   spatial proximity, similarity, enclosure, and connectedness communicate
+   the intended relationships? Elements that belong together MUST look
+   together. Unrelated elements MUST have visual separation
+3. **Feedback and visibility** (Norman, 1988 — design of everyday things) —
+   every user action produces visible system response. Current state remains
+   observable without requiring the user to remember previous states. No
+   silent failures; no invisible mode changes
+4. **Error prevention over error handling** (Nielsen, 1994) — constrain
+   inputs to valid ranges. Offer confirmation for destructive actions.
+   Make undo available. Design interfaces that prevent mistakes rather
+   than merely reporting them after the fact
+5. **Information hierarchy** (Tufte, 1990) — data-to-ink ratio stays high.
+   Decorative elements do not compete with informational elements. The most
+   important information occupies the most prominent position. Consistent
+   visual encoding (color, size, position) across views
+6. **Accessibility as default** (WCAG 2.1; inherits CLAUDE.md cognitive
+   accessibility policy) — color carries meaning only when paired with a
+   redundant channel (shape, text, position). Contrast ratios meet AA
+   standard. Interactive elements have adequate touch/click targets. Screen
+   reader compatibility considered from initial design, not retrofitted
+7. **Task-action mapping** (Fitts, 1954; Hick, 1952) — frequently used
+   actions require fewer steps. Related actions group together. Navigation
+   depth stays shallow (3 clicks max to any content). Decision time scales
+   logarithmically with option count — fewer, clearer choices outperform
+   exhaustive menus
+8. **Empirical backing check** — does this design decision follow from
+   evidence (user research, established heuristic, cited principle), or
+   from convention without examination? If the latter, flag as assumption
+   and note what evidence would validate or invalidate the choice
+
+**Action**: If creating a new interface, run the full checklist before
+implementation. If modifying an existing interface, run checks relevant
+to the changed elements. Document which principles drove the design
+decisions in commit messages or inline comments.
+
+**Provenance**: Session 71 (2026-03-11). Mirrored from psychology-agent
+(commit acf4051). The discipline — human factors, perceptual psychology,
+information design — applies to PSQ output formats and dashboards equally.
 
 ---
 
@@ -631,3 +692,9 @@ Order 10:   Theory-revising (Popper — effects that falsify or require
             modification of the theory that justified the original
             decision)
 ```
+
+**Governance:** Consequence tracing MUST precede resolution (Invariant 4,
+`docs/ef1-governance.md`). Depth MUST scale with irreversibility
+(Invariant 5). Beyond order 10, emergent consequences trigger escalation
+rather than further speculative analysis (`docs/ef1-trust-model.md`
+§ Beyond order 10).
