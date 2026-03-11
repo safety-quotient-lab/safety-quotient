@@ -151,9 +151,9 @@ ensure_db() {
 
     # Column migrations — safe to re-run (ALTER fails silently if column exists)
     sqlite3 "${DB_PATH}" \
-        "ALTER TABLE trust_budget ADD COLUMN min_action_interval INTEGER NOT NULL DEFAULT 300;" 2>/dev/null || true
+        "ALTER TABLE autonomy_budget ADD COLUMN min_action_interval INTEGER NOT NULL DEFAULT 300;" 2>/dev/null || true
     sqlite3 "${DB_PATH}" \
-        "ALTER TABLE trust_budget ADD COLUMN shadow_mode INTEGER NOT NULL DEFAULT 1;" 2>/dev/null || true
+        "ALTER TABLE autonomy_budget ADD COLUMN shadow_mode INTEGER NOT NULL DEFAULT 1;" 2>/dev/null || true
     sqlite3 "${DB_PATH}" \
         "ALTER TABLE autonomous_actions ADD COLUMN adversarial_reason TEXT;" 2>/dev/null || true
     sqlite3 "${DB_PATH}" \
@@ -169,13 +169,13 @@ ensure_db() {
 
     # Initialize budget row if absent
     sqlite3 "${DB_PATH}" \
-        "INSERT OR IGNORE INTO trust_budget (agent_id) VALUES ('${AGENT_ID}');"
+        "INSERT OR IGNORE INTO autonomy_budget (agent_id) VALUES ('${AGENT_ID}');"
 }
 
 check_budget() {
     local budget
     budget=$(sqlite3 "${DB_PATH}" \
-        "SELECT budget_current FROM trust_budget WHERE agent_id = '${AGENT_ID}';")
+        "SELECT budget_current FROM autonomy_budget WHERE agent_id = '${AGENT_ID}';")
 
     if [ -z "${budget}" ] || [ "${budget}" -le 0 ]; then
         err "HALT — trust budget exhausted (${budget:-0} credits). Human audit required."
@@ -191,7 +191,7 @@ check_budget() {
   "from": {"agent_id": "${AGENT_ID}"},
   "message_type": "halt",
   "payload": {
-    "reason": "trust_budget_exhausted",
+    "reason": "autonomy_budget_exhausted",
     "budget_current": 0,
     "action": "Autonomous sync halted. Human audit required to reset budget."
   }
@@ -327,7 +327,7 @@ check_interval() {
                 WHEN last_action IS NULL THEN 999999
                 ELSE CAST((julianday('now', 'localtime') - julianday(last_action)) * 86400 AS INTEGER)
             END as elapsed_secs
-        FROM trust_budget
+        FROM autonomy_budget
         WHERE agent_id = '${AGENT_ID}';
     ")
 
@@ -685,7 +685,7 @@ record_action() {
         VALUES ('${AGENT_ID}', '${action_type}', '${action_class}', ${tier},
                 '${result}', '${description}', ${budget_before}, ${budget_after});"
 
-    sqlite3 "${DB_PATH}" "UPDATE trust_budget
+    sqlite3 "${DB_PATH}" "UPDATE autonomy_budget
         SET budget_current = ${budget_after},
             last_action = strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime'),
             updated_at = strftime('%Y-%m-%dT%H:%M:%S', 'now', 'localtime')
@@ -783,7 +783,7 @@ main() {
 
             # Reset consecutive blocks on successful no-op
             sqlite3 "${DB_PATH}" \
-                "UPDATE trust_budget SET consecutive_blocks = 0 WHERE agent_id = '${AGENT_ID}';"
+                "UPDATE autonomy_budget SET consecutive_blocks = 0 WHERE agent_id = '${AGENT_ID}';"
 
             local cycle_duration=$(( SECONDS - cycle_start ))
             log "=== Autonomous sync cycle complete (no-op, budget: ${budget}, ${cycle_duration}s total) ==="
@@ -812,7 +812,7 @@ main() {
                 record_action "gate_poll" "reversible" 1 "approved" \
                     "Gate-accelerated poll — no new messages (0 cost, ${sync_duration}s)" "${budget}" > /dev/null
                 # Don't update last_action for no-op polls — allows immediate re-poll
-                sqlite3 "${DB_PATH}" "UPDATE trust_budget
+                sqlite3 "${DB_PATH}" "UPDATE autonomy_budget
                     SET last_action = NULL
                     WHERE agent_id = '${AGENT_ID}';" 2>/dev/null || true
                 log "Gate-accelerated no-op poll — 0 budget cost, immediate re-poll enabled"
@@ -841,10 +841,10 @@ main() {
         # Check consecutive error count
         local blocks
         blocks=$(sqlite3 "${DB_PATH}" \
-            "SELECT consecutive_blocks FROM trust_budget WHERE agent_id = '${AGENT_ID}';")
+            "SELECT consecutive_blocks FROM autonomy_budget WHERE agent_id = '${AGENT_ID}';")
         blocks=$((blocks + 1))
         sqlite3 "${DB_PATH}" \
-            "UPDATE trust_budget SET consecutive_blocks = ${blocks} WHERE agent_id = '${AGENT_ID}';"
+            "UPDATE autonomy_budget SET consecutive_blocks = ${blocks} WHERE agent_id = '${AGENT_ID}';"
 
         if [ "${blocks}" -ge "${MAX_CONSECUTIVE_ERRORS}" ]; then
             err "HALT — ${blocks} consecutive errors. Human review required."
@@ -858,7 +858,7 @@ main() {
 
     # Reset consecutive blocks on success
     sqlite3 "${DB_PATH}" \
-        "UPDATE trust_budget SET consecutive_blocks = 0 WHERE agent_id = '${AGENT_ID}';"
+        "UPDATE autonomy_budget SET consecutive_blocks = 0 WHERE agent_id = '${AGENT_ID}';"
 
     local cycle_duration=$(( SECONDS - cycle_start ))
     log "=== Autonomous sync cycle complete (budget: ${budget}, ${cycle_duration}s total) ==="

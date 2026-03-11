@@ -116,7 +116,7 @@ def validate(conn: sqlite3.Connection) -> bool:
 
     checks = [
         ("transport_messages", "transport_messages table exists"),
-        ("trust_budget", "trust_budget table exists"),
+        ("autonomy_budget", "autonomy_budget table exists"),
         ("autonomous_actions", "autonomous_actions table exists"),
         ("schema_version", "schema_version table exists"),
     ]
@@ -158,7 +158,7 @@ def main():
             pass
 
     conn.execute(
-        "INSERT OR IGNORE INTO trust_budget (agent_id) VALUES (?)",
+        "INSERT OR IGNORE INTO autonomy_budget (agent_id) VALUES (?)",
         (agent_id,),
     )
     conn.commit()
