@@ -91,7 +91,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    STATUS=$(curl -sf "${PSQ_HEALTH_URL:-https://psq.safety-quotient.dev/health}" || echo "DOWN")
+                    STATUS=$(curl -sf "${PSQ_HEALTH_URL}" || echo "DOWN")
                     echo "Production status: $STATUS"
                 '''
             }
@@ -295,11 +295,11 @@ pipeline {
                     sh """
                         SSH_OPTS="-i \$SSH_KEY -o StrictHostKeyChecking=accept-new"
                         REMOTE="${env.HETZNER_HOST}"
-                        HEALTH_URL="${env.PSQ_HEALTH_URL:-https://psq.safety-quotient.dev/health}"
-                        SCORE_URL="${env.PSQ_SCORE_URL:-https://psq.safety-quotient.dev/score}"
+                        HEALTH_URL="${env.PSQ_HEALTH_URL}"
+                        SCORE_URL="${env.PSQ_SCORE_URL}"
 
-                        echo "Step 9: Restarting ${env.PSQ_SERVICE_NAME:-psq-server}"
-                        ssh \$SSH_OPTS "\$REMOTE" "systemctl restart ${env.PSQ_SERVICE_NAME:-psq-server}"
+                        echo "Step 9: Restarting ${env.PSQ_SERVICE_NAME}"
+                        ssh \$SSH_OPTS "\$REMOTE" "systemctl restart ${env.PSQ_SERVICE_NAME}"
                         echo "Waiting 15 seconds for ONNX model load..."
                         sleep 15
 
