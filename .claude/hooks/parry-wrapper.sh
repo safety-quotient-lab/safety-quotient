@@ -1,1 +1,0 @@
-../../../.claude/hooks/parry-wrapper.sh
