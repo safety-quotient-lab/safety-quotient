@@ -1,0 +1,23 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "local-coordination",
+  "timestamp": "2026-03-11T02:02:31.253091+00:00",
+  "message_type": "escalation",
+  "from": {
+    "agent_id": "psq-agent"
+  },
+  "to": {
+    "agent_id": "human"
+  },
+  "content": {
+    "subject": "API usage limit reached \u2014 autonomous sync halted",
+    "severity": "critical",
+    "category": "api-usage-limit",
+    "context": "Claude CLI reported a billing/credit/usage limit error.",
+    "issue_url": "https://github.com/safety-quotient-lab/safety-quotient/issues/15"
+  },
+  "ack_required": true,
+  "urgency": "immediate",
+  "setl": 0.02,
+  "epistemic_flags": []
+}
