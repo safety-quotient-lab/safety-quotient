@@ -1,17 +1,25 @@
 {
   "schema": "mesh-state/v1",
-  "timestamp": "2026-03-10T21:10:01",
+  "timestamp": "2026-03-10T21:20:01",
   "agent_id": "psq-agent",
   "trust_budget": {
     "agent_id": "psq-agent",
     "budget_max": 20,
-    "budget_current": 10,
+    "budget_current": 9,
     "shadow_mode": 1,
     "consecutive_blocks": 0,
-    "last_action": "2026-03-10T21:02:31",
+    "last_action": "2026-03-10T21:13:55",
     "min_action_interval": 300
   },
   "recent_actions": [
+    {
+      "action_type": "sync",
+      "evaluator_result": "approved",
+      "evaluator_tier": 1,
+      "budget_before": 10,
+      "budget_after": 9,
+      "created_at": "2026-03-10 21:13:55"
+    },
     {
       "action_type": "sync",
       "evaluator_result": "blocked",
@@ -83,26 +91,18 @@
       "budget_before": 15,
       "budget_after": 14,
       "created_at": "2026-03-10 10:41:00"
-    },
-    {
-      "action_type": "sync",
-      "evaluator_result": "approved",
-      "evaluator_tier": 1,
-      "budget_before": 16,
-      "budget_after": 15,
-      "created_at": "2026-03-10 10:35:18"
     }
   ],
   "transport": {
     "total_messages": 50,
-    "unprocessed": 9,
+    "unprocessed": 0,
     "active_gates": 0
   },
   "schedule": {
     "autonomous": true,
-    "cron_interval_min": null,
-    "last_sync": null,
-    "next_expected": null
+    "cron_interval_min": 10,
+    "last_sync": "2026-03-10T21:20:01",
+    "next_expected": "2026-03-10T21:30:01"
   },
   "psh_facets": {},
   "schema_version": 14,
