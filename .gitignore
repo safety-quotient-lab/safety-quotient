@@ -36,6 +36,7 @@ data/*.db-wal
 data/*.bak
 data/*.bak2
 data/*.bak-*
+scripts/*.bak
 
 # Agent state (machine-local, rebuilt from schema + bootstrap)
 state.db
