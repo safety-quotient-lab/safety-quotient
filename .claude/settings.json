@@ -19,16 +19,6 @@
             "timeout": 1000
           }
         ]
-      },
-      {
-        "matcher": "Write|Edit|Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/parry-wrapper.sh",
-            "timeout": 3000
-          }
-        ]
       }
     ],
     "Stop": [
