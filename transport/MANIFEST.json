@@ -1,28 +1,9 @@
 {
   "schema": "transport-manifest/v2",
   "description": "Auto-generated from state.db. Pending messages only \u2014 completed history lives in state.db (queryable) and git history (auditable). Agents: pull this file to discover messages addressed to you.",
-  "generated_at": "2026-03-11T18:38:54",
+  "generated_at": "2026-03-11T18:55:24",
   "source": "scripts/generate_manifest.py",
-  "pending": {
-    "human": [
-      {
-        "session": "self-readiness-audit",
-        "file": "transport/sessions/self-readiness-audit/from-psq-agent-002.json",
-        "type": "audit-response",
-        "subject": "PSQ agent self-readiness audit \u2014 READY-WITH-CAVEATS",
-        "timestamp": "2026-03-11T18:35:10-05:00"
-      }
-    ],
-    "psychology-agent": [
-      {
-        "session": "psq-scoring",
-        "file": "transport/sessions/psq-scoring/from-psq-sub-agent-029.json",
-        "type": "batch-ack",
-        "subject": "Batch ACK: psq-scoring turns 4-17 \u2014 all work complete as of 2026-03-08",
-        "timestamp": "2026-03-11T18:36:00-05:00"
-      }
-    ]
-  },
+  "pending": {},
   "session_renames": {
     "item4-derivation": "psychology-interface",
     "item2-derivation": "subagent-protocol"
