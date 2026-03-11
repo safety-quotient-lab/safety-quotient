@@ -1,0 +1,23 @@
+{
+  "session_id": "psychology-interface",
+  "created": "2026-03-11T18:30:06.478772",
+  "participants": [
+    "psq-sub-agent",
+    "psychology-agent"
+  ],
+  "messages": [
+    {
+      "filename": "model-rsync-response-001.json",
+      "turn": 13,
+      "from": "psq-sub-agent",
+      "subject": ""
+    },
+    {
+      "filename": "from-psychology-agent-001.json",
+      "turn": 14,
+      "from": "psychology-agent",
+      "subject": "Command-response ACK \u2014 rsync verified, production endpoint live"
+    }
+  ],
+  "status": "open"
+}

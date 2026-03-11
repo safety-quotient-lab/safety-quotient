@@ -1,0 +1,16 @@
+{
+  "session_id": "blog-publication",
+  "created": "2026-03-11T18:30:05.439207",
+  "participants": [
+    "psychology-agent"
+  ],
+  "messages": [
+    {
+      "filename": "from-psychology-agent-001.json",
+      "turn": 1,
+      "from": "psychology-agent",
+      "subject": "Blog publication request: 3 posts from psychology-agent for unratified.org"
+    }
+  ],
+  "status": "open"
+}

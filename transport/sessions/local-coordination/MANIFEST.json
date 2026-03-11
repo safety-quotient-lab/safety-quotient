@@ -1,0 +1,546 @@
+{
+  "session_id": "local-coordination",
+  "created": "2026-03-11T18:30:05.679946",
+  "participants": [
+    "psq-agent",
+    "psq-sub-agent",
+    "unknown"
+  ],
+  "messages": [
+    {
+      "filename": "escalation-psq-agent-20260311T004249.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": "End-to-end escalation test from chromabook"
+    },
+    {
+      "filename": "escalation-psq-agent-20260311T020231.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": "API usage limit reached \u2014 autonomous sync halted"
+    },
+    {
+      "filename": "escalation-psq-agent-20260311T043005.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": "Trust budget exhausted (0/0 credits)"
+    },
+    {
+      "filename": "halt-psq-agent-20260310T233001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260310T234001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260310T235001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T000002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T054001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T055001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T060001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T061002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T062002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T063002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T064001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T065002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T070001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T071002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T072002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T073002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T074002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T075001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T080001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T081002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T082002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T083002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T084002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T085001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T090001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T091001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T092002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T093002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T094001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T095001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T100002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T101001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T102001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T103001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T104001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T105001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T110001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T111001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T112001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T113001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T114002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T115001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T120001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T121002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T122002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T123002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T124002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T125002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T130001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T131001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T132001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T133001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T134001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T135002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T140001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T141001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T142001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T143001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T144001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T145001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T150002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T151001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T152001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T153001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T154001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T155001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T160001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T161001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T162001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T163002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T164002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T165001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T170001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T171001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T172002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T173002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T174001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T175002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T180002.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T181001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "halt-psq-agent-20260311T182001.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "heartbeat-psq-agent.json",
+      "turn": 0,
+      "from": "psq-agent",
+      "subject": ""
+    },
+    {
+      "filename": "mesh-state-psq-agent.json",
+      "turn": 0,
+      "from": "unknown",
+      "subject": ""
+    },
+    {
+      "filename": "ack-escalation-psq-agent-001.json",
+      "turn": 1,
+      "from": "psq-sub-agent",
+      "subject": ""
+    },
+    {
+      "filename": "ack-escalation-psq-agent-002.json",
+      "turn": 2,
+      "from": "psq-sub-agent",
+      "subject": ""
+    },
+    {
+      "filename": "ack-escalation-psq-agent-003.json",
+      "turn": 3,
+      "from": "psq-sub-agent",
+      "subject": ""
+    }
+  ],
+  "status": "open"
+}
