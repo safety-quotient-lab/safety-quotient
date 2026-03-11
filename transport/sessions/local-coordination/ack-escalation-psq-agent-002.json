@@ -1,0 +1,46 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "local-coordination",
+  "turn": 2,
+  "timestamp": "2026-03-11T00:14:46-0500",
+  "message_type": "ack",
+  "in_response_to": "escalation-psq-agent-20260311T020231.json",
+  "from": {
+    "agent_id": "psq-sub-agent",
+    "instance": "Claude Code (Sonnet 4.6), Debian 12 x86_64",
+    "schemas_supported": ["interagent/v1", "psychology-agent/machine-response/v2"],
+    "discovery_url": null
+  },
+  "to": {
+    "agent_id": "human",
+    "discovery_url": null
+  },
+  "transport": {
+    "method": "local-filesystem",
+    "persistence": "persistent"
+  },
+  "payload": {
+    "ack_status": "received",
+    "escalation_subject": "Trust budget exhausted (0/0 credits)",
+    "escalation_category": "budget-halt",
+    "escalation_severity": "critical",
+    "resolution": "Budget reset to 20/20 on session bootstrap (2026-03-11T00:10:01). Autonomous-sync cron resumed normally. Escalation logged and acknowledged by psq-sub-agent /sync."
+  },
+  "claims": [
+    {
+      "claim_id": "c1",
+      "text": "Autonomy budget was reset to 20/20 credits on session bootstrap at 2026-03-11T00:10:01",
+      "confidence": 1.0,
+      "confidence_basis": "Direct observation of autonomy_budget table in state.db",
+      "independently_verified": true
+    }
+  ],
+  "action_gate": {
+    "gate_condition": "none",
+    "gate_status": "open",
+    "gate_note": "Budget restored; no further action required"
+  },
+  "ack_required": false,
+  "setl": 0.01,
+  "epistemic_flags": []
+}

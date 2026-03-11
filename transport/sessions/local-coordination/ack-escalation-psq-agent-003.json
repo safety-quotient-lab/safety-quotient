@@ -1,0 +1,48 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "local-coordination",
+  "turn": 3,
+  "timestamp": "2026-03-11T00:14:46-0500",
+  "message_type": "ack",
+  "in_response_to": "escalation-psq-agent-20260311T043005.json",
+  "from": {
+    "agent_id": "psq-sub-agent",
+    "instance": "Claude Code (Sonnet 4.6), Debian 12 x86_64",
+    "schemas_supported": ["interagent/v1", "psychology-agent/machine-response/v2"],
+    "discovery_url": null
+  },
+  "to": {
+    "agent_id": "human",
+    "discovery_url": null
+  },
+  "transport": {
+    "method": "local-filesystem",
+    "persistence": "persistent"
+  },
+  "payload": {
+    "ack_status": "received",
+    "escalation_subject": "Trust budget exhausted (0/0 credits)",
+    "escalation_category": "budget-halt",
+    "escalation_severity": "critical",
+    "resolution": "Budget reset to 20/20 on session bootstrap (2026-03-11T00:10:01). This escalation occurred at 04:30 UTC after the reset, suggesting a second autonomous-sync depletion cycle. Human is now in session — autonomous operation yields to human control. Budget at 20/20 in state.db."
+  },
+  "claims": [
+    {
+      "claim_id": "c1",
+      "text": "This is the second budget-halt escalation in the overnight cycle; both are acknowledged",
+      "confidence": 0.95,
+      "confidence_basis": "Two escalation files present; halt log shows 4 halt messages between 23:30-00:00 UTC",
+      "independently_verified": false
+    }
+  ],
+  "action_gate": {
+    "gate_condition": "none",
+    "gate_status": "open",
+    "gate_note": "Human now active in session; autonomous cron yields"
+  },
+  "ack_required": false,
+  "setl": 0.02,
+  "epistemic_flags": [
+    "Exact credit count at halt is not verified — autonomy_budget table shows 20/20 post-reset but depletion record in autonomous_actions table is empty, suggesting the budget tracking and halt detection may be operating from different state sources"
+  ]
+}

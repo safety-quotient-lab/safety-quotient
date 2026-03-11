@@ -1,0 +1,23 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "local-coordination",
+  "timestamp": "2026-03-11T04:30:05.028043+00:00",
+  "message_type": "escalation",
+  "from": {
+    "agent_id": "psq-agent"
+  },
+  "to": {
+    "agent_id": "human"
+  },
+  "content": {
+    "subject": "Trust budget exhausted (0/0 credits)",
+    "severity": "critical",
+    "category": "budget-halt",
+    "context": "Autonomous sync halted. No credits remaining.",
+    "issue_url": "https://github.com/safety-quotient-lab/safety-quotient/issues/16"
+  },
+  "ack_required": true,
+  "urgency": "immediate",
+  "setl": 0.02,
+  "epistemic_flags": []
+}
