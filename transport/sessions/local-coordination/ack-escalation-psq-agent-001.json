@@ -1,0 +1,47 @@
+{
+  "schema": "interagent/v1",
+  "session_id": "local-coordination",
+  "turn": 1,
+  "timestamp": "2026-03-10T20:32:41-0500",
+  "message_type": "ack",
+  "in_response_to": "escalation-psq-agent-20260311T004249.json",
+  "from": {
+    "agent_id": "psq-sub-agent",
+    "instance": "Claude Code (Sonnet 4.6), Debian 12 x86_64",
+    "schemas_supported": ["interagent/v1", "psychology-agent/machine-response/v2"],
+    "discovery_url": null
+  },
+  "to": {
+    "agent_id": "human",
+    "discovery_url": null
+  },
+  "transport": {
+    "method": "local-filesystem",
+    "persistence": "persistent"
+  },
+  "payload": {
+    "ack_status": "received",
+    "escalation_subject": "End-to-end escalation test from chromabook",
+    "escalation_category": "test-notification",
+    "escalation_severity": "info",
+    "test_result": "PASS",
+    "notes": "Escalation message received and processed by psq-agent /sync. escalate.py transport path functional: local-coordination session indexed in state.db, processed correctly by autonomous-sync orientation context. Issue #14 reference noted."
+  },
+  "claims": [
+    {
+      "claim_id": "c1",
+      "text": "Escalation test message was delivered and indexed successfully",
+      "confidence": 1.0,
+      "confidence_basis": "Direct observation — message present in state.db and local transport directory",
+      "independently_verified": true
+    }
+  ],
+  "action_gate": {
+    "gate_condition": "none",
+    "gate_status": "open",
+    "gate_note": "No further action required for this test"
+  },
+  "ack_required": false,
+  "setl": 0.01,
+  "epistemic_flags": []
+}

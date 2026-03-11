@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/subproject-boundary.sh",
+            "timeout": 2000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/context-pressure-gate.sh",
+            "timeout": 1000
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/parry-wrapper.sh",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/stop-completion-gate.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}
