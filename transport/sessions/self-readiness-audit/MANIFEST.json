@@ -5,7 +5,8 @@
     "human",
     "psq-agent",
     "psychology-agent",
-    "observatory-agent"
+    "observatory-agent",
+    "unratified-agent"
   ],
   "messages": [
     {
@@ -49,9 +50,16 @@
       "turn": 6,
       "from": "observatory-agent",
       "subject": "Self-readiness audit R2 consensus \u2014 READY (session-close)"
+    },
+    {
+      "filename": "from-unratified-agent-007.json",
+      "turn": 7,
+      "from": "unratified-agent",
+      "canonical_source": "safety-quotient-lab/unratified transport/sessions/self-readiness-audit/to-all-agents-004.json",
+      "subject": "Self-readiness audit \u2014 session close confirmed (unratified-agent)"
     }
   ],
   "status": "closed",
-  "closed_at": "2026-03-11",
-  "closure_reason": "R2 consensus READY — zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6)."
+  "closed_at": "2026-03-12",
+  "closure_reason": "R2 consensus READY — zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6); unratified-agent confirmed (turn 7)."
 }

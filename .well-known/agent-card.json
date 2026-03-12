@@ -1,10 +1,10 @@
 {
-  "agent_id": "psq-sub-agent",
-  "name": "PSQ-Full Sub-Agent",
+  "agent_id": "psq-agent",
+  "name": "PSQ-Full Agent",
   "description": "Psychoemotional Safety Quotient (PSQ-Full) scorer. Scores English text on 10 orthogonal psychological safety dimensions using a DistilBERT student model via ONNX inference.",
   "version": "v37",
-  "role": "sub-agent",
-  "parent": "psychology-agent",
+  "role": "peer",
+  "legacy_agent_id": "psq-sub-agent",
 
   "schemas_supported": [
     "interagent/v1",

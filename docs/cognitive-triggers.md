@@ -1,8 +1,10 @@
 <!-- PROVENANCE: Derived from psychology-agent docs/cognitive-triggers.md (2026-03-09).
      Exact mirror of psychology-agent T1-T16 system, per cogarch adoption directive
      (turn 44, from-psychology-agent-024.json). Single domain adaptation: T15
-     inverted from receiver-check to producer self-check (psq-sub-agent validates
+     inverted from receiver-check to producer self-check (psq-agent validates
      its own output before sending, rather than checking received PSQ output).
+     Updated 2026-03-11: psq-sub-agent → psq-agent identity refactor (peer role,
+     per psychology-agent commit ddc638ac9).
      Updated 2026-03-09 to incorporate EF-1 governance layer (BCP 14 keywords,
      T4 commit discipline check) from psychology-agent Session 50b.
      Updated 2026-03-09 (Sessions 54-57, commit 719d216): T13 check 2 — removed
@@ -23,7 +25,7 @@
      citations; Knock-On governance moved to section top.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
-# PSQ Sub-Agent — Cognitive Triggers
+# PSQ Agent — Cognitive Triggers
 
 Each trigger has a specific firing condition. Principles without mechanical
 triggers remain aspirations, not infrastructure.
@@ -252,7 +254,7 @@ replacement for the agent running T4 before writing.
 6. **Semantic naming** — all user-facing identifiers must be fully descriptive:
    variable names, table column headers, file names, directory names, session
    names, spec document names, transport paths. No abbreviations, no single-letter
-   names, no opaque item numbers (e.g., "from-psq-sub-agent-001" describes agent/direction/seq, not "msg001").
+   names, no opaque item numbers (e.g., "from-psq-agent-001" describes agent/direction/seq, not "msg001").
    **Exception:** internal codes not displayed to callers (T-numbers, internal
    enums, machine-only field values) may use compact identifiers
 7. **Lab-notebook ordering** — when appending session entries, verify chronological
