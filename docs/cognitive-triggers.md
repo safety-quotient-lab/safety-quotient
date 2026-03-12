@@ -27,6 +27,9 @@
      session incorrectly removed T18 based on a dangling local commit that was
      not on psychology-agent origin/main. T18 (UX Design Grounding) remains
      active upstream. Mirroring correction per /sync auto-apply policy.
+     Updated 2026-03-12 (psychology-agent HEAD): T3 check 12a — evaluator's
+     perspective framing; T3 check 12 source note — EF-3 adjudication (Session 24);
+     T3 check 14 — "Do not leave contested terms unbound"; check 8b → check 8.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Agent — Cognitive Triggers
@@ -187,13 +190,14 @@ fewer unnecessary checks over missed divergence.
 
     **a. Adversarial self-framing** — construct the strongest argument AGAINST the
     recommendation. If the counter-argument survives scrutiny (evidence-based, not
-    vague concern), flag it explicitly before proceeding.
+    vague concern), flag it explicitly before proceeding. Frame this check as the
+    evaluator's perspective, not the agent's.
 
     **b. Parsimony comparison** — if 2+ interpretations exist, identify which has
-    fewer assumptions. Prefer it unless pragmatism or coherence overrides. This
-    fills the gap T3 #1–#11 leave: recommendation discipline guards *whether* to
-    recommend; parsimony comparison guards *which* recommendation to prefer when
-    multiple candidates exist.
+    fewer assumptions. Prefer it unless pragmatism or coherence overrides (see
+    evaluator domain priority tables in architecture.md). This fills the gap T3
+    #1–#11 leave: recommendation discipline guards *whether* to recommend; parsimony
+    comparison guards *which* recommendation to prefer when multiple candidates exist.
 
     **c. Audit + random escalation** — log every Tier 1 evaluation to
     `transport/sessions/evaluator/tier1-audit.jsonl` (structured: timestamp, claim,
@@ -205,6 +209,10 @@ fewer unnecessary checks over missed divergence.
 
     Output: `"proceed"` or `"flag"` (matching evaluator-response/v1 Tier 1 format).
     If flag: state flag_reason. If proceed with confidence adjustment: state delta.
+
+    *Source: EF-3 adjudication (Session 24). Tier 1 independence strengthened via
+    S4 (audit trail + adversarial framing + random escalation). Structural
+    independence deferred to Tier 2/3 runtime.*
 
 **Semiotic sub-checks (SRT-inspired, gated activation):**
 
@@ -222,7 +230,8 @@ domain shift, 2+ novel terms). In quiet conversations, skip these.
     sophistication, or domain markers shift significantly from the conversation
     baseline established at session start (T1), reassess which interpretive
     community governs the current exchange. Previously bound terms may need
-    explicit rebinding. Complements dynamic Socratic calibration (check 8b).
+    explicit rebinding. Do not leave contested terms unbound in recommendations.
+    Complements dynamic Socratic calibration (check 8).
     *Gate: fires when divergence indicators present.*
 
 15. **Constraint cross-reference** — scan for constraints relevant to this
