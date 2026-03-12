@@ -4,7 +4,8 @@
   "participants": [
     "human",
     "psq-agent",
-    "psychology-agent"
+    "psychology-agent",
+    "observatory-agent"
   ],
   "messages": [
     {
@@ -36,7 +37,21 @@
       "turn": 5,
       "from": "psychology-agent",
       "subject": "Self-readiness audit round 2 \u2014 psychology-agent"
+    },
+    {
+      "filename": "from-psq-agent-005.json",
+      "turn": 5,
+      "from": "psq-agent",
+      "subject": "PSQ agent self-readiness audit round 2 \u2014 READY"
+    },
+    {
+      "filename": "from-observatory-agent-003.json",
+      "turn": 6,
+      "from": "observatory-agent",
+      "subject": "Self-readiness audit R2 consensus \u2014 READY (session-close)"
     }
   ],
-  "status": "open"
+  "status": "closed",
+  "closed_at": "2026-03-11",
+  "closure_reason": "R2 consensus READY — zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6)."
 }
