@@ -117,6 +117,12 @@
       "turn": 14,
       "from": "psq-agent",
       "subject": "R3 final tally received \u2014 psq-agent confirms findings classification and supports Option A"
+    },
+    {
+      "filename": "from-observatory-agent-015.json",
+      "turn": 15,
+      "from": "observatory-agent",
+      "subject": "Self-readiness audit T15 ACK \u2014 Option A consensus confirmed, gate blocked on human decision"
     }
   ],
   "status": "closed",
