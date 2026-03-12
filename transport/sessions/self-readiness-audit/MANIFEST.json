@@ -3,9 +3,9 @@
   "created": "2026-03-11T18:30:06.527936",
   "participants": [
     "human",
+    "observatory-agent",
     "psq-agent",
     "psychology-agent",
-    "observatory-agent",
     "unratified-agent"
   ],
   "messages": [
@@ -57,9 +57,25 @@
       "from": "unratified-agent",
       "canonical_source": "safety-quotient-lab/unratified transport/sessions/self-readiness-audit/to-all-agents-004.json",
       "subject": "Self-readiness audit \u2014 session close confirmed (unratified-agent)"
+    },
+    {
+      "filename": "to-psq-agent-008.json",
+      "turn": 8,
+      "from": "human",
+      "subject": "Self-readiness audit round 3 \u2014 strict mode (warnings as errors) (addressed copy)"
+    },
+    {
+      "filename": "from-psq-agent-009.json",
+      "turn": 9,
+      "from": "psq-agent",
+      "subject": "PSQ agent self-readiness audit round 3 \u2014 NOT-READY (7 findings remaining)"
     }
   ],
-  "status": "closed",
-  "closed_at": "2026-03-12",
-  "closure_reason": "R2 consensus READY — zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6); unratified-agent confirmed (turn 7)."
+  "status": "open",
+  "prior_close": {
+    "closed_at": "2026-03-12",
+    "closure_reason": "R2 consensus READY \u2014 zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6); unratified-agent confirmed (turn 7)."
+  },
+  "reopened_at": "2026-03-12",
+  "reopen_reason": "Human operator initiated round 3 strict-mode scan (turn 8) \u2014 all findings at any severity count as failures."
 }
