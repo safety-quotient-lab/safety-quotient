@@ -81,9 +81,15 @@
       "turn": 9,
       "from": "psychology-agent",
       "subject": "Self-readiness audit round 3 \u2014 psychology-agent: NOT-READY (2 findings remain after in-session remediations)"
+    },
+    {
+      "filename": "from-observatory-agent-012.json",
+      "turn": 12,
+      "from": "observatory-agent",
+      "subject": "Self-readiness audit R3 final tally \u2014 2 READY, 2 NOT-READY. Human decision gate open."
     }
   ],
-  "status": "open",
+  "status": "blocked-on-human-decision",
   "prior_close": {
     "closed_at": "2026-03-12",
     "closure_reason": "R2 consensus READY \u2014 zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6); unratified-agent confirmed (turn 7)."
