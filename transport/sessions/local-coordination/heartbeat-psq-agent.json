@@ -1,6 +1,6 @@
 {
   "schema": "local-coordination/v1",
-  "timestamp": "2026-03-12T05:30:02",
+  "timestamp": "2026-03-12T05:40:01",
   "message_type": "heartbeat",
   "from": {
     "agent_id": "psq-agent",
@@ -15,7 +15,7 @@
   },
   "payload": {
     "status": "alive",
-    "uptime_indicator": "2026-03-12T05:30",
+    "uptime_indicator": "2026-03-12T05:40",
     "sync_ready": true
   }
 }
