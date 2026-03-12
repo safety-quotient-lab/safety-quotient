@@ -13,69 +13,75 @@
       "filename": "from-human-001.json",
       "turn": 1,
       "from": "human",
-      "subject": "Consensus request: self-readiness audit \u2014 evaluate yourself for stale, broken, misconfigured, or insecure state"
+      "subject": "Consensus request: self-readiness audit — evaluate yourself for stale, broken, misconfigured, or insecure state"
     },
     {
       "filename": "from-psq-agent-002.json",
       "turn": 2,
       "from": "psq-agent",
-      "subject": "PSQ agent self-readiness audit \u2014 READY-WITH-CAVEATS"
+      "subject": "PSQ agent self-readiness audit — READY-WITH-CAVEATS"
     },
     {
       "filename": "from-psychology-agent-001.json",
       "turn": 2,
       "from": "psychology-agent",
-      "subject": "Self-readiness audit response \u2014 psychology-agent"
+      "subject": "Self-readiness audit response — psychology-agent"
     },
     {
       "filename": "from-human-002.json",
       "turn": 4,
       "from": "human",
-      "subject": "Self-readiness audit round 2 \u2014 re-evaluate after caveat remediation (addressed copy)"
+      "subject": "Self-readiness audit round 2 — re-evaluate after caveat remediation (addressed copy)"
     },
     {
       "filename": "from-psychology-agent-005.json",
       "turn": 5,
       "from": "psychology-agent",
-      "subject": "Self-readiness audit round 2 \u2014 psychology-agent"
+      "subject": "Self-readiness audit round 2 — psychology-agent"
     },
     {
       "filename": "from-psq-agent-005.json",
       "turn": 5,
       "from": "psq-agent",
-      "subject": "PSQ agent self-readiness audit round 2 \u2014 READY"
+      "subject": "PSQ agent self-readiness audit round 2 — READY"
     },
     {
       "filename": "from-observatory-agent-003.json",
       "turn": 6,
       "from": "observatory-agent",
-      "subject": "Self-readiness audit R2 consensus \u2014 READY (session-close)"
+      "subject": "Self-readiness audit R2 consensus — READY (session-close)"
     },
     {
       "filename": "from-unratified-agent-007.json",
       "turn": 7,
       "from": "unratified-agent",
       "canonical_source": "safety-quotient-lab/unratified transport/sessions/self-readiness-audit/to-all-agents-004.json",
-      "subject": "Self-readiness audit \u2014 session close confirmed (unratified-agent)"
+      "subject": "Self-readiness audit — session close confirmed (unratified-agent)"
     },
     {
       "filename": "to-psq-agent-008.json",
       "turn": 8,
       "from": "human",
-      "subject": "Self-readiness audit round 3 \u2014 strict mode (warnings as errors) (addressed copy)"
+      "subject": "Self-readiness audit round 3 — strict mode (warnings as errors) (addressed copy)"
     },
     {
       "filename": "from-psq-agent-009.json",
       "turn": 9,
       "from": "psq-agent",
-      "subject": "PSQ agent self-readiness audit round 3 \u2014 NOT-READY (7 findings remaining)"
+      "subject": "PSQ agent self-readiness audit round 3 — NOT-READY (7 findings remaining)"
+    },
+    {
+      "filename": "from-observatory-agent-004.json",
+      "turn": 9,
+      "from": "observatory-agent",
+      "subject": "Self-readiness audit round 3 — observatory-agent: READY (2 findings found, both remediated inline)"
     }
   ],
   "status": "open",
   "prior_close": {
     "closed_at": "2026-03-12",
-    "closure_reason": "R2 consensus READY \u2014 zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6); unratified-agent confirmed (turn 7)."
+    "closure_reason": "R2 consensus READY — zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6); unratified-agent confirmed (turn 7)."
   },
   "reopened_at": "2026-03-12",
-  "reopen_reason": "Human operator initiated round 3 strict-mode scan (turn 8) \u2014 all findings at any severity count as failures."
+  "reopen_reason": "Human operator initiated round 3 strict-mode scan (turn 8) — all findings at any severity count as failures."
 }
