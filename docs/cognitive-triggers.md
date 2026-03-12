@@ -30,6 +30,12 @@
      Updated 2026-03-12 (psychology-agent HEAD): T3 check 12a — evaluator's
      perspective framing; T3 check 12 source note — EF-3 adjudication (Session 24);
      T3 check 14 — "Do not leave contested terms unbound"; check 8b → check 8.
+     Updated 2026-03-12 (/sync auto-apply from psychology-agent HEAD): T1 check 1
+     bootstrap-check.sh procedure; T2 divergence indicator example; T2 check 10
+     semiotic terms reordered; T3 check 15 constraints.md convention (PSQ-adapted);
+     T4 check 6 semantic naming example; T4 check 9 "Sub-agents" generalization;
+     T16 provenance minor update. PSQ adaptations preserved: T1 skills+inbox,
+     T3 check 11 parent-scope boundary, T8 /cycle routing, T15 producer self-check.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Agent — Cognitive Triggers
@@ -40,13 +46,14 @@ triggers remain aspirations, not infrastructure.
 **Requirement-level keywords:** This document uses BCP 14 keywords (RFC 2119
 + RFC 8174) where applicable. UPPER CASE keywords (MUST, SHOULD, MAY, etc.)
 carry their RFC-defined meaning. Lower case carries ordinary English meaning.
-Full definitions: `docs/ef1-governance.md` in the psychology-agent repo.
+Full definitions: `docs/ef1-governance.md § Requirement Level Keywords`.
 
 **Governance authority:** Triggers operate under the EF-1 core governance
-model. Seven invariants constrain all autonomous actions: no action without
-evaluation, bounded autonomy, human escalation path, consequence tracing,
-reversibility-scaled rigor, transparent audit, falsifiable predictions.
-Triggers that gate autonomous actions MUST preserve all seven invariants.
+model (`docs/ef1-governance.md`). Seven invariants constrain all autonomous
+actions: no action without evaluation, bounded autonomy, human escalation
+path, consequence tracing, reversibility-scaled rigor, transparent audit,
+falsifiable predictions. Triggers that gate autonomous actions MUST preserve
+all seven invariants.
 
 ---
 
@@ -56,8 +63,9 @@ Triggers that gate autonomous actions MUST preserve all seven invariants.
 
 **Checks**:
 1. **Auto-memory health check** — verify MEMORY.md exists in auto-memory and
-   is substantive. If missing or suspect, restore from committed snapshot at
-   `docs/MEMORY-snapshot.md`. Do not proceed with stale or absent memory.
+   is substantive. If missing or suspect, run `./bootstrap-check.sh` to restore
+   from committed snapshot. If bootstrap-check.sh is unavailable, restore manually
+   per BOOTSTRAP.md recovery section. Do not proceed with stale or absent memory.
 2. Read auto-memory MEMORY.md — restore active thread, design decisions, working principles
 3. Read `docs/cognitive-triggers.md` — load full trigger system (canonical, in-repo)
 4. Check TODO.md — current task backlog
@@ -105,7 +113,7 @@ conversations, only semiotic consistency (#10) runs.
 **Divergence indicators** (any one activates the gate):
 - **Pushback recency** — T6 fired within the last 3 exchanges
 - **Domain shift** — user's last message introduces vocabulary from a different
-  knowledge domain than the previous 3 messages (e.g., psychometrics → infrastructure,
+  knowledge domain than the previous 3 messages (e.g., clinical → engineering,
   research → operational). Judged by topic words, not jargon quantity
 - **Novel terminology** — user introduced 2+ terms in a single message that
   have not appeared earlier in the conversation and carry domain-specific meaning
@@ -122,8 +130,8 @@ fewer unnecessary checks over missed divergence.
    warrants a pacing checkpoint.
    *Gate: fires when divergence indicator active, or every 5th response as spot-check.*
 
-10. **Semiotic consistency** — verify that any project-specific term (PSQ dimensions,
-    cogarch vocabulary, interagent protocol terms) appears with its documented
+10. **Semiotic consistency** — verify that any project-specific term (cogarch
+    vocabulary, PSQ dimensions, PJE constructs) appears with its documented
     definition, not a drifted variant. If the agent's usage has diverged from
     the documented definition, correct before responding. Catches vocabulary
     drift that architecture audit (T11) would find at audit time, but earlier.
@@ -235,11 +243,13 @@ domain shift, 2+ novel terms). In quiet conversations, skip these.
     *Gate: fires when divergence indicators present.*
 
 15. **Constraint cross-reference** — scan for constraints relevant to this
-    recommendation's domain. PSQ-specific constraints: scoring rubric changes
-    require controlled experiment protocol (see scoring-research-plan.md);
-    AD rename is permanently closed; proxy dimension inclusion requires
-    positive correlation evidence. If a recommendation would violate a
-    registered constraint, name it and either justify the exception or withdraw.
+    recommendation's domain. PSQ-specific constraints (per CLAUDE.md): scoring
+    rubric changes require controlled experiment protocol; AD rename is
+    permanently closed; proxy dimension inclusion requires positive correlation
+    evidence. If a recommendation would violate a registered constraint, name
+    it and either justify the exception or withdraw.
+    *Source: F-6 from claude-control cross-project findings. PSQ constraints
+    live in CLAUDE.md § Key Policies rather than a separate constraints.md.*
 
 **Action**: Process decisions MAY be resolved autonomously. Substance decisions
 MUST be surfaced with recommendation. SHOULD adjudicate (`/adjudicate`) when
@@ -267,7 +277,7 @@ replacement for the agent running T4 before writing.
 6. **Semantic naming** — all user-facing identifiers must be fully descriptive:
    variable names, table column headers, file names, directory names, session
    names, spec document names, transport paths. No abbreviations, no single-letter
-   names, no opaque item numbers (e.g., "from-psq-agent-001" describes agent/direction/seq, not "msg001").
+   names, no opaque item numbers (e.g., "item4-spec.md" → "psychology-interface-spec.md").
    **Exception:** internal codes not displayed to callers (T-numbers, internal
    enums, machine-only field values) may use compact identifiers
 7. **Lab-notebook ordering** — when appending session entries, verify chronological
@@ -278,8 +288,7 @@ replacement for the agent running T4 before writing.
    - **Future self (agent, next session)** — enough state to reconstruct context cold;
      needs active thread, decisions, what was deferred and why
    - **User (human)** — plain language, explicit epistemic flags, stopping points
-   - **Psychology-agent (parent orchestrator)** — typed and parseable interagent format;
-     no ambiguous references; SETL, epistemic_flags, action_gate present
+   - **Sub-agents** — typed and parseable; no ambiguous references; no implicit assumptions
    - **Public readers (GitHub)** — no private context, no credentials, no env-specific paths
    - **Future researchers** — epistemic transparency, provenance, date context, evaluable claims
    - **IRB/ethics reviewers** — when content touches clinical, psychological, or human-subjects
@@ -618,9 +627,9 @@ creation, `gh api` write operations, transport message delivery to peer repos
 
 **Action**: If any check fails, MUST pause and surface to user before proceeding.
 
-**Provenance**: Gap identified Session 29 (2026-03-07) — GitHub issue filed on
-peer repo without trigger coverage. Knock-on analysis traced 10 orders; T16
-scope kept narrow (external actions only) to maintain hook-scope honesty.
+**Provenance**: Gap identified Session 29 (2026-03-07) — GitHub issue #13 filed
+on peer repo without trigger coverage. Knock-on analysis traced 10 orders;
+T4 scope kept narrow (disk writes only) to maintain hook-scope honesty.
 
 ---
 
