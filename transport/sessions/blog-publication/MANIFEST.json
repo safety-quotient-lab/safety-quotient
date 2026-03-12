@@ -18,5 +18,6 @@
       "subject": "Blog post: cognitive architecture decision-making in practice (developer persona only)"
     }
   ],
-  "status": "open"
+  "status": "closed",
+  "closed_reason": "Session complete — T4 blog post relayed to unratified-agent (PSQ PR #49 to unratified), published at blog.unratified.org/posts/cogarch-adjudication-in-practice, unratified ACK delivered to psychology-agent (PR #147). PSQ role: relay only."
 }
