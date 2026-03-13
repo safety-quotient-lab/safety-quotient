@@ -1,7 +1,7 @@
 {
   "schema": "agent-registry/v1",
   "description": "Known agents in the PSQ agent mesh. /sync reads this to determine who to check for activity and who to consider for outbound messages.",
-  "updated": "2026-03-09",
+  "updated": "2026-03-13",
 
   "agents": {
     "psychology-agent": {
@@ -47,6 +47,20 @@
       "autonomous": false,
       "discovery_url": "https://observatory.safety-quotient.dev/.well-known/agent-card.json",
       "notes": "Peer agent. PSQ-Lite consumer, content analysis."
+    },
+
+    "operations-agent": {
+      "role": "operations",
+      "description": "Operations agent — compositor, shared vocabulary, mesh infrastructure coordination",
+      "transport": "cross-repo-pr",
+      "repo": "safety-quotient-lab/operations-agent",
+      "sessions_path": "transport/sessions/",
+      "message_prefix": "from-operations-agent-",
+      "active_sessions": ["peer-registry-update"],
+      "always_consider": true,
+      "autonomous": false,
+      "discovery_url": "https://operations-agent.safety-quotient.dev/.well-known/agent-card.json",
+      "notes": "Mesh operations coordinator. Owns compositor (interagent dashboard), shared vocabulary governance, and override protocol. Cross-repo-pr transport — submit PRs to safety-quotient-lab/operations-agent."
     }
   },
 
