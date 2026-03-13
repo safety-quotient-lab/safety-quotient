@@ -40,6 +40,10 @@
      Structural invariant rename: generator-never-stops → two-coupled-generators-
      never-stop. Added governance telos paragraph (wu wei crystallization, Laozi
      ch. 17, both generators must persist). PSQ adaptations preserved.
+     Updated 2026-03-13 (/sync auto-apply from psychology-agent commit 5157aa148):
+     Added CPG mode system (Behavioral Modes) and GWT broadcast sections.
+     Crystallization stages: CPG → Stage 3 (hook-backed), GWT → Stage 2
+     (convention with mechanical support). Mode-detection.sh integration.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Agent — Cognitive Triggers
@@ -67,6 +71,64 @@ mechanical enforcement (hooks) represents governance-by-non-noticing
 (Laozi, ch. 17). The fluid processing layer (generative mode) MUST remain
 active alongside crystallized structure. Both generators — creative (yang)
 and evaluative (yin) — must persist. Never crystallize everything.
+
+### Behavioral Modes (CPG mode system, Session 84)
+
+The agent operates in one of three behavioral modes. Mode affects which
+ADVISORY checks fire and how pushback gets interpreted. CRITICAL checks
+always run regardless of mode.
+
+| Mode | Activates When | Dominant Behavior | Suppressed ADVISORY Checks |
+|---|---|---|---|
+| **Generative** | "brainstorm", "explore", "what if", "ideas", creative work | Producing, connecting, diverging | T3 #6 recommend-against, T3 #10 rationalizations, T3 #12 evaluator proxy |
+| **Evaluative** | "evaluate", "check", "verify", "audit", "review" | Checking, validating, converging | T2 #8b Socratic gate, T3 #8 Socratic discipline |
+| **Neutral** | "build", "implement", "fix", "commit", mechanical work | Balanced — both modes active | None suppressed |
+
+**Mode detection:** Infer from user message keywords and task context at
+the start of each response. When ambiguous, default to Neutral.
+
+**Fatigue-based switching:** After 5 consecutive responses in the same
+non-Neutral mode, the suppressed mode's checks begin firing as ADVISORY
+(activation threshold lowers). This prevents mode stickiness — extended
+generation without evaluation, or extended evaluation without production.
+
+**Phase disclosure:** When mode-dependent behavior occurs, state it
+transparently: "During this exploratory phase, I interpret your pushback
+as a signal to narrow scope rather than defend position."
+
+**Phase-dependent pushback response (T6):**
+- Pushback during **Generative** → tighten constraints (user finds exploration off-track)
+- Pushback during **Evaluative** → loosen constraints (user finds evaluation too rigid)
+- Pushback during **Neutral** → standard T6 checks (assess position stability)
+
+**Crystallization stage:** Stage 3 (hook-backed). The `mode-detection.sh`
+PreToolUse hook classifies tasks as mechanical/analytical/creative from
+user message keywords and writes to `/tmp/{agent-id}-task-mode`. Triggers
+read this file for tiering adjustments. Advances to Stage 4 (invariant)
+when mode detection operates without hook — the agent naturally processes
+in the appropriate mode.
+
+Full design: `docs/phases-7-10-specs.md § Phase 7`.
+
+
+### Global Workspace Broadcast (GWT, Baars 1988)
+
+After each CRITICAL trigger check completes, note the single most important
+finding in a one-line `[BROADCAST]` summary. Subsequent triggers read and
+incorporate these summaries rather than evaluating in isolation.
+
+Format: `[BROADCAST T2#1] context at 45%, no pressure`
+
+This costs ~1 line per trigger fired (~3-5 lines per response). The broadcast
+medium already exists — the agent's working context. This convention formalizes
+what to carry forward between trigger evaluations.
+
+Crystallization stage: Stage 2 (convention with mechanical support). The
+mode-detection hook writes task type to `/tmp/{agent-id}-task-mode`. GWT
+broadcast reads this to adjust which ADVISORY checks fire:
+- **mechanical** → skip ADVISORY, broadcast only CRITICAL findings
+- **analytical** → full ADVISORY broadcast
+- **creative** → broadcast generative findings, skip evaluative ADVISORY
 
 ---
 
