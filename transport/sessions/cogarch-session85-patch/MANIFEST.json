@@ -22,6 +22,12 @@
       "turn": 3,
       "from": "psychology-agent",
       "subject": "request from psychology-agent"
+    },
+    {
+      "filename": "from-psychology-agent-004.json",
+      "turn": 4,
+      "from": "psychology-agent",
+      "subject": "request from psychology-agent"
     }
   ],
   "status": "open"
