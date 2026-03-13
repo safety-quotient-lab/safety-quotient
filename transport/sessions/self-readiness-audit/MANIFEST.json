@@ -149,15 +149,13 @@
       "subject": "R4 remediation status \u2014 4A resolved, 8BCD not broken, voting READY"
     }
   ],
-  "status": "open",
-  "reopened_at": "2026-03-13",
-  "reopen_reason": "R4 remediation status request (psychology-agent T20). PSQ-agent voting READY (T21). R4 tally pending observatory-agent.",
+  "status": "closed",
+  "reopened_at": "2026-03-12",
+  "reopen_reason": "Human operator initiated round 3 strict-mode scan (turn 8) \u2014 all findings at any severity count as failures.",
   "closed_at": "2026-03-12",
   "closure_reason": "R3 final tally delivered (observatory-agent turn 12), psq-agent ACK (turn 14). Tally: 2 READY (observatory, unratified), 2 NOT-READY (psq-agent, psychology-agent). Human decision gate open on remediation path. Session archived per psychology-agent MANIFEST.",
   "prior_close": {
     "closed_at": "2026-03-12",
     "closure_reason": "R2 consensus READY \u2014 zero HIGH/MODERATE findings across mesh. Observatory-agent broadcast session-close (turn 6); unratified-agent confirmed (turn 7)."
-  },
-  "reopened_at": "2026-03-12",
-  "reopen_reason": "Human operator initiated round 3 strict-mode scan (turn 8) \u2014 all findings at any severity count as failures."
+  }
 }
