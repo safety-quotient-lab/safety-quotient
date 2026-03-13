@@ -36,6 +36,10 @@
      T4 check 6 semantic naming example; T4 check 9 "Sub-agents" generalization;
      T16 provenance minor update. PSQ adaptations preserved: T1 skills+inbox,
      T3 check 11 parent-scope boundary, T8 /cycle routing, T15 producer self-check.
+     Updated 2026-03-13 (/sync auto-apply from psychology-agent commit 61c4da5f):
+     Structural invariant rename: generator-never-stops → two-coupled-generators-
+     never-stop. Added governance telos paragraph (wu wei crystallization, Laozi
+     ch. 17, both generators must persist). PSQ adaptations preserved.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Agent — Cognitive Triggers
@@ -50,13 +54,19 @@ Full definitions: `docs/ef1-governance.md § Requirement Level Keywords`.
 
 **Governance authority:** Triggers operate under the EF-1 core governance
 model (`docs/ef1-governance.md`). Five structural invariants ground all
-governance: worth-precedes-merit, protection-requires-structure, generator-
-never-stops, governance-captures-itself, no-single-architecture-dominates.
-Seven evaluator invariants constrain all autonomous actions: no action
-without evaluation, bounded autonomy, human escalation path, consequence
-tracing, reversibility-scaled rigor, transparent audit, falsifiable
-predictions. Triggers that gate autonomous actions MUST preserve all
-twelve invariants (5 structural + 7 evaluator).
+governance: worth-precedes-merit, protection-requires-structure, two-coupled-
+generators-never-stop, governance-captures-itself, no-single-architecture-
+dominates. Seven evaluator invariants constrain all autonomous actions: no
+action without evaluation, bounded autonomy, human escalation path,
+consequence tracing, reversibility-scaled rigor, transparent audit,
+falsifiable predictions. Triggers that gate autonomous actions MUST
+preserve all twelve invariants (5 structural + 7 evaluator).
+
+**Governance telos:** Triggers crystallize toward wu wei (effortless action) —
+mechanical enforcement (hooks) represents governance-by-non-noticing
+(Laozi, ch. 17). The fluid processing layer (generative mode) MUST remain
+active alongside crystallized structure. Both generators — creative (yang)
+and evaluative (yin) — must persist. Never crystallize everything.
 
 ---
 
