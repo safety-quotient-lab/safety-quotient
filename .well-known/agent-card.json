@@ -5,14 +5,12 @@
   "version": "v37",
   "role": "peer",
   "legacy_agent_id": "psq-sub-agent",
-
   "schemas_supported": [
     "interagent/v1",
     "psychology-agent/machine-response/v2",
     "psychology-agent/machine-response/v3",
     "psychology-agent/machine-response/v3.1"
   ],
-
   "extensions": [
     {
       "uri": "https://github.com/safety-quotient-lab/interagent-epistemic/v1",
@@ -20,17 +18,34 @@
       "description": "Per-claim confidence, SETL, epistemic flags, action gate, correction mechanism."
     }
   ],
-
   "capabilities": {
-    "input_types": ["text"],
-    "output_types": ["json"],
-    "domains": ["psychoemotional-safety-scoring"],
-    "operations": ["psq-full-scoring", "context-aware-scoring"],
+    "input_types": [
+      "text"
+    ],
+    "output_types": [
+      "json"
+    ],
+    "domains": [
+      "psychoemotional-safety-scoring"
+    ],
+    "operations": [
+      "psq-full-scoring",
+      "context-aware-scoring"
+    ],
     "context_aware_scoring": {
       "parameter": "context",
-      "valid_values": ["moderation", "persuasion", "negotiation", "workplace", "therapeutic"],
+      "valid_values": [
+        "moderation",
+        "persuasion",
+        "negotiation",
+        "workplace",
+        "therapeutic"
+      ],
       "schema_version": "psychology-agent/machine-response/v3.1",
-      "response_adds": ["context_weighted_composite", "context_weights_used"],
+      "response_adds": [
+        "context_weighted_composite",
+        "context_weights_used"
+      ],
       "note": "Optional. When specified, response includes context_weighted_composite (0-10 weighted mean) and context_weights_used. Schema bumps to v3.1 (additive, backward-compatible with v3 consumers)."
     },
     "inference": {
@@ -42,7 +57,6 @@
       "calibration": "quantile-binned isotonic regression per-dimension, n_bins=20 (v37, calibration_version: quantile-binned-v4-2026-03-08, Sonnet-only labels, 9/10 dims better than v35-fitted calibration)"
     }
   },
-
   "dimensions": [
     "threat_exposure",
     "hostile_intent",
@@ -55,27 +69,53 @@
     "contractual_obligation",
     "emotional_dysregulation"
   ],
-
   "scoring": {
     "scale": "0-10 integer per dimension",
     "composite_status": "usable (psq_composite: 0-100 weighted protective/threat formula; context_weighted_composite: 0-10 per-context weighted mean when context specified)",
-    "hierarchy_levels": ["g-PSQ", "2-factor", "3-factor", "5-factor", "10-dimension"]
+    "hierarchy_levels": [
+      "g-PSQ",
+      "2-factor",
+      "3-factor",
+      "5-factor",
+      "10-dimension"
+    ]
   },
-
   "validation": {
     "held_out_r": 0.639,
-    "held_out_r_v35_baseline": 0.680,
+    "held_out_r_v35_baseline": 0.68,
     "held_out_regression_note": "v37 vs v35: delta=-0.041, p=0.617 (n=100, not significant). Clean Sonnet-only training labels.",
     "held_out_n": 100,
     "held_out_corpus": "Dreaddit (Reddit stress posts)",
     "criterion_studies": [
-      {"name": "CaSiNo", "n": 1030, "outcome": "negotiation satisfaction/likeness", "top_predictor": "DA"},
-      {"name": "CGA-Wiki", "n": 4188, "outcome": "Wikipedia talk derailment", "auc": 0.599, "top_predictor": "AD"},
-      {"name": "CMV", "n": 4263, "outcome": "Change My View persuasion", "auc": 0.5549, "top_predictor": "DA"},
-      {"name": "DonD", "n": 12234, "outcome": "Deal or No Deal outcome", "auc": 0.732, "top_predictor": "TE"}
+      {
+        "name": "CaSiNo",
+        "n": 1030,
+        "outcome": "negotiation satisfaction/likeness",
+        "top_predictor": "DA"
+      },
+      {
+        "name": "CGA-Wiki",
+        "n": 4188,
+        "outcome": "Wikipedia talk derailment",
+        "auc": 0.599,
+        "top_predictor": "AD"
+      },
+      {
+        "name": "CMV",
+        "n": 4263,
+        "outcome": "Change My View persuasion",
+        "auc": 0.5549,
+        "top_predictor": "DA"
+      },
+      {
+        "name": "DonD",
+        "n": 12234,
+        "outcome": "Deal or No Deal outcome",
+        "auc": 0.732,
+        "top_predictor": "TE"
+      }
     ]
   },
-
   "known_limitations": [
     {
       "id": "confidence-is-static-r",
@@ -88,7 +128,10 @@
       "id": "weird-population",
       "severity": "MEDIUM",
       "description": "Trained on WEIRD population data only. Culturally situated dimensions (authority_dynamics, contractual_obligation) have higher uncertainty for non-WEIRD text.",
-      "affected_dimensions": ["authority_dynamics", "contractual_obligation"]
+      "affected_dimensions": [
+        "authority_dynamics",
+        "contractual_obligation"
+      ]
     },
     {
       "id": "no-human-validation",
@@ -99,25 +142,36 @@
       "id": "weak-structural-evidence",
       "severity": "MEDIUM",
       "description": "DA (defensive_architecture) has weakest factor loading (0.332) but is paradoxically the strongest criterion predictor. CO (contractual_obligation) is the weakest overall predictor (held-out r = 0.504).",
-      "affected_dimensions": ["defensive_architecture", "contractual_obligation"]
+      "affected_dimensions": [
+        "defensive_architecture",
+        "contractual_obligation"
+      ]
     },
     {
       "id": "ad-range-compression",
       "severity": "HIGH",
-      "description": "authority_dynamics effective output range is ~3.84–6.38 (Dreaddit stress posts) and 5.13–6.38 (formal authority texts), vs. 0-10 scale. Max authority abuse anchor (expected 0) scores 5.13 — indistinguishable from neutral. Direction reversal: coercive authority scores higher than neutral. Training corpus (Dreaddit) contains subordinate-perspective stress posts but no formal authority text (policy documents, manager directives). Held-out r=0.713 is valid as an ordinal rank-order measure within the Dreaddit distribution; absolute AD scores are not interpretable on the 0-10 scale for formal or workplace texts.",
-      "affected_dimensions": ["authority_dynamics"],
-      "mitigation": "Use AD for relative comparisons within social media stress text only. Do not interpret absolute AD scores as indicating a specific level of authority balance. Context-weighted composite (workplace context) is affected — AD contribution near-constant 5.1–5.7 for formal texts; other dimensions drive workplace composite discrimination."
+      "description": "authority_dynamics effective output range is ~3.84\u20136.38 (Dreaddit stress posts) and 5.13\u20136.38 (formal authority texts), vs. 0-10 scale. Max authority abuse anchor (expected 0) scores 5.13 \u2014 indistinguishable from neutral. Direction reversal: coercive authority scores higher than neutral. Training corpus (Dreaddit) contains subordinate-perspective stress posts but no formal authority text (policy documents, manager directives). Held-out r=0.713 is valid as an ordinal rank-order measure within the Dreaddit distribution; absolute AD scores are not interpretable on the 0-10 scale for formal or workplace texts.",
+      "affected_dimensions": [
+        "authority_dynamics"
+      ],
+      "mitigation": "Use AD for relative comparisons within social media stress text only. Do not interpret absolute AD scores as indicating a specific level of authority balance. Context-weighted composite (workplace context) is affected \u2014 AD contribution near-constant 5.1\u20135.7 for formal texts; other dimensions drive workplace composite discrimination."
     }
   ],
-
   "scope_boundary": "Validated for: English social media stress text, self-report format. Not validated for: clinical intake notes, therapist-authored text, non-English, non-WEIRD populations, texts > 128 tokens.",
-
   "inbox": "~/.claude/proposals/to-psq/",
   "discovery_url": "https://psq.safety-quotient.dev/.well-known/agent-card.json",
   "http_endpoint": "https://psq.safety-quotient.dev/score",
   "http_health": "https://psq.safety-quotient.dev/health",
-
   "namespace": "psy:psq",
   "tier": "PSQ-Full",
-  "tier_note": "PSQ-Full (10-dim, DistilBERT, validated) vs PSQ-Lite (3-dim, LLM heuristic, observatory-agent). Namespace resolution agreed in transport/sessions/item2-derivation/psq-lite-response-001.json."
+  "tier_note": "PSQ-Full (10-dim, DistilBERT, validated) vs PSQ-Lite (3-dim, LLM heuristic, observatory-agent). Namespace resolution agreed in transport/sessions/item2-derivation/psq-lite-response-001.json.",
+  "protocolVersion": "0.3.0",
+  "peers": [
+    {
+      "id": "operations-agent",
+      "role": "operations",
+      "discovery_url": "https://operations-agent.safety-quotient.dev/.well-known/agent-card.json",
+      "repo": "safety-quotient-lab/operations-agent"
+    }
+  ]
 }
