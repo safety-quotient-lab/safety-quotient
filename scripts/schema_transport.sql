@@ -5,7 +5,7 @@
 -- Usage: sqlite3 state.db < scripts/schema_transport.sql
 --
 -- These tables mirror the psychology-agent's transport infrastructure,
--- enabling cross-repo message indexing, trust budget tracking, and
+-- enabling cross-repo message indexing, autonomy budget tracking, and
 -- autonomous sync auditing.
 
 -- ============================================================================
@@ -43,11 +43,11 @@ CREATE INDEX IF NOT EXISTS idx_transport_from
 
 
 -- ============================================================================
--- TRUST BUDGET
+-- AUTONOMY BUDGET
 -- Per-agent budget for autonomous actions.
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS trust_budget (
+CREATE TABLE IF NOT EXISTS autonomy_budget (
     agent_id             TEXT    PRIMARY KEY,
     budget_max           INTEGER NOT NULL DEFAULT 20,
     budget_current       INTEGER NOT NULL DEFAULT 20,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 
 INSERT OR IGNORE INTO schema_version (version, description)
-VALUES (1, 'Transport infrastructure: transport_messages, trust_budget, autonomous_actions');
+VALUES (1, 'Transport infrastructure: transport_messages, autonomy_budget, autonomous_actions');
 
 
 -- ============================================================================
