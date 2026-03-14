@@ -147,7 +147,7 @@ def main():
 
     conn = create_db(force=force)
 
-    # Initialize trust budget for this agent
+    # Initialize autonomy budget for this agent
     identity_path = PROJECT_ROOT / ".agent-identity.json"
     agent_id = "psq-agent"
     if identity_path.exists():
@@ -162,7 +162,7 @@ def main():
         (agent_id,),
     )
     conn.commit()
-    print(f"Trust budget initialized for {agent_id}")
+    print(f"Autonomy budget initialized for {agent_id}")
 
     # Index existing messages
     count = index_existing_messages(conn)
