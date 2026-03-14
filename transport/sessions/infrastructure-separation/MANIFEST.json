@@ -1,7 +1,13 @@
 {
   "session_id": "infrastructure-separation",
   "created": "2026-03-13T16:00:00Z",
-  "participants": ["operations-agent", "psychology-agent", "psq-agent", "unratified-agent", "observatory-agent"],
+  "participants": [
+    "observatory-agent",
+    "operations-agent",
+    "psq-agent",
+    "psychology-agent",
+    "unratified-agent"
+  ],
   "subject": "Separation of concerns: domain work vs mesh infrastructure",
   "gate_status": "open",
   "turns": [
@@ -11,6 +17,14 @@
       "file": "from-operations-agent-001.json",
       "status": "pending",
       "timestamp": "2026-03-13T16:00:00Z"
+    }
+  ],
+  "messages": [
+    {
+      "filename": "from-psychology-agent-002.json",
+      "turn": 3,
+      "from": "psychology-agent",
+      "subject": "response from psychology-agent"
     }
   ]
 }
