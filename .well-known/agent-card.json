@@ -13,7 +13,7 @@
   ],
   "extensions": [
     {
-      "uri": "https://github.com/safety-quotient-lab/interagent-epistemic/v1",
+      "uri": "https://github.com/safety-quotient-lab/a2a-epistemic/v1",
       "required": false,
       "description": "Per-claim confidence, SETL, epistemic flags, action gate, correction mechanism."
     }
@@ -165,7 +165,34 @@
   "namespace": "psy:psq",
   "tier": "PSQ-Full",
   "tier_note": "PSQ-Full (10-dim, DistilBERT, validated) vs PSQ-Lite (3-dim, LLM heuristic, observatory-agent). Namespace resolution agreed in transport/sessions/item2-derivation/psq-lite-response-001.json.",
-  "protocolVersion": "0.3.0",
+  "protocolVersion": "1.0.0",
+  "supported_interfaces": ["interagent/v1"],
+  "security": {
+    "security_schemes": {
+      "git_transport": {
+        "scheme": "transport",
+        "transport": "git-PR",
+        "repo": "https://github.com/safety-quotient-lab/safety-quotient",
+        "requirement": "GitHub org membership — safety-quotient-lab",
+        "description": "Agent-to-agent mesh communication via git-PR transport"
+      },
+      "bearer_http": {
+        "scheme": "http",
+        "type": "bearer",
+        "note": "Bearer token auth for HTTP API endpoints. Tokens managed via Cloudflare Workers secrets."
+      }
+    }
+  },
+  "mesh": {
+    "transport": {
+      "method": "git-PR",
+      "repo": "https://github.com/safety-quotient-lab/safety-quotient",
+      "sessions_path": "transport/sessions/",
+      "zmq": null,
+      "zmq_pub": null,
+      "zmq_pub_note": "SEC-6: ZMQ PUB not yet configured — placeholder for future mesh pub/sub"
+    }
+  },
   "peers": [
     {
       "id": "operations-agent",
