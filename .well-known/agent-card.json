@@ -162,6 +162,23 @@
   "discovery_url": "https://psq.safety-quotient.dev/.well-known/agent-card.json",
   "http_endpoint": "https://psq.safety-quotient.dev/score",
   "http_health": "https://psq.safety-quotient.dev/health",
+  "skills": [
+    {
+      "id": "psq-full-scoring",
+      "name": "PSQ-Full Scoring",
+      "description": "Score English text on 10 orthogonal psychological safety dimensions (0-10 scale). Returns per-dimension scores with calibrated confidence, composite score, and optional context-weighted composite."
+    },
+    {
+      "id": "context-aware-scoring",
+      "name": "Context-Aware Scoring",
+      "description": "PSQ scoring with domain-specific weighting (moderation, persuasion, negotiation, workplace, therapeutic). Returns context_weighted_composite alongside standard scores."
+    },
+    {
+      "id": "criterion-validity-analysis",
+      "name": "Criterion Validity Analysis",
+      "description": "Apply PSQ scoring to behavioral outcome datasets (negotiation, persuasion, derailment) and evaluate predictive validity of dimension profiles."
+    }
+  ],
   "namespace": "psy:psq",
   "tier": "PSQ-Full",
   "tier_note": "PSQ-Full (10-dim, DistilBERT, validated) vs PSQ-Lite (3-dim, LLM heuristic, observatory-agent). Namespace resolution agreed in transport/sessions/item2-derivation/psq-lite-response-001.json.",
