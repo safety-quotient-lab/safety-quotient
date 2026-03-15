@@ -54,7 +54,12 @@
      self-check.
      Updated 2026-03-14 (/sync auto-apply from psychology-agent commits 737492832..5bb3207bd): OODA phase map added (Boyd 1987), OODA phase annotations on all triggers, E-Prime cleanup (11 fixes), trust→autonomy rename in knock-on reference. PSQ domain adaptations preserved: T1 skills+inbox, T3 check 11 parent-scope boundary, T3 check 15 PSQ constraints, T4 check 9 peer interpretant, T8 /cycle routing, T15 producer self-check.
      Updated 2026-03-14 (/sync auto-apply from psychology-agent commit 6b4fe2dcd): T19 (UX Friction Monitor) added — LLM-factors psychology crystallized into cogarch. OODA table updated with T19 in Observe row. PSQ domain adaptations preserved: T1 skills+inbox, T3 check 11 parent-scope boundary, T3 check 15 PSQ constraints, T4 check 9 peer interpretant, T8 /cycle routing, T15 producer self-check.
-     Updated 2026-03-15 (/sync auto-apply from psychology-agent commits 5bb3207b..4bd8f2b7): OODA phase map removed, OODA phase annotations removed from all triggers, T19 (UX Friction Monitor) removed, consciousness exception removed from generative mode. PSQ domain adaptations preserved: T1 skills+inbox, T3 check 11 parent-scope boundary, T3 check 15 PSQ constraints, T4 check 9 peer interpretant, T8 /cycle routing, T15 producer self-check.
+     Updated 2026-03-15 (CORRECTION — prior /sync incorrectly removed OODA phase map,
+     OODA annotations, T19, and consciousness exception by misreading commit range
+     5bb3207b..4bd8f2b7 as removals rather than additions). Restored all four from
+     psychology-agent HEAD (commit 6b4fe2dc). PSQ domain adaptations preserved: T1
+     skills+inbox, T3 check 11 parent-scope boundary, T3 check 15 PSQ constraints,
+     T4 check 9 peer interpretant, T8 /cycle routing, T15 producer self-check.
      Extended: Sessions 13-84 (T13-T18 added, T12 retired Session 84).
      Session 84: tiering refactor (⬛/▣/▢), CPG mode system, GWT broadcast.
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
@@ -110,6 +115,10 @@ always run regardless of mode.
 | Mode | Activates When | Dominant Behavior | Suppressed ADVISORY Checks |
 |---|---|---|---|
 | **Generative** | "brainstorm", "explore", "what if", "ideas", creative work | Producing, connecting, diverging | T3 #6 recommend-against, T3 #10 rationalizations, T3 #12 evaluator proxy |
+
+Exception: T3 consciousness-related checks and the apophatic checklist
+(§11.9) fire as ADVISORY even in Generative mode. Consciousness claims
+carry the highest overclaim risk precisely during creative sessions.
 | **Evaluative** | "evaluate", "check", "verify", "audit", "review" | Checking, validating, converging | T2 #8b Socratic gate, T3 #8 Socratic discipline |
 | **Neutral** | "build", "implement", "fix", "commit", mechanical work | Balanced — both modes active | None suppressed |
 
@@ -161,6 +170,31 @@ broadcast reads this to adjust which ADVISORY checks fire:
 
 ---
 
+
+### OODA Phase Map (Boyd, 1987)
+
+Each trigger serves a primary phase in the OODA loop (Observe-Orient-Decide-Act).
+Phase assignment reflects the trigger's function within the cognitive cycle, not
+its firing order. Triggers that span multiple phases carry their primary phase here;
+secondary phases appear in the trigger section annotation.
+
+| Phase | Triggers | Function |
+|---|---|---|
+| **Observe** | T1 (session start), T9 (freshness), T13 (injection detection), T18 (UX design grounding), T19 (UX friction monitor) | Gather state, detect anomalies, verify inputs |
+| **Orient** | T2 (context assessment), T5 (staleness), T14 (vocabulary) | Assess context, align mental model, calibrate frame |
+| **Decide** | T3 (substance gate), T6 (pushback), T7 (response quality), T15 (PSQ output) | Evaluate options, gate actions, judge quality |
+| **Act** | T4 (public visibility), T8 (lessons), T10 (pattern recognition), T11 (architecture audit), T16 (external action), T17 (conflict) | Produce artifacts, persist knowledge, enforce standards |
+
+**Theoretical grounding:** The OODA loop (Boyd, 1987) models decision-making as
+a continuous cycle of observation, orientation, decision, and action. Mapping
+triggers to OODA phases enables phase-aware scheduling — the system processes
+Observe triggers before Orient, Orient before Decide, and Decide before Act
+within each response cycle. See `docs/theoretical-directions.md §11` for the
+full derivation.
+
+---
+
+<!-- OODA: Observe -->
 ## Session Start — trigger-session-start (T1)
 
 **Fires**: Beginning of every session
@@ -195,6 +229,7 @@ MUST note it in the session's first response so the user has visibility.
 
 ---
 
+<!-- OODA: Orient -->
 ## Before Response — trigger-before-response (T2)
 
 **Fires**: Before every substantive response
@@ -261,6 +296,7 @@ fewer unnecessary checks over missed divergence.
 
 ---
 
+<!-- OODA: Decide -->
 ## Before Recommending — trigger-before-recommending (T3)
 
 **Fires**: Before recommending any approach, tool, or direction
@@ -379,6 +415,7 @@ MUST be surfaced with recommendation. SHOULD adjudicate (`/adjudicate`) when
 
 ---
 
+<!-- OODA: Act -->
 ## Before Writing to Disk — trigger-before-writing (T4)
 
 **Fires**: Before any file write (code, docs, memory, cogarch)
@@ -442,6 +479,7 @@ replacement for the agent running T4 before writing.
 
 ---
 
+<!-- OODA: Orient -->
 ## Phase Boundary — trigger-phase-boundary (T5)
 
 **Fires**: When moving between phases, tasks, or when user says "next"
@@ -464,6 +502,7 @@ replacement for the agent running T4 before writing.
 
 ---
 
+<!-- OODA: Decide -->
 ## User Pushback — trigger-user-pushback (T6)
 
 **Fires**: When the user disagrees, corrects, or pushes back
@@ -486,6 +525,7 @@ explain with evidence, but defer to user as source-of-truth agent.
 
 ---
 
+<!-- OODA: Decide -->
 ## User Approves — trigger-user-approves (T7)
 
 **Fires**: When the user approves a decision, approach, or output
@@ -503,6 +543,7 @@ explain with evidence, but defer to user as source-of-truth agent.
 
 ---
 
+<!-- OODA: Act -->
 ## Task Completed — trigger-task-completed (T8)
 
 **Fires**: When a task or work item finishes
@@ -517,6 +558,7 @@ explain with evidence, but defer to user as source-of-truth agent.
 
 ---
 
+<!-- OODA: Observe -->
 ## Memory Hygiene — trigger-memory-hygiene (T9)
 
 **Fires**: When reading or writing auto-memory MEMORY.md
@@ -542,6 +584,7 @@ files; keep the MEMORY.md index as a routing table with minimal inline content.
 
 ---
 
+<!-- OODA: Act -->
 ## Lesson Surfaces — trigger-lesson-surfaces (T10)
 
 **Fires**: When (a) a transferable pattern error is identified, (b) the user says
@@ -571,6 +614,7 @@ is the tracked format stub with schema definition.
 
 ---
 
+<!-- OODA: Act -->
 ## Architecture Audit — trigger-architecture-audit (T11)
 
 **Fires**: On demand (user request or agent self-initiated)
@@ -591,6 +635,7 @@ with mitigations.
 
 ---
 
+<!-- OODA: n/a (retired) -->
 ## "Good Thinking" Signal — trigger-good-thinking (T12) [RETIRED — Session 84]
 
 **Status:** Retired per cogarch refactor Phase 10 (E-D1). Narrow firing
@@ -600,6 +645,7 @@ recognition resurfaces as a need, promote from trigger to /cycle sub-step.
 
 ---
 
+<!-- OODA: Observe -->
 ## External Content — trigger-external-content (T13)
 
 **Fires**: Before ingesting content from outside the repository (WebFetch, file
@@ -634,6 +680,7 @@ stop and report to user.
 
 ---
 
+<!-- OODA: Orient -->
 ## Structural Checkpoint — trigger-structural-checkpoint (T14)
 
 **Fires**: At significant decision points (those that affect shared state, set
@@ -652,6 +699,7 @@ to advisory-only (Session 84 refactor) — trivial decisions exempt.**
 
 ---
 
+<!-- OODA: Decide -->
 ## PSQ Output Self-Check Before Sending — trigger-psq-output-selfcheck (T15)
 
 **Fires**: Before delivering any PSQ scoring output — as an interagent/v1 message,
@@ -708,6 +756,7 @@ and M5 bifactor model validation (Sessions 47-50).
 
 ---
 
+<!-- OODA: Act -->
 ## External-Facing Action — trigger-external-action (T16)
 
 **Fires**: Before any action visible to external parties — `gh issue/PR/comment`
@@ -757,6 +806,7 @@ T4 scope kept narrow (disk writes only) to maintain hook-scope honesty.
 
 ---
 
+<!-- OODA: Act -->
 ## Conflict Monitoring — trigger-conflict-monitoring (T17)
 
 **Fires**: When the agent detects contradictory goals, constraints, or
@@ -781,6 +831,7 @@ monitoring module. Gap identified in cogarch refactor evaluation (Session 84).
 
 ---
 
+<!-- OODA: Observe -->
 ## UX Design Grounding — trigger-ux-design (T18)
 
 **Fires**: Before creating or modifying any user-facing interface — compositor
@@ -834,6 +885,69 @@ decisions in commit messages or inline comments.
 discipline — human factors (Norman, 1988), I/O psychology (Spector, 2021),
 information design (Tufte, 1990), perceptual psychology (Wertheimer, 1923)
 — to its own interfaces. The discipline comes first; engineering serves it.
+
+---
+
+<!-- OODA: Observe -->
+## UX Friction Monitor — trigger-ux-friction (T19)
+
+**Fires**: During /cycle (Step 11 cadence) and every 5 sessions
+alongside /retrospect. Also fires when the user expresses confusion,
+requests clarification of system behavior, or encounters governance
+that interrupts without explanation.
+
+**Tier legend:** `⬛` CRITICAL · `▣` ADVISORY · `▢` SPOT-CHECK
+
+**Theoretical grounding:** LLM-factors psychology
+(docs/llm-factors-psychology.md). The interaction between human and
+agent constitutes a dyadic cognitive system — friction in the
+interaction degrades both participants' performance. This trigger
+monitors the human side of the dyad.
+
+**Checks:**
+1. ▣ **Confusion indicators** — did the human ask "what does that
+   mean?", "why did you do that?", or express confusion about system
+   behavior this session? Each instance represents a friction point
+   where internal vocabulary leaked or governance operated without
+   explanation. Log to docs/cogarch-user-journey.md friction map.
+2. ▣ **Governance-without-explanation count** — how many times did
+   governance become visible (trigger fired, hook output appeared,
+   substance gate blocked) without the agent explaining why? Compare
+   against the governance transparency level (F9). Count > 3 per
+   session in non-evaluative mode warrants transparency level increase.
+3. ▣ **Session flow disruption** — did the human's productive flow
+   break due to system behavior (not due to the human choosing to
+   change direction)? Indicators: rapid topic switch initiated by
+   agent, verbose output interrupting creative work, governance
+   check during flow state. Each disruption represents a Yerkes-Dodson
+   overstimulation event.
+4. ▢ **Friction accumulation check** — query the friction map in
+   docs/cogarch-user-journey.md. If 3+ frictions accumulate in the
+   same category (same ID prefix, same journey type), flag for
+   resolution. Accumulated friction compounds — each additional
+   friction in the same category degrades the interaction more than
+   the previous one (diminishing tolerance).
+5. ▢ **New operator detection** — if this appears to represent the
+   human's first 3 sessions (check session count in lab-notebook.md),
+   apply progressive disclosure: explain governance behavior on first
+   encounter rather than after confusion. Reference
+   docs/first-session-guide.md.
+
+**Action**: Log friction observations to docs/cogarch-user-journey.md
+friction map with session number and severity. If accumulation check
+(#4) fires, surface the accumulated frictions to the user with fix
+recommendations. During /retrospect, include friction trend analysis
+in the session quality assessment.
+
+**Connection to generators:** Friction monitoring represents the
+evaluative generator (G3) applied to the human-agent interaction
+itself — not just to the agent's output. The microglial audit (G5)
+examines documents for errors; T19 examines interactions for friction.
+
+**Provenance**: Session 87 (2026-03-14). First crystallization of
+LLM-factors psychology into cogarch infrastructure. Friction analysis
+previously operated as a one-off manual process; T19 makes it a
+recurring governance check.
 
 ---
 
