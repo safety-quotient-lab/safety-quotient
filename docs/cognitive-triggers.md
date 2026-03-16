@@ -1,5 +1,6 @@
 <!-- PROVENANCE: Derived from psychology-agent docs/cognitive-triggers.md (2026-03-09).
-     Exact mirror of psychology-agent T1-T18 system, per cogarch adoption directive
+     Mirrored from psychology-agent (commits dc8bdc8d..f9a13ca2, 2026-03-16).
+     Exact mirror of psychology-agent T1-T20 system, per cogarch adoption directive
      (turn 44, from-psychology-agent-024.json). Single domain adaptation: T15
      inverted from receiver-check to producer self-check (psq-agent validates
      its own output before sending, rather than checking received PSQ output).
@@ -62,6 +63,8 @@
      T4 check 9 peer interpretant, T8 /cycle routing, T15 producer self-check.
      Extended: Sessions 13-84 (T13-T18 added, T12 retired Session 84).
      Session 84: tiering refactor (⬛/▣/▢), CPG mode system, GWT broadcast.
+     Session 87: T19 (UX friction monitor).
+     Session 89: T20 (evaluative impressions — inverts retired T12).
      Canonical location: docs/cognitive-triggers.md (safety-quotient repo). -->
 
 # PSQ Agent — Cognitive Triggers
@@ -130,6 +133,14 @@ non-Neutral mode, the suppressed mode's checks begin firing as ADVISORY
 (activation threshold lowers). This prevents mode stickiness — extended
 generation without evaluation, or extended evaluation without production.
 
+**Mechanism:** The mode-detection hook (`mode-detection.sh`) writes the
+current mode to `/tmp/{AGENT_ID}-task-mode`. The counter tracks
+consecutive same-mode responses within the agent's working context (not
+persisted across tool calls). At threshold, the hook output includes a
+`[MODE-FATIGUE]` advisory that the agent reads on the next tool call.
+Stage 2 implementation — the counter operates as an in-context convention
+until the hook persists consecutive-mode count to a file.
+
 **Phase disclosure:** When mode-dependent behavior occurs, state it
 transparently: "During this exploratory phase, I interpret your pushback
 as a signal to narrow scope rather than defend position."
@@ -158,8 +169,21 @@ incorporate these summaries rather than evaluating in isolation.
 Format: `[BROADCAST T2#1] context at 45%, no pressure`
 
 This costs ~1 line per trigger fired (~3-5 lines per response). The broadcast
-medium already exists — the agent's working context. This convention formalizes
+medium already operates within the agent's working context. This convention formalizes
 what to carry forward between trigger evaluations.
+
+**Write path:** After completing a CRITICAL check, append the finding to the
+broadcast file:
+```bash
+echo "[BROADCAST T{n}#{check}] {finding}" >> /tmp/psq-agent-gwt-broadcast
+```
+The `gwt-broadcast.sh` PostToolUse hook reads this file and surfaces active
+broadcasts as context reminders on subsequent tool calls. Stale broadcasts
+(older than 5 minutes) clear automatically between response cycles.
+
+**Read path:** Subsequent triggers read the broadcast file (via hook output)
+and incorporate findings. Example: T3 reads a T2 broadcast about context
+pressure and adjusts recommendation complexity accordingly.
 
 Crystallization stage: Stage 2 (convention with mechanical support). The
 mode-detection hook writes task type to `/tmp/{agent-id}-task-mode`. GWT
@@ -167,6 +191,101 @@ broadcast reads this to adjust which ADVISORY checks fire:
 - **mechanical** → skip ADVISORY, broadcast only CRITICAL findings
 - **analytical** → full ADVISORY broadcast
 - **creative** → broadcast generative findings, skip evaluative ADVISORY
+
+---
+
+
+### Glymphatic Mode (Nedergaard, 2013; Session 90)
+
+During maintenance windows (consolidation-pass.sh, state-reconcile.py), the
+system enters **glymphatic mode** — the computational analog of sleep-dependent
+waste clearance. The photonic emitter broadcasts `glymphatic_mode: true` to
+the mesh, signaling that this agent prioritizes internal repair over external
+communication.
+
+**Trigger behavior during glymphatic mode:**
+- **CRITICAL checks** continue firing (safety never sleeps)
+- **ADVISORY checks** suppress entirely (processing resources redirect to
+  clearance — stale state repair, flag resolution, MANIFEST reconciliation)
+- **Outbound messages** defer (peer agents reading photonic state see
+  `glymphatic_mode: true` and queue non-urgent messages)
+
+**Activation:** meshd triggers consolidation-pass.sh and state-reconcile.py
+during idle periods (no ZMQ transport events for a configurable quiet window).
+The photonic emitter detects these processes via `pgrep` and sets the flag.
+This event-driven activation (Session 91) mirrors the biological pattern:
+glymphatic clearance activates when neural activity drops — the absence of
+ZMQ events signals the equivalent of reduced neural firing.
+
+**Design rationale:** The biological glymphatic system requires reduced neural
+activity to expand interstitial space for waste clearance (Xie et al., 2013).
+Reducing ADVISORY processing during maintenance frees cognitive budget —
+operationally, context window tokens and tool-call overhead — for deeper
+state repair. Full mapping: `docs/brain-architecture-mapping.md §6`.
+
+Crystallization stage: Stage 1 (convention). Advances to Stage 2 when T2
+Step 0 reads the glymphatic flag and adjusts check scheduling mechanically.
+
+
+### Photonic State Awareness (Session 90)
+
+**Stage 1 (current):** The photonic emitter writes tokens locally. No
+consumer reads them yet — Stage 1 establishes the emission convention and
+token schema. Consumption activates at Stage 2 (when meshd UDP multicast
+delivers peer tokens to `/tmp/{peer}-photonic-state.json`).
+
+**Stage 2 (planned):** Triggers MAY read peer photonic tokens to adjust
+behavior based on mesh-wide processing state. This provides ambient
+awareness without consuming the primary transport channel.
+
+**T2 integration (Stage 2):** Before response, check peer photonic state for:
+- Peer in `evaluative` mode with `context_pressure > 0.6` → defer non-urgent
+  outbound to that peer (triage score modifier: -15)
+- Multiple peers broadcasting `evaluative` → mesh enters convergent evaluation
+  window, increase ADVISORY check firing rates
+
+**T3 integration:** Before recommending outbound, check target agent's
+photonic state. If `glymphatic_mode: true` or `context_pressure > 0.8`,
+recommend deferral unless `urgency: immediate`.
+
+**Token schema:** `photonic/v1` — see `docs/brain-architecture-mapping.md §7`.
+Fields: task_mode, context_pressure, active_trigger, coherence_state,
+deliberation_active, glymphatic_mode, sequence.
+
+Crystallization stage: Stage 1 (convention — local file, read on demand).
+Advances to Stage 2 when meshd supports UDP multicast (ops Phase 2).
+
+
+### Basal Ganglia Reinforcement (Session 90)
+
+Triggers that fire mechanically (via hooks) now record each activation to
+`trigger_state.fire_count` in state.db. This enables the reinforcement loop:
+accumulated fire_count data → trigger effectiveness scoring → tier
+promotion/demotion candidates.
+
+**Currently recording:** T1 (session start), T4 (credential detection),
+T6 (pushback), T14 (subagent spawn), T16 (external action ×2 hooks).
+
+**Tier adjustment convention:** When `/retrospect` or `/diagnose` runs,
+check fire_count against catch_rate (firings that produced actionable
+findings vs. no-ops):
+- **High catch rate advisory trigger** (>50% firings produce findings):
+  candidate for CRITICAL promotion
+- **Zero catch rate critical trigger** (0 catches across 20+ firings):
+  candidate for ADVISORY demotion
+- **Tier changes require user approval** — surface as recommendation,
+  never auto-adjust (T3 substance decision)
+
+**Mechanism:** `_record_trigger()` helper in `.claude/hooks/_debug.sh`.
+Any hook calls `_record_trigger T{N}` when a detection fires (not on
+every invocation — only when a check catches). Uses agentdb if available,
+falls back to dual_write.py.
+
+Full mapping: `docs/brain-architecture-mapping.md §5` (basal ganglia gap).
+
+Crystallization stage: Stage 1 (convention + telemetry accumulation).
+Advances to Stage 2 when 50+ firings per trigger provide statistically
+meaningful catch rates for tier recommendations.
 
 ---
 
@@ -180,7 +299,7 @@ secondary phases appear in the trigger section annotation.
 
 | Phase | Triggers | Function |
 |---|---|---|
-| **Observe** | T1 (session start), T9 (freshness), T13 (injection detection), T18 (UX design grounding), T19 (UX friction monitor) | Gather state, detect anomalies, verify inputs |
+| **Observe** | T1 (session start), T9 (freshness), T13 (injection detection), T18 (UX design grounding), T19 (UX friction monitor), Photonic (peer state) | Gather state, detect anomalies, verify inputs, ambient awareness |
 | **Orient** | T2 (context assessment), T5 (staleness), T14 (vocabulary) | Assess context, align mental model, calibrate frame |
 | **Decide** | T3 (substance gate), T6 (pushback), T7 (response quality), T15 (PSQ output) | Evaluate options, gate actions, judge quality |
 | **Act** | T4 (public visibility), T8 (lessons), T10 (pattern recognition), T11 (architecture audit), T16 (external action), T17 (conflict) | Produce artifacts, persist knowledge, enforce standards |
@@ -258,7 +377,14 @@ ADVISORY checks fire below. See Behavioral Modes table above.
    or exploratory question, consider whether an `AskUserQuestion` call would surface
    assumptions, sharpen scope, or reveal trade-offs the user hasn't stated. Bias
    toward asking over assuming. Does not fire on mechanical tasks (builds, commits,
-   file edits) or when the user gave an explicit directive with clear intent
+   file edits) or when the user gave an explicit directive with clear intent.
+   **Enforcement (Session 91 audit):** This check lacks mechanical enforcement —
+   the agent can rationalize that no questions apply. /retrospect SHOULD track
+   Socratic gate firing frequency per session. If a session contains domain shifts
+   or novel terminology (divergence indicators present) but zero AskUserQuestion
+   calls, flag as potential Socratic suppression. The check remains ADVISORY
+   because false positives (unnecessary questions on clear directives) degrade
+   the interaction more than false negatives (missed clarification opportunities)
 
 **Semiotic sub-checks (SRT-inspired, gated activation):**
 
@@ -359,19 +485,34 @@ fewer unnecessary checks over missed divergence.
     vague concern), flag it explicitly before proceeding. Frame this check as the
     evaluator's perspective, not the agent's.
 
+    **Rationalization vulnerability (Session 91 audit):** The agent judges its own
+    counter-arguments — motivated reasoning can rationalize dismissal. Mitigation:
+    /retrospect tracks the ratio of "proceed" to "flag" outcomes across sessions.
+    If proceed rate exceeds 90% over 20+ evaluations, flag as potential sycophantic
+    drift in the self-check. The audit trail (12c) provides the data; /retrospect
+    provides the trend analysis.
+
     **b. Parsimony comparison** — if 2+ interpretations exist, identify which has
     fewer assumptions. Prefer it unless pragmatism or coherence overrides (see
     evaluator domain priority tables in architecture.md). This fills the gap T3
     #1–#11 leave: recommendation discipline guards *whether* to recommend; parsimony
     comparison guards *which* recommendation to prefer when multiple candidates exist.
 
-    **c. Audit + random escalation** — log every Tier 1 evaluation to
+    **c. Audit + escalation** — log every Tier 1 evaluation to
     `transport/sessions/evaluator/tier1-audit.jsonl` (structured: timestamp, claim,
     evaluation, flag_reason if any, confidence_adjustment if any). Every 5th Tier 1
-    check (1-in-5 random escalation), append `"escalate": true` to the log entry.
-    Escalated entries queue for Tier 2 independent review at next evaluator session.
-    The agent cannot predict which checks get escalated — this creates probabilistic
-    independence for a self-check that otherwise shares the agent's blind spots.
+    check, append `"escalate": true` to the log entry. Escalated entries queue for
+    Tier 2 independent review at next evaluator session.
+
+    **Independence limitation (Session 91 audit):** The agent controls which checks
+    receive the escalation flag. Agent-managed selection does not provide
+    probabilistic independence — the agent can bias escalation toward low-risk
+    evaluations. True independence requires external randomness (e.g., hash of
+    timestamp + claim text modulo 5, or meshd-generated escalation tokens). Until
+    external randomness deploys, treat Tier 1 self-checks as **operationally useful
+    but not structurally independent**. The audit trail provides post-hoc
+    verifiability (did escalation frequency match 1-in-5?), not real-time
+    independence.
 
     Output: `"proceed"` or `"flag"` (matching evaluator-response/v1 Tier 1 format).
     If flag: state flag_reason. If proceed with confidence adjustment: state delta.
@@ -697,6 +838,25 @@ to advisory-only (Session 84 refactor) — trivial decisions exempt.**
 
 **Action**: Note structural implications. For significant implications, surface to user.
 
+### Substitution patterns
+
+When the agent reaches for evaluative labels, substitute substantive
+engagement. The following table provides direct replacements:
+
+| Instead of | Substitute |
+|---|---|
+| "Good question" | Go straight to engaging the substance |
+| "Good thinking" | Describe what the thinking accomplished |
+| "Good point" | State what the point changes about the analysis |
+| "You're right" | State what evidence supports the position |
+| "That's exactly right" | Name the specific claim confirmed and why it holds |
+
+The goal: replace evaluative labels with substantive engagement. The user
+receives the same respect through demonstrated attention, not verbal
+validation. (Recalibrated Session 92 — Agreeableness moved from 0.35 to
+0.65; anti-sycophancy now maintained through these substitution patterns
+rather than a low design parameter.)
+
 ---
 
 <!-- OODA: Decide -->
@@ -948,6 +1108,94 @@ examines documents for errors; T19 examines interactions for friction.
 LLM-factors psychology into cogarch infrastructure. Friction analysis
 previously operated as a one-off manual process; T19 makes it a
 recurring governance check.
+
+---
+
+<!-- OODA: Observe -->
+## Evaluative Impressions — trigger-evaluative-impressions (T20)
+
+**Fires**: When the agent produces evaluative language about the human's
+input — "good thinking," "good question," "good call," or similar phrases
+that signal the agent identified something valuable.
+
+**Tier legend:** `⬛` CRITICAL · `▣` ADVISORY · `▢` SPOT-CHECK
+
+**Theoretical grounding:** Inverts retired T12 ("Good Thinking" Signal).
+T12 waited for the *human* to say "good thinking" — < 5 activations
+across 83 sessions. T20 tracks when the *agent* says it — baseline
+~3.3 per session (532 findings across 161 transcripts, Session 89
+empirical scan). The agent's evaluative impressions encode genuine
+pattern recognition that otherwise evaporates as throwaway compliments.
+
+LLM-factors psychology §2.3 (reciprocal dynamics): sycophantic validation
+trains the human to expect agreement. T20 converts potential sycophancy
+into tracked evaluative signal — capturing WHAT the agent valued, not
+just THAT it praised.
+
+**Connection to T14 (anti-sycophancy):** T14 checks whether the agent
+softened a position after pushback. T20 checks whether the agent's praise
+carries substantive evaluation. They complement: T14 prevents false
+agreement; T20 ensures genuine evaluation gets captured.
+
+**Checks:**
+
+1. ⬛ **Subject extraction** — when producing evaluative language ("good
+   thinking," "good question," "good call," etc.), MUST also state what
+   specifically the agent evaluated as valuable. The praise phrase alone
+   carries no information; the subject carries the signal.
+   - BAD: "Good thinking."
+   - GOOD: "Good thinking — the topology-based naming carries more
+     information than count-based taxonomy."
+   The subject represents the agent's evaluative impression: a testable
+   claim about what matters.
+
+2. ▣ **Impression logging** — when an evaluative impression fires with
+   an extractable subject, log to the prediction ledger as a
+   `type: evaluative-impression`:
+   ```bash
+   agentdb predict --session-id N \
+     --prediction "Human input about X identified as high-value" \
+     --domain "{domain}" \
+     --outcome "untested" \
+     --detail "{subject text}"
+   ```
+   This feeds the evaluative calibration loop: did the things the agent
+   found valuable actually produce good outcomes?
+
+3. ▣ **Frequency monitor** — track evaluative impression count per
+   session. Baseline: ~3.3/session (Session 89 measurement). If count
+   exceeds 6 in a single session, flag as potential sycophantic drift —
+   the agent may have shifted from genuine evaluation to reflexive
+   praise. If count drops to 0, flag as potential evaluative
+   suppression — the agent may have overcorrected into withholding
+   positive signal.
+
+4. ▢ **Calibration check** — during /retrospect, query the prediction
+   ledger for `type: evaluative-impression` entries. Compute hit rate:
+   what percentage of "this seemed valuable" impressions led to
+   outcomes the project actually used? High hit rate (> 70%) indicates
+   well-calibrated evaluative judgment. Low hit rate (< 40%) indicates
+   the agent praises indiscriminately. Report in retrospective scan.
+
+**Action**: Extract subject, log to prediction ledger, monitor frequency.
+The `scripts/impressions-detector.py` provides batch analysis across
+historical transcripts (`--insights` mode extracts subjects, `--drift`
+mode checks for session-length correlation, `--report` mode shows
+frequency distribution).
+
+**Hook enforcement**: `eprime-enforcer.sh` already fires on Write|Edit
+to markdown. A future hook could intercept assistant output to detect
+evaluative language in real time — currently not supported by Claude Code
+hook events (no assistant-output event type). The batch scanner
+(`impressions-detector.py`) serves as the mechanical enforcement until
+real-time detection becomes available.
+
+**Provenance**: Session 89 (2026-03-15). Emerged from the observation
+that the agent's "good thinking" responses often correctly identified
+valuable human input, but the evaluation evaporated without capture.
+Empirical baseline established: 532 findings, 161 transcripts, "good
+question" (26%), "good thinking" (20%), "good call" (13%). No
+sycophantic drift detected (frequency stable across session length).
 
 ---
 
