@@ -1,5 +1,5 @@
 <!-- PROVENANCE: Derived from psychology-agent docs/cognitive-triggers.md (2026-03-09).
-     Mirrored from psychology-agent (commits dc8bdc8d..15699acf, 2026-03-17).
+     Mirrored from psychology-agent (commits dc8bdc8d..af6a68854, 2026-03-20).
      Exact mirror of psychology-agent T1-T20 system, per cogarch adoption directive
      (turn 44, from-psychology-agent-024.json). Single domain adaptation: T15
      inverted from receiver-check to producer self-check (psq-agent validates
@@ -780,8 +780,8 @@ they want to grok or internalize something, or (c) a genuine conceptual shift oc
      passes on the third occurrence (i.e., the 2nd and 3rd occurrences fell
      within 10 days of each other).
 
-**Action**: Write entry to lessons.md. lessons.md is gitignored; lessons.md.example
-is the tracked format stub with schema definition.
+**Action**: Write entry to lessons.md. The gitignore excludes lessons.md; lessons.md.example
+serves as the tracked format stub with schema definition.
 
 ---
 
